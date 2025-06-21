@@ -8,7 +8,7 @@ https://www.openpolicyagent.org/
 json-based namespace, relation, and rewrite definitions
 
 ## policy engine
-`f(tuple) => allowed | denied`
+`f(principal, resource) => allowed | denied`
 
 ## storage engine
 event-based tuple store. account ledger style. current state of a tuple is determined by folding over the tuple's events. periodic snapshots for performance.
