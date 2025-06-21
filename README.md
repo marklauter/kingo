@@ -1,5 +1,5 @@
 # kingo
-access control
+relationship-based access control (rebac)
 
 ## opa
 https://www.openpolicyagent.org/
@@ -8,3 +8,8 @@ https://www.openpolicyagent.org/
 
 ## policy engine
 `f(tuple) => allowed | denied`
+
+## storage engine
+
+## dev log
+20 JUN 2025 - project initiation
