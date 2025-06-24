@@ -1,7 +1,6 @@
-﻿namespace Kingo.Storage
-{
-    public class Class1
-    {
+﻿namespace Kingo.Storage;
 
-    }
+public class Class1
+{
+
 }

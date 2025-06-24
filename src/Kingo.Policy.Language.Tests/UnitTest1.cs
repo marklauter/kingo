@@ -1,4 +1,4 @@
-﻿namespace King.Policy.Language.Tests;
+﻿namespace Kingo.Policy.Language.Tests;
 
 public class UnitTest1
 {
