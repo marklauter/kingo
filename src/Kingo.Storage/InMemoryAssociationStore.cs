@@ -6,6 +6,7 @@ namespace Kingo.Storage;
 
 public sealed class InMemoryAssociationStore
 {
+    // todo: AclTarget is not even a little bit safe for concurrent reads and writes
     private sealed class AclTarget
     {
         private readonly ConcurrentDictionary<string, bool> subjects = new();
@@ -15,16 +16,22 @@ public sealed class InMemoryAssociationStore
 
         public bool Allow(Either<Subject, SubjectSet> subject) =>
             subject.Match(
-                Left: sub => subjects.TryAdd(sub.ToString(), true),
+                Left: sub => subjects.TryAdd(sub.AsKey(), true),
                 Right: AllowedSubjectSets.Add);
 
         public bool Deny(Either<Subject, SubjectSet> subject) =>
             subject.Match(
-                Left: sub => subjects.TryAdd(sub.ToString(), false),
+                Left: sub => subjects.TryAdd(sub.AsKey(), false),
                 Right: DeniedSubjectSets.Add);
 
+        /// <summary>
+        /// Returns true if a direct match in subjects is found, 
+        /// otherwise returns the AclTarget for further processing by the association store.
+        /// </summary>
+        /// <param name="subject"></param>
+        /// <returns><see cref="Either{AclTarget, bool}"/></returns>
         public Either<AclTarget, bool> IsAllowed(Subject subject) =>
-            subjects.TryGetValue(subject.ToString(), out var allowed)
+            subjects.TryGetValue(subject.AsKey(), out var allowed)
                 ? allowed
                 : this;
     }
