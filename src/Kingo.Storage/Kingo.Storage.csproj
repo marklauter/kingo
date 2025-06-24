@@ -21,4 +21,8 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Kingo\Kingo.csproj" />
+	</ItemGroup>
+
 </Project>

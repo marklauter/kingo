@@ -6,9 +6,9 @@ public sealed record SubjectSet(
     string Id,
     LogicalTime Version,
     Resource Resource,
-    Relationship Edge)
+    Relationship Relationship)
     : Fact(Id, Version)
 {
-    public override string ToString() => $"{Resource}#{Edge}";
+    public override string ToString() => $"{Resource}#{Relationship}";
 }
 
