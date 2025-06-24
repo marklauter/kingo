@@ -1,11 +1,17 @@
-﻿using Kingo.Facts;
+﻿using Kingo.Clock;
+using Kingo.Facts;
 using LanguageExt;
 using System.Collections.Concurrent;
 
 namespace Kingo.Storage;
 
-public sealed class InMemoryAssociationStore
+/// <summary>
+/// This is a demo store. A production store would use DynamoDB, Casandra, or other versioned key-value store.
+/// </summary>
+public sealed class InMemoryAssociationStore(LogicalClock clock)
 {
+    // todo: use the clock to set versions on the document entries
+
     // todo: AclTarget is not even a little bit safe for concurrent reads and writes
     private sealed class AclTarget
     {
