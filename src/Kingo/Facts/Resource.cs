@@ -7,7 +7,10 @@ public sealed record Resource(
     LogicalTime Version,
     Namespace Namespace)
     : Fact(Id, Version)
+    , IKey<string>
 {
-    public override string ToString() => $"{Namespace}:{Id}";
+    public override string AsKey() => $"{Namespace}:{Id}";
+
+    public override string ToString() => AsKey();
 }
 

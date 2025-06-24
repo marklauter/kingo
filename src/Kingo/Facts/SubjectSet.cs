@@ -3,7 +3,10 @@
 public sealed record SubjectSet(
     Resource Resource,
     Relationship Relationship)
+    : IKey<string>
 {
-    public override string ToString() => $"{Resource}#{Relationship}";
+    public string AsKey() => $"{Resource}#{Relationship}";
+
+    public override string ToString() => AsKey();
 }
 

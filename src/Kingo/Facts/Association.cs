@@ -5,8 +5,11 @@ namespace Kingo.Facts;
 public readonly record struct Association(
     SubjectSet ResourceRelationship,
     Either<Subject, SubjectSet> Subject)
+    : IKey<string>
 {
-    public override string ToString() => $"{ResourceRelationship}@{Subject}";
+    public string AsKey() => $"{ResourceRelationship}@{Subject}";
+
+    public override string ToString() => AsKey();
 
     public static Association Cons(
         Resource resource,

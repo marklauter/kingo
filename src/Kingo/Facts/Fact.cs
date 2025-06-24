@@ -3,6 +3,7 @@
 namespace Kingo.Facts;
 
 public abstract record Fact
+    : IKey<string>
 {
     public Fact(string id, LogicalTime version)
     {
@@ -19,6 +20,8 @@ public abstract record Fact
     public string Id { get; }
     public LogicalTime Version { get; }
 
-    public override string ToString() => Id;
+    public virtual string AsKey() => Id;
+
+    public override string ToString() => AsKey();
 }
 
