@@ -28,6 +28,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policy.Language", "Ki
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policy.Language.Tests", "Kingo.Policy.Language.Tests\Kingo.Policy.Language.Tests.csproj", "{12543EC0-BCCC-D85A-7757-8A1021314D82}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo", "Kingo\Kingo.csproj", "{71577A58-3D1D-46A0-8926-75E9527042B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Tests", "Kingo.Tests\Kingo.Tests.csproj", "{53B5323D-AB6B-4184-B222-9538F030C0EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +62,14 @@ Global
 		{12543EC0-BCCC-D85A-7757-8A1021314D82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12543EC0-BCCC-D85A-7757-8A1021314D82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12543EC0-BCCC-D85A-7757-8A1021314D82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71577A58-3D1D-46A0-8926-75E9527042B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71577A58-3D1D-46A0-8926-75E9527042B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71577A58-3D1D-46A0-8926-75E9527042B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71577A58-3D1D-46A0-8926-75E9527042B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53B5323D-AB6B-4184-B222-9538F030C0EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53B5323D-AB6B-4184-B222-9538F030C0EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53B5323D-AB6B-4184-B222-9538F030C0EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53B5323D-AB6B-4184-B222-9538F030C0EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
