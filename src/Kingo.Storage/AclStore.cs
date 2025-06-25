@@ -3,6 +3,9 @@ using LanguageExt;
 
 namespace Kingo.Storage;
 
+// todo: convert AclStore to use the document store
+// to prove it can be performed with dynamodb or cassandra
+
 // <summary>
 /// This is a demo store. A production store would use DynamoDB, Casandra, or other versioned key-value store.
 /// </summary>
