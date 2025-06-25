@@ -27,7 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Policy.Language\Kingo.Policy.Language.csproj" />
+	  <ProjectReference Include="..\Kingo.AuthZ.Server\Kingo.AuthZ.Server.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

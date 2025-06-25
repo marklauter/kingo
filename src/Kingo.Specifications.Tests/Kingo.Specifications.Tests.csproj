@@ -27,7 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Policy.Server\Kingo.Policy.Server.csproj" />
+	  <ProjectReference Include="..\Kingo.Specifications\Kingo.Specifications.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
