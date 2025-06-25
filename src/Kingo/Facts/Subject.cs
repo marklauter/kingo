@@ -1,6 +1,3 @@
-﻿using Kingo.Clock;
+﻿namespace Kingo.Facts;
 
-namespace Kingo.Facts;
-
-public sealed record Subject(string Id, LogicalTime Version) : Fact(Id, Version);
-
+public sealed record Subject(Guid Id);
