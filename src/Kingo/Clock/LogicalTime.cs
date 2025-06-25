@@ -4,33 +4,34 @@ using System.Text.Json.Serialization;
 
 namespace Kingo.Clock;
 
-[JsonConverter(typeof(StringConvertible<LogicalTime>))]
-public readonly record struct LogicalTime
-    : IStringConvertible<LogicalTime>
+[JsonConverter(typeof(StringConvertible<LogicalClock>))]
+public readonly struct LogicalClock
+    : IStringConvertible<LogicalClock>
 {
-    public long Tick { get; }
+    public long Value { get; }
 
-    private LogicalTime(long tick) => Tick = NonNegative(tick);
+    private LogicalClock(long tick) => Value = NonNegative(tick);
 
     [JsonConstructor]
-    private LogicalTime(string s)
+    private LogicalClock(string s)
         : this(Parse(s))
     {
     }
 
-    public static LogicalTime From(long tick) => new(tick);
-    public static LogicalTime From(string s) => new(s);
+    public static LogicalClock Zero { get; }
+    public static LogicalClock From(long tick) => new(tick);
+    public static LogicalClock From(string s) => new(s);
+
+    public LogicalClock Tick() => new(Value + 1);
 
     private static long NonNegative(long tick) => tick >= 0 ? tick : 0;
 
-    private static long Parse(string s)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(s);
-        return long.Parse(s, NumberStyles.Number, CultureInfo.InvariantCulture);
-    }
+    private static long Parse(string s) =>
+        long.Parse(string.IsNullOrWhiteSpace(s) ? "0" : s, NumberStyles.Number, CultureInfo.InvariantCulture);
 
-    public override string ToString() => Tick.ToString(CultureInfo.InvariantCulture);
+    public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
+    public override int GetHashCode() => Value.GetHashCode();
 
-    public static implicit operator LogicalTime(string s) => new(s);
-    public static implicit operator string(LogicalTime t) => t.ToString();
+    public static implicit operator LogicalClock(string s) => new(s);
+    public static implicit operator string(LogicalClock t) => t.ToString();
 }
