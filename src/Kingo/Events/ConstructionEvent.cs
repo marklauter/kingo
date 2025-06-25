@@ -1,8 +1,8 @@
-﻿using Kingo.Facts;
+﻿//using Kingo.Facts;
 
-namespace Kingo.Events;
+//namespace Kingo.Events;
 
-public record ConstructionEvent<T>(Subject Author, DateTime Timestamp, T State)
-    : DataChangeEvent(Author, Timestamp)
-    where T : Fact;
+//public record ConstructionEvent<T>(Subject Author, DateTime Timestamp, T State)
+//    : DataChangeEvent(Author, Timestamp)
+//    where T : Fact;
 
