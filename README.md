@@ -27,4 +27,6 @@ read_tuple(0) => fold(tuple:0:events) // yields tuple:0 (x1, y1)
 ## dev log
 - 20 JUN 2025 - project initiation
 - 23 JUN 2025 - created solution
-- 23 JUN 2025 - in-memory storage engine
+- 23 JUN 2025 - rough in-memory storage engine
+- 24 JUN 2025 - began work on simulated key-value store
+- 25 JUN 2025 - 
