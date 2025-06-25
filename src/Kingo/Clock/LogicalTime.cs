@@ -10,7 +10,7 @@ public readonly record struct LogicalTime
 {
     public long Tick { get; }
 
-    private LogicalTime(long tick) => Tick = GreaterThanZero(tick);
+    private LogicalTime(long tick) => Tick = NonNegative(tick);
 
     [JsonConstructor]
     private LogicalTime(string s)
@@ -21,11 +21,7 @@ public readonly record struct LogicalTime
     public static LogicalTime From(long tick) => new(tick);
     public static LogicalTime From(string s) => new(s);
 
-    private static long GreaterThanZero(long tick)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(tick, 0);
-        return tick;
-    }
+    private static long NonNegative(long tick) => tick >= 0 ? tick : 0;
 
     private static long Parse(string s)
     {

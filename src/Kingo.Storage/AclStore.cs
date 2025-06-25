@@ -32,11 +32,11 @@ public sealed class AclStore
             subjects.Contains(subject.AsKey()) ? true : subjectSets;
     }
 
+    private readonly Map<string, AclElements> acls = [];
+
     public AclStore() { }
 
     private AclStore(Map<string, AclElements> acls) => this.acls = acls;
-
-    private readonly Map<string, AclElements> acls = [];
 
     public AclStore Union(Resource resource, Relationship relationship, Either<Subject, SubjectSet> e) =>
         Union(resource.AsKey(relationship), e);
@@ -47,7 +47,7 @@ public sealed class AclStore
     private AclElements ReadAclElements(string key) =>
         acls.Find(key).Match(
             Some: e => e,
-            None: new AclElements());
+            None: () => new());
 
     /*
     CHECK(U,⟨object#relation⟩) =
