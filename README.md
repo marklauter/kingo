@@ -2,7 +2,8 @@
 relationship-based access control (rebac)
 
 ## references
-- [Datomic](https://www.youtube.com/watch?v=Cym4TZwTCNU)
+- [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
+- [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 - [Google Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
 
 ## policy language
