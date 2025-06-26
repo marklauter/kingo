@@ -1,5 +1,4 @@
-﻿using Kingo.Clock;
-using LanguageExt;
+﻿using LanguageExt;
 
 namespace Kingo.Storage;
 
@@ -7,8 +6,8 @@ public record Range
 {
     public static Range U() => new();
     public static RangeSince Since(string rangeKey) => new(rangeKey);
-    public static RangeUntil RangeUntil(string rangeKey) => new(rangeKey);
-    public static RangeSpan FromTo(string fromKey, string toKey) => new(fromKey, toKey);
+    public static RangeUntil Until(string rangeKey) => new(rangeKey);
+    public static RangeSpan Span(string fromKey, string toKey) => new(fromKey, toKey);
 }
 
 public sealed record RangeSince(string RangeKey) : Range;
@@ -18,45 +17,107 @@ public sealed record RangeSpan(string FromKey, string ToKey) : Range;
 public sealed class DocumentStore
 {
     // outer = hashkey (partition key), inner = rangekey (sort key)
-    private Map<string, Map<string, Document>> map = [];
+    private sealed record MapHolder(Map<string, Map<string, Document>> Map)
+    {
+        public static MapHolder Empty = new(Prelude.Empty);
+        public static MapHolder From(Map<string, Map<string, Document>> map) => new(map);
+    }
 
-    public void Put<T>(string hashKey, string rangeKey, T tuple) where T : notnull =>
-        map = map.AddOrUpdate(
-            hashKey,
-            map.Find(hashKey)
+    private MapHolder mapHolder = MapHolder.Empty;
+
+    public bool TryPut<T>(Document<T> document, CancellationToken cancellationToken) where T : notnull
+    {
+        while (true)
+        {
+            try
+            {
+                if (TryPut(document))
+                    return true;
+            }
+            catch (ArgumentException) // document already exists
+            {
+                return false;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+                return false;
+        }
+    }
+
+    private bool TryPut<T>(Document<T> document) where T : notnull
+    {
+        var snapshot = mapHolder;
+        return ReferenceEquals(Interlocked.CompareExchange(ref mapHolder, Put(snapshot.Map, document), snapshot), snapshot);
+    }
+
+    private static MapHolder Put<T>(
+        Map<string, Map<string, Document>> map,
+        Document<T> document) where T : notnull =>
+        MapHolder.From(
+            map.AddOrUpdate(
+                document.HashKey,
+                map
+                .Find(document.HashKey)
                 .Match(
-                    Some: x => x,
-                    None: () => [])
-                .Add(rangeKey, Document.New(hashKey, rangeKey, LogicalClock.Zero, tuple))); // throws on exists
+                    Some: innerMap => innerMap,
+                    None: () => Prelude.Empty)
+                .Add(document.RangeKey, document)));
 
     public void Update<T>(Document<T> document) where T : notnull =>
         // todo: need to check exists, then check versions are equal for optimistic concurrency and the decide to write or fail
         throw new NotImplementedException();
 
     public Option<Document<T>> Read<T>(string hashKey, string rangeKey) where T : notnull =>
-        map.Find(hashKey).Match(
+        mapHolder.Map.Find(hashKey)
+        .Match(
             None: () => Prelude.None,
             Some: m =>
                 m.Find(rangeKey)
-                .Match(
-                    None: () => Prelude.None,
-                    Some: d => Prelude.Some((Document<T>)d)));
+                .Filter(document => document is Document<T>)
+                .Map(document => (Document<T>)document));
 
-    public Option<Seq<Document<T>>> Read<T>(string hashKey, Range range) where T : notnull =>
-        map.Find(hashKey).Match(
-            None: () => Prelude.None,
-            Some: m =>
-                m.Find(rangeKey)
-                .Match(
-                    None: () => Prelude.None,
-                    Some: d => Prelude.Some((Document<T>)d)));
+    public Iterable<Document<T>> Read<T>(string hashKey, Range range) where T : notnull =>
+        mapHolder.Map.Find(hashKey)
+        .Match(
+            None: () => Prelude.Empty,
+            Some: m => range switch
+            {
+                RangeSince since => Read<T>(m, since),
+                RangeUntil until => Read<T>(m, until),
+                RangeSpan span => Read<T>(m, span),
+                Range u => Read<T>(m, u),
+                _ => throw new NotSupportedException("unknown range type")
+            });
 
-    public Option<Seq<Document<T>>> Query<T>(string hashKey, Func<T, bool> predicate) where T : notnull =>
-        map.Find(hashKey).Match(
-            None: () => Prelude.None,
+    public Iterable<Document<T>> Where<T>(string hashKey, Func<Document<T>, bool> predicate) where T : notnull =>
+        mapHolder.Map.Find(hashKey)
+        .Match(
+            None: () => Iterable<Document<T>>.Empty,
             Some: m =>
-                m.Find(rangeKey)
-                .Match(
-                    None: () => Prelude.None,
-                    Some: d => Prelude.Some((Document<T>)d)));
+                m.Filter(document =>
+                    document is Document<T> documentT
+                    && predicate(documentT))
+                .Values
+                .Map(document => (Document<T>)document));
+
+    private static Iterable<Document<T>> Read<T>(Map<string, Document> map, RangeSince since) where T : notnull =>
+        map.Filter(document =>
+            document is Document<T> documentT
+            && string.CompareOrdinal(documentT.RangeKey, since.RangeKey) >= 0)
+        .Values.Map(document => (Document<T>)document);
+
+    private static Iterable<Document<T>> Read<T>(Map<string, Document> map, RangeUntil until) where T : notnull =>
+        map.Filter(document =>
+            document is Document<T> documentT
+            && string.CompareOrdinal(documentT.RangeKey, until.RangeKey) <= 0)
+        .Values.Map(document => (Document<T>)document);
+
+    private static Iterable<Document<T>> Read<T>(Map<string, Document> map, RangeSpan span) where T : notnull =>
+        map.FindRange(span.FromKey, span.ToKey)
+        .Filter(document => document is Document<T>)
+        .Map(document => (Document<T>)document);
+
+    private static Iterable<Document<T>> Read<T>(Map<string, Document> map, Range _) where T : notnull =>
+        map.Filter(document => document is Document<T>)
+        .Values.Map(document => (Document<T>)document);
 }

@@ -2,9 +2,16 @@
 
 namespace Kingo.Storage;
 
-public record Document(string HashKey, string RangeKey, LogicalClock Version, DateTime Timestamp)
+public record Document(
+    string HashKey,
+    string RangeKey,
+    LogicalClock Version,
+    DateTime Timestamp)
 {
-    public static Document<T> New<T>(string hashKey, string rangeKey, LogicalClock version, T tuple) =>
+    public static Document<T> Cons<T>(string hashKey, string rangeKey, T tuple) where T : notnull =>
+        new(hashKey, rangeKey, LogicalClock.Zero, DateTime.UtcNow, tuple);
+
+    public static Document<T> Cons<T>(string hashKey, string rangeKey, LogicalClock version, T tuple) where T : notnull =>
         new(hashKey, rangeKey, version, DateTime.UtcNow, tuple);
 }
 
