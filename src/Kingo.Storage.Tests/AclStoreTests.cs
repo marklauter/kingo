@@ -2,7 +2,7 @@
 
 namespace Kingo.Storage.Tests;
 
-public class AclStoreTests
+public sealed class AclStoreTests
 {
     [Fact]
     public void SimpleIsAMemberOf()
