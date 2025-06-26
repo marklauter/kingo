@@ -3,22 +3,25 @@ using LanguageExt;
 
 namespace Kingo.Storage;
 
-public sealed record Error(string Message);
+public record Range
+{
+    public static Range U() => new();
+    public static RangeSince Since(string rangeKey) => new(rangeKey);
+    public static RangeUntil RangeUntil(string rangeKey) => new(rangeKey);
+    public static RangeSpan FromTo(string fromKey, string toKey) => new(fromKey, toKey);
+}
+
+public sealed record RangeSince(string RangeKey) : Range;
+public sealed record RangeUntil(string RangeKey) : Range;
+public sealed record RangeSpan(string FromKey, string ToKey) : Range;
 
 public sealed class DocumentStore
 {
-    // outer = hashkey, inner = rangekey
-    private readonly Map<string, Map<string, Document>> map = [];
+    // outer = hashkey (partition key), inner = rangekey (sort key)
+    private Map<string, Map<string, Document>> map = [];
 
-    public DocumentStore() { }
-
-    private DocumentStore(Map<string, Map<string, Document>> map) => this.map = map;
-
-    public DocumentStore Write<T>(string hashKey, string rangeKey, T tuple) where T : notnull =>
-        new(Add(hashKey, rangeKey, tuple));
-
-    private Map<string, Map<string, Document>> Add<T>(string hashKey, string rangeKey, T tuple) where T : notnull =>
-        map.AddOrUpdate(
+    public void Put<T>(string hashKey, string rangeKey, T tuple) where T : notnull =>
+        map = map.AddOrUpdate(
             hashKey,
             map.Find(hashKey)
                 .Match(
@@ -26,14 +29,29 @@ public sealed class DocumentStore
                     None: () => [])
                 .Add(rangeKey, Document.New(hashKey, rangeKey, LogicalClock.Zero, tuple))); // throws on exists
 
-    public DocumentStore Write<T>(Document<T> document) where T : notnull =>
-        new(Update(document));
-
-    private Map<string, Map<string, Document>> Update<T>(Document<T> document) where T : notnull =>
+    public void Update<T>(Document<T> document) where T : notnull =>
         // todo: need to check exists, then check versions are equal for optimistic concurrency and the decide to write or fail
         throw new NotImplementedException();
 
     public Option<Document<T>> Read<T>(string hashKey, string rangeKey) where T : notnull =>
+        map.Find(hashKey).Match(
+            None: () => Prelude.None,
+            Some: m =>
+                m.Find(rangeKey)
+                .Match(
+                    None: () => Prelude.None,
+                    Some: d => Prelude.Some((Document<T>)d)));
+
+    public Option<Seq<Document<T>>> Read<T>(string hashKey, Range range) where T : notnull =>
+        map.Find(hashKey).Match(
+            None: () => Prelude.None,
+            Some: m =>
+                m.Find(rangeKey)
+                .Match(
+                    None: () => Prelude.None,
+                    Some: d => Prelude.Some((Document<T>)d)));
+
+    public Option<Seq<Document<T>>> Query<T>(string hashKey, Func<T, bool> predicate) where T : notnull =>
         map.Find(hashKey).Match(
             None: () => Prelude.None,
             Some: m =>
