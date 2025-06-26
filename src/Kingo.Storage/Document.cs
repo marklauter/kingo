@@ -1,4 +1,4 @@
-﻿using Kingo.Clock;
+﻿using Kingo.Clocks;
 
 namespace Kingo.Storage;
 
