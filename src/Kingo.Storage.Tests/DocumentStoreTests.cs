@@ -9,19 +9,20 @@ public sealed class DocumentStoreTests
     [Fact]
     public void TryPutSucceedsAndCanReadBack()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
-        var result = store.TryPut(doc, CancellationToken.None);
-        Assert.True(result);
-        var read = store.Read<TestTuple>("h", "r");
-        Assert.True(read.IsSome);
-        Assert.Equal("foo", read.IfNone(() => null)?.Tuple.Value);
+        Assert.True(store.TryPut(doc, CancellationToken.None));
+
+        _ = store.Read<TestTuple>("h", "r")
+            .Match(
+                None: () => Assert.Fail("no read"),
+                Some: d => Assert.Equal("foo", d.Tuple.Value));
     }
 
     [Fact]
     public void TryPutDuplicateFails()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
         Assert.True(store.TryPut(doc, CancellationToken.None));
         Assert.False(store.TryPut(doc, CancellationToken.None));
@@ -30,12 +31,14 @@ public sealed class DocumentStoreTests
     [Fact]
     public void TryUpdateSucceedsWithCorrectVersion()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
         Assert.True(store.TryPut(doc, CancellationToken.None));
+
         var read = store.Read<TestTuple>("h", "r").IfNone(() => null);
         var updated = read with { Tuple = new TestTuple("bar") };
         Assert.True(store.TryUpdate(updated, CancellationToken.None));
+
         var read2 = store.Read<TestTuple>("h", "r").IfNone(() => null);
         Assert.Equal("bar", read2.Tuple.Value);
         Assert.True(read2.Version.Value > read.Version.Value);
@@ -44,7 +47,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void TryUpdateFailsWithWrongVersion()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
         Assert.True(store.TryPut(doc, CancellationToken.None));
         var read = store.Read<TestTuple>("h", "r").IfNone(() => null);
@@ -55,7 +58,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void ReadReturnsNoneIfNotFound()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         var read = store.Read<TestTuple>("h", "r");
         Assert.True(read.IsNone);
     }
@@ -63,7 +66,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void ReadRangeUnboundReturnsAll()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         _ = store.TryPut(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None);
@@ -77,7 +80,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void ReadRangeSinceReturnsCorrect()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         _ = store.TryPut(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None);
@@ -90,7 +93,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void ReadRangeUntilReturnsCorrect()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         _ = store.TryPut(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None);
@@ -103,7 +106,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void ReadRangeSpanReturnsCorrect()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         _ = store.TryPut(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None);
@@ -116,7 +119,7 @@ public sealed class DocumentStoreTests
     [Fact]
     public void WhereFiltersCorrectly()
     {
-        var store = new DocumentStore();
+        var store = DocumentStore.Empty();
         _ = store.TryPut(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None);
         _ = store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None);
