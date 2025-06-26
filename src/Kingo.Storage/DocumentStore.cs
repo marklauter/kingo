@@ -5,6 +5,8 @@ namespace Kingo.Storage;
 
 public sealed class DocumentStore
 {
+    public static DocumentStore Empty() => new();
+
     // outer = hashkey (partition key), inner = rangekey (sort key)
     private sealed record MapHolder(Map<string, Map<string, Document>> Map)
     {
