@@ -32,16 +32,24 @@ public sealed class DocumentStoreTests
     public void TryUpdateSucceedsWithCorrectVersion()
     {
         var store = DocumentStore.Empty();
-        var doc = Document.Cons("h", "r", new TestTuple("foo"));
-        Assert.True(store.TryPut(doc, CancellationToken.None));
+        Assert.True(store.TryPut(Document.Cons("h", "r", new TestTuple("foo")), CancellationToken.None));
+        _ = store.Read<TestTuple>("h", "r")
+            .Match(
+                None: () => throw new Exception("no read"),
+                Some: read =>
+                {
+                    var updated = read with { Tuple = new TestTuple("bar") };
+                    Assert.True(store.TryUpdate(updated, CancellationToken.None));
 
-        var read = store.Read<TestTuple>("h", "r").IfNone(() => null);
-        var updated = read with { Tuple = new TestTuple("bar") };
-        Assert.True(store.TryUpdate(updated, CancellationToken.None));
-
-        var read2 = store.Read<TestTuple>("h", "r").IfNone(() => null);
-        Assert.Equal("bar", read2.Tuple.Value);
-        Assert.True(read2.Version.Value > read.Version.Value);
+                    _ = store.Read<TestTuple>("h", "r")
+                        .Match(
+                            None: () => throw new Exception("no read"),
+                            Some: d =>
+                            {
+                                Assert.Equal("bar", d.Tuple.Value);
+                                Assert.True(d.Version.Value > read.Version.Value);
+                            });
+                });
     }
 
     [Fact]
@@ -50,7 +58,11 @@ public sealed class DocumentStoreTests
         var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
         Assert.True(store.TryPut(doc, CancellationToken.None));
-        var read = store.Read<TestTuple>("h", "r").IfNone(() => null);
+        Document<TestTuple>? read = null;
+        _ = store.Read<TestTuple>("h", "r")
+            .Match(
+                None: () => Assert.Fail("no read"),
+                Some: d => read = d);
         var updated = read with { Tuple = new TestTuple("bar"), Version = read.Version.Tick().Tick() };
         Assert.False(store.TryUpdate(updated, CancellationToken.None));
     }
