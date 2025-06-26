@@ -27,6 +27,5 @@ internal static class KeyExtensions
         e.Match(
             Left: AsKey,
             Right: AsKey);
-
 }
 
