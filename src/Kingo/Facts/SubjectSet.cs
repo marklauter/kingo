@@ -1,3 +1,5 @@
-﻿namespace Kingo.Facts;
+﻿using Kingo.Primitives;
 
-public sealed record SubjectSet(Resource Resource, Relationship Relationship);
+namespace Kingo.Facts;
+
+public sealed record SubjectSet(Resource Resource, Identifier Relationship);
