@@ -1,3 +1,5 @@
-﻿namespace Kingo.Storage.Ranges;
+﻿using Kingo.Primitives;
 
-public sealed record RangeSpan(string FromKey, string ToKey) : UnboundRange;
+namespace Kingo.Storage.Ranges;
+
+public sealed record Between(Key FromKey, Key ToKey) : KeyRange;
