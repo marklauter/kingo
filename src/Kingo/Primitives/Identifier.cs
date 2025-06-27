@@ -10,9 +10,10 @@ namespace Kingo.Primitives;
 public readonly struct Identifier
     : IStringConvertible<Identifier>
     , IEquatable<Identifier>
+    , IComparable<Identifier>
 {
     private readonly string value;
-    private static readonly Regex ValidIdentifier = RegExPatterns.Identifier();
+    private static readonly Regex Validation = RegExPatterns.Identifier();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Identifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
@@ -28,8 +29,8 @@ public readonly struct Identifier
     private static string ValidValue(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
-        return !ValidIdentifier.IsMatch(value)
-            ? throw new ArgumentException($"Identifier contains invalid characters: '{value}'", nameof(value))
+        return !Validation.IsMatch(value)
+            ? throw new ArgumentException($"value contains invalid characters: '{value}'", nameof(value))
             : value;
     }
 
@@ -46,6 +47,9 @@ public readonly struct Identifier
     public override bool Equals(object? obj) => obj is Identifier identifier && Equals(identifier);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(Identifier other) => string.CompareOrdinal(value, other.value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator string(Identifier identifier) => identifier.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -56,4 +60,16 @@ public readonly struct Identifier
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Identifier left, Identifier right) => !(left == right);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <(Identifier left, Identifier right) => left.CompareTo(right) < 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <=(Identifier left, Identifier right) => left.CompareTo(right) <= 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >(Identifier left, Identifier right) => left.CompareTo(right) > 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >=(Identifier left, Identifier right) => left.CompareTo(right) >= 0;
 }
