@@ -12,4 +12,7 @@ public partial class RegExPatterns
 
     [GeneratedRegex(@"^[A-Za-z0-9_.:/@#]+$", PatternOptions)]
     public static partial Regex Identifier();
+
+    [GeneratedRegex(@"^[A-Za-z0-9_.:/@#]+$", PatternOptions)]
+    public static partial Regex Key();
 }
