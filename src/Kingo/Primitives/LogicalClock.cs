@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace Kingo.Clocks;
+namespace Kingo.Primitives;
 
 [JsonConverter(typeof(StringConvertible<LogicalClock>))]
 public readonly struct LogicalClock
@@ -57,6 +57,9 @@ public readonly struct LogicalClock
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj) => obj is LogicalClock clock && Equals(clock);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static LogicalClock Empty() => Zero;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LogicalClock left, LogicalClock right) => left.Equals(right);

@@ -1,3 +1,5 @@
-﻿namespace Kingo.Facts;
+﻿using Kingo.Primitives;
 
-public sealed record Relationship(string Name);
+namespace Kingo.Facts;
+
+public sealed record Relationship(Identifier Namespace, Identifier Name);
