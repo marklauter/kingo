@@ -2,4 +2,4 @@
 
 namespace Kingo.Facts;
 
-public sealed record Relationship(Identifier Namespace, Identifier Name);
+public sealed record Relationship(Identifier Name);

@@ -12,7 +12,7 @@ internal static class KeyExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string AsKey(this Resource resource) =>
-        $"{resource.Namespace.Name}:{resource.Name}";
+        $"{resource.Namespace}:{resource.Name}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string AsKey(this Subject subject) =>

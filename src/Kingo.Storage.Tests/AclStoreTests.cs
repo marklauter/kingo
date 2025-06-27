@@ -7,8 +7,7 @@ public sealed class AclStoreTests
     [Fact]
     public void SimpleIsAMemberOf()
     {
-        var fileNamespace = new Namespace("file");
-        var fileResource = new Resource(fileNamespace, "readme");
+        var fileResource = new Resource("file", "readme");
         var fileRelationship = new Relationship("owner");
         var fileSubjectSet = new SubjectSet(fileResource, fileRelationship);
         var subject = new Subject(Guid.NewGuid());
@@ -23,8 +22,7 @@ public sealed class AclStoreTests
     public void RecursiveIsAMemberOf()
     {
         // link the subject to the team
-        var teamNamespace = new Namespace("team");
-        var teamResource = new Resource(teamNamespace, "editor");
+        var teamResource = new Resource("team", "editor");
         var teamRelationship = new Relationship("member");
         var subject = new Subject(Guid.NewGuid());
         var teamSubjectSet = new SubjectSet(teamResource, teamRelationship);
@@ -35,8 +33,7 @@ public sealed class AclStoreTests
         Assert.True(store.IsAMemberOf(subject, teamSubjectSet));
 
         // link team subjectset to readme file
-        var fileNamespace = new Namespace("file");
-        var fileResource = new Resource(fileNamespace, "readme");
+        var fileResource = new Resource("file", "readme");
         var fileRelationship = new Relationship("owner");
         var fileSubjectSet = new SubjectSet(fileResource, fileRelationship);
         store = store
