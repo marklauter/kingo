@@ -42,6 +42,32 @@ public sealed class AclStore
 
     private AclStore(Map<Key, AclElements> acls) => this.acls = acls;
 
+    /// <summary>
+    /// Checks for direct match or recusively scans the userset rewrite list.
+    /// </summary>
+    /// <param name="subject"></param>
+    /// <param name="subjectSet"></param>
+    /// <returns></returns>
+    /// <remarks>
+    /// CHECK(U,⟨object#relation⟩) =
+    ///     ∃ tuple ⟨object#relation@U⟩
+    ///     ∨ ∃tuple ⟨object#relation@U′⟩, where
+    ///     U′ =⟨object′#relation′⟩ s.t. CHECK(U,U′).
+    /// </remarks>
+    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
+        ReadAclElements(subjectSet.AsKey())
+        .IsAMemberOf(subject)
+        .Match(
+            Left: isMember => isMember,
+            Right: subjectSets => subjectSets.Any(subjectSet => IsAMemberOf(subject, subjectSet)));
+
+    /// <summary>
+    /// Binds a resource, relationship, subject tuple and adds it to a new AclStore.
+    /// </summary>
+    /// <param name="resource"></param>
+    /// <param name="relationship"></param>
+    /// <param name="e"></param>
+    /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
     public AclStore Union(Resource resource, Identifier relationship, Either<Subject, SubjectSet> e) =>
         Union(resource.AsKey(relationship), e);
 
@@ -52,18 +78,4 @@ public sealed class AclStore
         acls.Find(key).Match(
             Some: e => e,
             None: () => new());
-
-    /*
-    CHECK(U,⟨object#relation⟩) =
-        ∃ tuple ⟨object#relation@U⟩
-        ∨∃tuple ⟨object#relation@U′⟩, where
-        U′ =⟨object′#relation′⟩ s.t. CHECK(U,U′).
-    */
-
-    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
-        ReadAclElements(subjectSet.AsKey())
-        .IsAMemberOf(subject)
-        .Match(
-            Left: isMember => isMember,
-            Right: subjectSets => subjectSets.Any(subjectSet => IsAMemberOf(subject, subjectSet)));
 }
