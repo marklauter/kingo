@@ -1,4 +1,5 @@
 ﻿using Kingo.Facts;
+using Kingo.Primitives;
 using LanguageExt;
 
 namespace Kingo.Storage;
@@ -13,13 +14,13 @@ public sealed class AclStore
 {
     private sealed class AclElements
     {
-        private readonly LanguageExt.HashSet<string> subjects = [];
+        private readonly LanguageExt.HashSet<Key> subjects = [];
         private readonly LanguageExt.HashSet<SubjectSet> subjectSets = [];
 
         public AclElements() { }
 
         private AclElements(
-            LanguageExt.HashSet<string> subjects,
+            LanguageExt.HashSet<Key> subjects,
             LanguageExt.HashSet<SubjectSet> subjectSets)
         {
             this.subjects = subjects;
@@ -35,19 +36,19 @@ public sealed class AclStore
             subjects.Contains(subject.AsKey()) ? true : subjectSets;
     }
 
-    private readonly Map<string, AclElements> acls = [];
+    private readonly Map<Key, AclElements> acls = [];
 
     public AclStore() { }
 
-    private AclStore(Map<string, AclElements> acls) => this.acls = acls;
+    private AclStore(Map<Key, AclElements> acls) => this.acls = acls;
 
-    public AclStore Union(Resource resource, Relationship relationship, Either<Subject, SubjectSet> e) =>
+    public AclStore Union(Resource resource, Identifier relationship, Either<Subject, SubjectSet> e) =>
         Union(resource.AsKey(relationship), e);
 
-    private AclStore Union(string key, Either<Subject, SubjectSet> e) =>
+    private AclStore Union(Key key, Either<Subject, SubjectSet> e) =>
         new(acls.AddOrUpdate(key, ReadAclElements(key).Union(e)));
 
-    private AclElements ReadAclElements(string key) =>
+    private AclElements ReadAclElements(Key key) =>
         acls.Find(key).Match(
             Some: e => e,
             None: () => new());
