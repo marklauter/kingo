@@ -1,5 +1,4 @@
 ﻿using Kingo.Facts;
-using Kingo.Primitives;
 
 namespace Kingo.Storage.Tests;
 
@@ -9,7 +8,7 @@ public sealed class AclStoreTests
     public void SimpleIsAMemberOf()
     {
         var fileResource = new Resource("file", "readme");
-        var fileRelationship = Identifier.From("owner");
+        var fileRelationship = Relationship.From("owner");
         var fileSubjectSet = new SubjectSet(fileResource, fileRelationship);
         var subject = new Subject(Guid.NewGuid());
 
@@ -24,7 +23,7 @@ public sealed class AclStoreTests
     {
         // link the subject to the team
         var teamResource = new Resource("team", "editor");
-        var teamRelationship = Identifier.From("member");
+        var teamRelationship = Relationship.From("member");
         var subject = new Subject(Guid.NewGuid());
         var teamSubjectSet = new SubjectSet(teamResource, teamRelationship);
         var store = new AclStore()
@@ -35,7 +34,7 @@ public sealed class AclStoreTests
 
         // link team subjectset to readme file
         var fileResource = new Resource("file", "readme");
-        var fileRelationship = Identifier.From("owner");
+        var fileRelationship = Relationship.From("owner");
         var fileSubjectSet = new SubjectSet(fileResource, fileRelationship);
         store = store
             .Union(fileResource, fileRelationship, teamSubjectSet);

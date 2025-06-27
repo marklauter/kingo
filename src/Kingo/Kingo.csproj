@@ -21,4 +21,8 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Specifications\" />
+	</ItemGroup>
+
 </Project>

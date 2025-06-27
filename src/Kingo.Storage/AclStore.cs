@@ -68,7 +68,7 @@ public sealed class AclStore
     /// <param name="relationship"></param>
     /// <param name="e"></param>
     /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
-    public AclStore Union(Resource resource, Identifier relationship, Either<Subject, SubjectSet> e) =>
+    public AclStore Union(Resource resource, Relationship relationship, Either<Subject, SubjectSet> e) =>
         Union(resource.AsKey(relationship), e);
 
     private AclStore Union(Key key, Either<Subject, SubjectSet> e) =>

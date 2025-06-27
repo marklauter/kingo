@@ -8,7 +8,7 @@ namespace Kingo.Storage;
 internal static class KeyExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this Resource resource, Identifier relationship) =>
+    public static Key AsKey(this Resource resource, Relationship relationship) =>
         $"{resource.AsKey()}#{relationship}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
