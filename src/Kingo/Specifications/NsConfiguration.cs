@@ -1,4 +1,4 @@
-﻿using Kingo.Primitives;
+﻿using Kingo.Facts;
 using System.Text.Json.Serialization;
 
 namespace Kingo.Specifications;
@@ -18,6 +18,8 @@ public sealed record SubjectSetRewrite()
 {
 
 }
+
+// union, intersection, and exclusion
 
 /*
 // protobuf namespace configuration

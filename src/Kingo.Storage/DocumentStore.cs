@@ -1,5 +1,4 @@
-﻿using Kingo.Primitives;
-using Kingo.Storage.Ranges;
+﻿using Kingo.Storage.Ranges;
 using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
 

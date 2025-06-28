@@ -129,7 +129,7 @@ public sealed class DocumentStoreTests
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
-            .FindRange<TestTuple>("h", Unbound.Span("a", "b"))
+            .FindRange<TestTuple>("h", Unbound.Between("a", "b"))
             .ToArray();
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Tuple.Value == "A");

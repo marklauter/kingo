@@ -1,5 +1,3 @@
-﻿using Kingo.Primitives;
-
-namespace Kingo.Storage.Ranges;
+﻿namespace Kingo.Storage.Ranges;
 
 public sealed record Since(Key RangeKey) : KeyRange;

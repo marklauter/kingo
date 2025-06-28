@@ -1,10 +1,9 @@
-﻿using Kingo.Facts;
-using Kingo.Json;
+﻿using Kingo.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Kingo.Primitives;
+namespace Kingo.Storage;
 
 [JsonConverter(typeof(StringConvertible<Key>))]
 public readonly struct Key

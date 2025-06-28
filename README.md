@@ -31,4 +31,5 @@ read_tuple(0) => fold(tuple:0:events) // yields tuple:0 (x1, y1)
 - 23 JUN 2025 - rough in-memory storage engine
 - 24 JUN 2025 - began work on simulated key-value store
 - 25 JUN 2025 - finished simulated key-value store (DocumentStore)
-- 26 JUN 2025 - planned: JSON based namespace and userset configuration and refactoring AclStore logic to use DocumentStore
+- 26 JUN 2025 - refactoring primitive types and facts for better domain cohesion
+- 27 JUN 2025 - planned: JSON based namespace and userset configuration and refactoring AclStore logic to use DocumentStore
