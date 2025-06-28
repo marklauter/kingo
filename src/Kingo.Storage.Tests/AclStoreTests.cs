@@ -13,7 +13,7 @@ public sealed class AclStoreTests
         var subject = new Subject(Guid.NewGuid());
 
         var store = new AclStore()
-            .Union(fileResource, fileRelationship, subject);
+            .Union(fileSubjectSet, subject);
 
         Assert.True(store.IsAMemberOf(subject, fileSubjectSet));
     }
@@ -27,7 +27,7 @@ public sealed class AclStoreTests
         var subject = new Subject(Guid.NewGuid());
         var teamSubjectSet = new SubjectSet(teamResource, teamRelationship);
         var store = new AclStore()
-            .Union(teamResource, teamRelationship, subject);
+            .Union(teamSubjectSet, subject);
 
         // verify simple subject membership
         Assert.True(store.IsAMemberOf(subject, teamSubjectSet));
@@ -37,7 +37,7 @@ public sealed class AclStoreTests
         var fileRelationship = Relationship.From("owner");
         var fileSubjectSet = new SubjectSet(fileResource, fileRelationship);
         store = store
-            .Union(fileResource, fileRelationship, teamSubjectSet);
+            .Union(fileSubjectSet, teamSubjectSet);
 
         // verify recursive subject membership
         Assert.True(store.IsAMemberOf(subject, fileSubjectSet));

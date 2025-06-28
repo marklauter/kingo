@@ -35,11 +35,11 @@ public sealed class AclStore
             subjects.Contains(subject.AsKey()) ? true : subjectSets;
     }
 
-    private readonly Map<Key, AclElements> acls = [];
+    private readonly Map<Key, AclElements> aclIndex = [];
 
     public AclStore() { }
 
-    private AclStore(Map<Key, AclElements> acls) => this.acls = acls;
+    private AclStore(Map<Key, AclElements> acls) => aclIndex = acls;
 
     /// <summary>
     /// Checks for direct match or recusively scans the userset rewrite list.
@@ -67,14 +67,14 @@ public sealed class AclStore
     /// <param name="relationship"></param>
     /// <param name="e"></param>
     /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
-    public AclStore Union(Resource resource, Relationship relationship, Either<Subject, SubjectSet> e) =>
-        Union(resource.AsKey(relationship), e);
+    public AclStore Union(SubjectSet subjectSet, Either<Subject, SubjectSet> e) =>
+        Union(subjectSet.AsKey(), e);
 
     private AclStore Union(Key key, Either<Subject, SubjectSet> e) =>
-        new(acls.AddOrUpdate(key, ReadAclElements(key).Union(e)));
+        new(aclIndex.AddOrUpdate(key, ReadAclElements(key).Union(e)));
 
     private AclElements ReadAclElements(Key key) =>
-        acls.Find(key).Match(
+        aclIndex.Find(key).Match(
             Some: e => e,
             None: () => new());
 }
