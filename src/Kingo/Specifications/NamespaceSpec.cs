@@ -31,7 +31,7 @@ public sealed record SubjectSetRewriteOperation(
     : SubjectSetRewriteRule;
 
 public sealed record TupleToSubjectSet(
-    Relationship Tupleset,
+    Identifier Name,
     SubjectSetRewriteRule ComputedSetRewrite)
     : SubjectSetRewriteRule;
 
