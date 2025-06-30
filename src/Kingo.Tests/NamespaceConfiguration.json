@@ -32,14 +32,6 @@
           {
             "Type": "ComputedSubjectSet",
             "Relationship": "editor"
-          },
-          {
-            "Type": "TupleToSubjectSet",
-            "Name": "parent",
-            "ComputedSetRewrite": {
-              "Type": "ComputedSubjectSet",
-              "Relationship": "viewer"
-            }
           }
         ]
       }

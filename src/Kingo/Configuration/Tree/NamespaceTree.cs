@@ -24,9 +24,6 @@ public sealed record NamespaceTree(
                 This => ThisNode.This,
                 ComputedSubjectSet c => ComputedSubjectSetNode.From(
                     c.Relationship),
-                TupleToSubjectSet t => TupleToSubjectSetNode.From(
-                    t.Name,
-                    ConvertRewrite(t.ComputedSetRewrite)),
                 SubjectSetRewriteOperation o => OperationNode.From(
                     o.Operation,
                     o.Children.Select(ConvertRewrite).ToArray()
@@ -46,12 +43,6 @@ public sealed record ComputedSubjectSetNode(Relationship Relationship) : Rewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComputedSubjectSetNode From(Relationship relationship) => new(relationship);
-}
-
-public sealed record TupleToSubjectSetNode(Identifier Name, RewriteNode Child) : RewriteNode
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TupleToSubjectSetNode From(Identifier name, RewriteNode child) => new(name, child);
 }
 
 public sealed record OperationNode(SetOperation Operation, RewriteNode[] Children) : RewriteNode

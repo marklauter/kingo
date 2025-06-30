@@ -1,4 +1,6 @@
-﻿using Kingo.Facts;
+﻿using Kingo.Configuration.Spec;
+using Kingo.Configuration.Tree;
+using Kingo.Facts;
 using LanguageExt;
 
 namespace Kingo.Storage;
@@ -53,12 +55,32 @@ public sealed class AclStore
     ///     ∨ ∃tuple ⟨object#relation@U′⟩, where
     ///     U′ =⟨object′#relation′⟩ s.t. CHECK(U,U′).
     /// </remarks>
-    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
-        ReadAclElements(subjectSet.AsKey())
-        .IsAMemberOf(subject)
-        .Match(
-            Left: isMember => isMember,
-            Right: subjectSets => subjectSets.Any(subjectSet => IsAMemberOf(subject, subjectSet)));
+    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet, NamespaceTree tree) =>
+        // todo: instead of passing namespace, look it up from the subjectset resource
+        EvaluateRewrite(subject, subjectSet, tree, tree.Relationships[subjectSet.Relationship]);
+
+    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, RewriteNode node)
+        => node switch
+        {
+            ThisNode => ReadAclElements(subjectSet.AsKey())
+                .IsAMemberOf(subject)
+                .Match(
+                    Left: isMember => isMember,
+                    Right: subjectSets => subjectSets.Any(ss => IsAMemberOf(subject, ss, namespaceTree))
+                ),
+            ComputedSubjectSetNode computed =>
+                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computed.Relationship), namespaceTree),
+            OperationNode op => op.Operation switch
+            {
+                SetOperation.Union => op.Children.Any(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+                SetOperation.Intersection => op.Children.All(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+                SetOperation.Exclusion => op.Children.Length == 2 &&
+                    EvaluateRewrite(subject, subjectSet, namespaceTree, op.Children[0]) &&
+                    !EvaluateRewrite(subject, subjectSet, namespaceTree, op.Children[1]),
+                _ => throw new NotSupportedException()
+            },
+            _ => throw new NotSupportedException()
+        };
 
     /// <summary>
     /// Binds a resource, relationship, subject tuple and adds it to a new AclStore.

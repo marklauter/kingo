@@ -40,11 +40,5 @@ public class NamespaceTests
         Assert.Contains(viewer!.Children, c => c.GetType() == typeof(ThisNode));
         Assert.Contains(viewer!.Children, c => c.GetType() == typeof(ComputedSubjectSetNode));
         Assert.True((viewer!.Children.First(c => c is ComputedSubjectSetNode) as ComputedSubjectSetNode)!.Relationship.Equals("editor"));
-
-        Assert.Contains(viewer!.Children, c => c.GetType() == typeof(TupleToSubjectSetNode));
-        var tplSet = viewer!.Children.First(c => c is TupleToSubjectSetNode) as TupleToSubjectSetNode;
-        Assert.True(tplSet!.Name.Equals("parent"));
-        Assert.True(tplSet!.Child is ComputedSubjectSetNode);
-        Assert.True(tplSet!.Child is ComputedSubjectSetNode node && node.Relationship.Equals("viewer"));
     }
 }

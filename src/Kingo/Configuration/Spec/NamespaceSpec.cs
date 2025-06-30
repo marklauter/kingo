@@ -14,7 +14,6 @@ public sealed record RelationshipSpec(
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
 [JsonDerivedType(typeof(This), nameof(This))]
 [JsonDerivedType(typeof(ComputedSubjectSet), nameof(ComputedSubjectSet))]
-[JsonDerivedType(typeof(TupleToSubjectSet), nameof(TupleToSubjectSet))]
 [JsonDerivedType(typeof(SubjectSetRewriteOperation), nameof(SubjectSetRewriteOperation))]
 public abstract record SubjectSetRewriteRule;
 
@@ -28,11 +27,6 @@ public sealed record ComputedSubjectSet(
 public sealed record SubjectSetRewriteOperation(
     SetOperation Operation,
     IReadOnlyList<SubjectSetRewriteRule> Children)
-    : SubjectSetRewriteRule;
-
-public sealed record TupleToSubjectSet(
-    Identifier Name,
-    SubjectSetRewriteRule ComputedSetRewrite)
     : SubjectSetRewriteRule;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
