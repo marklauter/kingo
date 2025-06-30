@@ -25,13 +25,11 @@ public sealed record NamespaceTree(
             ? ThisNode.This
             : rule switch
             {
-                This => ThisNode.This,
-                ComputedSubjectSet c => ComputedSubjectSetNode.From(
-                    c.Relationship),
-                SubjectSetRewriteOperation o => OperationNode.From(
-                    o.Operation,
-                    o.Children.Select(ConvertRewrite).ToArray()
-                ),
+                ThisRule => ThisNode.This,
+                ComputedSubjectSetRule css => ComputedSubjectSetNode.From(css.Relationship),
+                UnionRewriteRule union => UnionNode.From([.. union.Children.Select(ConvertRewrite)]),
+                IntersectionRewriteRule intersection => IntersectionNode.From([.. intersection.Children.Select(ConvertRewrite)]),
+                ExclusionRewriteRule exclusion => ExclusionNode.From(ConvertRewrite(exclusion.Include), ConvertRewrite(exclusion.Exclude)),
                 _ => throw new NotSupportedException()
             };
 }

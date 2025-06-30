@@ -12,17 +12,17 @@ public sealed record RelationshipSpec(
     SubjectSetRewriteRule? SubjectSetRewrite);
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
-[JsonDerivedType(typeof(This), nameof(This))]
-[JsonDerivedType(typeof(ComputedSubjectSet), nameof(ComputedSubjectSet))]
+[JsonDerivedType(typeof(ThisRule), nameof(ThisRule))]
+[JsonDerivedType(typeof(ComputedSubjectSetRule), nameof(ComputedSubjectSetRule))]
 [JsonDerivedType(typeof(UnionRewriteRule), nameof(UnionRewriteRule))]
 [JsonDerivedType(typeof(IntersectionRewriteRule), nameof(IntersectionRewriteRule))]
 [JsonDerivedType(typeof(ExclusionRewriteRule), nameof(ExclusionRewriteRule))]
 public abstract record SubjectSetRewriteRule;
 
-public sealed record This
+public sealed record ThisRule
     : SubjectSetRewriteRule;
 
-public sealed record ComputedSubjectSet(
+public sealed record ComputedSubjectSetRule(
     Relationship Relationship)
     : SubjectSetRewriteRule;
 
