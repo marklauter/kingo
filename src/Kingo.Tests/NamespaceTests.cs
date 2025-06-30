@@ -1,4 +1,5 @@
-﻿using Kingo.Specifications;
+﻿using Kingo.Configuration.Spec;
+using Kingo.Configuration.Tree;
 using System.Text.Json;
 
 namespace Kingo.Tests;

@@ -1,10 +1,11 @@
-﻿using Kingo.Facts;
+﻿using Kingo.Configuration.Spec;
+using Kingo.Facts;
 using LanguageExt;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Specifications;
+namespace Kingo.Configuration.Tree;
 
-public sealed record NamespaceTree(
+internal sealed record NamespaceTree(
     Namespace Name,
     IReadOnlyDictionary<Relationship, RewriteNode> Relationships)
 {
@@ -34,26 +35,26 @@ public sealed record NamespaceTree(
             };
 }
 
-public abstract record RewriteNode;
+internal abstract record RewriteNode;
 
-public sealed record ThisNode : RewriteNode
+internal sealed record ThisNode : RewriteNode
 {
     public static ThisNode This { get; } = new ThisNode();
 }
 
-public sealed record ComputedSubjectSetNode(Relationship Relationship) : RewriteNode
+internal sealed record ComputedSubjectSetNode(Relationship Relationship) : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComputedSubjectSetNode From(Relationship relationship) => new(relationship);
 }
 
-public sealed record TupleToSubjectSetNode(Identifier Name, RewriteNode Child) : RewriteNode
+internal sealed record TupleToSubjectSetNode(Identifier Name, RewriteNode Child) : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TupleToSubjectSetNode From(Identifier name, RewriteNode child) => new(name, child);
 }
 
-public sealed record OperationNode(SetOperation Operation, RewriteNode[] Children) : RewriteNode
+internal sealed record OperationNode(SetOperation Operation, RewriteNode[] Children) : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static OperationNode From(SetOperation operation, RewriteNode[] children) => new(operation, children);

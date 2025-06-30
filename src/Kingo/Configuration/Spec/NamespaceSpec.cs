@@ -1,13 +1,13 @@
 ﻿using Kingo.Facts;
 using System.Text.Json.Serialization;
 
-namespace Kingo.Specifications;
+namespace Kingo.Configuration.Spec;
 
-public sealed record NamespaceSpec(
+internal sealed record NamespaceSpec(
     Namespace Name,
     IReadOnlyList<RelationshipSpec> Relationships);
 
-public sealed record RelationshipSpec(
+internal sealed record RelationshipSpec(
     Relationship Name,
     SubjectSetRewriteRule? SubjectSetRewrite);
 
@@ -16,27 +16,27 @@ public sealed record RelationshipSpec(
 [JsonDerivedType(typeof(ComputedSubjectSet), nameof(ComputedSubjectSet))]
 [JsonDerivedType(typeof(TupleToSubjectSet), nameof(TupleToSubjectSet))]
 [JsonDerivedType(typeof(SubjectSetRewriteOperation), nameof(SubjectSetRewriteOperation))]
-public abstract record SubjectSetRewriteRule;
+internal abstract record SubjectSetRewriteRule;
 
-public sealed record This
+internal sealed record This
     : SubjectSetRewriteRule;
 
-public sealed record ComputedSubjectSet(
+internal sealed record ComputedSubjectSet(
     Relationship Relationship)
     : SubjectSetRewriteRule;
 
-public sealed record SubjectSetRewriteOperation(
+internal sealed record SubjectSetRewriteOperation(
     SetOperation Operation,
     IReadOnlyList<SubjectSetRewriteRule> Children)
     : SubjectSetRewriteRule;
 
-public sealed record TupleToSubjectSet(
+internal sealed record TupleToSubjectSet(
     Identifier Name,
     SubjectSetRewriteRule ComputedSetRewrite)
     : SubjectSetRewriteRule;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum SetOperation
+internal enum SetOperation
 {
     Union,
     Intersection,
