@@ -38,19 +38,40 @@ public sealed record NamespaceTree(
 
 public abstract record RewriteNode;
 
-public sealed record ThisNode : RewriteNode
+public sealed record ThisNode
+    : RewriteNode
 {
     public static ThisNode This { get; } = new ThisNode();
 }
 
-public sealed record ComputedSubjectSetNode(Relationship Relationship) : RewriteNode
+public sealed record ComputedSubjectSetNode(Relationship Relationship)
+    : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComputedSubjectSetNode From(Relationship relationship) => new(relationship);
 }
 
-public sealed record OperationNode(SetOperation Operation, RewriteNode[] Children) : RewriteNode
+public sealed record UnionNode(
+    IReadOnlyList<RewriteNode> Children)
+    : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static OperationNode From(SetOperation operation, RewriteNode[] children) => new(operation, children);
+    public static UnionNode From(RewriteNode[] children) => new(children);
+}
+
+public sealed record IntersectionNode(
+    IReadOnlyList<RewriteNode> Children)
+    : RewriteNode
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IntersectionNode From(RewriteNode[] children) => new(children);
+}
+
+public sealed record ExclusionNode(
+    RewriteNode Include,
+    RewriteNode Exclude)
+    : RewriteNode
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ExclusionNode From(RewriteNode include, RewriteNode exclude) => new(include, exclude);
 }
