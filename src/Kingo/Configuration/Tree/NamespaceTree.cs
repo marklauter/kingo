@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Configuration.Tree;
 
-internal sealed record NamespaceTree(
+public sealed record NamespaceTree(
     Namespace Name,
     IReadOnlyDictionary<Relationship, RewriteNode> Relationships)
 {
@@ -35,26 +35,26 @@ internal sealed record NamespaceTree(
             };
 }
 
-internal abstract record RewriteNode;
+public abstract record RewriteNode;
 
-internal sealed record ThisNode : RewriteNode
+public sealed record ThisNode : RewriteNode
 {
     public static ThisNode This { get; } = new ThisNode();
 }
 
-internal sealed record ComputedSubjectSetNode(Relationship Relationship) : RewriteNode
+public sealed record ComputedSubjectSetNode(Relationship Relationship) : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ComputedSubjectSetNode From(Relationship relationship) => new(relationship);
 }
 
-internal sealed record TupleToSubjectSetNode(Identifier Name, RewriteNode Child) : RewriteNode
+public sealed record TupleToSubjectSetNode(Identifier Name, RewriteNode Child) : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TupleToSubjectSetNode From(Identifier name, RewriteNode child) => new(name, child);
 }
 
-internal sealed record OperationNode(SetOperation Operation, RewriteNode[] Children) : RewriteNode
+public sealed record OperationNode(SetOperation Operation, RewriteNode[] Children) : RewriteNode
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static OperationNode From(SetOperation operation, RewriteNode[] children) => new(operation, children);
