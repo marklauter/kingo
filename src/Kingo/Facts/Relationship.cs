@@ -1,4 +1,5 @@
 ﻿using Kingo.Json;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -10,6 +11,8 @@ public readonly struct Relationship
     : IStringConvertible<Relationship>
     , IEquatable<Relationship>
     , IComparable<Relationship>
+    , IEquatable<string>
+    , IComparable<string>
 {
     private readonly string value;
     private static readonly Regex Validation = RegExPatterns.Identifier();
@@ -47,6 +50,11 @@ public readonly struct Relationship
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Relationship other) => string.CompareOrdinal(value, other.value);
+
+    public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
+
+    [SuppressMessage("Globalization", "CA1310:Specify StringComparison for correctness", Justification = "it's fine")]
+    public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator string(Relationship relationship) => relationship.value;

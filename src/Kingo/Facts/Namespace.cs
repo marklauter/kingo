@@ -12,6 +12,8 @@ public readonly struct Namespace
     : IStringConvertible<Namespace>
     , IEquatable<Namespace>
     , IComparable<Namespace>
+    , IEquatable<string>
+    , IComparable<string>
 {
     private readonly string value;
     private static readonly Regex Validation = RegExPatterns.Identifier();
@@ -49,6 +51,11 @@ public readonly struct Namespace
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Namespace other) => string.CompareOrdinal(value, other.value);
+
+    public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
+
+    [SuppressMessage("Globalization", "CA1310:Specify StringComparison for correctness", Justification = "it's fine")]
+    public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator string(Namespace @namespace) => @namespace.value;
