@@ -1,0 +1,40 @@
+﻿{
+  "Name": "doc",
+  "Relationships": [
+    {
+      "Name": "owner"
+    },
+    {
+      "Name": "editor",
+      "SubjectSetRewrite": {
+        "Type": "SubjectSetRewriteOperation",
+        "Operation": "Union",
+        "Children": [
+          {
+            "Type": "This"
+          },
+          {
+            "Type": "ComputedSubjectSet",
+            "Relationship": "owner"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "viewer",
+      "SubjectSetRewrite": {
+        "Type": "SubjectSetRewriteOperation",
+        "Operation": "Union",
+        "Children": [
+          {
+            "Type": "This"
+          },
+          {
+            "Type": "ComputedSubjectSet",
+            "Relationship": "editor"
+          }
+        ]
+      }
+    }
+  ]
+}

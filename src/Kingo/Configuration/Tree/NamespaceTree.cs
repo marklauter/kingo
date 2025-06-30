@@ -2,6 +2,7 @@
 using Kingo.Facts;
 using LanguageExt;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Kingo.Configuration.Tree;
 
@@ -9,6 +10,9 @@ public sealed record NamespaceTree(
     Namespace Name,
     IReadOnlyDictionary<Relationship, RewriteNode> Relationships)
 {
+    public static async Task<NamespaceTree> FromFileAsync(string path) =>
+        FromSpec(JsonSerializer.Deserialize<NamespaceSpec>(await File.ReadAllTextAsync(path))!);
+
     public static NamespaceTree FromSpec(NamespaceSpec spec) =>
         new(spec.Name, spec.Relationships
             .ToDictionary(

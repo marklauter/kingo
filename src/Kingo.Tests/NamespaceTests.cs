@@ -18,9 +18,7 @@ public class NamespaceTests
     [Fact]
     public async Task ConvertsToTreeAsync()
     {
-        var json = await File.ReadAllTextAsync("NamespaceConfiguration.json");
-        var nsSpec = JsonSerializer.Deserialize<NamespaceSpec>(json)!;
-        var tree = NamespaceTree.FromSpec(nsSpec);
+        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
         Assert.NotNull(tree);
         Assert.True(tree.Relationships.TryGetValue("owner", out var owner));
         Assert.Equal(ThisNode.This, owner);

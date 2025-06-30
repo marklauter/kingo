@@ -1,11 +1,12 @@
-﻿using Kingo.Facts;
+﻿using Kingo.Configuration.Tree;
+using Kingo.Facts;
 
 namespace Kingo.Storage.Tests;
 
 public sealed class AclStoreTests
 {
     [Fact]
-    public void SimpleIsAMemberOf()
+    public async Task SimpleIsAMemberOf()
     {
         var fileResource = new Resource("file", "readme");
         var fileRelationship = Relationship.From("owner");
@@ -15,11 +16,13 @@ public sealed class AclStoreTests
         var store = new AclStore()
             .Union(fileSubjectSet, subject);
 
-        Assert.True(store.IsAMemberOf(subject, fileSubjectSet));
+        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
+
+        Assert.True(store.IsAMemberOf(subject, fileSubjectSet, tree));
     }
 
     [Fact]
-    public void RecursiveIsAMemberOf()
+    public async Task RecursiveIsAMemberOf()
     {
         // link the subject to the team
         var teamResource = new Resource("team", "editor");
@@ -30,7 +33,8 @@ public sealed class AclStoreTests
             .Union(teamSubjectSet, subject);
 
         // verify simple subject membership
-        Assert.True(store.IsAMemberOf(subject, teamSubjectSet));
+        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
+        Assert.True(store.IsAMemberOf(subject, teamSubjectSet, tree));
 
         // link team subjectset to readme file
         var fileResource = new Resource("file", "readme");
@@ -40,6 +44,6 @@ public sealed class AclStoreTests
             .Union(fileSubjectSet, teamSubjectSet);
 
         // verify recursive subject membership
-        Assert.True(store.IsAMemberOf(subject, fileSubjectSet));
+        Assert.True(store.IsAMemberOf(subject, fileSubjectSet, tree));
     }
 }
