@@ -8,18 +8,18 @@ public record Document(
     LogicalClock Version,
     DateTime Timestamp)
 {
-    public static Document<T> Cons<T>(Key hashKey, Key rangeKey, T tuple) where T : notnull =>
-        new(hashKey, rangeKey, LogicalClock.Zero, DateTime.UtcNow, tuple);
+    public static Document<R> Cons<R>(Key hashKey, Key rangeKey, R record) where R : notnull =>
+        new(hashKey, rangeKey, LogicalClock.Zero, DateTime.UtcNow, record);
 
-    public static Document<T> Cons<T>(Key hashKey, Key rangeKey, LogicalClock version, T tuple) where T : notnull =>
-        new(hashKey, rangeKey, version, DateTime.UtcNow, tuple);
+    public static Document<R> Cons<R>(Key hashKey, Key rangeKey, LogicalClock version, R record) where R : notnull =>
+        new(hashKey, rangeKey, version, DateTime.UtcNow, record);
 }
 
-public sealed record Document<T>(
+public sealed record Document<R>(
     Key HashKey,
     Key RangeKey,
     LogicalClock Version,
     DateTime Timestamp,
-    T Tuple)
+    R Record)
     : Document(HashKey, RangeKey, Version, Timestamp)
-    where T : notnull;
+    where R : notnull;
