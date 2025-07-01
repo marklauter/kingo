@@ -14,10 +14,13 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "owner");
 
-        var store = AclStore.Empty.Include(
-            docSubjectSet.Resource,
-            docSubjectSet.Relationship,
-            subject);
+        var store = new AclStore(DocumentStore.Empty());
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
+                docSubjectSet.Resource,
+                docSubjectSet.Relationship,
+                subject,
+                CancellationToken.None));
 
         Assert.True(store.IsAMemberOf(subject, docSubjectSet, tree));
     }
@@ -32,10 +35,13 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "editor");
 
-        var store = AclStore.Empty.Include(
-            editorSet.Resource,
-            editorSet.Relationship,
-            subject);
+        var store = new AclStore(DocumentStore.Empty());
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
+                editorSet.Resource,
+                editorSet.Relationship,
+                subject,
+                CancellationToken.None));
 
         Assert.True(store.IsAMemberOf(subject, editorSet, tree));
     }
@@ -54,10 +60,13 @@ public sealed class AclStoreTests
             resource,
             "editor");
 
-        var store = AclStore.Empty.Include(
-            ownerSet.Resource,
-            ownerSet.Relationship,
-            subject);
+        var store = new AclStore(DocumentStore.Empty());
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
+                ownerSet.Resource,
+                ownerSet.Relationship,
+                subject,
+                CancellationToken.None));
 
         Assert.True(store.IsAMemberOf(subject, editorSet, tree));
     }
@@ -72,10 +81,13 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = AclStore.Empty.Include(
-            viewerSet.Resource,
-            viewerSet.Relationship,
-            subject);
+        var store = new AclStore(DocumentStore.Empty());
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
+                viewerSet.Resource,
+                viewerSet.Relationship,
+                subject,
+                CancellationToken.None));
 
         Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -94,10 +106,13 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = AclStore.Empty.Include(
-            editorSet.Resource,
-            editorSet.Relationship,
-            subject);
+        var store = new AclStore(DocumentStore.Empty());
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
+                editorSet.Resource,
+                editorSet.Relationship,
+                subject,
+                CancellationToken.None));
 
         Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -116,10 +131,13 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = AclStore.Empty.Include(
-            ownerSet.Resource,
-            ownerSet.Relationship,
-            subject);
+        var store = new AclStore(DocumentStore.Empty());
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
+                ownerSet.Resource,
+                ownerSet.Relationship,
+                subject,
+                CancellationToken.None));
 
         Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -134,7 +152,7 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = AclStore.Empty;
+        var store = new AclStore(DocumentStore.Empty());
 
         Assert.False(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -149,19 +167,34 @@ public sealed class AclStoreTests
         var folderResource = new Resource("folder", "documents");
 
         // doc:readme#parent@folder:documents#... (relationship tuple as subject set)
-        var store = AclStore.Empty
-            .Include(
+        var store = new AclStore(DocumentStore.Empty());
+
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
                 docResource,
                 "parent",
-                new SubjectSet(folderResource, Relationship.Nothing))
-            // folder:documents#viewer@subject (membership tuple)
-            .Include(
+                new SubjectSet(folderResource, Relationship.Nothing),
+                CancellationToken.None));
+
+        // folder:documents#viewer@subject (membership tuple)
+        Assert.Equal(AclStore.AssociateResponse.Success,
+            store.Associate(
                 folderResource,
                 "viewer",
-                subject);
+                subject,
+                CancellationToken.None));
 
         var viewerSet = new SubjectSet(docResource, "viewer");
 
-        Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
+        var isMember = store.IsAMemberOf(subject, viewerSet, tree);
+        Assert.True(isMember);
     }
+
+    //+		[0]	{folder:documents#...}	Kingo.Storage.Key
+    //+		[1]	{folder:documents#viewer}	Kingo.Storage.Key
+
+    //+		[0]	{doc:readme#parent}	Kingo.Storage.Key
+    //+		[1]	{folder:documents#viewer}	Kingo.Storage.Key
+
 }
+

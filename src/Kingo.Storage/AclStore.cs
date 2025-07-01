@@ -1,82 +1,32 @@
 ﻿using Kingo.Facts;
+using Kingo.Storage.Ranges;
 using LanguageExt;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage;
 
-// todo: convert AclStore to use the document store
-// to prove it can be performed with dynamodb or cassandra
-
 // <summary>
 /// This is a demo store. A production store would use DynamoDB, Casandra, or other versioned key-value store.
 /// </summary>
-public sealed class AclStore
+public sealed class AclStore(DocumentStore documentStore)
 {
-    private sealed class Subjects
+    public enum AssociateResponse
     {
-        private readonly LanguageExt.HashSet<Key> subjects = [];
-        public readonly LanguageExt.HashSet<SubjectSet> SubjectSets = [];
-
-        public static Subjects Empty = new();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Subjects() { }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Subjects(
-            LanguageExt.HashSet<Key> subjects,
-            LanguageExt.HashSet<SubjectSet> subjectSets)
-        {
-            this.subjects = subjects;
-            SubjectSets = subjectSets;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Subjects Include(Either<Subject, SubjectSet> e) =>
-            e.Match(
-                Left: subject => new Subjects(subjects.AddOrUpdate(subject.AsKey()), SubjectSets),
-                Right: subjectSet => new Subjects(subjects, SubjectSets.AddOrUpdate(subjectSet)));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsAMemberOf(Subject subject) =>
-            subjects.Contains(subject.AsKey());
+        Success,
+        TimeoutError,
+        VersionCheckFailedError,
     }
 
-    /// <summary>
-    /// Key: the left side of a tuple. eg: resource and relation as key
-    /// Subjects: the right side of a tuple. eg: subjects and subject sets
-    /// </summary>
-    private readonly Map<Key, Subjects> tuples = [];
-
-    public static AclStore Empty { get; } = new();
-
-    private AclStore() { }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private AclStore(Map<Key, Subjects> acls) => tuples = acls;
-
-    /// <summary>
-    /// Checks for direct match or recusively scans the userset rewrite list.
-    /// </summary>
-    /// <param name="subject"></param>
-    /// <param name="subjectSet"></param>
-    /// <returns></returns>
-    /// <remarks>
-    /// CHECK(U,⟨object#relation⟩) =
-    ///     ∃ tuple ⟨object#relation@U⟩
-    ///     ∨ ∃tuple ⟨object#relation@U′⟩, where
-    ///     U′ =⟨object′#relation′⟩ s.t. CHECK(U,U′).
-    /// </remarks>
+    // todo: instead of passing namespace, look it up from the DocumentStore or something
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAMemberOf(Subject subject, SubjectSet subjectSet, NamespaceTree tree) =>
-        // todo: instead of passing namespace, look it up from the subjectset resource
-        EvaluateRewrite(subject, subjectSet, tree, tree.Relationships[subjectSet.Relationship]);
+        tree.Relationships.TryGetValue(subjectSet.Relationship, out var rewrite)
+        && EvaluateRewrite(subject, subjectSet, tree, rewrite);
 
     private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, SubjectSetRewrite node)
         => node switch
         {
-            This =>
-                ReadSubjectMap(subjectSet.AsKey()).IsAMemberOf(subject),
+            This => documentStore.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
 
             ComputedSubjectSetRewrite computedSet =>
                 IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship), namespaceTree),
@@ -92,29 +42,30 @@ public sealed class AclStore
             && !EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Exclude),
 
             TupleToSubjectSetRewrite tupleToSubjectSet =>
-                ReadSubjectMap(new SubjectSet(subjectSet.Resource, tupleToSubjectSet.TuplesetRelation).AsKey())
-                    .SubjectSets
+                documentStore.Find<SubjectSet>(
+                    subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
+                    KeyRange.Unbound)
                     .Any(parentSubjectSet =>
-                        IsAMemberOf(subject, new SubjectSet(parentSubjectSet.Resource, tupleToSubjectSet.ComputedSubjectSetRelation), namespaceTree)),
+                        IsAMemberOf(
+                            subject,
+                            new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation),
+                            namespaceTree)),
 
             _ => throw new NotSupportedException()
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AclStore Include(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject) =>
-        Include(new SubjectSet(resource, relationship), subject);
+    public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
+        subject.Match(
+            Left: subject => StoreDocument(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
+            Right: subjectSet => StoreDocument(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private AclStore Include(SubjectSet subjectSet, Either<Subject, SubjectSet> subject) =>
-        Include(subjectSet.AsKey(), subject);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private AclStore Include(Key key, Either<Subject, SubjectSet> subject) =>
-        new(tuples.AddOrUpdate(key, ReadSubjectMap(key).Include(subject)));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Subjects ReadSubjectMap(Key key) =>
-        tuples.Find(key).Match(
-            Some: e => e,
-            None: () => Subjects.Empty);
+    private AssociateResponse StoreDocument<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
+        documentStore.TryPutOrUpdate(document, cancellationToken) switch
+        {
+            DocumentStore.UpdateResponse.Success => AssociateResponse.Success,
+            DocumentStore.UpdateResponse.VersionCheckFailedError => AssociateResponse.VersionCheckFailedError,
+            DocumentStore.UpdateResponse.TimeoutError => AssociateResponse.TimeoutError,
+            _ => throw new NotSupportedException()
+        };
 }
