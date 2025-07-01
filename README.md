@@ -1,5 +1,5 @@
 # kingo
-relationship-based access control (rebac)
+relationship-based access control (rebac) inspired by Google Zanzibar
 
 ## references
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
