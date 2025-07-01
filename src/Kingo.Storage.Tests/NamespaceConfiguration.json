@@ -7,14 +7,13 @@
     {
       "Name": "editor",
       "SubjectSetRewrite": {
-        "Type": "SubjectSetRewriteOperation",
-        "Operation": "Union",
+        "Type": "UnionRewrite",
         "Children": [
           {
             "Type": "This"
           },
           {
-            "Type": "ComputedSubjectSet",
+            "Type": "ComputedSubjectSetRewrite",
             "Relationship": "owner"
           }
         ]
@@ -23,14 +22,13 @@
     {
       "Name": "viewer",
       "SubjectSetRewrite": {
-        "Type": "SubjectSetRewriteOperation",
-        "Operation": "Union",
+        "Type": "UnionRewrite",
         "Children": [
           {
             "Type": "This"
           },
           {
-            "Type": "ComputedSubjectSet",
+            "Type": "ComputedSubjectSetRewrite",
             "Relationship": "editor"
           }
         ]

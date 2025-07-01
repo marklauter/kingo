@@ -1,6 +1,4 @@
-﻿using Kingo.Configuration.Spec;
-using Kingo.Configuration.Tree;
-using Kingo.Facts;
+﻿using Kingo.Facts;
 using LanguageExt;
 
 namespace Kingo.Storage;
@@ -13,35 +11,31 @@ namespace Kingo.Storage;
 /// </summary>
 public sealed class AclStore
 {
-    private sealed class AclElements
+    private sealed class Subjects
     {
         private readonly LanguageExt.HashSet<Key> subjects = [];
-        private readonly LanguageExt.HashSet<SubjectSet> subjectSets = [];
 
-        public AclElements() { }
+        public Subjects() { }
 
-        private AclElements(
-            LanguageExt.HashSet<Key> subjects,
-            LanguageExt.HashSet<SubjectSet> subjectSets)
-        {
+        private Subjects(LanguageExt.HashSet<Key> subjects) =>
             this.subjects = subjects;
-            this.subjectSets = subjectSets;
-        }
 
-        public AclElements Union(Either<Subject, SubjectSet> e) =>
-            e.Match(
-                Left: subject => new AclElements(subjects.Add(subject.AsKey()), subjectSets),
-                Right: subjectSet => new AclElements(subjects, subjectSets.Add(subjectSet)));
+        public Subjects Include(Subject subject) =>
+                 new(subjects.AddOrUpdate(subject.AsKey()));
 
-        public Either<bool, LanguageExt.HashSet<SubjectSet>> IsAMemberOf(Subject subject) =>
-            subjects.Contains(subject.AsKey()) ? true : subjectSets;
+        public bool IsAMemberOf(Subject subject) =>
+            subjects.Contains(subject.AsKey());
     }
 
-    private readonly Map<Key, AclElements> aclIndex = [];
+    /// <summary>
+    /// key = subjectSet as key
+    /// Subjects = users included in the subjectSet
+    /// </summary>
+    private readonly Map<Key, Subjects> index = [];
 
     public AclStore() { }
 
-    private AclStore(Map<Key, AclElements> acls) => aclIndex = acls;
+    private AclStore(Map<Key, Subjects> acls) => index = acls;
 
     /// <summary>
     /// Checks for direct match or recusively scans the userset rewrite list.
@@ -59,26 +53,25 @@ public sealed class AclStore
         // todo: instead of passing namespace, look it up from the subjectset resource
         EvaluateRewrite(subject, subjectSet, tree, tree.Relationships[subjectSet.Relationship]);
 
-    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, RewriteNode node)
+    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, SubjectSetRewrite node)
         => node switch
         {
-            ThisNode => ReadAclElements(subjectSet.AsKey())
-                .IsAMemberOf(subject)
-                .Match(
-                    Left: isMember => isMember,
-                    Right: subjectSets => subjectSets.Any(ss => IsAMemberOf(subject, ss, namespaceTree))
-                ),
-            ComputedSubjectSetNode computed =>
-                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computed.Relationship), namespaceTree),
-            OperationNode op => op.Operation switch
-            {
-                SetOperation.Union => op.Children.Any(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
-                SetOperation.Intersection => op.Children.All(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
-                SetOperation.Exclusion => op.Children.Length == 2 &&
-                    EvaluateRewrite(subject, subjectSet, namespaceTree, op.Children[0]) &&
-                    !EvaluateRewrite(subject, subjectSet, namespaceTree, op.Children[1]),
-                _ => throw new NotSupportedException()
-            },
+            This =>
+                ReadSubjectMap(subjectSet.AsKey()).IsAMemberOf(subject),
+
+            ComputedSubjectSetRewrite computedSet =>
+                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship), namespaceTree),
+
+            UnionRewrite union =>
+                union.Children.Any(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+
+            IntersectionRewrite intersection =>
+                intersection.Children.All(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+
+            ExclusionRewrite exclusion =>
+                EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Include)
+            && !EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Exclude),
+
             _ => throw new NotSupportedException()
         };
 
@@ -87,16 +80,25 @@ public sealed class AclStore
     /// </summary>
     /// <param name="resource"></param>
     /// <param name="relationship"></param>
-    /// <param name="e"></param>
+    /// <param name="subject"></param>
     /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
-    public AclStore Union(SubjectSet subjectSet, Either<Subject, SubjectSet> e) =>
-        Union(subjectSet.AsKey(), e);
+    public AclStore Include(Resource resource, Relationship relationship, Subject subject) =>
+        Include(new SubjectSet(resource, relationship), subject);
 
-    private AclStore Union(Key key, Either<Subject, SubjectSet> e) =>
-        new(aclIndex.AddOrUpdate(key, ReadAclElements(key).Union(e)));
+    /// <summary>
+    /// Binds a resource, relationship, subject tuple and adds it to a new AclStore.
+    /// </summary>
+    /// <param name="subjectSet"></param>
+    /// <param name="subject"></param>
+    /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
+    public AclStore Include(SubjectSet subjectSet, Subject subject) =>
+        Include(subjectSet.AsKey(), subject);
 
-    private AclElements ReadAclElements(Key key) =>
-        aclIndex.Find(key).Match(
+    private AclStore Include(Key key, Subject subject) =>
+        new(index.AddOrUpdate(key, ReadSubjectMap(key).Include(subject)));
+
+    private Subjects ReadSubjectMap(Key key) =>
+        index.Find(key).Match(
             Some: e => e,
             None: () => new());
 }
