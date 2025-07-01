@@ -39,7 +39,7 @@ public sealed class DocumentStoreTests
                 Some: read =>
                 {
                     var updated = read with { Record = new TestTuple("bar") };
-                    Assert.Equal(DocumentStore.UpdateResponse.Success, store.TryUpdate(updated, CancellationToken.None));
+                    Assert.Equal(DocumentStore.UpdateResponse.Success, store.TryPutOrUpdate(updated, CancellationToken.None));
 
                     _ = store.Find<TestTuple>("h", "r")
                         .Match(
@@ -63,8 +63,8 @@ public sealed class DocumentStoreTests
                 Some: read =>
                 {
                     var updated = read with { Record = new TestTuple("bar") };
-                    Assert.Equal(DocumentStore.UpdateResponse.Success, store.TryUpdate(updated, CancellationToken.None));
-                    Assert.Equal(DocumentStore.UpdateResponse.VersionCheckFailedError, store.TryUpdate(updated, CancellationToken.None));
+                    Assert.Equal(DocumentStore.UpdateResponse.Success, store.TryPutOrUpdate(updated, CancellationToken.None));
+                    Assert.Equal(DocumentStore.UpdateResponse.VersionCheckFailedError, store.TryPutOrUpdate(updated, CancellationToken.None));
                 });
     }
 
@@ -83,7 +83,7 @@ public sealed class DocumentStoreTests
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
-            .FindRange<TestTuple>("h", Unbound.Unbound())
+            .Find<TestTuple>("h", KeyRange.Unbound)
             .ToArray();
         Assert.Equal(3, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");
@@ -99,7 +99,7 @@ public sealed class DocumentStoreTests
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
-            .FindRange<TestTuple>("h", Unbound.Since("b"))
+            .Find<TestTuple>("h", KeyRange.Since("b"))
             .ToArray();
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "B");
@@ -114,7 +114,7 @@ public sealed class DocumentStoreTests
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
-            .FindRange<TestTuple>("h", Unbound.Until("b"))
+            .Find<TestTuple>("h", KeyRange.Until("b"))
             .ToArray();
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");
@@ -129,7 +129,7 @@ public sealed class DocumentStoreTests
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
         Assert.Equal(DocumentStore.PutResponse.Success, store.TryPut(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
-            .FindRange<TestTuple>("h", Unbound.Between("a", "b"))
+            .Find<TestTuple>("h", KeyRange.Between("a", "b"))
             .ToArray();
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");
