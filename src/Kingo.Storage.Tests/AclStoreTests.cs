@@ -14,7 +14,7 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "owner");
 
-        var store = new AclStore().Include(
+        var store = AclStore.Empty.Include(
             docSubjectSet.Resource,
             docSubjectSet.Relationship,
             subject);
@@ -32,7 +32,7 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "editor");
 
-        var store = new AclStore().Include(
+        var store = AclStore.Empty.Include(
             editorSet.Resource,
             editorSet.Relationship,
             subject);
@@ -54,7 +54,7 @@ public sealed class AclStoreTests
             resource,
             "editor");
 
-        var store = new AclStore().Include(
+        var store = AclStore.Empty.Include(
             ownerSet.Resource,
             ownerSet.Relationship,
             subject);
@@ -72,7 +72,7 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = new AclStore().Include(
+        var store = AclStore.Empty.Include(
             viewerSet.Resource,
             viewerSet.Relationship,
             subject);
@@ -94,7 +94,7 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = new AclStore().Include(
+        var store = AclStore.Empty.Include(
             editorSet.Resource,
             editorSet.Relationship,
             subject);
@@ -116,7 +116,7 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = new AclStore().Include(
+        var store = AclStore.Empty.Include(
             ownerSet.Resource,
             ownerSet.Relationship,
             subject);
@@ -134,7 +134,7 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = new AclStore();
+        var store = AclStore.Empty;
 
         Assert.False(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -149,7 +149,7 @@ public sealed class AclStoreTests
         var folderResource = new Resource("folder", "documents");
 
         // doc:readme#parent@folder:documents#... (relationship tuple as subject set)
-        var store = new AclStore()
+        var store = AclStore.Empty
             .Include(
                 docResource,
                 "parent",

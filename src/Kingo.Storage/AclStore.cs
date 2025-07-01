@@ -48,6 +48,8 @@ public sealed class AclStore
     /// </summary>
     private readonly Map<Key, Subjects> tuples = [];
 
+    public static AclStore Empty { get; } = new();
+
     private AclStore() { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
