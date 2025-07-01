@@ -12,18 +12,18 @@ namespace Kingo.Storage;
 /// </summary>
 public sealed class AclStore
 {
-    private sealed class SubjectMap
+    private sealed class Subjects
     {
         private readonly LanguageExt.HashSet<Key> subjects = [];
         public readonly LanguageExt.HashSet<SubjectSet> SubjectSets = [];
 
-        public static SubjectMap Empty = new();
+        public static Subjects Empty = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private SubjectMap() { }
+        private Subjects() { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private SubjectMap(
+        private Subjects(
             LanguageExt.HashSet<Key> subjects,
             LanguageExt.HashSet<SubjectSet> subjectSets)
         {
@@ -32,10 +32,10 @@ public sealed class AclStore
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SubjectMap Include(Either<Subject, SubjectSet> e) =>
+        public Subjects Include(Either<Subject, SubjectSet> e) =>
             e.Match(
-                Left: subject => new SubjectMap(subjects.AddOrUpdate(subject.AsKey()), SubjectSets),
-                Right: subjectSet => new SubjectMap(subjects, SubjectSets.AddOrUpdate(subjectSet)));
+                Left: subject => new Subjects(subjects.AddOrUpdate(subject.AsKey()), SubjectSets),
+                Right: subjectSet => new Subjects(subjects, SubjectSets.AddOrUpdate(subjectSet)));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsAMemberOf(Subject subject) =>
@@ -43,15 +43,15 @@ public sealed class AclStore
     }
 
     /// <summary>
-    /// key = subjectSet as key
-    /// Subjects = users included in the subjectSet
+    /// Key: the left side of a tuple. eg: resource and relation as key
+    /// Subjects: the right side of a tuple. eg: subjects and subject sets
     /// </summary>
-    private readonly Map<Key, SubjectMap> index = [];
+    private readonly Map<Key, Subjects> tuples = [];
 
-    public AclStore() { }
+    private AclStore() { }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private AclStore(Map<Key, SubjectMap> acls) => index = acls;
+    private AclStore(Map<Key, Subjects> acls) => tuples = acls;
 
     /// <summary>
     /// Checks for direct match or recusively scans the userset rewrite list.
@@ -108,11 +108,11 @@ public sealed class AclStore
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private AclStore Include(Key key, Either<Subject, SubjectSet> subject) =>
-        new(index.AddOrUpdate(key, ReadSubjectMap(key).Include(subject)));
+        new(tuples.AddOrUpdate(key, ReadSubjectMap(key).Include(subject)));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private SubjectMap ReadSubjectMap(Key key) =>
-        index.Find(key).Match(
+    private Subjects ReadSubjectMap(Key key) =>
+        tuples.Find(key).Match(
             Some: e => e,
-            None: () => SubjectMap.Empty);
+            None: () => Subjects.Empty);
 }
