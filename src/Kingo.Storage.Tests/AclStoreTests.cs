@@ -14,7 +14,10 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "owner");
 
-        var store = new AclStore().Include(docSubjectSet, subject);
+        var store = new AclStore().Include(
+            docSubjectSet.Resource,
+            docSubjectSet.Relationship,
+            subject);
 
         Assert.True(store.IsAMemberOf(subject, docSubjectSet, tree));
     }
@@ -29,8 +32,10 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "editor");
 
-        var store = new AclStore()
-            .Include(editorSet, subject);
+        var store = new AclStore().Include(
+            editorSet.Resource,
+            editorSet.Relationship,
+            subject);
 
         Assert.True(store.IsAMemberOf(subject, editorSet, tree));
     }
@@ -49,8 +54,10 @@ public sealed class AclStoreTests
             resource,
             "editor");
 
-        var store = new AclStore()
-            .Include(ownerSet, subject);
+        var store = new AclStore().Include(
+            ownerSet.Resource,
+            ownerSet.Relationship,
+            subject);
 
         Assert.True(store.IsAMemberOf(subject, editorSet, tree));
     }
@@ -65,8 +72,10 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = new AclStore()
-            .Include(viewerSet, subject);
+        var store = new AclStore().Include(
+            viewerSet.Resource,
+            viewerSet.Relationship,
+            subject);
 
         Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -85,8 +94,10 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = new AclStore()
-            .Include(editorSet, subject);
+        var store = new AclStore().Include(
+            editorSet.Resource,
+            editorSet.Relationship,
+            subject);
 
         Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -105,8 +116,10 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = new AclStore()
-            .Include(ownerSet, subject);
+        var store = new AclStore().Include(
+            ownerSet.Resource,
+            ownerSet.Relationship,
+            subject);
 
         Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
@@ -124,5 +137,31 @@ public sealed class AclStoreTests
         var store = new AclStore();
 
         Assert.False(store.IsAMemberOf(subject, viewerSet, tree));
+    }
+
+    [Fact]
+    public async Task IsAMemberOf_Viewer_ComputedFromParentFolderViewer()
+    {
+        var subject = new Subject(Guid.NewGuid());
+        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
+
+        var docResource = new Resource("doc", "readme");
+        var folderResource = new Resource("folder", "documents");
+
+        // doc:readme#parent@folder:documents#... (relationship tuple as subject set)
+        var store = new AclStore()
+            .Include(
+                docResource,
+                "parent",
+                new SubjectSet(folderResource, Relationship.Nothing))
+            // folder:documents#viewer@subject (membership tuple)
+            .Include(
+                folderResource,
+                "viewer",
+                subject);
+
+        var viewerSet = new SubjectSet(docResource, "viewer");
+
+        Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
     }
 }

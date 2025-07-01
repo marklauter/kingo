@@ -7,9 +7,17 @@ public sealed record NamespaceSpec(
     Namespace Name,
     IReadOnlyList<RelationshipSpec> Relationships);
 
-public sealed record RelationshipSpec(
-    Relationship Name,
-    SubjectSetRewrite? SubjectSetRewrite);
+public sealed record RelationshipSpec
+{
+    public RelationshipSpec(Relationship name, SubjectSetRewrite? subjectSetRewrite)
+    {
+        Name = name;
+        SubjectSetRewrite = subjectSetRewrite ?? new This();
+    }
+
+    public Relationship Name { get; }
+    public SubjectSetRewrite SubjectSetRewrite { get; }
+};
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
 [JsonDerivedType(typeof(This), nameof(This))]
@@ -17,6 +25,7 @@ public sealed record RelationshipSpec(
 [JsonDerivedType(typeof(UnionRewrite), nameof(UnionRewrite))]
 [JsonDerivedType(typeof(IntersectionRewrite), nameof(IntersectionRewrite))]
 [JsonDerivedType(typeof(ExclusionRewrite), nameof(ExclusionRewrite))]
+[JsonDerivedType(typeof(TupleToSubjectSetRewrite), nameof(TupleToSubjectSetRewrite))]
 public abstract record SubjectSetRewrite;
 
 public sealed record This
@@ -38,3 +47,9 @@ public sealed record ExclusionRewrite(
     SubjectSetRewrite Include,
     SubjectSetRewrite Exclude)
     : SubjectSetRewrite;
+
+public sealed record TupleToSubjectSetRewrite(
+    Relationship TuplesetRelation,
+    Relationship ComputedSubjectSetRelation)
+    : SubjectSetRewrite;
+

@@ -15,10 +15,12 @@ public readonly struct Relationship
     , IComparable<string>
 {
     private readonly string value;
-    private static readonly Regex Validation = RegExPatterns.Identifier();
+    private static readonly Regex Validation = RegExPatterns.Relationship();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Relationship Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
+
+    public static Relationship Nothing { get; } = From("...");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Relationship From(string s) => new(s);

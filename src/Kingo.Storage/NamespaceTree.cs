@@ -20,18 +20,17 @@ public sealed record NamespaceTree(
                 r => ConvertRewrite(r.SubjectSetRewrite)
             ));
 
-    private static SubjectSetRewrite ConvertRewrite(Specs.SubjectSetRewrite? rule) =>
-        rule is null
-            ? This.Default
-            : rule switch
-            {
-                Kingo.Specs.This => This.Default,
-                Kingo.Specs.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
-                Kingo.Specs.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(NamespaceTree.ConvertRewrite)]),
-                Kingo.Specs.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(NamespaceTree.ConvertRewrite)]),
-                Kingo.Specs.ExclusionRewrite exclusion => ExclusionRewrite.From(NamespaceTree.ConvertRewrite(exclusion.Include), NamespaceTree.ConvertRewrite(exclusion.Exclude)),
-                _ => throw new System.NotSupportedException()
-            };
+    private static SubjectSetRewrite ConvertRewrite(Specs.SubjectSetRewrite rule) =>
+        rule switch
+        {
+            Specs.This => This.Default,
+            Specs.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
+            Specs.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(NamespaceTree.ConvertRewrite)]),
+            Specs.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(NamespaceTree.ConvertRewrite)]),
+            Specs.ExclusionRewrite exclusion => ExclusionRewrite.From(NamespaceTree.ConvertRewrite(exclusion.Include), NamespaceTree.ConvertRewrite(exclusion.Exclude)),
+            Specs.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
+            _ => throw new NotSupportedException()
+        };
 }
 
 public abstract record SubjectSetRewrite;
@@ -73,3 +72,14 @@ public sealed record ExclusionRewrite(
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ExclusionRewrite From(SubjectSetRewrite include, SubjectSetRewrite exclude) => new(include, exclude);
 }
+
+public sealed record TupleToSubjectSetRewrite(
+    Relationship TuplesetRelation,
+    Relationship ComputedSubjectSetRelation)
+    : SubjectSetRewrite
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TupleToSubjectSetRewrite From(Relationship tuplesetRelation, Relationship computedSubjectSetRelation) =>
+        new(tuplesetRelation, computedSubjectSetRelation);
+}
+

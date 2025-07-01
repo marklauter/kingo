@@ -30,6 +30,11 @@
           {
             "Type": "ComputedSubjectSetRewrite",
             "Relationship": "editor"
+          },
+          {
+            "Type": "TupleToSubjectSetRewrite",
+            "TuplesetRelation": "parent",
+            "ComputedSubjectSetRelation": "viewer"
           }
         ]
       }

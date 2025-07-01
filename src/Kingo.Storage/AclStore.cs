@@ -1,5 +1,6 @@
 ﻿using Kingo.Facts;
 using LanguageExt;
+using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage;
 
@@ -11,18 +12,32 @@ namespace Kingo.Storage;
 /// </summary>
 public sealed class AclStore
 {
-    private sealed class Subjects
+    private sealed class SubjectMap
     {
         private readonly LanguageExt.HashSet<Key> subjects = [];
+        public readonly LanguageExt.HashSet<SubjectSet> SubjectSets = [];
 
-        public Subjects() { }
+        public static SubjectMap Empty = new();
 
-        private Subjects(LanguageExt.HashSet<Key> subjects) =>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private SubjectMap() { }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private SubjectMap(
+            LanguageExt.HashSet<Key> subjects,
+            LanguageExt.HashSet<SubjectSet> subjectSets)
+        {
             this.subjects = subjects;
+            SubjectSets = subjectSets;
+        }
 
-        public Subjects Include(Subject subject) =>
-                 new(subjects.AddOrUpdate(subject.AsKey()));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public SubjectMap Include(Either<Subject, SubjectSet> e) =>
+            e.Match(
+                Left: subject => new SubjectMap(subjects.AddOrUpdate(subject.AsKey()), SubjectSets),
+                Right: subjectSet => new SubjectMap(subjects, SubjectSets.AddOrUpdate(subjectSet)));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsAMemberOf(Subject subject) =>
             subjects.Contains(subject.AsKey());
     }
@@ -31,11 +46,12 @@ public sealed class AclStore
     /// key = subjectSet as key
     /// Subjects = users included in the subjectSet
     /// </summary>
-    private readonly Map<Key, Subjects> index = [];
+    private readonly Map<Key, SubjectMap> index = [];
 
     public AclStore() { }
 
-    private AclStore(Map<Key, Subjects> acls) => index = acls;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private AclStore(Map<Key, SubjectMap> acls) => index = acls;
 
     /// <summary>
     /// Checks for direct match or recusively scans the userset rewrite list.
@@ -49,6 +65,7 @@ public sealed class AclStore
     ///     ∨ ∃tuple ⟨object#relation@U′⟩, where
     ///     U′ =⟨object′#relation′⟩ s.t. CHECK(U,U′).
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAMemberOf(Subject subject, SubjectSet subjectSet, NamespaceTree tree) =>
         // todo: instead of passing namespace, look it up from the subjectset resource
         EvaluateRewrite(subject, subjectSet, tree, tree.Relationships[subjectSet.Relationship]);
@@ -72,33 +89,30 @@ public sealed class AclStore
                 EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Include)
             && !EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Exclude),
 
+            TupleToSubjectSetRewrite tupleToSubjectSet =>
+                ReadSubjectMap(new SubjectSet(subjectSet.Resource, tupleToSubjectSet.TuplesetRelation).AsKey())
+                    .SubjectSets
+                    .Any(parentSubjectSet =>
+                        IsAMemberOf(subject, new SubjectSet(parentSubjectSet.Resource, tupleToSubjectSet.ComputedSubjectSetRelation), namespaceTree)),
+
             _ => throw new NotSupportedException()
         };
 
-    /// <summary>
-    /// Binds a resource, relationship, subject tuple and adds it to a new AclStore.
-    /// </summary>
-    /// <param name="resource"></param>
-    /// <param name="relationship"></param>
-    /// <param name="subject"></param>
-    /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
-    public AclStore Include(Resource resource, Relationship relationship, Subject subject) =>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public AclStore Include(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject) =>
         Include(new SubjectSet(resource, relationship), subject);
 
-    /// <summary>
-    /// Binds a resource, relationship, subject tuple and adds it to a new AclStore.
-    /// </summary>
-    /// <param name="subjectSet"></param>
-    /// <param name="subject"></param>
-    /// <returns>A new AclStore that is the union of the AclStore and the new tuple.</returns>
-    public AclStore Include(SubjectSet subjectSet, Subject subject) =>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private AclStore Include(SubjectSet subjectSet, Either<Subject, SubjectSet> subject) =>
         Include(subjectSet.AsKey(), subject);
 
-    private AclStore Include(Key key, Subject subject) =>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private AclStore Include(Key key, Either<Subject, SubjectSet> subject) =>
         new(index.AddOrUpdate(key, ReadSubjectMap(key).Include(subject)));
 
-    private Subjects ReadSubjectMap(Key key) =>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private SubjectMap ReadSubjectMap(Key key) =>
         index.Find(key).Match(
             Some: e => e,
-            None: () => new());
+            None: () => SubjectMap.Empty);
 }
