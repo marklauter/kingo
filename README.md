@@ -36,4 +36,5 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 27 JUN 2025 - added JSON-based namespace specs and subjectset rewrite configuration 
 - 30 JUN 2025 - refactored AclStore logic to rewrite rules
 - 01 JUL 2025 - refactored AclStore to use DocumentStore
-- 02 JUL 2025 - planned: refactor namespace specs to use document store
+- 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use document store
+- 03 JUL 2025 - planned: refactor namespace specs to use document store
