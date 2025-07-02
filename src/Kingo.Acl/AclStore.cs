@@ -11,6 +11,8 @@ namespace Kingo.Acl;
 /// </summary>
 public sealed class AclStore(DocumentStore documentStore)
 {
+    private readonly NamespaceReader nsReader = new(documentStore);
+
     public enum AssociateResponse
     {
         Success,
@@ -20,27 +22,31 @@ public sealed class AclStore(DocumentStore documentStore)
 
     // todo: instead of passing namespace, look it up from the DocumentStore or something
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet, NamespaceTree tree) =>
-        tree.Relationships.TryGetValue(subjectSet.Relationship, out var rewrite)
-        && EvaluateRewrite(subject, subjectSet, tree, rewrite);
+    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
+        nsReader
+        .Find($"{nameof(Namespace)}/{subjectSet.Resource.Namespace}", subjectSet.Relationship.AsRangeKey())
+        .Match(
+            Some: rewrite => EvaluateRewrite(subject, subjectSet, rewrite),
+            None: () => false
+        );
 
-    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, SubjectSetRewrite node)
+    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node)
         => node switch
         {
             This => documentStore.Find<Subject>(subjectSet.AsHashKey<Subject>(), subject.AsRangeKey()).IsSome,
 
             ComputedSubjectSetRewrite computedSet =>
-                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship), namespaceTree),
+                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship)),
 
             UnionRewrite union =>
-                union.Children.Any(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+                union.Children.Any(child => EvaluateRewrite(subject, subjectSet, child)),
 
             IntersectionRewrite intersection =>
-                intersection.Children.All(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+                intersection.Children.All(child => EvaluateRewrite(subject, subjectSet, child)),
 
             ExclusionRewrite exclusion =>
-                EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Include)
-            && !EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Exclude),
+                EvaluateRewrite(subject, subjectSet, exclusion.Include)
+            && !EvaluateRewrite(subject, subjectSet, exclusion.Exclude),
 
             TupleToSubjectSetRewrite tupleToSubjectSet =>
                 documentStore.Find<SubjectSet>(
@@ -49,8 +55,7 @@ public sealed class AclStore(DocumentStore documentStore)
                     .Any(parentSubjectSet =>
                         IsAMemberOf(
                             subject,
-                            new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation),
-                            namespaceTree)),
+                            new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation))),
 
             _ => throw new NotSupportedException()
         };
