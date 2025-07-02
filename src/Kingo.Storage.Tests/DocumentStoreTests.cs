@@ -5,6 +5,7 @@ namespace Kingo.Storage.Tests;
 public sealed class DocumentStoreTests
 {
     private sealed record TestTuple(string Value);
+    private sealed record AnotherTestTuple(string Value);
 
     [Fact]
     public void TryPutSucceedsAndCanReadBack()
@@ -149,5 +150,68 @@ public sealed class DocumentStoreTests
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");
         Assert.Contains(docs, d => d.Record.Value == "C");
+    }
+
+    [Fact]
+    public void TryPut_WithCancelledToken_ReturnsTimeoutError()
+    {
+        var store = DocumentStore.Empty();
+        var doc = Document.Cons("h", "r", new TestTuple("foo"));
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        Assert.Equal(DocumentStore.PutResponse.TimeoutError, store.TryPut(doc, cts.Token));
+    }
+
+    [Fact]
+    public void TryPutOrUpdate_WithCancelledToken_ReturnsTimeoutError()
+    {
+        var store = DocumentStore.Empty();
+        var doc = Document.Cons("h", "r", new TestTuple("foo"));
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        Assert.Equal(DocumentStore.UpdateResponse.TimeoutError, store.TryPutOrUpdate(doc, cts.Token));
+    }
+
+    [Fact]
+    public void Find_WithNonExistentHashKey_ReturnsNone()
+    {
+        var store = DocumentStore.Empty();
+        Assert.True(store.Find<TestTuple>("non-existent", "r").IsNone);
+    }
+
+    [Fact]
+    public void Find_WithRangeAndNonExistentHashKey_ReturnsEmpty()
+    {
+        var store = DocumentStore.Empty();
+        var docs = store.Find<TestTuple>("non-existent", KeyRange.Unbound);
+        Assert.Empty(docs);
+    }
+
+    [Fact]
+    public void Where_WithNonExistentHashKey_ReturnsEmpty()
+    {
+        var store = DocumentStore.Empty();
+        var docs = store.Where<TestTuple>("non-existent", _ => true);
+        Assert.Empty(docs);
+    }
+
+    [Fact]
+    public void Find_WithTypeMismatch_ReturnsNone()
+    {
+        var store = DocumentStore.Empty();
+        var doc = Document.Cons("h", "r", new TestTuple("foo"));
+        _ = store.TryPut(doc, CancellationToken.None);
+        Assert.True(store.Find<AnotherTestTuple>("h", "r").IsNone);
+    }
+
+    [Fact]
+    public void FindRange_WithTypeMismatch_ReturnsEmpty()
+    {
+        var store = DocumentStore.Empty();
+        _ = store.TryPut(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None);
+        _ = store.TryPut(Document.Cons("h", "b", new AnotherTestTuple("B")), CancellationToken.None);
+        var docs = store.Find<TestTuple>("h", KeyRange.Unbound);
+        var doc = Assert.Single(docs);
+        Assert.Equal("A", doc.Record.Value);
     }
 }
