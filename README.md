@@ -39,3 +39,10 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use document store
 - 02 JUL 2025 - refactored namespace specs to use document store
 - 03 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
+
+## performance ideas
+1. two million unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 2.1 million addressible tuples
+1. bit packing requires every tuple element to be integer addressible
+1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, subjects to integer values
+1. the integer values can be packed into that 64bit mentioned in item 1
+1. imagine the tuple lookup as a straight up integer lookup in a btree or LSM - it's fast AF
