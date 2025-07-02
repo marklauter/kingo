@@ -131,13 +131,13 @@ public sealed class DocumentStore
     private static Iterable<Document<R>> FindRange<R>(Map<Key, Document> map, Since since) where R : notnull =>
         map.Filter(document =>
             document is Document<R> documentT
-            && documentT.RangeKey >= since.RangeKey)
+            && documentT.RangeKey >= since.FromKey)
         .Values.Map(document => (Document<R>)document);
 
     private static Iterable<Document<R>> FindRange<R>(Map<Key, Document> map, Until until) where R : notnull =>
         map.Filter(document =>
             document is Document<R> documentT
-            && documentT.RangeKey <= until.RangeKey)
+            && documentT.RangeKey <= until.ToKey)
         .Values.Map(document => (Document<R>)document);
 
     private static Iterable<Document<R>> FindRange<R>(Map<Key, Document> map, Between span) where R : notnull =>
