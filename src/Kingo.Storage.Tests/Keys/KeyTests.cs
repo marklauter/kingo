@@ -15,7 +15,9 @@ public sealed class KeyTests
         Assert.Throws<ArgumentException>(() => Key.From(value));
 
     [Theory]
-    [InlineData("a-b")]
+    [InlineData("a)b")]
+    [InlineData("a(b")]
+    [InlineData("(ab)")]
     [InlineData("a$b")]
     [InlineData("a b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
