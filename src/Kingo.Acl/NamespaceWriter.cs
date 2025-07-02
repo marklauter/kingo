@@ -15,16 +15,16 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
     }
 
     public (WriteStatus Status, Key DocumentId)[] Write(NamespaceSpec spec, CancellationToken cancellationToken) =>
-        [.. Write($"{nameof(Namespace)}/{spec.Name}", spec, cancellationToken)];
+        Write($"{nameof(Namespace)}/{spec.Name}", spec, cancellationToken);
 
-    private IEnumerable<(WriteStatus Status, Key DocumentId)> Write(Key hashKey, NamespaceSpec spec, CancellationToken cancellationToken) =>
-        spec.Relationships
+    private (WriteStatus Status, Key DocumentId)[] Write(Key hashKey, NamespaceSpec spec, CancellationToken cancellationToken) =>
+        [.. spec.Relationships
             .Select(r => Document
                 .Cons(
                     hashKey,
                     r.Name.AsRangeKey(),
                     ConvertRewrite(r.SubjectSetRewrite)))
-            .Select(d => TryPutOrUpdate(d, cancellationToken));
+            .Select(d => TryPutOrUpdate(d, cancellationToken))];
 
     private (WriteStatus Status, Key DocumentId) TryPutOrUpdate(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
         documentStore.TryPutOrUpdate(document, cancellationToken) switch
