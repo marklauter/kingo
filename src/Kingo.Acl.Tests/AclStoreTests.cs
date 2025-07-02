@@ -1,5 +1,4 @@
-﻿using Kingo.Acl.Namespaces.Spec;
-using Kingo.Acl.Namespaces.Tree;
+﻿using Kingo.Acl.SerializableNamespace;
 using Kingo.Storage;
 
 namespace Kingo.Acl.Tests;

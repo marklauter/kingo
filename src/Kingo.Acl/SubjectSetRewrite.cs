@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Kingo.Acl.Namespaces.Tree;
+namespace Kingo.Acl;
 
 public abstract record SubjectSetRewrite;
 
