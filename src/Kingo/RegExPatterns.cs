@@ -10,7 +10,7 @@ internal partial class RegExPatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    [GeneratedRegex(@"^[A-Za-z0-9_]+$", PatternOptions)]
+    [GeneratedRegex(@"^[A-Za-z0-9_.]+$", PatternOptions)]
     public static partial Regex Identifier();
 
     [GeneratedRegex(@"^[A-Za-z0-9_.]+$", PatternOptions)]
