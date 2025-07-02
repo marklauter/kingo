@@ -1,5 +1,6 @@
 ﻿using Kingo.Acl.Namespaces.Tree;
-using Kingo.Facts;
+using Kingo.Storage;
+using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Runtime.CompilerServices;
 
