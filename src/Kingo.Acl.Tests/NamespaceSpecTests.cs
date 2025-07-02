@@ -7,7 +7,7 @@ public class NamespaceSpecTests
     [Fact]
     public async Task ParsesFromJsonAsync()
     {
-        var nsSpec = await NamespaceSpec.FromFileAsync("NamespaceConfiguration.json");
+        var nsSpec = await NamespaceSpec.FromFileAsync("Namespace.Doc.json");
         Assert.NotNull(nsSpec);
 
         Assert.Equal("doc", nsSpec.Name);
