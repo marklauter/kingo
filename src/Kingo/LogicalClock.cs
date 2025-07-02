@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace Kingo.Time;
+namespace Kingo;
 
 [JsonConverter(typeof(StringConvertible<LogicalClock>))]
 public readonly struct LogicalClock

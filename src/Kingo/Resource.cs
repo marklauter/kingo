@@ -1,4 +1,4 @@
-﻿namespace Kingo.Facts;
+﻿namespace Kingo;
 
 // it's like a resource indicator, but scheme is omitted because we know the context
 // <namespace>:<resource-id>

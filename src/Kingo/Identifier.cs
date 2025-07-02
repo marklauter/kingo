@@ -1,33 +1,32 @@
-﻿using Kingo.Json;
+﻿using Kingo.Facts;
+using Kingo.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Kingo.Facts;
+namespace Kingo;
 
-[JsonConverter(typeof(StringConvertible<Relationship>))]
-public readonly struct Relationship
-    : IStringConvertible<Relationship>
-    , IEquatable<Relationship>
-    , IComparable<Relationship>
+[JsonConverter(typeof(StringConvertible<Identifier>))]
+public readonly struct Identifier
+    : IStringConvertible<Identifier>
+    , IEquatable<Identifier>
+    , IComparable<Identifier>
     , IEquatable<string>
     , IComparable<string>
 {
     private readonly string value;
-    private static readonly Regex Validation = RegExPatterns.Relationship();
+    private static readonly Regex Validation = RegExPatterns.Identifier();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Relationship Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
-
-    public static Relationship Nothing { get; } = From("...");
+    public static Identifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Relationship From(string s) => new(s);
+    public static Identifier From(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private Relationship(string value) => this.value = ValidValue(value);
+    private Identifier(string value) => this.value = ValidValue(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string ValidValue(string value)
@@ -45,13 +44,13 @@ public readonly struct Relationship
     public override string ToString() => value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Relationship other) => string.Equals(value, other.value, StringComparison.Ordinal);
+    public bool Equals(Identifier other) => string.Equals(value, other.value, StringComparison.Ordinal);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is Relationship relationship && Equals(relationship);
+    public override bool Equals(object? obj) => obj is Identifier identifier && Equals(identifier);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Relationship other) => string.CompareOrdinal(value, other.value);
+    public int CompareTo(Identifier other) => string.CompareOrdinal(value, other.value);
 
     public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
 
@@ -59,26 +58,26 @@ public readonly struct Relationship
     public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(Relationship relationship) => relationship.value;
+    public static implicit operator string(Identifier identifier) => identifier.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Relationship(string value) => new(value);
+    public static implicit operator Identifier(string value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Relationship left, Relationship right) => left.Equals(right);
+    public static bool operator ==(Identifier left, Identifier right) => left.Equals(right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Relationship left, Relationship right) => !(left == right);
+    public static bool operator !=(Identifier left, Identifier right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(Relationship left, Relationship right) => left.CompareTo(right) < 0;
+    public static bool operator <(Identifier left, Identifier right) => left.CompareTo(right) < 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(Relationship left, Relationship right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(Identifier left, Identifier right) => left.CompareTo(right) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(Relationship left, Relationship right) => left.CompareTo(right) > 0;
+    public static bool operator >(Identifier left, Identifier right) => left.CompareTo(right) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(Relationship left, Relationship right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(Identifier left, Identifier right) => left.CompareTo(right) >= 0;
 }
