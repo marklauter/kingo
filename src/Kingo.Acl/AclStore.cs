@@ -2,6 +2,7 @@
 using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
@@ -22,13 +23,17 @@ public sealed class AclStore(DocumentStore documentStore)
 
     // todo: instead of passing namespace, look it up from the DocumentStore or something
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
-        nsReader
-        .Find($"{nameof(Namespace)}/{subjectSet.Resource.Namespace}", subjectSet.Relationship.AsRangeKey())
+    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet)
+    {
+        var hk = $"{nameof(Namespace)}/{subjectSet.Resource.Namespace}";
+        Debug.WriteLine(hk);
+        return nsReader
+        .Find(hk, subjectSet.Relationship.AsRangeKey())
         .Match(
             Some: rewrite => EvaluateRewrite(subject, subjectSet, rewrite),
             None: () => false
         );
+    }
 
     private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node)
         => node switch
@@ -75,3 +80,65 @@ public sealed class AclStore(DocumentStore documentStore)
             _ => throw new NotSupportedException()
         };
 }
+
+//public sealed class AclStoreOld(DocumentStore documentStore)
+//{
+//    public enum AssociateResponse
+//    {
+//        Success,
+//        TimeoutError,
+//        VersionCheckFailedError,
+//    }
+
+//    // todo: instead of passing namespace, look it up from the DocumentStore or something
+//    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+//    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet, NamespaceTree tree) =>
+//        tree.Relationships.TryGetValue(subjectSet.Relationship, out var rewrite)
+//        && EvaluateRewrite(subject, subjectSet, tree, rewrite);
+
+//    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, SubjectSetRewrite node)
+//        => node switch
+//        {
+//            This => documentStore.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
+
+//            ComputedSubjectSetRewrite computedSet =>
+//                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship), namespaceTree),
+
+//            UnionRewrite union =>
+//                union.Children.Any(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+
+//            IntersectionRewrite intersection =>
+//                intersection.Children.All(child => EvaluateRewrite(subject, subjectSet, namespaceTree, child)),
+
+//            ExclusionRewrite exclusion =>
+//                EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Include)
+//            && !EvaluateRewrite(subject, subjectSet, namespaceTree, exclusion.Exclude),
+
+//            TupleToSubjectSetRewrite tupleToSubjectSet =>
+//                documentStore.Find<SubjectSet>(
+//                    subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
+//                    KeyRange.Unbound)
+//                    .Any(parentSubjectSet =>
+//                        IsAMemberOf(
+//                            subject,
+//                            new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation),
+//                            namespaceTree)),
+
+//            _ => throw new NotSupportedException()
+//        };
+
+//    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+//    public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
+//        subject.Match(
+//            Left: subject => StoreDocument(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
+//            Right: subjectSet => StoreDocument(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
+
+//    private AssociateResponse StoreDocument<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
+//        documentStore.TryPutOrUpdate(document, cancellationToken) switch
+//        {
+//            DocumentStore.UpdateResponse.Success => AssociateResponse.Success,
+//            DocumentStore.UpdateResponse.VersionCheckFailedError => AssociateResponse.VersionCheckFailedError,
+//            DocumentStore.UpdateResponse.TimeoutError => AssociateResponse.TimeoutError,
+//            _ => throw new NotSupportedException()
+//        };
+//}

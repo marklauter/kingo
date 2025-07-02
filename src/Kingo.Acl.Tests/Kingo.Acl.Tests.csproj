@@ -8,7 +8,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="NamespaceConfiguration.json">
+		<Content Include="Namespace.Folder.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Namespace.Doc.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
