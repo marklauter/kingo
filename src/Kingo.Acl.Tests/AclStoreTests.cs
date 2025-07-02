@@ -11,7 +11,7 @@ public sealed class AclStoreTests
         var store = DocumentStore.Empty();
         var results = new NamespaceWriter(store)
             .Write(await NamespaceSpec.FromFileAsync("NamespaceConfiguration.json"), CancellationToken.None);
-        Assert.Equal(3, results.Count());
+        Assert.Equal(3, results.Length);
         Assert.DoesNotContain(NamespaceWriter.WriteStatus.TimeoutError, results.Select(i => i.Status));
         Assert.DoesNotContain(NamespaceWriter.WriteStatus.VersionCheckFailedError, results.Select(i => i.Status));
 
