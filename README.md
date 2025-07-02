@@ -41,7 +41,7 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 03 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
-1. two million unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 9 quintillion addressable tuples, or add the remaining bit to the subject value and get 18 quintillion addressable tuples with 16 million subjects
+1. between 9 and 18 quintillion unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 9 quintillion addressable tuples, or add the remaining bit to the subject value and get 18 quintillion addressable tuples with 16 million subjects
 1. bit packing requires every tuple element to be integer addressable
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, subjects to integer values
 1. the integer values can be packed into that 64-bit mentioned in item 1
