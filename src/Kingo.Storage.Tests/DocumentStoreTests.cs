@@ -1,4 +1,4 @@
-﻿using Kingo.Storage.Ranges;
+﻿using Kingo.Storage.Keys;
 
 namespace Kingo.Storage.Tests;
 
@@ -47,7 +47,7 @@ public sealed class DocumentStoreTests
                             Some: d =>
                             {
                                 Assert.Equal("bar", d.Record.Value);
-                                Assert.True(d.Version.Value > read.Version.Value);
+                                Assert.True(d.Version > read.Version);
                             });
                 });
     }
