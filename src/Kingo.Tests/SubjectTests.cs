@@ -1,6 +1,3 @@
-using System;
-using Xunit;
-
 namespace Kingo.Tests;
 
 public sealed class SubjectTests
