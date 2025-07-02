@@ -8,7 +8,7 @@ public static class KeyExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key AsHashKey<NS>(this Resource resource, Relationship relationship) =>
-        $"{Namespace<NS>.Value}/{resource.AsString()}#{relationship}";
+        $"{TypeName<NS>.Value}/{resource.AsString()}#{relationship}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key AsHashKey<NS>(this SubjectSet subjectSet) =>
@@ -39,9 +39,4 @@ public static class KeyExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key AsRangeKey(this SubjectSet subjectSet) =>
         subjectSet.Resource.AsRangeKey(subjectSet.Relationship);
-}
-
-internal static class Namespace<NS>
-{
-    public static string Value { get; } = typeof(NS).Name;
 }
