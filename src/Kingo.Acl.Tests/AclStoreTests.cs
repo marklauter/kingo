@@ -1,21 +1,32 @@
-﻿using Kingo.Acl.Namespaces.Tree;
+﻿using Kingo.Acl.Namespaces.Spec;
+using Kingo.Acl.Namespaces.Tree;
 using Kingo.Storage;
 
 namespace Kingo.Acl.Tests;
 
 public sealed class AclStoreTests
 {
+    private static async Task<DocumentStore> GetPrimedDocumentStoreAsync()
+    {
+        var store = DocumentStore.Empty();
+        var results = new NamespaceWriter(store)
+            .Write(await NamespaceSpec.FromFileAsync("NamespaceConfiguration.json"), CancellationToken.None);
+        Assert.Equal(3, results.Count());
+        Assert.DoesNotContain(NamespaceWriter.WriteStatus.TimeoutError, results.Select(i => i.Status));
+        Assert.DoesNotContain(NamespaceWriter.WriteStatus.VersionCheckFailedError, results.Select(i => i.Status));
+
+        return store;
+    }
+
     [Fact]
     public async Task IsAMemberOf_Owner_DirectMembership()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var docSubjectSet = new SubjectSet(
             new Resource("doc", "readme"),
             "owner");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
                 docSubjectSet.Resource,
@@ -23,20 +34,18 @@ public sealed class AclStoreTests
                 subject,
                 CancellationToken.None));
 
-        Assert.True(store.IsAMemberOf(subject, docSubjectSet, tree));
+        Assert.True(store.IsAMemberOf(subject, docSubjectSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_Editor_DirectMembership()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var editorSet = new SubjectSet(
             new Resource("doc", "readme"),
             "editor");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
                 editorSet.Resource,
@@ -44,15 +53,13 @@ public sealed class AclStoreTests
                 subject,
                 CancellationToken.None));
 
-        Assert.True(store.IsAMemberOf(subject, editorSet, tree));
+        Assert.True(store.IsAMemberOf(subject, editorSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_Editor_ComputedFromOwner()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var resource = new Resource("doc", "readme");
         var ownerSet = new SubjectSet(
             resource,
@@ -61,7 +68,7 @@ public sealed class AclStoreTests
             resource,
             "editor");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
                 ownerSet.Resource,
@@ -69,20 +76,18 @@ public sealed class AclStoreTests
                 subject,
                 CancellationToken.None));
 
-        Assert.True(store.IsAMemberOf(subject, editorSet, tree));
+        Assert.True(store.IsAMemberOf(subject, editorSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_Viewer_DirectMembership()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var viewerSet = new SubjectSet(
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
                 viewerSet.Resource,
@@ -90,15 +95,13 @@ public sealed class AclStoreTests
                 subject,
                 CancellationToken.None));
 
-        Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
+        Assert.True(store.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_Viewer_ComputedFromEditor()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var resource = new Resource("doc", "readme");
         var editorSet = new SubjectSet(
             resource,
@@ -107,7 +110,7 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
                 editorSet.Resource,
@@ -115,15 +118,13 @@ public sealed class AclStoreTests
                 subject,
                 CancellationToken.None));
 
-        Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
+        Assert.True(store.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_Viewer_ComputedFromOwnerViaEditor()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var resource = new Resource("doc", "readme");
         var ownerSet = new SubjectSet(
             resource,
@@ -132,7 +133,7 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
                 ownerSet.Resource,
@@ -140,35 +141,31 @@ public sealed class AclStoreTests
                 subject,
                 CancellationToken.None));
 
-        Assert.True(store.IsAMemberOf(subject, viewerSet, tree));
+        Assert.True(store.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_False_WhenNotIncluded()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var viewerSet = new SubjectSet(
             new Resource("doc", "readme"),
             "viewer");
 
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
 
-        Assert.False(store.IsAMemberOf(subject, viewerSet, tree));
+        Assert.False(store.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
     public async Task IsAMemberOf_Viewer_ComputedFromParentFolderViewer()
     {
         var subject = new Subject(Guid.NewGuid());
-        var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
-
         var docResource = new Resource("doc", "readme");
         var folderResource = new Resource("folder", "documents");
 
         // doc:readme#parent@folder:documents#... (relationship tuple as subject set)
-        var store = new AclStore(DocumentStore.Empty());
+        var store = new AclStore(await GetPrimedDocumentStoreAsync());
 
         Assert.Equal(AclStore.AssociateResponse.Success,
             store.Associate(
@@ -187,15 +184,8 @@ public sealed class AclStoreTests
 
         var viewerSet = new SubjectSet(docResource, "viewer");
 
-        var isMember = store.IsAMemberOf(subject, viewerSet, tree);
+        var isMember = store.IsAMemberOf(subject, viewerSet);
         Assert.True(isMember);
     }
-
-    //+		[0]	{folder:documents#...}	Kingo.Storage.Key
-    //+		[1]	{folder:documents#viewer}	Kingo.Storage.Key
-
-    //+		[0]	{doc:readme#parent}	Kingo.Storage.Key
-    //+		[1]	{folder:documents#viewer}	Kingo.Storage.Key
-
 }
 
