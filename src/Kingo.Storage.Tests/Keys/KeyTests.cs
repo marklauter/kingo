@@ -22,7 +22,7 @@ public sealed class KeyTests
     [InlineData("a b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
-        var exception = Assert.Throws<ArgumentException>("value", () => Key.From(value));
+        var exception = Assert.Throws<ArgumentException>(nameof(value), () => Key.From(value));
         Assert.StartsWith($"value contains invalid characters: '{value}'", exception.Message);
     }
 
