@@ -7,31 +7,37 @@ namespace Kingo.Acl;
 public static class KeyExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this Resource resource, Relationship relationship) =>
-        $"{resource.AsString()}#{relationship}";
+    public static Key AsHashKey<NS>(this Resource resource, Relationship relationship) =>
+        $"{Namespace<NS>.Value}/{resource.AsString()}#{relationship}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this Resource resource) =>
-        resource.AsString();
+    public static Key AsHashKey<NS>(this SubjectSet subjectSet) =>
+        subjectSet.Resource.AsHashKey<NS>(subjectSet.Relationship);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Key AsRangeKey(this Resource resource, Relationship relationship) =>
+        $"{resource.AsString()}#{relationship}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string AsString(this Resource resource) =>
         $"{resource.Namespace}:{resource.Name}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this Either<Subject, SubjectSet> e) =>
+    public static Key AsRangeKey(this Either<Subject, SubjectSet> e) =>
         e.Match(
-            Left: AsKey,
-            Right: AsKey);
+            Left: AsRangeKey,
+            Right: AsRangeKey);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this Subject subject) =>
+    public static Key AsRangeKey(this Subject subject) =>
         subject.Id.ToString("N");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this SubjectSet subjectSet) =>
-        subjectSet.Resource.AsKey(subjectSet.Relationship);
+    public static Key AsRangeKey(this SubjectSet subjectSet) =>
+        subjectSet.Resource.AsRangeKey(subjectSet.Relationship);
+}
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsKey(this Identifier identifier) => Key.From(identifier);
+internal static class Namespace<NS>
+{
+    public static string Value { get; } = typeof(NS).Name;
 }

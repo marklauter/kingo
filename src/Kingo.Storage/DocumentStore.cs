@@ -73,7 +73,7 @@ public sealed class DocumentStore
             if (HasVersionConflict(document))
                 return UpdateResponse.VersionCheckFailedError;
 
-            if (TryUpdate(mapHolder, document with { Version = document.Version.Tick() }))
+            if (TryPutOrUpdate(mapHolder, document with { Version = document.Version.Tick() }))
                 return UpdateResponse.Success;
         }
         while (!cancellationToken.IsCancellationRequested);
@@ -85,15 +85,15 @@ public sealed class DocumentStore
         Find<R>(document.HashKey, document.RangeKey)
         .Exists(d => d.Version != document.Version);
 
-    private bool TryUpdate<R>(MapHolder snapshot, Document<R> document) where R : notnull =>
+    private bool TryPutOrUpdate<R>(MapHolder snapshot, Document<R> document) where R : notnull =>
         ReferenceEquals(
             Interlocked.CompareExchange(
                 ref mapHolder,
-                Update(snapshot.Map, document),
+                PutOrUpdate(snapshot.Map, document),
                 snapshot),
             snapshot);
 
-    private static MapHolder Update<R>(
+    private static MapHolder PutOrUpdate<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
         MapHolder.From(

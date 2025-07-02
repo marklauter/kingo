@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-// <summary>
+/// <summary>
 /// This is a demo store. A production store would use DynamoDB, Casandra, or other versioned key-value store.
 /// </summary>
 public sealed class AclStore(DocumentStore documentStore)
@@ -27,7 +27,7 @@ public sealed class AclStore(DocumentStore documentStore)
     private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, NamespaceTree namespaceTree, SubjectSetRewrite node)
         => node switch
         {
-            This => documentStore.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
+            This => documentStore.Find<Subject>(subjectSet.AsHashKey<Subject>(), subject.AsRangeKey()).IsSome,
 
             ComputedSubjectSetRewrite computedSet =>
                 IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship), namespaceTree),
@@ -44,7 +44,7 @@ public sealed class AclStore(DocumentStore documentStore)
 
             TupleToSubjectSetRewrite tupleToSubjectSet =>
                 documentStore.Find<SubjectSet>(
-                    subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
+                    subjectSet.Resource.AsHashKey<SubjectSet>(tupleToSubjectSet.TuplesetRelation),
                     KeyRange.Unbound)
                     .Any(parentSubjectSet =>
                         IsAMemberOf(
@@ -58,10 +58,10 @@ public sealed class AclStore(DocumentStore documentStore)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
         subject.Match(
-            Left: subject => StoreDocument(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
-            Right: subjectSet => StoreDocument(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
+            Left: subject => TryPutOrUpdate(Document.Cons(resource.AsHashKey<Subject>(relationship), subject.AsRangeKey(), subject), cancellationToken),
+            Right: subjectSet => TryPutOrUpdate(Document.Cons(resource.AsHashKey<SubjectSet>(relationship), subjectSet.AsRangeKey(), subjectSet), cancellationToken));
 
-    private AssociateResponse StoreDocument<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
+    private AssociateResponse TryPutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
         documentStore.TryPutOrUpdate(document, cancellationToken) switch
         {
             DocumentStore.UpdateResponse.Success => AssociateResponse.Success,
