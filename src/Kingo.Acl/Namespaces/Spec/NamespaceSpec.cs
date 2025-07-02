@@ -1,5 +1,4 @@
-﻿using Kingo.Facts;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Kingo.Acl.Namespaces.Spec;

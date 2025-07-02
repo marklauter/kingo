@@ -1,5 +1,4 @@
 ﻿using Kingo.Acl.Namespaces.Spec;
-using Kingo.Facts;
 using LanguageExt;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
