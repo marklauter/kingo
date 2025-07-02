@@ -36,14 +36,13 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 27 JUN 2025 - added JSON-based namespace specs and subjectset rewrite configuration 
 - 30 JUN 2025 - refactored AclStore logic to rewrite rules
 - 01 JUL 2025 - refactored AclStore to use DocumentStore
-- 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use document store
+- 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use the document store
 - 02 JUL 2025 - refactored namespace specs to use document store
 - 03 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
-1. two million unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 2.1 million addressible tuples
-1. bit packing requires every tuple element to be integer addressible
+1. between 9 and 18 quintillion unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 9 quintillion addressable tuples, or add the remaining bit to the subject value and get 18 quintillion addressable tuples with 16 million subjects
+1. bit packing requires every tuple element to be integer addressable
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, subjects to integer values
-1. the integer values can be packed into that 64bit mentioned in item 1
-1. imagine the tuple lookup as a straight up integer lookup in a btree or LSM - it's fast AF
-1. we could encode the resource (the left side of the tuple) with a uint32 and this would act as the partition key on dynamodb. then you could encode the relationship and user (the right side of the tuple) in a packed ulong. This gives you 4 billion addressible relationships
+1. the integer values can be packed into that 64-bit mentioned in item 1
+1. imagine the tuple lookup as a straight-up integer lookup in a btree or LSM - it's fast AF
