@@ -15,25 +15,25 @@ public class NamespaceSpecTests
 
         var owner = nsSpec.Relationships[0];
         Assert.Equal("owner", owner.Name);
-        _ = Assert.IsType<This>(owner.SubjectSetRewrite);
+        _ = Assert.IsType<SerializableNamespace.This>(owner.SubjectSetRewrite);
 
         var editor = nsSpec.Relationships[1];
         Assert.Equal("editor", editor.Name);
-        var editorRewrite = Assert.IsType<UnionRewrite>(editor.SubjectSetRewrite);
+        var editorRewrite = Assert.IsType<SerializableNamespace.UnionRewrite>(editor.SubjectSetRewrite);
         Assert.Equal(2, editorRewrite.Children.Count);
-        _ = Assert.IsType<This>(editorRewrite.Children[0]);
-        var editorOwner = Assert.IsType<ComputedSubjectSetRewrite>(editorRewrite.Children[1]);
+        _ = Assert.IsType<SerializableNamespace.This>(editorRewrite.Children[0]);
+        var editorOwner = Assert.IsType<SerializableNamespace.ComputedSubjectSetRewrite>(editorRewrite.Children[1]);
         Assert.Equal("owner", editorOwner.Relationship);
 
         var viewer = nsSpec.Relationships[2];
         Assert.Equal("viewer", viewer.Name);
-        var viewerRewrite = Assert.IsType<UnionRewrite>(viewer.SubjectSetRewrite);
+        var viewerRewrite = Assert.IsType<SerializableNamespace.UnionRewrite>(viewer.SubjectSetRewrite);
         Assert.Equal(3, viewerRewrite.Children.Count);
-        _ = Assert.IsType<This>(viewerRewrite.Children[0]);
-        var viewerEditor = Assert.IsType<ComputedSubjectSetRewrite>(viewerRewrite.Children[1]);
+        _ = Assert.IsType<SerializableNamespace.This>(viewerRewrite.Children[0]);
+        var viewerEditor = Assert.IsType<SerializableNamespace.ComputedSubjectSetRewrite>(viewerRewrite.Children[1]);
         Assert.Equal("editor", viewerEditor.Relationship);
 
-        var tupleToUserset = Assert.IsType<TupleToSubjectSetRewrite>(viewerRewrite.Children[2]);
+        var tupleToUserset = Assert.IsType<SerializableNamespace.TupleToSubjectSetRewrite>(viewerRewrite.Children[2]);
         Assert.Equal("parent", tupleToUserset.TuplesetRelation);
         Assert.Equal("viewer", tupleToUserset.ComputedSubjectSetRelation);
     }
