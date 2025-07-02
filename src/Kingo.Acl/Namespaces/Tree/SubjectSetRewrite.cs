@@ -1,36 +1,6 @@
-﻿using Kingo.Acl.Namespaces.Spec;
-using LanguageExt;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
+﻿using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl.Namespaces.Tree;
-
-public sealed record NamespaceTree(
-    Namespace Name,
-    IReadOnlyDictionary<Relationship, SubjectSetRewrite> Relationships)
-{
-    public static async Task<NamespaceTree> FromFileAsync(string path) =>
-        FromSpec(JsonSerializer.Deserialize<NamespaceSpec>(await File.ReadAllTextAsync(path))!);
-
-    public static NamespaceTree FromSpec(NamespaceSpec spec) =>
-        new(spec.Name, spec.Relationships
-            .ToDictionary(
-                r => r.Name,
-                r => ConvertRewrite(r.SubjectSetRewrite)
-            ));
-
-    private static SubjectSetRewrite ConvertRewrite(Spec.SubjectSetRewrite rule) =>
-        rule switch
-        {
-            Spec.This => This.Default,
-            Spec.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
-            Spec.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(ConvertRewrite)]),
-            Spec.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(ConvertRewrite)]),
-            Spec.ExclusionRewrite exclusion => ExclusionRewrite.From(ConvertRewrite(exclusion.Include), ConvertRewrite(exclusion.Exclude)),
-            Spec.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
-            _ => throw new NotSupportedException()
-        };
-}
 
 public abstract record SubjectSetRewrite;
 
