@@ -1,4 +1,5 @@
-﻿using Kingo.Storage;
+﻿using Kingo.Namespaces;
+using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Diagnostics;

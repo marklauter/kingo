@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Kingo.Acl.SerializableNamespace;
+namespace Kingo.Namespaces.Serializable;
 
 public sealed record NamespaceSpec(
     Namespace Name,

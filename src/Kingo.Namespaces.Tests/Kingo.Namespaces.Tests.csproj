@@ -8,12 +8,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="Data\Namespace.Folder.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Data\Namespace.Doc.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
+	  <Content Include="Data\Namespace.Doc.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Data\Namespace.Folder.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -36,8 +36,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Acl\Kingo.Acl.csproj" />
-	  <ProjectReference Include="..\Kingo.Json\Kingo.Json.csproj" />
+	  <ProjectReference Include="..\Kingo.Namespaces\Kingo.Namespaces.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

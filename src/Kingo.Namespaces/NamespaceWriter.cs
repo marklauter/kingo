@@ -1,9 +1,9 @@
-﻿using Kingo.Acl.SerializableNamespace;
+﻿using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Acl;
+namespace Kingo.Namespaces;
 
 public sealed class NamespaceWriter(DocumentStore documentStore)
 {
@@ -22,7 +22,7 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
             .Select(r => Document
                 .Cons(
                     hashKey,
-                    r.Name.AsRangeKey(),
+                    Key.From(r.Name),
                     ConvertRewrite(r.SubjectSetRewrite)))
             .Select(d => TryPutOrUpdate(d, cancellationToken))];
 
@@ -35,15 +35,15 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
             _ => throw new NotSupportedException()
         };
 
-    internal static SubjectSetRewrite ConvertRewrite(SerializableNamespace.SubjectSetRewrite rule) =>
+    internal static SubjectSetRewrite ConvertRewrite(Serializable.SubjectSetRewrite rule) =>
         rule switch
         {
-            SerializableNamespace.This => This.Default,
-            SerializableNamespace.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
-            SerializableNamespace.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(ConvertRewrite)]),
-            SerializableNamespace.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(ConvertRewrite)]),
-            SerializableNamespace.ExclusionRewrite exclusion => ExclusionRewrite.From(ConvertRewrite(exclusion.Include), ConvertRewrite(exclusion.Exclude)),
-            SerializableNamespace.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
+            Serializable.This => This.Default,
+            Serializable.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
+            Serializable.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(ConvertRewrite)]),
+            Serializable.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(ConvertRewrite)]),
+            Serializable.ExclusionRewrite exclusion => ExclusionRewrite.From(ConvertRewrite(exclusion.Include), ConvertRewrite(exclusion.Exclude)),
+            Serializable.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
             _ => throw new NotSupportedException()
         };
 }

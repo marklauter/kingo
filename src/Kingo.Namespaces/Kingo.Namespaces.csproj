@@ -22,7 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Namespaces\Kingo.Namespaces.csproj" />
+	  <ProjectReference Include="..\Kingo.Json\Kingo.Json.csproj" />
 	  <ProjectReference Include="..\Kingo.Storage\Kingo.Storage.csproj" />
 	  <ProjectReference Include="..\Kingo\Kingo.csproj" />
 	</ItemGroup>

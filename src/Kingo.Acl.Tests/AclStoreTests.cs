@@ -1,4 +1,5 @@
-﻿using Kingo.Acl.SerializableNamespace;
+﻿using Kingo.Namespaces;
+using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
 
 namespace Kingo.Acl.Tests;
@@ -9,13 +10,13 @@ public sealed class AclStoreTests
     {
         var store = DocumentStore.Empty();
         var results = new NamespaceWriter(store)
-            .Write(await NamespaceSpec.FromFileAsync("Namespace.Doc.json"), CancellationToken.None);
+            .Write(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
         Assert.Equal(3, results.Length);
         Assert.DoesNotContain(NamespaceWriter.WriteStatus.TimeoutError, results.Select(i => i.Status));
         Assert.DoesNotContain(NamespaceWriter.WriteStatus.VersionCheckFailedError, results.Select(i => i.Status));
 
         results = new NamespaceWriter(store)
-            .Write(await NamespaceSpec.FromFileAsync("Namespace.Folder.json"), CancellationToken.None);
+            .Write(await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json"), CancellationToken.None);
         Assert.Equal(3, results.Length);
         Assert.DoesNotContain(NamespaceWriter.WriteStatus.TimeoutError, results.Select(i => i.Status));
         Assert.DoesNotContain(NamespaceWriter.WriteStatus.VersionCheckFailedError, results.Select(i => i.Status));

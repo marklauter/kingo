@@ -2,7 +2,7 @@
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Acl;
+namespace Kingo.Namespaces;
 
 public sealed class NamespaceReader(DocumentStore documentStore)
 {
