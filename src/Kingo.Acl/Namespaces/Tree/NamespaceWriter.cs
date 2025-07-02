@@ -14,8 +14,8 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
         VersionCheckFailedError,
     }
 
-    public IEnumerable<(WriteStatus Status, Key DocumentId)> Write(NamespaceSpec spec, CancellationToken cancellationToken) =>
-        Write($"{nameof(Namespace)}/{spec.Name}", spec, cancellationToken);
+    public (WriteStatus Status, Key DocumentId)[] Write(NamespaceSpec spec, CancellationToken cancellationToken) =>
+        [.. Write($"{nameof(Namespace)}/{spec.Name}", spec, cancellationToken)];
 
     private IEnumerable<(WriteStatus Status, Key DocumentId)> Write(Key hashKey, NamespaceSpec spec, CancellationToken cancellationToken) =>
         spec.Relationships
