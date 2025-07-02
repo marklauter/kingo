@@ -1,4 +1,4 @@
-﻿using Kingo.Facts;
+﻿using Kingo.Acl.Namespaces.Tree;
 using Kingo.Storage;
 
 namespace Kingo.Acl.Tests;
@@ -6,7 +6,7 @@ namespace Kingo.Acl.Tests;
 public sealed class AclStoreTests
 {
     [Fact]
-    public async Task IsAMemberOfOwnerDirectMembership()
+    public async Task IsAMemberOf_Owner_DirectMembership()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -27,7 +27,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfEditorDirectMembership()
+    public async Task IsAMemberOf_Editor_DirectMembership()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -48,7 +48,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfEditorComputedFromOwner()
+    public async Task IsAMemberOf_Editor_ComputedFromOwner()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -73,7 +73,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfViewerDirectMembership()
+    public async Task IsAMemberOf_Viewer_DirectMembership()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -94,7 +94,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfViewerComputedFromEditor()
+    public async Task IsAMemberOf_Viewer_ComputedFromEditor()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -119,7 +119,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfViewerComputedFromOwnerViaEditor()
+    public async Task IsAMemberOf_Viewer_ComputedFromOwnerViaEditor()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -144,7 +144,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfFalseWhenNotIncluded()
+    public async Task IsAMemberOf_False_WhenNotIncluded()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -159,7 +159,7 @@ public sealed class AclStoreTests
     }
 
     [Fact]
-    public async Task IsAMemberOfViewerComputedFromParentFolderViewer()
+    public async Task IsAMemberOf_Viewer_ComputedFromParentFolderViewer()
     {
         var subject = new Subject(Guid.NewGuid());
         var tree = await NamespaceTree.FromFileAsync("NamespaceConfiguration.json");
@@ -190,4 +190,12 @@ public sealed class AclStoreTests
         var isMember = store.IsAMemberOf(subject, viewerSet, tree);
         Assert.True(isMember);
     }
+
+    //+		[0]	{folder:documents#...}	Kingo.Storage.Key
+    //+		[1]	{folder:documents#viewer}	Kingo.Storage.Key
+
+    //+		[0]	{doc:readme#parent}	Kingo.Storage.Key
+    //+		[1]	{folder:documents#viewer}	Kingo.Storage.Key
+
 }
+

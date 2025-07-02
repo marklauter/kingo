@@ -1,4 +1,6 @@
-﻿namespace Kingo.Acl.Tests;
+﻿using Kingo.Acl.Namespaces.Tree;
+
+namespace Kingo.Acl.Tests;
 
 public sealed class NamespaceTreeTests
 {
