@@ -23,6 +23,10 @@ public static class KeyExtensions
         $"{resource.Namespace}:{resource.Name}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Key AsRangeKey(this Relationship relationship) =>
+        relationship.ToString();
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key AsRangeKey(this Either<Subject, SubjectSet> e) =>
         e.Match(
             Left: AsRangeKey,
