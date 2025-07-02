@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Kingo.Storage;
+namespace Kingo.Storage.Keys;
 
 internal partial class RegExPatterns
 {

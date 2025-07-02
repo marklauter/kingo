@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Kingo.Storage;
+namespace Kingo.Storage.Keys;
 
 [JsonConverter(typeof(StringConvertible<Key>))]
 public readonly struct Key

@@ -1,4 +1,4 @@
-﻿namespace Kingo.Storage.Ranges;
+﻿namespace Kingo.Storage.Keys;
 
 public abstract record KeyRange
 {

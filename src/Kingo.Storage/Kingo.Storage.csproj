@@ -22,7 +22,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo\Kingo.csproj" />
+	  <ProjectReference Include="..\Kingo.Clocks\Kingo.Clocks.csproj" />
+	  <ProjectReference Include="..\Kingo.Json\Kingo.Json.csproj" />
 	</ItemGroup>
 
 </Project>
