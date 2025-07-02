@@ -28,12 +28,11 @@ public sealed class DocumentStore
     {
         try
         {
-            do
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (TryPut(mapHolder, document))
                     return PutResponse.Success;
             }
-            while (!cancellationToken.IsCancellationRequested);
         }
         catch (ArgumentException) // document already exists
         {
@@ -68,7 +67,7 @@ public sealed class DocumentStore
 
     public UpdateResponse TryPutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
-        do
+        while (!cancellationToken.IsCancellationRequested)
         {
             if (HasVersionConflict(document))
                 return UpdateResponse.VersionCheckFailedError;
@@ -76,7 +75,6 @@ public sealed class DocumentStore
             if (TryPutOrUpdate(mapHolder, document with { Version = document.Version.Tick() }))
                 return UpdateResponse.Success;
         }
-        while (!cancellationToken.IsCancellationRequested);
 
         return UpdateResponse.TimeoutError;
     }
