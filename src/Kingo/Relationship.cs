@@ -54,9 +54,11 @@ public readonly struct Relationship
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Relationship other) => string.CompareOrdinal(value, other.value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
 
     [SuppressMessage("Globalization", "CA1310:Specify StringComparison for correctness", Justification = "it's fine")]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
