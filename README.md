@@ -1,5 +1,5 @@
 # kingo
-relationship-based access control (rebac)
+relationship-based access control (rebac) inspired by Google Zanzibar
 
 ## references
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
@@ -9,20 +9,21 @@ relationship-based access control (rebac)
 ## policy language
 json-based namespace, relation, and rewrite definitions
 
-## policy engine
-`check(principal, resource) => traverse(object-relation expression tree) => allowed | denied`
+## access control subsystem
+`is-member(subject, subject-set) => rewrite-expression-tree.traverse() => allowed | denied`
 
-## storage engine
-event-based tuple store. account ledger style. current state of a tuple is determined by folding over the tuple's events. periodic snapshots for performance.
+## storage system
+current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
+future: event-based store like an account ledger. inspired by Datomic. current state of an entity is determined by folding over its events. periodic snapshots for performance.
 example: 
 ```
-event con: t0, tuple:0 (x0, y0)
-event mut: t1, tuple:0 x0=x1
-event mut: t2, tuple:0 y0=y1
+// writes
+event con: t0, entity:0 (x0, y0)
+event mut: t1, entity:0 x0=x1
+event mut: t2, entity:0 y0=y1
 
-...
-
-read_tuple(0) => fold(tuple:0:events) // yields tuple:0 (x1, y1)
+// reads
+read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
  ```
 
 ## dev log
@@ -32,7 +33,7 @@ read_tuple(0) => fold(tuple:0:events) // yields tuple:0 (x1, y1)
 - 24 JUN 2025 - began work on simulated key-value store
 - 25 JUN 2025 - finished simulated key-value store (DocumentStore)
 - 26 JUN 2025 - refactoring primitive types and facts for better domain cohesion
-- 27 JUN 2025 - added JSON based namespace specs and subjectset rewrite configuration 
+- 27 JUN 2025 - added JSON-based namespace specs and subjectset rewrite configuration 
 - 30 JUN 2025 - refactored AclStore logic to rewrite rules
 - 01 JUL 2025 - refactored AclStore to use DocumentStore
 - 02 JUL 2025 - planned: refactor namespace specs to use document store
