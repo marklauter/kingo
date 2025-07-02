@@ -46,3 +46,4 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, subjects to integer values
 1. the integer values can be packed into that 64bit mentioned in item 1
 1. imagine the tuple lookup as a straight up integer lookup in a btree or LSM - it's fast AF
+1. we could encode the resource (the left side of the tuple) with a uint32 and this would act as the partition key on dynamodb. then you could encode the relationship and user (the right side of the tuple) in a packed ulong. This gives you 4 billion addressible relationships
