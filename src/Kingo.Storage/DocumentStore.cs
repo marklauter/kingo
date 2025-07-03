@@ -17,29 +17,29 @@ public sealed class DocumentStore
 
     private MapHolder mapHolder = MapHolder.Empty;
 
-    public enum PutResponse
+    public enum PutStatus
     {
         Success,
         TimeoutError,
         DuplicateKeyError,
     }
 
-    public PutResponse Put<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public PutStatus Put<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 if (Put(mapHolder, document))
-                    return PutResponse.Success;
+                    return PutStatus.Success;
             }
         }
         catch (ArgumentException) // document already exists
         {
-            return PutResponse.DuplicateKeyError;
+            return PutStatus.DuplicateKeyError;
         }
 
-        return PutResponse.TimeoutError;
+        return PutStatus.TimeoutError;
     }
 
     private bool Put<T>(MapHolder snapshot, Document<T> document) where T : notnull =>
@@ -58,7 +58,15 @@ public sealed class DocumentStore
                     None: () => Prelude.Empty)
                 .Add(document.RangeKey, document)));
 
-    public enum UpdateResponse
+    public enum UpdateStatus
+    {
+        Success,
+        NotFoundError,
+        TimeoutError,
+        VersionConflictError,
+    }
+
+    private enum UpdateState
     {
         Success,
         NotFoundError,
@@ -67,32 +75,50 @@ public sealed class DocumentStore
         Retry,
     }
 
-    public UpdateResponse Update<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public UpdateStatus PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var response = Find<R>(document.HashKey, document.RangeKey)
+                .Bind(original => CheckVersion(original, document))
+                .Match(
+                    Some: err => err,
+                    None: () => Update(mapHolder, document with { Version = document.Version.Tick() })
+                        ? UpdateState.Success
+                        : UpdateState.Retry);
+
+            if (response is not UpdateState.Retry)
+                return (UpdateStatus)response;
+        }
+
+        return UpdateStatus.TimeoutError;
+    }
+
+    public UpdateStatus Update<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             var response = Find<R>(document.HashKey, document.RangeKey)
                 .Match(
                     Some: original => CheckVersion(original, document),
-                    None: () => UpdateResponse.NotFoundError)
+                    None: () => UpdateState.NotFoundError)
                 .Match(
-                    Some: r => r,
+                    Some: err => err,
                     None: () => Update(mapHolder, document with { Version = document.Version.Tick() })
-                    ? UpdateResponse.Success
-                    : UpdateResponse.Retry
-                );
+                        ? UpdateState.Success
+                        : UpdateState.Retry);
 
-            if (response is not UpdateResponse.Retry)
-                return response;
+            if (response is not UpdateState.Retry)
+                return (UpdateStatus)response;
         }
 
-        return UpdateResponse.TimeoutError;
+        return UpdateStatus.TimeoutError;
     }
 
-    private static Option<UpdateResponse> CheckVersion<R>(Document<R> original, Document<R> document) where R : notnull =>
+    private static Option<UpdateState> CheckVersion<R>(Document<R> original, Document<R> document) where R : notnull =>
         original.Version == document.Version
             ? Prelude.None
-            : UpdateResponse.VersionConflictError;
+            : UpdateState.VersionConflictError;
 
     private bool Update<R>(MapHolder snapshot, Document<R> document) where R : notnull =>
         ReferenceEquals(

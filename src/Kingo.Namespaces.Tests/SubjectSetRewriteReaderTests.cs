@@ -10,7 +10,7 @@ public sealed class SubjectSetRewriteReaderTests
     {
         var store = DocumentStore.Empty();
         _ = new NamespaceWriter(store)
-            .Write(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
+            .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
 
         var result = new SubjectSetRewriteReader(store)
             .Read("doc", "owner");

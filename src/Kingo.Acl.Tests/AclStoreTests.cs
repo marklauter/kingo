@@ -10,16 +10,16 @@ public sealed class AclStoreTests
     {
         var store = DocumentStore.Empty();
         var results = new NamespaceWriter(store)
-            .Write(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
+            .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
         Assert.Equal(3, results.Length);
-        Assert.DoesNotContain(NamespaceWriter.WriteStatus.TimeoutError, results.Select(i => i.Status));
-        Assert.DoesNotContain(NamespaceWriter.WriteStatus.VersionCheckFailedError, results.Select(i => i.Status));
+        Assert.DoesNotContain(NamespaceWriter.PutStatus.TimeoutError, results.Select(i => i.Status));
+        Assert.DoesNotContain(NamespaceWriter.PutStatus.DuplicateKeyError, results.Select(i => i.Status));
 
         results = new NamespaceWriter(store)
-            .Write(await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json"), CancellationToken.None);
+            .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json"), CancellationToken.None);
         Assert.Equal(3, results.Length);
-        Assert.DoesNotContain(NamespaceWriter.WriteStatus.TimeoutError, results.Select(i => i.Status));
-        Assert.DoesNotContain(NamespaceWriter.WriteStatus.VersionCheckFailedError, results.Select(i => i.Status));
+        Assert.DoesNotContain(NamespaceWriter.PutStatus.TimeoutError, results.Select(i => i.Status));
+        Assert.DoesNotContain(NamespaceWriter.PutStatus.DuplicateKeyError, results.Select(i => i.Status));
 
         return store;
     }

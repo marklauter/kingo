@@ -12,7 +12,7 @@ public sealed class DocumentStoreTests
     {
         var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(doc, CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(doc, CancellationToken.None));
 
         _ = store.Find<TestTuple>("h", "r")
             .Match(
@@ -25,22 +25,22 @@ public sealed class DocumentStoreTests
     {
         var store = DocumentStore.Empty();
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(doc, CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.DuplicateKeyError, store.Put(doc, CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(doc, CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.DuplicateKeyError, store.Put(doc, CancellationToken.None));
     }
 
     [Fact]
     public void TryUpdateSucceedsWithCorrectVersion()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "r", new TestTuple("foo")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "r", new TestTuple("foo")), CancellationToken.None));
         _ = store.Find<TestTuple>("h", "r")
             .Match(
                 None: () => throw new Exception("no read"),
                 Some: read =>
                 {
                     var updated = read with { Record = new TestTuple("bar") };
-                    Assert.Equal(DocumentStore.UpdateResponse.Success, store.Update(updated, CancellationToken.None));
+                    Assert.Equal(DocumentStore.UpdateStatus.Success, store.Update(updated, CancellationToken.None));
 
                     _ = store.Find<TestTuple>("h", "r")
                         .Match(
@@ -57,15 +57,15 @@ public sealed class DocumentStoreTests
     public void TryUpdateFailsWithWrongVersion()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "r", new TestTuple("foo")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "r", new TestTuple("foo")), CancellationToken.None));
         _ = store.Find<TestTuple>("h", "r")
             .Match(
                 None: () => throw new Exception("no read"),
                 Some: read =>
                 {
                     var updated = read with { Record = new TestTuple("bar") };
-                    Assert.Equal(DocumentStore.UpdateResponse.Success, store.Update(updated, CancellationToken.None));
-                    Assert.Equal(DocumentStore.UpdateResponse.VersionConflictError, store.Update(updated, CancellationToken.None));
+                    Assert.Equal(DocumentStore.UpdateStatus.Success, store.Update(updated, CancellationToken.None));
+                    Assert.Equal(DocumentStore.UpdateStatus.VersionConflictError, store.Update(updated, CancellationToken.None));
                 });
     }
 
@@ -80,9 +80,9 @@ public sealed class DocumentStoreTests
     public void ReadRangeUnboundReturnsAll()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
             .Find<TestTuple>("h", KeyRange.Unbound)
             .ToArray();
@@ -96,9 +96,9 @@ public sealed class DocumentStoreTests
     public void ReadRangeSinceReturnsCorrect()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
             .Find<TestTuple>("h", KeyRange.Since("b"))
             .ToArray();
@@ -111,9 +111,9 @@ public sealed class DocumentStoreTests
     public void ReadRangeUntilReturnsCorrect()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
             .Find<TestTuple>("h", KeyRange.Until("b"))
             .ToArray();
@@ -126,9 +126,9 @@ public sealed class DocumentStoreTests
     public void ReadRangeSpanReturnsCorrect()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
             .Find<TestTuple>("h", KeyRange.Between("a", "b"))
             .ToArray();
@@ -141,9 +141,9 @@ public sealed class DocumentStoreTests
     public void WhereFiltersCorrectly()
     {
         var store = DocumentStore.Empty();
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
-        Assert.Equal(DocumentStore.PutResponse.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None));
+        Assert.Equal(DocumentStore.PutStatus.Success, store.Put(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None));
         var docs = store
             .Where<TestTuple>("h", d => d.Record.Value != "B")
             .ToArray();
@@ -159,7 +159,7 @@ public sealed class DocumentStoreTests
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        Assert.Equal(DocumentStore.PutResponse.TimeoutError, store.Put(doc, cts.Token));
+        Assert.Equal(DocumentStore.PutStatus.TimeoutError, store.Put(doc, cts.Token));
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public sealed class DocumentStoreTests
         var doc = Document.Cons("h", "r", new TestTuple("foo"));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        Assert.Equal(DocumentStore.UpdateResponse.TimeoutError, store.Update(doc, cts.Token));
+        Assert.Equal(DocumentStore.UpdateStatus.TimeoutError, store.Update(doc, cts.Token));
     }
 
     [Fact]

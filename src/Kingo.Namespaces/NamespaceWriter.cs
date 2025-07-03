@@ -7,34 +7,67 @@ namespace Kingo.Namespaces;
 
 public sealed class NamespaceWriter(DocumentStore documentStore)
 {
-    public enum WriteStatus
+    public enum PutStatus
     {
         Success,
         TimeoutError,
-        VersionCheckFailedError,
+        DuplicateKeyError,
     }
 
-    public (WriteStatus Status, Key DocumentId)[] Write(string json, CancellationToken cancellationToken) =>
-        Write(NamespaceSpec.FromJson(json), cancellationToken);
+    public enum UpdateStatus
+    {
+        Success,
+        NotFoundError,
+        TimeoutError,
+        VersionConflictError,
+    }
 
-    public (WriteStatus Status, Key DocumentId)[] Write(NamespaceSpec spec, CancellationToken cancellationToken) =>
-        Write($"{nameof(Namespace)}/{spec.Name}", spec.Relationships, cancellationToken);
+    public (PutStatus Status, Key DocumentId)[] Put(string json, CancellationToken cancellationToken) =>
+        Put(NamespaceSpec.FromJson(json), cancellationToken);
 
-    private (WriteStatus Status, Key DocumentId)[] Write(Key namespaceHashKey, IReadOnlyList<RelationshipSpec> relationships, CancellationToken cancellationToken) =>
+    public (PutStatus Status, Key DocumentId)[] Put(NamespaceSpec spec, CancellationToken cancellationToken) =>
+        Put($"{nameof(Namespace)}/{spec.Name}", spec.Relationships, cancellationToken);
+
+    private (PutStatus Status, Key DocumentId)[] Put(Key namespaceHashKey, IReadOnlyList<RelationshipSpec> relationships, CancellationToken cancellationToken) =>
         [.. relationships
             .Select(r => Document
                 .Cons(
                     namespaceHashKey,
                     Key.From(r.Name),
                     ConvertRewrite(r.SubjectSetRewrite)))
-            .Select(d => TryPutOrUpdate(d, cancellationToken))];
+            .Select(d => Put(d, cancellationToken))];
 
-    private (WriteStatus Status, Key DocumentId) TryPutOrUpdate(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
+    private (PutStatus Status, Key DocumentId) Put(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
+        documentStore.Put(document, cancellationToken) switch
+        {
+            DocumentStore.PutStatus.Success => (PutStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.PutStatus.TimeoutError => (PutStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.PutStatus.DuplicateKeyError => (PutStatus.DuplicateKeyError, $"{document.HashKey}/{document.RangeKey}"),
+            _ => throw new NotSupportedException()
+        };
+
+    public (UpdateStatus Status, Key DocumentId)[] Update(string json, CancellationToken cancellationToken) =>
+            Update(NamespaceSpec.FromJson(json), cancellationToken);
+
+    public (UpdateStatus Status, Key DocumentId)[] Update(NamespaceSpec spec, CancellationToken cancellationToken) =>
+        Update($"{nameof(Namespace)}/{spec.Name}", spec.Relationships, cancellationToken);
+
+    private (UpdateStatus Status, Key DocumentId)[] Update(Key namespaceHashKey, IReadOnlyList<RelationshipSpec> relationships, CancellationToken cancellationToken) =>
+        [.. relationships
+            .Select(r => Document
+                .Cons(
+                    namespaceHashKey,
+                    Key.From(r.Name),
+                    ConvertRewrite(r.SubjectSetRewrite)))
+            .Select(d => Update(d, cancellationToken))];
+
+    private (UpdateStatus Status, Key DocumentId) Update(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
         documentStore.Update(document, cancellationToken) switch
         {
-            DocumentStore.UpdateResponse.Success => (WriteStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.UpdateResponse.VersionConflictError => (WriteStatus.VersionCheckFailedError, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.UpdateResponse.TimeoutError => (WriteStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.UpdateStatus.Success => (UpdateStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.UpdateStatus.NotFoundError => (UpdateStatus.NotFoundError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.UpdateStatus.TimeoutError => (UpdateStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.UpdateStatus.VersionConflictError => (UpdateStatus.VersionConflictError, $"{document.HashKey}/{document.RangeKey}"),
             _ => throw new NotSupportedException()
         };
 

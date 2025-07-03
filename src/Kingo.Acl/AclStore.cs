@@ -18,6 +18,7 @@ public sealed class AclStore(DocumentStore documentStore)
         Success,
         TimeoutError,
         VersionCheckFailedError,
+        NotFoundError,
     }
 
     // todo: instead of passing namespace, look it up from the DocumentStore or something
@@ -62,15 +63,16 @@ public sealed class AclStore(DocumentStore documentStore)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
         subject.Match(
-            Left: subject => TryPutOrUpdate(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
-            Right: subjectSet => TryPutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
+            Left: subject => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
+            Right: subjectSet => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
 
-    private AssociateResponse TryPutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
-        documentStore.Update(document, cancellationToken) switch
+    private AssociateResponse PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
+        documentStore.PutOrUpdate(document, cancellationToken) switch
         {
-            DocumentStore.UpdateResponse.Success => AssociateResponse.Success,
-            DocumentStore.UpdateResponse.VersionConflictError => AssociateResponse.VersionCheckFailedError,
-            DocumentStore.UpdateResponse.TimeoutError => AssociateResponse.TimeoutError,
+            DocumentStore.UpdateStatus.Success => AssociateResponse.Success,
+            DocumentStore.UpdateStatus.VersionConflictError => AssociateResponse.VersionCheckFailedError,
+            DocumentStore.UpdateStatus.TimeoutError => AssociateResponse.TimeoutError,
+            DocumentStore.UpdateStatus.NotFoundError => AssociateResponse.NotFoundError,
             _ => throw new NotSupportedException()
         };
 }
