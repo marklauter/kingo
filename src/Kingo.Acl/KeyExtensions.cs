@@ -6,15 +6,11 @@ namespace Kingo.Acl;
 public static class KeyExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsHashKey<NS>(this Resource resource, Relationship relationship) =>
-        $"{TypeName<NS>.Value}/{resource.AsString()}#{relationship}";
+    public static Key AsKey(this SubjectSet subjectSet) =>
+        subjectSet.Resource.AsKey(subjectSet.Relationship);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsHashKey<NS>(this SubjectSet subjectSet) =>
-        subjectSet.Resource.AsHashKey<NS>(subjectSet.Relationship);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsRangeKey(this Resource resource, Relationship relationship) =>
+    public static Key AsKey(this Resource resource, Relationship relationship) =>
         $"{resource.AsString()}#{relationship}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -22,10 +18,6 @@ public static class KeyExtensions
         $"{resource.Namespace}:{resource.Name}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsRangeKey(this Subject subject) =>
+    public static Key AsKey(this Subject subject) =>
         subject.Id.ToString("N");
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsRangeKey(this SubjectSet subjectSet) =>
-        subjectSet.Resource.AsRangeKey(subjectSet.Relationship);
 }

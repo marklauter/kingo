@@ -14,6 +14,9 @@ public record Document(
 
     public static Document<R> Cons<R>(Key hashKey, Key rangeKey, LogicalClock version, R record) where R : notnull =>
         new(hashKey, rangeKey, version, DateTime.UtcNow, record);
+
+    internal static Key FullHashKey<R>(Key hashKey) where R : notnull =>
+        $"{TypeName<R>.Value}/{hashKey}";
 }
 
 public sealed record Document<R>(
@@ -23,4 +26,7 @@ public sealed record Document<R>(
     DateTime Timestamp,
     R Record)
     : Document(HashKey, RangeKey, Version, Timestamp)
-    where R : notnull;
+    where R : notnull
+{
+    internal Key FullHashKey => $"{TypeName<R>.Value}/{HashKey}";
+}

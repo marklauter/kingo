@@ -30,10 +30,10 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
             .Select(d => TryPutOrUpdate(d, cancellationToken))];
 
     private (WriteStatus Status, Key DocumentId) TryPutOrUpdate(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
-        documentStore.TryPutOrUpdate(document, cancellationToken) switch
+        documentStore.Update(document, cancellationToken) switch
         {
             DocumentStore.UpdateResponse.Success => (WriteStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.UpdateResponse.VersionCheckFailedError => (WriteStatus.VersionCheckFailedError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.UpdateResponse.VersionConflictError => (WriteStatus.VersionCheckFailedError, $"{document.HashKey}/{document.RangeKey}"),
             DocumentStore.UpdateResponse.TimeoutError => (WriteStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
             _ => throw new NotSupportedException()
         };

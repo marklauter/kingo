@@ -32,7 +32,7 @@ public sealed class AclStore(DocumentStore documentStore)
     private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node)
         => node switch
         {
-            This => documentStore.Find<Subject>(subjectSet.AsHashKey<Subject>(), subject.AsRangeKey()).IsSome,
+            This => documentStore.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
 
             ComputedSubjectSetRewrite computedSet =>
                 IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship)),
@@ -49,7 +49,7 @@ public sealed class AclStore(DocumentStore documentStore)
 
             TupleToSubjectSetRewrite tupleToSubjectSet =>
                 documentStore.Find<SubjectSet>(
-                    subjectSet.Resource.AsHashKey<SubjectSet>(tupleToSubjectSet.TuplesetRelation),
+                    subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
                     KeyRange.Unbound)
                     .Any(parentSubjectSet =>
                         IsAMemberOf(
@@ -62,14 +62,14 @@ public sealed class AclStore(DocumentStore documentStore)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
         subject.Match(
-            Left: subject => TryPutOrUpdate(Document.Cons(resource.AsHashKey<Subject>(relationship), subject.AsRangeKey(), subject), cancellationToken),
-            Right: subjectSet => TryPutOrUpdate(Document.Cons(resource.AsHashKey<SubjectSet>(relationship), subjectSet.AsRangeKey(), subjectSet), cancellationToken));
+            Left: subject => TryPutOrUpdate(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
+            Right: subjectSet => TryPutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
 
     private AssociateResponse TryPutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
-        documentStore.TryPutOrUpdate(document, cancellationToken) switch
+        documentStore.Update(document, cancellationToken) switch
         {
             DocumentStore.UpdateResponse.Success => AssociateResponse.Success,
-            DocumentStore.UpdateResponse.VersionCheckFailedError => AssociateResponse.VersionCheckFailedError,
+            DocumentStore.UpdateResponse.VersionConflictError => AssociateResponse.VersionCheckFailedError,
             DocumentStore.UpdateResponse.TimeoutError => AssociateResponse.TimeoutError,
             _ => throw new NotSupportedException()
         };

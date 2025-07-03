@@ -24,13 +24,13 @@ public sealed class DocumentStore
         DuplicateKeyError,
     }
 
-    public PutResponse TryPut<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public PutResponse Put<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (TryPut(mapHolder, document))
+                if (Put(mapHolder, document))
                     return PutResponse.Success;
             }
         }
@@ -42,7 +42,7 @@ public sealed class DocumentStore
         return PutResponse.TimeoutError;
     }
 
-    private bool TryPut<T>(MapHolder snapshot, Document<T> document) where T : notnull =>
+    private bool Put<T>(MapHolder snapshot, Document<T> document) where T : notnull =>
         ReferenceEquals(Interlocked.CompareExchange(ref mapHolder, Put(snapshot.Map, document), snapshot), snapshot);
 
     private static MapHolder Put<R>(
@@ -50,9 +50,9 @@ public sealed class DocumentStore
         Document<R> document) where R : notnull =>
         MapHolder.From(
             map.AddOrUpdate(
-                document.HashKey,
+                document.FullHashKey,
                 map
-                .Find(document.HashKey)
+                .Find(document.FullHashKey)
                 .Match(
                     Some: innerMap => innerMap,
                     None: () => Prelude.Empty)
@@ -61,51 +61,62 @@ public sealed class DocumentStore
     public enum UpdateResponse
     {
         Success,
+        NotFoundError,
         TimeoutError,
-        VersionCheckFailedError,
+        VersionConflictError,
+        Retry,
     }
 
-    public UpdateResponse TryPutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public UpdateResponse Update<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (HasVersionConflict(document))
-                return UpdateResponse.VersionCheckFailedError;
+            var response = Find<R>(document.HashKey, document.RangeKey)
+                .Match(
+                    Some: original => CheckVersion(original, document),
+                    None: () => UpdateResponse.NotFoundError)
+                .Match(
+                    Some: r => r,
+                    None: () => Update(mapHolder, document with { Version = document.Version.Tick() })
+                    ? UpdateResponse.Success
+                    : UpdateResponse.Retry
+                );
 
-            if (TryPutOrUpdate(mapHolder, document with { Version = document.Version.Tick() }))
-                return UpdateResponse.Success;
+            if (response is not UpdateResponse.Retry)
+                return response;
         }
 
         return UpdateResponse.TimeoutError;
     }
 
-    private bool HasVersionConflict<R>(Document<R> document) where R : notnull =>
-        Find<R>(document.HashKey, document.RangeKey)
-        .Exists(d => d.Version != document.Version);
+    private static Option<UpdateResponse> CheckVersion<R>(Document<R> original, Document<R> document) where R : notnull =>
+        original.Version == document.Version
+            ? Prelude.None
+            : UpdateResponse.VersionConflictError;
 
-    private bool TryPutOrUpdate<R>(MapHolder snapshot, Document<R> document) where R : notnull =>
+    private bool Update<R>(MapHolder snapshot, Document<R> document) where R : notnull =>
         ReferenceEquals(
             Interlocked.CompareExchange(
                 ref mapHolder,
-                PutOrUpdate(snapshot.Map, document),
+                Update(snapshot.Map, document),
                 snapshot),
             snapshot);
 
-    private static MapHolder PutOrUpdate<R>(
+    private static MapHolder Update<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
         MapHolder.From(
             map.AddOrUpdate(
-                document.HashKey,
+                document.FullHashKey,
                 map
-                .Find(document.HashKey)
+                .Find(document.FullHashKey)
                 .Match(
                     Some: innerMap => innerMap,
                     None: () => Prelude.Empty)
                 .AddOrUpdate(document.RangeKey, document)));
 
     public Option<Document<R>> Find<R>(Key hashKey, Key rangeKey) where R : notnull =>
-        mapHolder.Map.Find(hashKey)
+        mapHolder.Map.Find(Document.FullHashKey<R>(hashKey))
         .Match(
             None: () => Prelude.None,
             Some: m =>
@@ -114,7 +125,7 @@ public sealed class DocumentStore
                 .Map(document => (Document<R>)document));
 
     public Iterable<Document<R>> Find<R>(Key hashKey, KeyRange range) where R : notnull =>
-        mapHolder.Map.Find(hashKey)
+        mapHolder.Map.Find(Document.FullHashKey<R>(hashKey))
         .Match(
             None: () => Prelude.Empty,
             Some: m => range switch
@@ -149,7 +160,7 @@ public sealed class DocumentStore
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "I prefer explicit empty here")]
     public Iterable<Document<R>> Where<R>(Key hashKey, Func<Document<R>, bool> predicate) where R : notnull =>
-        mapHolder.Map.Find(hashKey)
+        mapHolder.Map.Find(Document.FullHashKey<R>(hashKey))
         .Match(
             None: () => Iterable<Document<R>>.Empty,
             Some: m =>
