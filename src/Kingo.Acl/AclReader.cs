@@ -1,27 +1,14 @@
 ﻿using Kingo.Namespaces;
 using Kingo.Storage;
 using Kingo.Storage.Keys;
-using LanguageExt;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-/// <summary>
-/// This is a demo store. A production store would use DynamoDB, Casandra, or other versioned key-value store.
-/// </summary>
-public sealed class AclStore(DocumentStore documentStore)
+public sealed class AclReader(DocumentStore documentStore)
 {
     private readonly SubjectSetRewriteReader nsReader = new(documentStore);
 
-    public enum AssociateResponse
-    {
-        Success,
-        TimeoutError,
-        VersionCheckFailedError,
-        NotFoundError,
-    }
-
-    // todo: instead of passing namespace, look it up from the DocumentStore or something
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
         nsReader
@@ -57,22 +44,6 @@ public sealed class AclStore(DocumentStore documentStore)
                             subject,
                             new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation))),
 
-            _ => throw new NotSupportedException()
-        };
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
-        subject.Match(
-            Left: subject => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
-            Right: subjectSet => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
-
-    private AssociateResponse PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
-        documentStore.PutOrUpdate(document, cancellationToken) switch
-        {
-            DocumentStore.UpdateStatus.Success => AssociateResponse.Success,
-            DocumentStore.UpdateStatus.VersionConflictError => AssociateResponse.VersionCheckFailedError,
-            DocumentStore.UpdateStatus.TimeoutError => AssociateResponse.TimeoutError,
-            DocumentStore.UpdateStatus.NotFoundError => AssociateResponse.NotFoundError,
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException($"node type {node.GetType()} no supported")
         };
 }
