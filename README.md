@@ -38,7 +38,8 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 01 JUL 2025 - refactored AclStore to use DocumentStore
 - 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use the document store
 - 02 JUL 2025 - refactored namespace specs to use document store
-- 03 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
+- 03 JUL 2025 - tidy before durable storage refactor
+- 04 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
 1. between 9 and 18 quintillion unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 9 quintillion addressable tuples, or add the remaining bit to the subject value and get 18 quintillion addressable tuples with 16 million subjects
