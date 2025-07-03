@@ -1,5 +1,4 @@
 ﻿using Kingo.Storage.Keys;
-using LanguageExt;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
@@ -21,16 +20,6 @@ public static class KeyExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string AsString(this Resource resource) =>
         $"{resource.Namespace}:{resource.Name}";
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsRangeKey(this Relationship relationship) =>
-        relationship.ToString();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Key AsRangeKey(this Either<Subject, SubjectSet> e) =>
-        e.Match(
-            Left: AsRangeKey,
-            Right: AsRangeKey);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key AsRangeKey(this Subject subject) =>

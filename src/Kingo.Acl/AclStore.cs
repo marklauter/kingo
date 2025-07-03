@@ -2,7 +2,6 @@
 using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
@@ -12,7 +11,7 @@ namespace Kingo.Acl;
 /// </summary>
 public sealed class AclStore(DocumentStore documentStore)
 {
-    private readonly NamespaceReader nsReader = new(documentStore);
+    private readonly SubjectSetRewriteReader nsReader = new(documentStore);
 
     public enum AssociateResponse
     {
@@ -23,17 +22,12 @@ public sealed class AclStore(DocumentStore documentStore)
 
     // todo: instead of passing namespace, look it up from the DocumentStore or something
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet)
-    {
-        var hk = $"{nameof(Namespace)}/{subjectSet.Resource.Namespace}";
-        Debug.WriteLine(hk);
-        return nsReader
-        .Find(hk, subjectSet.Relationship.AsRangeKey())
-        .Match(
-            Some: rewrite => EvaluateRewrite(subject, subjectSet, rewrite),
-            None: () => false
-        );
-    }
+    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
+        nsReader
+            .Read(subjectSet.Resource.Namespace, subjectSet.Relationship)
+            .Match(
+                Some: rewrite => EvaluateRewrite(subject, subjectSet, rewrite),
+                None: () => false);
 
     private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node)
         => node switch

@@ -7,8 +7,11 @@ public sealed record NamespaceSpec(
     Namespace Name,
     IReadOnlyList<RelationshipSpec> Relationships)
 {
+    public static NamespaceSpec FromJson(string json) =>
+        JsonSerializer.Deserialize<NamespaceSpec>(json)!;
+
     public static async Task<NamespaceSpec> FromFileAsync(string path) =>
-        JsonSerializer.Deserialize<NamespaceSpec>(await File.ReadAllTextAsync(path))!;
+        FromJson(await File.ReadAllTextAsync(path));
 }
 
 public sealed record RelationshipSpec

@@ -14,14 +14,17 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
         VersionCheckFailedError,
     }
 
-    public (WriteStatus Status, Key DocumentId)[] Write(NamespaceSpec spec, CancellationToken cancellationToken) =>
-        Write($"{nameof(Namespace)}/{spec.Name}", spec, cancellationToken);
+    public (WriteStatus Status, Key DocumentId)[] Write(string json, CancellationToken cancellationToken) =>
+        Write(NamespaceSpec.FromJson(json), cancellationToken);
 
-    private (WriteStatus Status, Key DocumentId)[] Write(Key hashKey, NamespaceSpec spec, CancellationToken cancellationToken) =>
-        [.. spec.Relationships
+    public (WriteStatus Status, Key DocumentId)[] Write(NamespaceSpec spec, CancellationToken cancellationToken) =>
+        Write($"{nameof(Namespace)}/{spec.Name}", spec.Relationships, cancellationToken);
+
+    private (WriteStatus Status, Key DocumentId)[] Write(Key namespaceHashKey, IReadOnlyList<RelationshipSpec> relationships, CancellationToken cancellationToken) =>
+        [.. relationships
             .Select(r => Document
                 .Cons(
-                    hashKey,
+                    namespaceHashKey,
                     Key.From(r.Name),
                     ConvertRewrite(r.SubjectSetRewrite)))
             .Select(d => TryPutOrUpdate(d, cancellationToken))];
