@@ -1,16 +1,62 @@
 # kingo
 relationship-based access control (rebac) inspired by Google Zanzibar
 
-## references
+## inspiration and references
+- [Google Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
-- [Google Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
 
-## policy language
+## namespace specs (policy language)
 json-based namespace, relation, and rewrite definitions
+sample:
+```json
+{
+  "Name": "doc",
+  "Relationships": [
+    {
+      "Name": "owner"
+    },
+    {
+      "Name": "editor",
+      "SubjectSetRewrite": {
+        "Type": "UnionRewrite",
+        "Children": [
+          {
+            "Type": "This"
+          },
+          {
+            "Type": "ComputedSubjectSetRewrite",
+            "Relationship": "owner"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "viewer",
+      "SubjectSetRewrite": {
+        "Type": "UnionRewrite",
+        "Children": [
+          {
+            "Type": "This"
+          },
+          {
+            "Type": "ComputedSubjectSetRewrite",
+            "Relationship": "editor"
+          },
+          {
+            "Type": "TupleToSubjectSetRewrite",
+            "TuplesetRelation": "parent",
+            "ComputedSubjectSetRelation": "viewer"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
 
 ## access control subsystem
-`is-member(subject, subject-set) => rewrite-expression-tree.traverse() => allowed | denied`
+`is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
 
 ## storage system
 current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
@@ -39,10 +85,16 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use the document store
 - 02 JUL 2025 - refactored namespace specs to use document store
 - 03 JUL 2025 - tidy before durable storage refactor
-- 04 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
+- 03 JUL 2025 - planned: dictionary encoding
+- 05 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
-1. between 9 and 18 quintillion unique tuples can be packed into the address space of a ulong. split 3 ways, 21 bits each ~ 9 quintillion addressable tuples, or add the remaining bit to the subject value and get 18 quintillion addressable tuples with 16 million subjects
+1. tuples can be packed into the address space of a ulong 
+1. something like 64 bits for namespace, resource, relation, as a partition key and and then a uint for range key
+1. 16 bits for namespace (65k slots)
+1. 14 bits for relation (16k slots per namespace)
+1. 34 bits for resource (17 billion slots per namespace)
+1. 32 bits for users (4 billion)
 1. bit packing requires every tuple element to be integer addressable
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, subjects to integer values
 1. the integer values can be packed into that 64-bit mentioned in item 1
