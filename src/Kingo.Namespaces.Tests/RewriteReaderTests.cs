@@ -3,7 +3,7 @@ using Kingo.Storage;
 
 namespace Kingo.Namespaces.Tests;
 
-public sealed class SubjectSetRewriteReaderTests
+public sealed class RewriteReaderTests
 {
     [Fact]
     public async Task FindReturnsSomeWhenNamespaceExists()
@@ -12,7 +12,7 @@ public sealed class SubjectSetRewriteReaderTests
         _ = new NamespaceWriter(store)
             .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
 
-        var result = new SubjectSetRewriteReader(store)
+        var result = new RewriteReader(store)
             .Read("doc", "owner");
 
         _ = result.Match(
@@ -24,7 +24,7 @@ public sealed class SubjectSetRewriteReaderTests
     public void FindReturnsNoneWhenNamespaceDoesNotExist()
     {
         var store = DocumentStore.Empty();
-        var reader = new SubjectSetRewriteReader(store);
+        var reader = new RewriteReader(store);
 
         var result = reader.Read("doc", "owner");
 

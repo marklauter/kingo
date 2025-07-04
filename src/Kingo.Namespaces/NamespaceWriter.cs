@@ -5,7 +5,7 @@ using LanguageExt;
 
 namespace Kingo.Namespaces;
 
-public sealed class NamespaceWriter(DocumentStore documentStore)
+public sealed class NamespaceWriter(DocumentStore store)
 {
     public enum PutStatus
     {
@@ -38,7 +38,7 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
             .Select(d => Put(d, cancellationToken))];
 
     private (PutStatus Status, Key DocumentId) Put(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
-        documentStore.Put(document, cancellationToken) switch
+        store.Put(document, cancellationToken) switch
         {
             DocumentStore.PutStatus.Success => (PutStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
             DocumentStore.PutStatus.TimeoutError => (PutStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
@@ -62,7 +62,7 @@ public sealed class NamespaceWriter(DocumentStore documentStore)
             .Select(d => Update(d, cancellationToken))];
 
     private (UpdateStatus Status, Key DocumentId) Update(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
-        documentStore.Update(document, cancellationToken) switch
+        store.Update(document, cancellationToken) switch
         {
             DocumentStore.UpdateStatus.Success => (UpdateStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
             DocumentStore.UpdateStatus.NotFoundError => (UpdateStatus.NotFoundError, $"{document.HashKey}/{document.RangeKey}"),
