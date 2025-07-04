@@ -20,10 +20,10 @@ internal class Clock(DocumentStore store)
                 return clock;
 
             if (updateStatus == DocumentStore.UpdateStatus.TimeoutError)
-                return Error.New($"store timed out while writing clock {clockName}");
+                return Error.New($"Operation cancelled. Timeout updating clock {clockName}");
         }
 
-        return Error.New($"clock timed out while writing clock {clockName}");
+        return Error.New($"Operation cancelled. Timeout updating clock {clockName}");
     }
 
     private static Key ToHashKey(Key clockName) => Key.From($"clock/{clockName}");
@@ -35,6 +35,5 @@ internal class Clock(DocumentStore store)
                 None: () => 0ul);
 
     private DocumentStore.UpdateStatus WriteClock(Key clockName, ulong clock, CancellationToken cancellationToken) =>
-        store.PutOrUpdate(Document
-            .Cons(ToHashKey(clockName), ClockRangeKey, clock), cancellationToken);
+        store.PutOrUpdate(Document.Cons(ToHashKey(clockName), ClockRangeKey, clock), cancellationToken);
 }
