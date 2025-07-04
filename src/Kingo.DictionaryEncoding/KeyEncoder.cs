@@ -28,11 +28,9 @@ public class KeyEncoder(DocumentStore store)
     private const ulong RelationMask = (1UL << RelationBits) - 1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ulong Pack(Resource resource, Relationship relationship, CancellationToken cancellationToken)
-    {
-        var (namespaceId, resourceId, relationshipId) = ReadIds(resource, relationship, cancellationToken);
-        return Pack(namespaceId, resourceId, relationshipId);
-    }
+    public Either<Error, ulong> Pack(Resource resource, Relationship relationship, CancellationToken cancellationToken) =>
+        ReadIds(resource, relationship, cancellationToken)
+            .Map(ids => Pack(ids.namespaceId, ids.resourceId, ids.relationshipId));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong Pack(ulong namespaceId, ulong resourceId, ulong relationshipId) =>
@@ -42,38 +40,40 @@ public class KeyEncoder(DocumentStore store)
     private static (ulong namespaceId, ulong relationId, ulong resourceId) Unpack(ulong key) =>
         (key >> NamespaceShift, (key >> RelationShift) & RelationMask, key & ResourceMask);
 
-    private (ulong namespaceId, ulong resourceId, ulong relationshipId) ReadIds(Resource resource, Relationship relationship, CancellationToken cancellationToken) =>
-    (
-        GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), cancellationToken),
-        GetOrCreateId(ResourceKey, Key.From(resource.Name), cancellationToken),
-        GetOrCreateId(RelationshipKey, Key.From(relationship), cancellationToken)
-    );
+    private Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)> ReadIds(Resource resource, Relationship relationship, CancellationToken cancellationToken)
+    {
+        var nsId = GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), cancellationToken);
+        var resId = GetOrCreateId(ResourceKey, Key.From(resource.Name), cancellationToken);
+        var relId = GetOrCreateId(RelationshipKey, Key.From(relationship), cancellationToken);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Option<ulong> ReadId(Key dictionaryHk, Key key) =>
-        store.Find<ulong>(dictionaryHk, key)
-            .Map(x => x.Record);
+        return (Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)>)(nsId, resId, relId).Apply((n, r, l) => (n, r, l));
+    }
 
     private Either<Error, ulong> GetOrCreateId(Key idType, Key key, CancellationToken cancellationToken)
     {
         var dictionaryHk = $"encoding/{idType}";
 
         return ReadId(dictionaryHk, key)
-            .Match(
-                Some: id => id,
-                None: () => clock.Tick(idType, cancellationToken)
-                    .Map(newId =>
-                    {
-                        var putStatus = store.Put(Document.Cons(dictionaryHk, key, newId), CancellationToken.None);
-                        return putStatus == DocumentStore.PutStatus.Success
-                            ? newId
-                            : putStatus == DocumentStore.PutStatus.DuplicateKeyError
-                                ? store
-                                    .Find<ulong>(dictionaryHk, key)
-                                    .Match(
-                                        Some: doc => doc.Record,
-                                        None: () => Error.New($"Failed to read ID for '{key}' after race condition."))
-                                : Error.New($"Failed to create dictionary mapping for '{key}'. Status: {putStatus}");
-                    }));
+            .ToEither(Error.New("ID not found, attempting creation."))
+            .BindLeft(_ => CreateId(dictionaryHk, idType, key, cancellationToken));
     }
+
+    private Either<Error, ulong> CreateId(Key dictionaryHk, Key idType, Key key, CancellationToken cancellationToken) =>
+        clock.Tick(idType, cancellationToken)
+            .Bind(newId => WriteIdMapping(dictionaryHk, key, newId))
+            .BindLeft(_ => ReadId(dictionaryHk, key)
+                .ToEither(Error.New($"Failed to read ID for '{key}' after a suspected race condition.")));
+
+    private Either<Error, ulong> WriteIdMapping(Key dictionaryHk, Key key, ulong newId) =>
+        store.Put(Document.Cons(dictionaryHk, key, newId), CancellationToken.None) switch
+        {
+            DocumentStore.PutStatus.Success => newId,
+            DocumentStore.PutStatus.DuplicateKeyError => Error.New("Duplicate key, potential race condition."),
+            var status => Error.New($"Failed to create dictionary mapping. Status: {status}")
+        };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Option<ulong> ReadId(Key dictionaryHk, Key key) =>
+        store.Find<ulong>(dictionaryHk, key)
+            .Map(x => x.Record);
 }
