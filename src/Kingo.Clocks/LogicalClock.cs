@@ -8,15 +8,16 @@ namespace Kingo.Clocks;
 [JsonConverter(typeof(StringConvertible<LogicalClock>))]
 public readonly struct LogicalClock
     : IStringConvertible<LogicalClock>
+    , IULongConvertible<LogicalClock>
     , IEquatable<LogicalClock>
     , IComparable<LogicalClock>
-    , IEquatable<long>
-    , IComparable<long>
+    , IEquatable<ulong>
+    , IComparable<ulong>
 {
-    private readonly long value;
+    private readonly ulong value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private LogicalClock(long tick) => value = NonNegative(tick);
+    private LogicalClock(ulong l) => value = l;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
@@ -28,7 +29,7 @@ public readonly struct LogicalClock
     public static LogicalClock Zero { get; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static LogicalClock From(long tick) => new(tick);
+    public static LogicalClock From(ulong l) => new(l);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static LogicalClock From(string s) => new(s);
@@ -37,11 +38,8 @@ public readonly struct LogicalClock
     public LogicalClock Tick() => new(value + 1);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static long NonNegative(long tick) => tick >= 0 ? tick : 0;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static long Parse(string s) =>
-        long.Parse(string.IsNullOrWhiteSpace(s) ? "0" : s, NumberStyles.Number, CultureInfo.InvariantCulture);
+    private static ulong Parse(string s) =>
+        ulong.Parse(string.IsNullOrWhiteSpace(s) ? "0" : s, NumberStyles.Number, CultureInfo.InvariantCulture);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => value.ToString(CultureInfo.InvariantCulture);
@@ -59,10 +57,10 @@ public readonly struct LogicalClock
     public static implicit operator string(LogicalClock c) => c.ToString();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator LogicalClock(long l) => new(l);
+    public static implicit operator LogicalClock(ulong l) => new(l);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator long(LogicalClock c) => c.value;
+    public static implicit operator ulong(LogicalClock c) => c.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj) => obj is LogicalClock clock && Equals(clock);
@@ -74,10 +72,10 @@ public readonly struct LogicalClock
     public int CompareTo(LogicalClock other) => value.CompareTo(other.value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(long other) => value == other;
+    public bool Equals(ulong other) => value == other;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(long other) => value.CompareTo(value);
+    public int CompareTo(ulong other) => value.CompareTo(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(LogicalClock left, LogicalClock right) => left.Equals(right);
