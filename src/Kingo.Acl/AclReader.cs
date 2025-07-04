@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-public sealed class AclReader(DocumentStore documentStore)
+public sealed class AclReader(DocumentStore store)
 {
-    private readonly SubjectSetRewriteReader nsReader = new(documentStore);
+    private readonly RewriteReader nsReader = new(store);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
@@ -20,7 +20,7 @@ public sealed class AclReader(DocumentStore documentStore)
     private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node)
         => node switch
         {
-            This => documentStore.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
+            This => store.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
 
             ComputedSubjectSetRewrite computedSet =>
                 IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship)),
@@ -36,7 +36,7 @@ public sealed class AclReader(DocumentStore documentStore)
             && !EvaluateRewrite(subject, subjectSet, exclusion.Exclude),
 
             TupleToSubjectSetRewrite tupleToSubjectSet =>
-                documentStore.Find<SubjectSet>(
+                store.Find<SubjectSet>(
                     subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
                     KeyRange.Unbound)
                     .Any(parentSubjectSet =>

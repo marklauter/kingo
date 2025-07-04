@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-public sealed class AclWriter(DocumentStore documentStore)
+public sealed class AclWriter(DocumentStore store)
 {
     public enum AssociateResponse
     {
@@ -21,7 +21,7 @@ public sealed class AclWriter(DocumentStore documentStore)
             Right: subjectSet => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
 
     private AssociateResponse PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
-        documentStore.PutOrUpdate(document, cancellationToken) switch
+        store.PutOrUpdate(document, cancellationToken) switch
         {
             DocumentStore.UpdateStatus.Success => AssociateResponse.Success,
             DocumentStore.UpdateStatus.VersionConflictError => AssociateResponse.VersionCheckFailedError,
