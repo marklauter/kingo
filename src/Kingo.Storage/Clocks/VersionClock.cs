@@ -75,7 +75,7 @@ public readonly struct VersionClock
     public bool Equals(ulong other) => value == other;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(ulong other) => value.CompareTo(value);
+    public int CompareTo(ulong other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(VersionClock left, VersionClock right) => left.Equals(right);
