@@ -79,6 +79,14 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
  ```
 
 ## dev log
+
+key:
+```
+<date> - work peformed
+WIP - work in progress
+FUT - work planned
+```
+
 - 20 JUN 2025 - project initiation
 - 23 JUN 2025 - created solution
 - 23 JUN 2025 - rough in-memory storage engine
@@ -95,7 +103,7 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 04 JUL 2025 - began document store refactor - FP: it's turtles all the way down
 - WIP - document store refactor
 - WIP - dictionary encoding refactor
-- planned: implement durable storage using SQLite to emulate DynamoDB structure
+- FUT: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
