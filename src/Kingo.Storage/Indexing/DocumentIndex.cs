@@ -9,6 +9,8 @@ public sealed class DocumentIndex
 {
     private Snapshot snapshot = Indexing.Snapshot.Empty;
 
+    public static DocumentIndex Empty() => new();
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Snapshot Snapshot() => snapshot;
 
