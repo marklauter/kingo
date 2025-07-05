@@ -1,11 +1,10 @@
-﻿using Kingo.Storage;
-using Kingo.Storage.Keys;
+﻿using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
 
-namespace Kingo.DictionaryEncoding;
+namespace Kingo.Storage.Clocks;
 
-internal class Clock(
+public sealed class Clock(
     DocumentReader reader,
     DocumentWriter writer)
 {
