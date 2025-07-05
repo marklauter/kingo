@@ -1,16 +1,14 @@
-﻿using Kingo.Storage.Keys;
+﻿using Kingo.Storage.Indexing;
+using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Kingo.Storage;
 
-public static class DocumentReader
+public class DocumentReader(DocumentIndex index)
 {
-    public static Option<Document<R>> Find<R>(Key hashKey, Key rangeKey) where R : notnull =>
-        DocumentIndex
-        .Snapshot()
-        .Map
-        .Find(Document.FullHashKey<R>(hashKey))
+    public Option<Document<R>> Find<R>(Key hashKey, Key rangeKey) where R : notnull =>
+        index.Snapshot().Map.Find(Document.FullHashKey<R>(hashKey))
         .Match(
             None: () => Prelude.None,
             Some: m =>
@@ -18,10 +16,8 @@ public static class DocumentReader
                 .Filter(document => document is Document<R>)
                 .Map(document => (Document<R>)document));
 
-    public static Iterable<Document<R>> Find<R>(Key hashKey, KeyRange range) where R : notnull =>
-        DocumentIndex
-        .Snapshot()
-        .Map.Find(Document.FullHashKey<R>(hashKey))
+    public Iterable<Document<R>> Find<R>(Key hashKey, KeyRange range) where R : notnull =>
+        index.Snapshot().Map.Find(Document.FullHashKey<R>(hashKey))
         .Match(
             None: () => Prelude.Empty,
             Some: m => range switch
@@ -34,11 +30,8 @@ public static class DocumentReader
             });
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "I prefer explicit empty here")]
-    public static Iterable<Document<R>> Where<R>(Key hashKey, Func<Document<R>, bool> predicate) where R : notnull =>
-        DocumentIndex
-        .Snapshot()
-        .Map
-        .Find(Document.FullHashKey<R>(hashKey))
+    public Iterable<Document<R>> Where<R>(Key hashKey, Func<Document<R>, bool> predicate) where R : notnull =>
+        index.Snapshot().Map.Find(Document.FullHashKey<R>(hashKey))
         .Match(
             None: () => Iterable<Document<R>>.Empty,
             Some: m =>

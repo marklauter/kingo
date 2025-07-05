@@ -1,18 +1,21 @@
 ﻿using Kingo.Clocks;
+using Kingo.Storage.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
 
 namespace Kingo.Storage;
 
-public static class DocumentWriter
+public sealed class DocumentWriter(DocumentIndex index)
 {
-    public static Either<Error, Unit> Insert<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    private readonly DocumentReader reader = new(index);
+
+    public Either<Error, Unit> Insert<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
-        static Either<Error, Unit> Recur(Document<R> doc, CancellationToken ct) =>
+        Either<Error, Unit> Recur(Document<R> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? Error.New(ErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}/{doc.RangeKey}")
-                : Try.lift(() => Insert(DocumentIndex.Snapshot(), doc))
+                : Try.lift(() => Insert(index.Snapshot(), doc))
                 .Match(
                     Succ: success => success
                         ? Prelude.unit
@@ -22,13 +25,13 @@ public static class DocumentWriter
         return Recur(document, cancellationToken);
     }
 
-    private static bool Insert<T>(DocumentIndex.Index snapshot, Document<T> document) where T : notnull =>
-        DocumentIndex.Exchange(snapshot, Insert(snapshot.Map, document));
+    private bool Insert<T>(Snapshot snapshot, Document<T> document) where T : notnull =>
+        index.Exchange(snapshot, Insert(snapshot.Map, document));
 
-    private static DocumentIndex.Index Insert<R>(
+    private static Snapshot Insert<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
-        DocumentIndex.Index.From(
+        Snapshot.From(
             map.AddOrUpdate(
                 document.FullHashKey,
                 map
@@ -38,19 +41,19 @@ public static class DocumentWriter
                     None: () => Prelude.Empty)
                 .Add(document.RangeKey, document)));
 
-    public static Either<Error, Unit> InsertOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public Either<Error, Unit> InsertOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
-        static Either<Error, Unit> Recur(Document<R> doc, CancellationToken ct) =>
+        Either<Error, Unit> Recur(Document<R> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? Error.New(ErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}/{doc.RangeKey}")
-                : DocumentReader
+                : reader
                     .Find<R>(doc.HashKey, doc.RangeKey)
                     .Match(
                         Some: original => CheckVersion(original, doc)
-                            .Bind(_ => Update(DocumentIndex.Snapshot(), doc with { Version = doc.Version.Tick() })
+                            .Bind(_ => Update(index.Snapshot(), doc with { Version = doc.Version.Tick() })
                                 ? Prelude.unit
                                 : Recur(doc, ct)),
-                        None: () => Try.lift(() => Insert(DocumentIndex.Snapshot(), doc with { Version = LogicalClock.Zero }))
+                        None: () => Try.lift(() => Insert(index.Snapshot(), doc with { Version = LogicalClock.Zero }))
                             .Match(
                                 Succ: success => success ? Prelude.unit : Recur(doc, ct),
                                 Fail: _ => Recur(doc, ct)));
@@ -58,18 +61,18 @@ public static class DocumentWriter
         return Recur(document, cancellationToken);
     }
 
-    public static Either<Error, Unit> Update<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public Either<Error, Unit> Update<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
-        static Either<Error, Unit> Recur(Document<R> replacement, CancellationToken ct) =>
+        Either<Error, Unit> Recur(Document<R> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? Error.New(ErrorCodes.TimeoutError, $"timeout while updating key {replacement.HashKey}/{replacement.RangeKey}")
-                : DocumentReader
-                    .Find<R>(replacement.HashKey, replacement.RangeKey)
-                    .ToEither(Error.New(ErrorCodes.NotFoundError, $"key not found {replacement.HashKey}/{replacement.RangeKey}"))
-                    .Bind(original => CheckVersion(original, replacement))
-                    .Bind(_ => Update(DocumentIndex.Snapshot(), replacement with { Version = replacement.Version.Tick() })
+                ? Error.New(ErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}/{doc.RangeKey}")
+                : reader
+                    .Find<R>(doc.HashKey, doc.RangeKey)
+                    .ToEither(Error.New(ErrorCodes.NotFoundError, $"key not found {doc.HashKey}/{doc.RangeKey}"))
+                    .Bind(original => CheckVersion(original, doc))
+                    .Bind(_ => Update(index.Snapshot(), doc with { Version = doc.Version.Tick() })
                         ? Prelude.unit
-                        : Recur(replacement, ct));
+                        : Recur(doc, ct));
 
         return Recur(document, cancellationToken);
     }
@@ -79,13 +82,13 @@ public static class DocumentWriter
             ? Prelude.unit
             : Error.New(ErrorCodes.VersionConflictError, $"version concflict {replacement.HashKey}/{replacement.RangeKey}, expected: {replacement.Version}, actual: {original.Version}");
 
-    private static bool Update<R>(DocumentIndex.Index snapshot, Document<R> document) where R : notnull =>
-        DocumentIndex.Exchange(snapshot, Update(snapshot.Map, document));
+    private bool Update<R>(Snapshot snapshot, Document<R> document) where R : notnull =>
+        index.Exchange(snapshot, Update(snapshot.Map, document));
 
-    private static DocumentIndex.Index Update<R>(
+    private static Snapshot Update<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
-        DocumentIndex.Index.From(
+        Snapshot.From(
             map.AddOrUpdate(
                 document.FullHashKey,
                 map
