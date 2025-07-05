@@ -57,6 +57,10 @@ sample:
 
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
+todo: describe ACL tuples 
+todo: describe ACL tuple binary packing
+todo: describe ACL tuple storage and retrieval
+todo: describe ACL subjectset rewrite recursion 
 
 ## storage system
 current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
