@@ -16,62 +16,61 @@ public class KeyEncoder(
     private static readonly Key ResourceKey = Key.From("resource");
     private static readonly Key RelationshipKey = Key.From("relationship");
 
-    // Bit allocation
+    // packing sizes
     private const int NamespaceBits = 16;
     private const int RelationBits = 14;
     private const int ResourceBits = 34;
+    // compile-time check to ensure bit allocations sum to 64
+    // if it turns red check the packing sizes above ^
+    private const int TotalBitsMustBe64 = 1 / (NamespaceBits + RelationBits + ResourceBits == 64 ? 1 : 0);
 
-    // Bit shifts for packing
-    private const int ResourceShift = 0; // Not strictly needed, but good for clarity
+    // packing shifts
     private const int RelationShift = ResourceBits;
     private const int NamespaceShift = RelationShift + RelationBits;
 
-    // Masks for unpacking
+    // unpacking masks
     private const ulong ResourceMask = (1UL << ResourceBits) - 1;
     private const ulong RelationMask = (1UL << RelationBits) - 1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Either<Error, ulong> Pack(SubjectSet subjectSet, CancellationToken cancellationToken) =>
-        ReadIds(subjectSet.Resource, subjectSet.Relationship, cancellationToken)
+    public Either<Error, ulong> Pack(SubjectSet subjectSet, CancellationToken ct) =>
+        ReadIds(subjectSet.Resource, subjectSet.Relationship, ct)
             .Map(ids => Pack(ids.namespaceId, ids.resourceId, ids.relationshipId));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ulong Pack(ulong namespaceId, ulong resourceId, ulong relationshipId) =>
-        (namespaceId << NamespaceShift) | (relationshipId << RelationShift) | (resourceId << ResourceShift);
+        (namespaceId << NamespaceShift) | (relationshipId << RelationShift) | resourceId;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static (ulong namespaceId, ulong relationId, ulong resourceId) Unpack(ulong key) =>
         (key >> NamespaceShift, (key >> RelationShift) & RelationMask, key & ResourceMask);
 
-    private Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)> ReadIds(Resource resource, Relationship relationship, CancellationToken cancellationToken)
-    {
-        var nsId = GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), cancellationToken);
-        var resId = GetOrCreateId(ResourceKey, Key.From(resource.Name), cancellationToken);
-        var relId = GetOrCreateId(RelationshipKey, Key.From(relationship), cancellationToken);
+    private Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)> ReadIds(Resource resource, Relationship relationship, CancellationToken ct) =>
+        Prelude.Right<Error, Func<ulong, ulong, ulong, (ulong, ulong, ulong)>>(static (ns, res, rel) => (ns, res, rel))
+            .Apply(GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), ct))
+            .Apply(GetOrCreateId(ResourceKey, Key.From(resource.Name), ct))
+            .Apply(GetOrCreateId(RelationshipKey, Key.From(relationship), ct));
 
-        return (Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)>)(nsId, resId, relId).Apply((n, r, l) => (n, r, l));
-    }
-
-    private Either<Error, ulong> GetOrCreateId(Key idType, Key rK, CancellationToken cancellationToken)
+    private Either<Error, ulong> GetOrCreateId(Key idType, Key rK, CancellationToken ct)
     {
         var hK = DictionaryHk(idType);
         return GetId(hK, rK)
             .Match(
                 Some: Prelude.Right<Error, ulong>,
-                None: () => CreateId(hK, idType, rK, cancellationToken));
+                None: () => CreateId(hK, idType, rK, ct));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Key DictionaryHk(Key idType) => $"enc/{idType}";
 
-    private Either<Error, ulong> CreateId(Key hk, Key idType, Key rK, CancellationToken cancellationToken) =>
-        sequence.Next(idType, cancellationToken)
-            .Bind(newId => WriteIdMapping(hk, rK, newId))
+    private Either<Error, ulong> CreateId(Key hk, Key idType, Key rK, CancellationToken ct) =>
+        sequence.Next(idType, ct)
+            .Bind(newId => WriteIdMapping(hk, rK, newId, ct))
             .BindLeft(_ => GetId(hk, rK)
                 .ToEither(Error.New($"Failed to read ID for '{rK}' after a suspected race condition.")));
 
-    private Either<Error, ulong> WriteIdMapping(Key hk, Key rK, ulong newId) =>
-        writer.Insert(Document.Cons(hk, rK, newId), CancellationToken.None)
+    private Either<Error, ulong> WriteIdMapping(Key hk, Key rK, ulong newId, CancellationToken ct) =>
+        writer.Insert(Document.Cons(hk, rK, newId), ct)
         .Map(_ => newId);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
