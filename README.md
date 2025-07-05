@@ -85,8 +85,11 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use the document store
 - 02 JUL 2025 - refactored namespace specs to use document store
 - 03 JUL 2025 - tidy before durable storage refactor
-- 03 JUL 2025 - planned: dictionary encoding
-- 05 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
+- 03 JUL 2025 - began dictionary encoding refactor
+- 04 JUL 2025 - began document store refactor - FP: it's turtles all the way down
+- WIP - document store refactor
+- WIP - dictionary encoding refactor
+- planned: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
