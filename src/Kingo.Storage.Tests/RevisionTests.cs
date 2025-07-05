@@ -7,10 +7,10 @@ namespace Kingo.Storage.Tests;
 public sealed class RevisionTests
 {
     [Fact]
-    public void Zero_ReturnsDefaultVersionClock() => Assert.Equal(default, Revision.Zero);
+    public void Zero_ReturnsDefaultRevision() => Assert.Equal(default, Revision.Zero);
 
     [Fact]
-    public void From_UInt64_ReturnsVersionClock()
+    public void From_UInt64_ReturnsRevision()
     {
         const ulong value = 123;
         var clock = Revision.From(value);
@@ -23,7 +23,7 @@ public sealed class RevisionTests
     [InlineData("", 0UL)]
     [InlineData(" ", 0UL)]
     [InlineData(null, 0UL)]
-    public void From_String_ReturnsVersionClock(string? value, ulong expected)
+    public void From_String_ReturnsRevision(string? value, ulong expected)
     {
         var clock = Revision.From(value!);
         Assert.Equal<Revision>(expected, clock);
@@ -121,7 +121,7 @@ public sealed class RevisionTests
     }
 
     [Fact]
-    public void ImplicitConversion_ToVersionClock_FromString_ReturnsClock()
+    public void ImplicitConversion_ToRevision_FromString_ReturnsRevision()
     {
         const string value = "123";
         Revision clock = value;
@@ -129,7 +129,7 @@ public sealed class RevisionTests
     }
 
     [Fact]
-    public void ImplicitConversion_ToVersionClock_FromULong_ReturnsClock()
+    public void ImplicitConversion_ToRevision_FromULong_ReturnsRevision()
     {
         const ulong value = 123;
         Revision clock = value;
