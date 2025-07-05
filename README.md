@@ -8,6 +8,7 @@ relationship-based access control (rebac) inspired by Google Zanzibar
 
 ## namespace specs / subject set rewrite rules
 json-based namespace, relation, and rewrite definitions
+
 sample:
 ```json
 {
@@ -57,14 +58,15 @@ sample:
 
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
-todo: describe ACL tuples 
-todo: describe ACL tuple binary packing (for now see `performance ideas`)
-todo: describe ACL tuple storage and retrieval
-todo: describe ACL subjectset rewrite recursion 
+- todo: describe ACL tuples 
+- todo: describe ACL tuple binary packing (for now see `performance ideas`)
+- todo: describe ACL tuple storage and retrieval
+- todo: describe ACL subjectset rewrite recursion 
 
 ## storage system
-current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
-future: event-based store like an account ledger. inspired by Datomic. current state of an entity is determined by folding over its events. periodic snapshots for performance.
+- current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
+- future: event-based store like an account ledger. inspired by Datomic. current state of an entity is determined by folding over its events. periodic snapshots for performance.
+
 example: 
 ```
 // writes
