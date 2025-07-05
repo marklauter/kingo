@@ -21,7 +21,7 @@ public sealed class AclWriter(DocumentStore store)
             Right: subjectSet => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
 
     private AssociateResponse PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
-        store.PutOrUpdate(document, cancellationToken) switch
+        store.InsertOrUpdate(document, cancellationToken) switch
         {
             DocumentStore.UpdateStatus.Success => AssociateResponse.Success,
             DocumentStore.UpdateStatus.VersionConflictError => AssociateResponse.VersionCheckFailedError,

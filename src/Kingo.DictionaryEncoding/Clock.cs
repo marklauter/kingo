@@ -35,5 +35,5 @@ internal class Clock(DocumentStore store)
                 None: () => 0ul);
 
     private DocumentStore.UpdateStatus WriteClock(Key clockName, ulong clock, CancellationToken cancellationToken) =>
-        store.PutOrUpdate(Document.Cons(ToHashKey(clockName), ClockRangeKey, clock), cancellationToken);
+        store.InsertOrUpdate(Document.Cons(ToHashKey(clockName), ClockRangeKey, clock), cancellationToken);
 }

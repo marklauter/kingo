@@ -65,10 +65,10 @@ public class KeyEncoder(DocumentStore store)
                 .ToEither(Error.New($"Failed to read ID for '{key}' after a suspected race condition.")));
 
     private Either<Error, ulong> WriteIdMapping(Key dictionaryHk, Key key, ulong newId) =>
-        store.Put(Document.Cons(dictionaryHk, key, newId), CancellationToken.None) switch
+        store.Insert(Document.Cons(dictionaryHk, key, newId), CancellationToken.None) switch
         {
-            DocumentStore.PutStatus.Success => newId,
-            DocumentStore.PutStatus.DuplicateKeyError => Error.New("Duplicate key, potential race condition."),
+            DocumentStore.InsertStatus.Success => newId,
+            DocumentStore.InsertStatus.DuplicateKeyError => Error.New("Duplicate key, potential race condition."),
             var status => Error.New($"Failed to create dictionary mapping. Status: {status}")
         };
 

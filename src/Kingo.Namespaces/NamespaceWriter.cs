@@ -38,11 +38,11 @@ public sealed class NamespaceWriter(DocumentStore store)
             .Select(d => Put(d, cancellationToken))];
 
     private (PutStatus Status, Key DocumentId) Put(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
-        store.Put(document, cancellationToken) switch
+        store.Insert(document, cancellationToken) switch
         {
-            DocumentStore.PutStatus.Success => (PutStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.PutStatus.TimeoutError => (PutStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.PutStatus.DuplicateKeyError => (PutStatus.DuplicateKeyError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.InsertStatus.Success => (PutStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.InsertStatus.TimeoutError => (PutStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
+            DocumentStore.InsertStatus.DuplicateKeyError => (PutStatus.DuplicateKeyError, $"{document.HashKey}/{document.RangeKey}"),
             _ => throw new NotSupportedException()
         };
 

@@ -17,35 +17,35 @@ public sealed class DocumentStore
 
     private MapHolder mapHolder = MapHolder.Empty;
 
-    public enum PutStatus
+    public enum InsertStatus
     {
         Success,
         TimeoutError,
         DuplicateKeyError,
     }
 
-    public PutStatus Put<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public InsertStatus Insert<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (Put(mapHolder, document))
-                    return PutStatus.Success;
+                if (Insert(mapHolder, document))
+                    return InsertStatus.Success;
             }
         }
         catch (ArgumentException) // document already exists
         {
-            return PutStatus.DuplicateKeyError;
+            return InsertStatus.DuplicateKeyError;
         }
 
-        return PutStatus.TimeoutError;
+        return InsertStatus.TimeoutError;
     }
 
-    private bool Put<T>(MapHolder snapshot, Document<T> document) where T : notnull =>
-        ReferenceEquals(Interlocked.CompareExchange(ref mapHolder, Put(snapshot.Map, document), snapshot), snapshot);
+    private bool Insert<T>(MapHolder snapshot, Document<T> document) where T : notnull =>
+        ReferenceEquals(Interlocked.CompareExchange(ref mapHolder, Insert(snapshot.Map, document), snapshot), snapshot);
 
-    private static MapHolder Put<R>(
+    private static MapHolder Insert<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
         MapHolder.From(
@@ -75,7 +75,7 @@ public sealed class DocumentStore
         Retry,
     }
 
-    public UpdateStatus PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
+    public UpdateStatus InsertOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull
     {
         while (!cancellationToken.IsCancellationRequested)
         {
