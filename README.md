@@ -6,8 +6,9 @@ relationship-based access control (rebac) inspired by Google Zanzibar
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
-## namespace specs (policy language)
+## namespace specs / subject set rewrite rules
 json-based namespace, relation, and rewrite definitions
+
 sample:
 ```json
 {
@@ -57,10 +58,15 @@ sample:
 
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
+- todo: describe ACL tuples 
+- todo: describe ACL tuple binary packing (for now see `performance ideas`)
+- todo: describe ACL tuple storage and retrieval
+- todo: describe ACL subjectset rewrite recursion 
 
 ## storage system
-current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
-future: event-based store like an account ledger. inspired by Datomic. current state of an entity is determined by folding over its events. periodic snapshots for performance.
+- current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
+- future: event-based store like an account ledger. inspired by Datomic. current state of an entity is determined by folding over its events. periodic snapshots for performance.
+
 example: 
 ```
 // writes
@@ -73,6 +79,14 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
  ```
 
 ## dev log
+
+key:
+```
+<date> - work peformed
+WIP - work in progress
+FUT - work planned
+```
+
 - 20 JUN 2025 - project initiation
 - 23 JUN 2025 - created solution
 - 23 JUN 2025 - rough in-memory storage engine
@@ -85,8 +99,11 @@ read_tuple(0) => fold(entity:0.events) // yields entity:0 (x1, y1)
 - 02 JUL 2025 - prepped dependencies and document namespaces for refactor namespace tree to use the document store
 - 02 JUL 2025 - refactored namespace specs to use document store
 - 03 JUL 2025 - tidy before durable storage refactor
-- 03 JUL 2025 - planned: dictionary encoding
-- 05 JUL 2025 - planned: implement durable storage using SQLite to emulate DynamoDB structure
+- 03 JUL 2025 - began dictionary encoding refactor
+- 04 JUL 2025 - began document store refactor - FP: it's turtles all the way down
+- WIP - document store refactor
+- WIP - dictionary encoding refactor
+- FUT: implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
