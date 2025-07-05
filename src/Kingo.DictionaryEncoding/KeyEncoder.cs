@@ -6,9 +6,11 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.DictionaryEncoding;
 
-public class KeyEncoder(DocumentStore store)
+public class KeyEncoder(
+    DocumentReader reader,
+    DocumentWriter writer)
 {
-    private readonly Clock clock = new(store);
+    private readonly Clock clock = new(reader, writer);
     private static readonly Key NamespaceKey = Key.From("namespace");
     private static readonly Key ResourceKey = Key.From("resource");
     private static readonly Key RelationshipKey = Key.From("relationship");
@@ -52,28 +54,24 @@ public class KeyEncoder(DocumentStore store)
     private Either<Error, ulong> GetOrCreateId(Key idType, Key key, CancellationToken cancellationToken)
     {
         var dictionaryHk = $"encoding/{idType}";
-
-        return ReadId(dictionaryHk, key)
-            .ToEither(Error.New("ID not found, attempting creation."))
-            .BindLeft(_ => CreateId(dictionaryHk, idType, key, cancellationToken));
+        return GetId(dictionaryHk, key)
+            .Match(
+                Some: Prelude.Right<Error, ulong>,
+                None: () => CreateId(dictionaryHk, idType, key, cancellationToken));
     }
 
     private Either<Error, ulong> CreateId(Key dictionaryHk, Key idType, Key key, CancellationToken cancellationToken) =>
         clock.Tick(idType, cancellationToken)
             .Bind(newId => WriteIdMapping(dictionaryHk, key, newId))
-            .BindLeft(_ => ReadId(dictionaryHk, key)
+            .BindLeft(_ => GetId(dictionaryHk, key)
                 .ToEither(Error.New($"Failed to read ID for '{key}' after a suspected race condition.")));
 
     private Either<Error, ulong> WriteIdMapping(Key dictionaryHk, Key key, ulong newId) =>
-        store.Insert(Document.Cons(dictionaryHk, key, newId), CancellationToken.None) switch
-        {
-            DocumentStore.InsertStatus.Success => newId,
-            DocumentStore.InsertStatus.DuplicateKeyError => Error.New("Duplicate key, potential race condition."),
-            var status => Error.New($"Failed to create dictionary mapping. Status: {status}")
-        };
+        writer.Insert(Document.Cons(dictionaryHk, key, newId), CancellationToken.None)
+        .Map(_ => newId);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Option<ulong> ReadId(Key dictionaryHk, Key key) =>
-        store.Find<ulong>(dictionaryHk, key)
+    private Option<ulong> GetId(Key dictionaryHk, Key key) =>
+        reader.Find<ulong>(dictionaryHk, key)
             .Map(x => x.Record);
 }
