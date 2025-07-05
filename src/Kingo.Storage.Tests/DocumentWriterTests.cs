@@ -1,4 +1,4 @@
-using Kingo.Clocks;
+using Kingo.Storage.Clocks;
 using Kingo.Storage.Indexing;
 
 namespace Kingo.Storage.Tests;
@@ -121,7 +121,7 @@ public sealed class DocumentWriterTests
 
         var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
         Assert.Equal("foo", read.Record.Value);
-        Assert.Equal(LogicalClock.Zero, read.Version);
+        Assert.Equal(VersionClock.Zero, read.Version);
     }
 
     [Fact]

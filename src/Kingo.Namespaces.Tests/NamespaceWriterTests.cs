@@ -1,6 +1,6 @@
-using Kingo.Clocks;
 using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
+using Kingo.Storage.Clocks;
 using Kingo.Storage.Indexing;
 
 namespace Kingo.Namespaces.Tests;
@@ -80,7 +80,7 @@ public sealed class NamespaceWriterTests
         var ownerDoc = docReader.Find<SubjectSetRewrite>("Namespace/doc", "owner");
 
         Assert.True(ownerDoc.IsSome);
-        _ = ownerDoc.IfSome(doc => Assert.True(doc.Version > LogicalClock.Zero));
+        _ = ownerDoc.IfSome(doc => Assert.True(doc.Version > VersionClock.Zero));
     }
 
     [Fact]

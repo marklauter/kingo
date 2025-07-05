@@ -22,7 +22,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Clocks\Kingo.Clocks.csproj" />
 	  <ProjectReference Include="..\Kingo.Storage\Kingo.Storage.csproj" />
 	  <ProjectReference Include="..\Kingo\Kingo.csproj" />
 	</ItemGroup>
