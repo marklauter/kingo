@@ -6,7 +6,7 @@ relationship-based access control (rebac) inspired by Google Zanzibar
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
-## namespace specs (policy language)
+## namespace specs / subject set rewrite rules
 json-based namespace, relation, and rewrite definitions
 sample:
 ```json
@@ -58,7 +58,7 @@ sample:
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
 todo: describe ACL tuples 
-todo: describe ACL tuple binary packing
+todo: describe ACL tuple binary packing (for now see `performance ideas`)
 todo: describe ACL tuple storage and retrieval
 todo: describe ACL subjectset rewrite recursion 
 
