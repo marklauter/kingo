@@ -16,7 +16,7 @@ public sealed class NamespaceWriter(DocumentWriter writer)
 
     private Either<Error, Unit> Insert(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
         writer.Insert(document, cancellationToken)
-        .MapLeft(e => Error.New($" failed to insert {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
+        .MapLeft(e => Error.New(e.Code, $" failed to insert {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
 
     public Either<Error, Unit>[] Update(string json, CancellationToken cancellationToken) =>
             Update(NamespaceSpec.FromJson(json), cancellationToken);
@@ -27,5 +27,5 @@ public sealed class NamespaceWriter(DocumentWriter writer)
 
     private Either<Error, Unit> Update(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
         writer.Update(document, cancellationToken)
-        .MapLeft(e => Error.New($" failed to update {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
+        .MapLeft(e => Error.New(e.Code, $" failed to update {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
 }

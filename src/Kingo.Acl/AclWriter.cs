@@ -1,32 +1,23 @@
 ﻿using Kingo.Storage;
 using LanguageExt;
+using LanguageExt.Common;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-public sealed class AclWriter(DocumentStore store)
+public sealed class AclWriter(DocumentWriter writer)
 {
-    public enum AssociateResponse
-    {
-        Success,
-        TimeoutError,
-        VersionCheckFailedError,
-        NotFoundError,
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<Error, Unit> Associate(SubjectSet subjectSet, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
+        subject.Match(
+            Left: sub => writer.InsertOrUpdate(AsDocument(subjectSet, sub), cancellationToken),
+            Right: set => writer.InsertOrUpdate(AsDocument(subjectSet, set), cancellationToken));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public AssociateResponse Associate(Resource resource, Relationship relationship, Either<Subject, SubjectSet> subject, CancellationToken cancellationToken) =>
-        subject.Match(
-            Left: subject => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subject.AsKey(), subject), cancellationToken),
-            Right: subjectSet => PutOrUpdate(Document.Cons(resource.AsKey(relationship), subjectSet.AsKey(), subjectSet), cancellationToken));
+    private static Document<Subject> AsDocument(SubjectSet subjectSet, Subject subject) =>
+        Document.Cons(subjectSet.AsKey(), subject.AsKey(), subject);
 
-    private AssociateResponse PutOrUpdate<R>(Document<R> document, CancellationToken cancellationToken) where R : notnull =>
-        store.InsertOrUpdate(document, cancellationToken) switch
-        {
-            DocumentStore.UpdateStatus.Success => AssociateResponse.Success,
-            DocumentStore.UpdateStatus.VersionConflictError => AssociateResponse.VersionCheckFailedError,
-            DocumentStore.UpdateStatus.TimeoutError => AssociateResponse.TimeoutError,
-            DocumentStore.UpdateStatus.NotFoundError => AssociateResponse.NotFoundError,
-            _ => throw new NotSupportedException()
-        };
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Document<SubjectSet> AsDocument(SubjectSet subjectSet, SubjectSet subject) =>
+        Document.Cons(subjectSet.AsKey(), subject.AsKey(), subject);
 }

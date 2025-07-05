@@ -1,18 +1,25 @@
 using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
+using Kingo.Storage.Indexing;
 
 namespace Kingo.Namespaces.Tests;
 
 public sealed class RewriteReaderTests
 {
+    private readonly DocumentIndex index = DocumentIndex.Empty();
+
+    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+        (new(index), new(index));
+
     [Fact]
     public async Task FindReturnsSomeWhenNamespaceExists()
     {
-        var store = DocumentStore.Empty();
-        _ = new NamespaceWriter(store)
-            .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
+        var (reader, writer) = ReaderWriter();
 
-        var result = new RewriteReader(store)
+        _ = new NamespaceWriter(writer)
+            .Insert(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
+
+        var result = new RewriteReader(reader)
             .Read("doc", "owner");
 
         _ = result.Match(
@@ -23,10 +30,9 @@ public sealed class RewriteReaderTests
     [Fact]
     public void FindReturnsNoneWhenNamespaceDoesNotExist()
     {
-        var store = DocumentStore.Empty();
-        var reader = new RewriteReader(store);
+        var (reader, _) = ReaderWriter();
 
-        var result = reader.Read("doc", "owner");
+        var result = new RewriteReader(reader).Read("doc", "owner");
 
         Assert.True(result.IsNone);
     }

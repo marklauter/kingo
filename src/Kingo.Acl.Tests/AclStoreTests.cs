@@ -1,27 +1,29 @@
 ﻿using Kingo.Namespaces;
 using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
+using Kingo.Storage.Indexing;
 
 namespace Kingo.Acl.Tests;
 
 public sealed class AclStoreTests
 {
-    private static async Task<DocumentStore> GetPrimedDocumentStoreAsync()
+    private readonly DocumentIndex index = DocumentIndex.Empty();
+
+    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+        (new(index), new(index));
+
+    private async Task<(DocumentReader reader, DocumentWriter writer)> GetPrimedReaderWriterAsync()
     {
-        var store = DocumentStore.Empty();
-        var results = new NamespaceWriter(store)
-            .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json"), CancellationToken.None);
-        Assert.Equal(3, results.Length);
-        Assert.DoesNotContain(NamespaceWriter.PutStatus.TimeoutError, results.Select(i => i.Status));
-        Assert.DoesNotContain(NamespaceWriter.PutStatus.DuplicateKeyError, results.Select(i => i.Status));
+        var (reader, writer) = ReaderWriter();
+        var nsWriter = new NamespaceWriter(writer);
 
-        results = new NamespaceWriter(store)
-            .Put(await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json"), CancellationToken.None);
-        Assert.Equal(3, results.Length);
-        Assert.DoesNotContain(NamespaceWriter.PutStatus.TimeoutError, results.Select(i => i.Status));
-        Assert.DoesNotContain(NamespaceWriter.PutStatus.DuplicateKeyError, results.Select(i => i.Status));
+        var docSpec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
+        Assert.All(nsWriter.Insert(docSpec, CancellationToken.None), result => Assert.True(result.IsRight));
 
-        return store;
+        var folderSpec = await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json");
+        Assert.All(nsWriter.Insert(folderSpec, CancellationToken.None), result => Assert.True(result.IsRight));
+
+        return (reader, writer);
     }
 
     [Fact]
@@ -32,16 +34,12 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "owner");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                docSubjectSet.Resource,
-                docSubjectSet.Relationship,
-                subject,
-                CancellationToken.None));
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, docSubjectSet));
+        Assert.True(aclWriter.Associate(docSubjectSet, subject, CancellationToken.None).IsRight);
+        Assert.True(aclReader.IsAMemberOf(subject, docSubjectSet));
     }
 
     [Fact]
@@ -52,16 +50,12 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "editor");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                editorSet.Resource,
-                editorSet.Relationship,
-                subject,
-                CancellationToken.None));
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, editorSet));
+        Assert.True(aclWriter.Associate(editorSet, subject, CancellationToken.None).IsRight);
+        Assert.True(aclReader.IsAMemberOf(subject, editorSet));
     }
 
     [Fact]
@@ -76,16 +70,12 @@ public sealed class AclStoreTests
             resource,
             "editor");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                ownerSet.Resource,
-                ownerSet.Relationship,
-                subject,
-                CancellationToken.None));
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, editorSet));
+        Assert.True(aclWriter.Associate(ownerSet, subject, CancellationToken.None).IsRight);
+        Assert.True(aclReader.IsAMemberOf(subject, editorSet));
     }
 
     [Fact]
@@ -96,16 +86,12 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                viewerSet.Resource,
-                viewerSet.Relationship,
-                subject,
-                CancellationToken.None));
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, viewerSet));
+        Assert.True(aclWriter.Associate(viewerSet, subject, CancellationToken.None).IsRight);
+        Assert.True(aclReader.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
@@ -120,16 +106,12 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                editorSet.Resource,
-                editorSet.Relationship,
-                subject,
-                CancellationToken.None));
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, viewerSet));
+        Assert.True(aclWriter.Associate(editorSet, subject, CancellationToken.None).IsRight);
+        Assert.True(aclReader.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
@@ -144,16 +126,12 @@ public sealed class AclStoreTests
             resource,
             "viewer");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                ownerSet.Resource,
-                ownerSet.Relationship,
-                subject,
-                CancellationToken.None));
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, viewerSet));
+        Assert.True(aclWriter.Associate(ownerSet, subject, CancellationToken.None).IsRight);
+        Assert.True(aclReader.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
@@ -164,9 +142,10 @@ public sealed class AclStoreTests
             new Resource("doc", "readme"),
             "viewer");
 
-        var documentStore = await GetPrimedDocumentStoreAsync();
+        var (reader, _) = await GetPrimedReaderWriterAsync();
+        var aclReader = new AclReader(reader);
 
-        Assert.False(new AclReader(documentStore).IsAMemberOf(subject, viewerSet));
+        Assert.False(aclReader.IsAMemberOf(subject, viewerSet));
     }
 
     [Fact]
@@ -175,27 +154,25 @@ public sealed class AclStoreTests
         var subject = new Subject(Guid.NewGuid());
         var docResource = new Resource("doc", "readme");
         var folderResource = new Resource("folder", "documents");
-        var documentStore = await GetPrimedDocumentStoreAsync();
-        var writer = new AclWriter(documentStore);
+
+        var (reader, writer) = await GetPrimedReaderWriterAsync();
+        var aclWriter = new AclWriter(writer);
+        var aclReader = new AclReader(reader);
 
         // doc:readme#parent@folder:documents#... (relationship tuple as subject set)
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                docResource,
-                "parent",
-                new SubjectSet(folderResource, Relationship.Nothing),
-                CancellationToken.None));
+        Assert.True(aclWriter.Associate(
+            new SubjectSet(docResource, "parent"),
+            new SubjectSet(folderResource, Relationship.Nothing),
+            CancellationToken.None).IsRight);
 
         // folder:documents#viewer@subject (membership tuple)
-        Assert.Equal(AclWriter.AssociateResponse.Success,
-            writer.Associate(
-                folderResource,
-                "viewer",
-                subject,
-                CancellationToken.None));
+        Assert.True(aclWriter.Associate(
+            new SubjectSet(folderResource, "viewer"),
+            subject,
+            CancellationToken.None).IsRight);
 
         var viewerSet = new SubjectSet(docResource, "viewer");
 
-        Assert.True(new AclReader(documentStore).IsAMemberOf(subject, viewerSet));
+        Assert.True(aclReader.IsAMemberOf(subject, viewerSet));
     }
 }
