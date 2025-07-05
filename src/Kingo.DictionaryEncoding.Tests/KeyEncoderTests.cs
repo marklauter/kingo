@@ -17,28 +17,11 @@ public class KeyEncoderTests
         encoder = new KeyEncoder(reader, writer);
     }
 
-    // Bit allocation from KeyEncoder
-    private const int NamespaceBits = 16;
-    private const int RelationBits = 14;
-    private const int ResourceBits = 34;
-
-    // Bit shifts for packing from KeyEncoder
-    private const int ResourceShift = 0;
-    private const int RelationShift = ResourceBits;
-    private const int NamespaceShift = RelationShift + RelationBits;
-
-    // Masks for unpacking from KeyEncoder
-    private const ulong ResourceMask = (1UL << ResourceBits) - 1;
-    private const ulong RelationMask = (1UL << RelationBits) - 1;
-
-    private static (ulong namespaceId, ulong relationId, ulong resourceId) Unpack(ulong key) =>
-        (key >> NamespaceShift, (key >> RelationShift) & RelationMask, key & ResourceMask);
-
     [Fact]
     public void PackWhenCalledFirstTimeGeneratesAndPacksIds()
     {
-        var resource = new Resource("my-namespace", "my-resource");
-        var relationship = Relationship.From("my-relationship");
+        var resource = new Resource("mynamespace", "myresource");
+        var relationship = Relationship.From("myrelationship");
         var token = CancellationToken.None;
 
         var result = encoder.Pack(resource, relationship, token);
@@ -53,8 +36,8 @@ public class KeyEncoderTests
     [Fact]
     public void PackThenUnpackReturnsOriginalIds()
     {
-        var resource = new Resource("my-namespace", "my-resource");
-        var relationship = Relationship.From("my-relationship");
+        var resource = new Resource("mynamespace", "myresource");
+        var relationship = Relationship.From("myrelationship");
         var token = CancellationToken.None;
 
         var result = encoder.Pack(resource, relationship, token);
@@ -63,7 +46,7 @@ public class KeyEncoderTests
 
         _ = result.IfRight(packedKey =>
         {
-            var (nsId, relId, resId) = Unpack(packedKey);
+            var (nsId, relId, resId) = KeyEncoder.Unpack(packedKey);
             Assert.Equal(1UL, nsId);
             Assert.Equal(1UL, resId);
             Assert.Equal(1UL, relId);
@@ -82,7 +65,7 @@ public class KeyEncoderTests
 
         _ = result1.IfRight(packedKey1 =>
         {
-            var (nsId1, relId1, resId1) = Unpack(packedKey1);
+            var (nsId1, relId1, resId1) = KeyEncoder.Unpack(packedKey1);
             Assert.Equal(1UL, nsId1);
             Assert.Equal(1UL, resId1);
             Assert.Equal(1UL, relId1);
@@ -96,7 +79,7 @@ public class KeyEncoderTests
 
         _ = result2.IfRight(packedKey2 =>
         {
-            var (nsId2, relId2, resId2) = Unpack(packedKey2);
+            var (nsId2, relId2, resId2) = KeyEncoder.Unpack(packedKey2);
             Assert.Equal(2UL, nsId2);
             Assert.Equal(2UL, resId2);
             Assert.Equal(2UL, relId2);
@@ -111,8 +94,8 @@ public class KeyEncoderTests
     [Fact]
     public void PackWhenTokenIsCancelledReturnsTimeoutError()
     {
-        var resource = new Resource("my-namespace", "my-resource");
-        var relationship = Relationship.From("my-relationship");
+        var resource = new Resource("mynamespace", "myresource");
+        var relationship = Relationship.From("myrelationship");
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
