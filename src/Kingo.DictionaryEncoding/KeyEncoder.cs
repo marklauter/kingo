@@ -73,8 +73,8 @@ public class KeyEncoder(
     private Either<Error, ulong> CreateId(Key idType, Key hashKey, Key rangeKey, CancellationToken ct) =>
         sequence.Next(idType, ct)
         .Bind(newId => WriteIdMapping(hashKey, rangeKey, newId, ct))
-        .BindLeft(_ => GetId(hashKey, rangeKey)
-        .ToEither(Error.New($"Failed to read ID for {hashKey}/{rangeKey} after a suspected race condition.")));
+        .BindLeft(err => GetId(hashKey, rangeKey)
+        .ToEither(Error.New(err.Code, $"failed to read ID for {hashKey}/{rangeKey} after a suspected race condition.", err)));
 
     private Either<Error, ulong> WriteIdMapping(Key hashKey, Key rangeKey, ulong newId, CancellationToken ct) =>
         writer.Insert(Document.Cons(hashKey, rangeKey, newId), ct)
