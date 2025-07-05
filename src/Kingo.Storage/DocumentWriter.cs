@@ -28,8 +28,7 @@ public static class DocumentWriter
     private static DocumentIndex.Index Insert<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
-        DocumentIndex.Index
-        .From(
+        DocumentIndex.Index.From(
             map.AddOrUpdate(
                 document.FullHashKey,
                 map
@@ -86,8 +85,7 @@ public static class DocumentWriter
     private static DocumentIndex.Index Update<R>(
         Map<Key, Map<Key, Document>> map,
         Document<R> document) where R : notnull =>
-        DocumentIndex.Index
-        .From(
+        DocumentIndex.Index.From(
             map.AddOrUpdate(
                 document.FullHashKey,
                 map
