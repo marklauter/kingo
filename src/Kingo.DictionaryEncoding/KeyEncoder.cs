@@ -33,9 +33,13 @@ public class KeyEncoder(
     private const ulong RelationMask = (1UL << RelationBits) - 1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<Error, ulong> Pack(Resource resource, Relationship relationship, CancellationToken ct) =>
+        ReadIds(resource, relationship, ct)
+        .Map(ids => Pack(ids.namespaceId, ids.resourceId, ids.relationshipId));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<Error, ulong> Pack(SubjectSet subjectSet, CancellationToken ct) =>
-        ReadIds(subjectSet.Resource, subjectSet.Relationship, ct)
-            .Map(ids => Pack(ids.namespaceId, ids.resourceId, ids.relationshipId));
+        Pack(subjectSet.Resource, subjectSet.Relationship, ct);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ulong Pack(ulong namespaceId, ulong resourceId, ulong relationshipId) =>
@@ -45,36 +49,39 @@ public class KeyEncoder(
     internal static (ulong namespaceId, ulong relationId, ulong resourceId) Unpack(ulong key) =>
         (key >> NamespaceShift, (key >> RelationShift) & RelationMask, key & ResourceMask);
 
-    private Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)> ReadIds(Resource resource, Relationship relationship, CancellationToken ct) =>
+    private Either<Error, (ulong namespaceId, ulong resourceId, ulong relationshipId)> ReadIds(
+        Resource resource,
+        Relationship relationship,
+        CancellationToken ct) =>
         Prelude.Right<Error, Func<ulong, ulong, ulong, (ulong, ulong, ulong)>>(static (ns, res, rel) => (ns, res, rel))
-            .Apply(GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), ct))
-            .Apply(GetOrCreateId(ResourceKey, Key.From(resource.Name), ct))
-            .Apply(GetOrCreateId(RelationshipKey, Key.From(relationship), ct));
+        .Apply(GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), ct))
+        .Apply(GetOrCreateId(ResourceKey, Key.From(resource.Name), ct))
+        .Apply(GetOrCreateId(RelationshipKey, Key.From(relationship), ct));
 
-    private Either<Error, ulong> GetOrCreateId(Key idType, Key rK, CancellationToken ct)
+    private Either<Error, ulong> GetOrCreateId(Key idKind, Key rangeKey, CancellationToken ct)
     {
-        var hK = DictionaryHk(idType);
-        return GetId(hK, rK)
+        var hashKey = DictionaryHk(idKind);
+        return GetId(hashKey, rangeKey)
             .Match(
                 Some: Prelude.Right<Error, ulong>,
-                None: () => CreateId(hK, idType, rK, ct));
+                None: () => CreateId(idKind, hashKey, rangeKey, ct));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Key DictionaryHk(Key idType) => $"enc/{idType}";
 
-    private Either<Error, ulong> CreateId(Key hk, Key idType, Key rK, CancellationToken ct) =>
+    private Either<Error, ulong> CreateId(Key idType, Key hashKey, Key rangeKey, CancellationToken ct) =>
         sequence.Next(idType, ct)
-            .Bind(newId => WriteIdMapping(hk, rK, newId, ct))
-            .BindLeft(_ => GetId(hk, rK)
-                .ToEither(Error.New($"Failed to read ID for '{rK}' after a suspected race condition.")));
+        .Bind(newId => WriteIdMapping(hashKey, rangeKey, newId, ct))
+        .BindLeft(_ => GetId(hashKey, rangeKey)
+        .ToEither(Error.New($"Failed to read ID for {hashKey}/{rangeKey} after a suspected race condition.")));
 
-    private Either<Error, ulong> WriteIdMapping(Key hk, Key rK, ulong newId, CancellationToken ct) =>
-        writer.Insert(Document.Cons(hk, rK, newId), ct)
+    private Either<Error, ulong> WriteIdMapping(Key hashKey, Key rangeKey, ulong newId, CancellationToken ct) =>
+        writer.Insert(Document.Cons(hashKey, rangeKey, newId), ct)
         .Map(_ => newId);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Option<ulong> GetId(Key hk, Key rK) =>
-        reader.Find<ulong>(hk, rK)
-            .Map(x => x.Record);
+    private Option<ulong> GetId(Key hashKey, Key rangeKey) =>
+        reader.Find<ulong>(hashKey, rangeKey)
+        .Map(x => x.Record);
 }
