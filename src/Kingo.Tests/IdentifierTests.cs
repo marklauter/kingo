@@ -18,7 +18,7 @@ public sealed class IdentifierTests
     [InlineData("a b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
-        var exception = Assert.Throws<ArgumentException>("value", () => Identifier.From(value));
+        var exception = Assert.Throws<ArgumentException>(nameof(value), () => Identifier.From(value));
         Assert.StartsWith($"value contains invalid characters: '{value}'", exception.Message);
     }
 
