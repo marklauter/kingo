@@ -4,10 +4,12 @@ using LanguageExt;
 
 namespace Kingo.Namespaces;
 
-public sealed class RewriteReader(DocumentStore store)
+public sealed class RewriteReader(DocumentReader reader)
 {
     public Option<SubjectSetRewrite> Read(Namespace @namespace, Relationship relationship) =>
-        store
-        .Find<SubjectSetRewrite>(Key.From($"{nameof(Namespace)}/{@namespace}"), Key.From(relationship))
+        reader
+        .Find<SubjectSetRewrite>(
+            hashKey: $"{nameof(Namespace)}/{@namespace}",
+            rangeKey: Key.From(relationship))
         .Map(d => d.Record);
 }

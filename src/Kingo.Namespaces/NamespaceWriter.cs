@@ -1,86 +1,31 @@
 ﻿using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
-using Kingo.Storage.Keys;
 using LanguageExt;
+using LanguageExt.Common;
 
 namespace Kingo.Namespaces;
 
-public sealed class NamespaceWriter(DocumentStore store)
+public sealed class NamespaceWriter(DocumentWriter writer)
 {
-    public enum PutStatus
-    {
-        Success,
-        TimeoutError,
-        DuplicateKeyError,
-    }
+    public Either<Error, Unit>[] Insert(string json, CancellationToken cancellationToken) =>
+        Insert(NamespaceSpec.FromJson(json), cancellationToken);
 
-    public enum UpdateStatus
-    {
-        Success,
-        NotFoundError,
-        TimeoutError,
-        VersionConflictError,
-    }
+    public Either<Error, Unit>[] Insert(NamespaceSpec spec, CancellationToken cancellationToken) =>
+        [.. spec.TransformRewrite()
+        .Select(d => Insert(d, cancellationToken))];
 
-    public (PutStatus Status, Key DocumentId)[] Put(string json, CancellationToken cancellationToken) =>
-        Put(NamespaceSpec.FromJson(json), cancellationToken);
+    private Either<Error, Unit> Insert(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
+        writer.Insert(document, cancellationToken)
+        .MapLeft(e => Error.New($" failed to insert {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
 
-    public (PutStatus Status, Key DocumentId)[] Put(NamespaceSpec spec, CancellationToken cancellationToken) =>
-        Put($"{nameof(Namespace)}/{spec.Name}", spec.Relationships, cancellationToken);
-
-    private (PutStatus Status, Key DocumentId)[] Put(Key namespaceHashKey, IReadOnlyList<RelationshipSpec> relationships, CancellationToken cancellationToken) =>
-        [.. relationships
-            .Select(r => Document
-                .Cons(
-                    namespaceHashKey,
-                    Key.From(r.Name),
-                    ConvertRewrite(r.SubjectSetRewrite)))
-            .Select(d => Put(d, cancellationToken))];
-
-    private (PutStatus Status, Key DocumentId) Put(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
-        store.Insert(document, cancellationToken) switch
-        {
-            DocumentStore.InsertStatus.Success => (PutStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.InsertStatus.TimeoutError => (PutStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.InsertStatus.DuplicateKeyError => (PutStatus.DuplicateKeyError, $"{document.HashKey}/{document.RangeKey}"),
-            _ => throw new NotSupportedException()
-        };
-
-    public (UpdateStatus Status, Key DocumentId)[] Update(string json, CancellationToken cancellationToken) =>
+    public Either<Error, Unit>[] Update(string json, CancellationToken cancellationToken) =>
             Update(NamespaceSpec.FromJson(json), cancellationToken);
 
-    public (UpdateStatus Status, Key DocumentId)[] Update(NamespaceSpec spec, CancellationToken cancellationToken) =>
-        Update($"{nameof(Namespace)}/{spec.Name}", spec.Relationships, cancellationToken);
+    public Either<Error, Unit>[] Update(NamespaceSpec spec, CancellationToken cancellationToken) =>
+        [.. spec.TransformRewrite()
+        .Select (d => Update(d, cancellationToken))];
 
-    private (UpdateStatus Status, Key DocumentId)[] Update(Key namespaceHashKey, IReadOnlyList<RelationshipSpec> relationships, CancellationToken cancellationToken) =>
-        [.. relationships
-            .Select(r => Document
-                .Cons(
-                    namespaceHashKey,
-                    Key.From(r.Name),
-                    ConvertRewrite(r.SubjectSetRewrite)))
-            .Select(d => Update(d, cancellationToken))];
-
-    private (UpdateStatus Status, Key DocumentId) Update(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
-        store.Update(document, cancellationToken) switch
-        {
-            DocumentStore.UpdateStatus.Success => (UpdateStatus.Success, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.UpdateStatus.NotFoundError => (UpdateStatus.NotFoundError, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.UpdateStatus.TimeoutError => (UpdateStatus.TimeoutError, $"{document.HashKey}/{document.RangeKey}"),
-            DocumentStore.UpdateStatus.VersionConflictError => (UpdateStatus.VersionConflictError, $"{document.HashKey}/{document.RangeKey}"),
-            _ => throw new NotSupportedException()
-        };
-
-    internal static SubjectSetRewrite ConvertRewrite(Serializable.SubjectSetRewrite rule) =>
-        rule switch
-        {
-            Serializable.This => This.Default,
-            Serializable.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
-            Serializable.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(ConvertRewrite)]),
-            Serializable.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(ConvertRewrite)]),
-            Serializable.ExclusionRewrite exclusion => ExclusionRewrite.From(ConvertRewrite(exclusion.Include), ConvertRewrite(exclusion.Exclude)),
-            Serializable.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
-            _ => throw new NotSupportedException()
-        };
+    private Either<Error, Unit> Update(Document<SubjectSetRewrite> document, CancellationToken cancellationToken) =>
+        writer.Update(document, cancellationToken)
+        .MapLeft(e => Error.New($" failed to update {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
 }
-
