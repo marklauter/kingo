@@ -121,7 +121,7 @@ public sealed class DocumentWriterTests
 
         var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
         Assert.Equal("foo", read.Record.Value);
-        Assert.Equal(VersionClock.Zero, read.Version);
+        Assert.Equal(Revision.Zero, read.Version);
     }
 
     [Fact]

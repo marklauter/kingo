@@ -5,37 +5,37 @@ using System.Text.Json.Serialization;
 
 namespace Kingo.Storage.Clocks;
 
-[JsonConverter(typeof(StringConvertible<VersionClock>))]
-public readonly struct VersionClock
-    : IStringConvertible<VersionClock>
-    , IULongConvertible<VersionClock>
-    , IEquatable<VersionClock>
-    , IComparable<VersionClock>
+[JsonConverter(typeof(StringConvertible<Revision>))]
+public readonly struct Revision
+    : IStringConvertible<Revision>
+    , IULongConvertible<Revision>
+    , IEquatable<Revision>
+    , IComparable<Revision>
     , IEquatable<ulong>
     , IComparable<ulong>
 {
     private readonly ulong value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private VersionClock(ulong l) => value = l;
+    private Revision(ulong l) => value = l;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private VersionClock(string s)
+    private Revision(string s)
         : this(Parse(s))
     {
     }
 
-    public static VersionClock Zero { get; }
+    public static Revision Zero { get; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static VersionClock From(ulong l) => new(l);
+    public static Revision From(ulong l) => new(l);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static VersionClock From(string s) => new(s);
+    public static Revision From(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public VersionClock Tick() => new(value + 1);
+    public Revision Tick() => new(value + 1);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong Parse(string s) =>
@@ -48,28 +48,28 @@ public readonly struct VersionClock
     public override int GetHashCode() => value.GetHashCode();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(VersionClock other) => value == other.value;
+    public bool Equals(Revision other) => value == other.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator VersionClock(string s) => new(s);
+    public static implicit operator Revision(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(VersionClock c) => c.ToString();
+    public static implicit operator string(Revision c) => c.ToString();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator VersionClock(ulong l) => new(l);
+    public static implicit operator Revision(ulong l) => new(l);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ulong(VersionClock c) => c.value;
+    public static implicit operator ulong(Revision c) => c.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is VersionClock clock && Equals(clock);
+    public override bool Equals(object? obj) => obj is Revision clock && Equals(clock);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static VersionClock Empty() => Zero;
+    public static Revision Empty() => Zero;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(VersionClock other) => value.CompareTo(other.value);
+    public int CompareTo(Revision other) => value.CompareTo(other.value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(ulong other) => value == other;
@@ -78,20 +78,20 @@ public readonly struct VersionClock
     public int CompareTo(ulong other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(VersionClock left, VersionClock right) => left.Equals(right);
+    public static bool operator ==(Revision left, Revision right) => left.Equals(right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(VersionClock left, VersionClock right) => !(left == right);
+    public static bool operator !=(Revision left, Revision right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(VersionClock left, VersionClock right) => left.CompareTo(right) < 0;
+    public static bool operator <(Revision left, Revision right) => left.CompareTo(right) < 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(VersionClock left, VersionClock right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(Revision left, Revision right) => left.CompareTo(right) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(VersionClock left, VersionClock right) => left.CompareTo(right) > 0;
+    public static bool operator >(Revision left, Revision right) => left.CompareTo(right) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(VersionClock left, VersionClock right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(Revision left, Revision right) => left.CompareTo(right) >= 0;
 }

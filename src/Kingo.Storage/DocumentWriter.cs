@@ -53,7 +53,7 @@ public sealed class DocumentWriter(DocumentIndex index)
                             .Bind(_ => Update(index.Snapshot(), doc with { Version = doc.Version.Tick() })
                                 ? Prelude.unit
                                 : Recur(doc, ct)),
-                        None: () => Try.lift(() => Insert(index.Snapshot(), doc with { Version = VersionClock.Zero }))
+                        None: () => Try.lift(() => Insert(index.Snapshot(), doc with { Version = Revision.Zero }))
                             .Match(
                                 Succ: success => success ? Prelude.unit : Recur(doc, ct),
                                 Fail: _ => Recur(doc, ct)));

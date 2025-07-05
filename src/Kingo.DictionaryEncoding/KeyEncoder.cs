@@ -11,7 +11,7 @@ public class KeyEncoder(
     DocumentReader reader,
     DocumentWriter writer)
 {
-    private readonly Clock clock = new(reader, writer);
+    private readonly Sequence<ulong> sequence = new(reader, writer);
     private static readonly Key NamespaceKey = Key.From("namespace");
     private static readonly Key ResourceKey = Key.From("resource");
     private static readonly Key RelationshipKey = Key.From("relationship");
@@ -54,15 +54,18 @@ public class KeyEncoder(
 
     private Either<Error, ulong> GetOrCreateId(Key idType, Key key, CancellationToken cancellationToken)
     {
-        var dictionaryHk = $"encoding/{idType}";
+        var dictionaryHk = DictionaryHk(idType);
         return GetId(dictionaryHk, key)
             .Match(
                 Some: Prelude.Right<Error, ulong>,
                 None: () => CreateId(dictionaryHk, idType, key, cancellationToken));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Key DictionaryHk(Key idType) => $"enc/{idType}";
+
     private Either<Error, ulong> CreateId(Key dictionaryHk, Key idType, Key key, CancellationToken cancellationToken) =>
-        clock.Tick(idType, cancellationToken)
+        sequence.Next(idType, cancellationToken)
             .Bind(newId => WriteIdMapping(dictionaryHk, key, newId))
             .BindLeft(_ => GetId(dictionaryHk, key)
                 .ToEither(Error.New($"Failed to read ID for '{key}' after a suspected race condition.")));

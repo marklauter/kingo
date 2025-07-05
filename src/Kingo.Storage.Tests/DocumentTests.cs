@@ -20,7 +20,7 @@ public sealed class DocumentTests
         Assert.Equal(hashKey, doc.HashKey);
         Assert.Equal(rangeKey, doc.RangeKey);
         Assert.Equal(record, doc.Record);
-        Assert.Equal(VersionClock.Zero, doc.Version);
+        Assert.Equal(Revision.Zero, doc.Version);
         Assert.InRange(doc.Timestamp, before, after);
     }
 
@@ -29,7 +29,7 @@ public sealed class DocumentTests
     {
         var hashKey = Key.From("h");
         var rangeKey = Key.From("r");
-        var version = VersionClock.From(123);
+        var version = Revision.From(123);
         var record = new TestTuple("foo");
         var before = DateTime.UtcNow;
         var doc = Document.Cons(hashKey, rangeKey, version, record);

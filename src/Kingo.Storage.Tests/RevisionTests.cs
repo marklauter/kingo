@@ -4,17 +4,17 @@ using System.Text.Json;
 
 namespace Kingo.Storage.Tests;
 
-public sealed class VersionClockTests
+public sealed class RevisionTests
 {
     [Fact]
-    public void Zero_ReturnsDefaultVersionClock() => Assert.Equal(default, VersionClock.Zero);
+    public void Zero_ReturnsDefaultVersionClock() => Assert.Equal(default, Revision.Zero);
 
     [Fact]
     public void From_UInt64_ReturnsVersionClock()
     {
         const ulong value = 123;
-        var clock = VersionClock.From(value);
-        Assert.Equal<VersionClock>(value, clock);
+        var clock = Revision.From(value);
+        Assert.Equal<Revision>(value, clock);
     }
 
     [Theory]
@@ -25,23 +25,23 @@ public sealed class VersionClockTests
     [InlineData(null, 0UL)]
     public void From_String_ReturnsVersionClock(string? value, ulong expected)
     {
-        var clock = VersionClock.From(value!);
-        Assert.Equal<VersionClock>(expected, clock);
+        var clock = Revision.From(value!);
+        Assert.Equal<Revision>(expected, clock);
     }
 
     [Fact]
     public void Tick_IncrementsValue()
     {
-        var clock = VersionClock.From(123);
+        var clock = Revision.From(123);
         var ticked = clock.Tick();
-        Assert.Equal<VersionClock>(124UL, ticked);
+        Assert.Equal<Revision>(124UL, ticked);
     }
 
     [Fact]
     public void Equals_ReturnsTrue_IfValuesAreEqual()
     {
-        var clock1 = VersionClock.From(123);
-        var clock2 = VersionClock.From(123);
+        var clock1 = Revision.From(123);
+        var clock2 = Revision.From(123);
 
         Assert.True(clock1.Equals(clock2));
         Assert.True(clock1.Equals((object)clock2));
@@ -53,8 +53,8 @@ public sealed class VersionClockTests
     [Fact]
     public void Equals_ReturnsFalse_IfValuesAreNotEqual()
     {
-        var clock1 = VersionClock.From(123);
-        var clock2 = VersionClock.From(456);
+        var clock1 = Revision.From(123);
+        var clock2 = Revision.From(456);
 
         Assert.False(clock1.Equals(clock2));
         Assert.False(clock1.Equals((object)clock2));
@@ -66,8 +66,8 @@ public sealed class VersionClockTests
     [Fact]
     public void CompareTo_ReturnsCorrectValue()
     {
-        var clock1 = VersionClock.From(123);
-        var clock2 = VersionClock.From(456);
+        var clock1 = Revision.From(123);
+        var clock2 = Revision.From(456);
 
         Assert.True(clock1.CompareTo(clock2) < 0);
         Assert.True(clock1 < clock2);
@@ -80,7 +80,7 @@ public sealed class VersionClockTests
     [Fact]
     public void CompareTo_ReturnsCorrectValue_ForUlong()
     {
-        var clock = VersionClock.From(123);
+        var clock = Revision.From(123);
 
         Assert.True(clock.CompareTo(456UL) < 0);
         Assert.Equal(0, clock.CompareTo(123UL));
@@ -90,7 +90,7 @@ public sealed class VersionClockTests
     [Fact]
     public void Equals_ReturnsFalse_ForNullAndOtherTypes()
     {
-        var clock = VersionClock.From(123);
+        var clock = Revision.From(123);
         Assert.False(clock.Equals(null!));
         Assert.False(clock.Equals(new object()));
     }
@@ -98,8 +98,8 @@ public sealed class VersionClockTests
     [Fact]
     public void GetHashCode_ReturnsSameValue_ForEqualClocks()
     {
-        var clock1 = VersionClock.From(123);
-        var clock2 = VersionClock.From(123);
+        var clock1 = Revision.From(123);
+        var clock2 = Revision.From(123);
         Assert.Equal(clock1.GetHashCode(), clock2.GetHashCode());
     }
 
@@ -107,7 +107,7 @@ public sealed class VersionClockTests
     public void ToString_ReturnsValue()
     {
         const ulong value = 123;
-        var clock = VersionClock.From(value);
+        var clock = Revision.From(value);
         Assert.Equal(value.ToString(CultureInfo.InvariantCulture), clock.ToString());
     }
 
@@ -115,7 +115,7 @@ public sealed class VersionClockTests
     public void ImplicitConversion_ToString_ReturnsValue()
     {
         const ulong value = 123;
-        var clock = VersionClock.From(value);
+        var clock = Revision.From(value);
         string s = clock;
         Assert.Equal(value.ToString(CultureInfo.InvariantCulture), s);
     }
@@ -124,22 +124,22 @@ public sealed class VersionClockTests
     public void ImplicitConversion_ToVersionClock_FromString_ReturnsClock()
     {
         const string value = "123";
-        VersionClock clock = value;
-        Assert.Equal<VersionClock>(123UL, clock);
+        Revision clock = value;
+        Assert.Equal(Revision.From(123), clock);
     }
 
     [Fact]
     public void ImplicitConversion_ToVersionClock_FromULong_ReturnsClock()
     {
         const ulong value = 123;
-        VersionClock clock = value;
-        Assert.Equal<VersionClock>(value, clock);
+        Revision clock = value;
+        Assert.Equal(Revision.From(value), clock);
     }
 
     [Fact]
     public void JsonSerialization_SerializesToString()
     {
-        var clock = VersionClock.From(123);
+        var clock = Revision.From(123);
         var json = JsonSerializer.Serialize(clock);
         Assert.Equal("\"123\"", json);
     }
@@ -148,10 +148,10 @@ public sealed class VersionClockTests
     public void JsonDeserialization_DeserializesFromString()
     {
         var json = "\"123\"";
-        var clock = JsonSerializer.Deserialize<VersionClock>(json);
-        Assert.Equal<VersionClock>(123UL, clock);
+        var clock = JsonSerializer.Deserialize<Revision>(json);
+        Assert.Equal(Revision.From(123), clock);
     }
 
     [Fact]
-    public void Empty_ReturnsZero() => Assert.Equal(VersionClock.Zero, VersionClock.Empty());
+    public void Empty_ReturnsZero() => Assert.Equal(Revision.Zero, Revision.Empty());
 }
