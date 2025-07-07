@@ -19,5 +19,5 @@ public static class KeyExtensions
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key AsKey(this Subject subject) =>
-        subject.Id.ToString("N");
+        subject.Id.ToString();
 }
