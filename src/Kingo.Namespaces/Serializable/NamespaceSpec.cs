@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Kingo.Namespaces.Serializable;
 
+// todo: would be better to use a LISP parser for this instead of json, then we can use LanguageExt types instead of the trash C# types
 public sealed record NamespaceSpec(
     Namespace Name,
     IReadOnlyList<RelationshipSpec> Relationships)

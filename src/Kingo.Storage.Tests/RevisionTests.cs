@@ -148,8 +148,7 @@ public sealed class RevisionTests
     public void JsonDeserialization_DeserializesFromString()
     {
         var json = "\"123\"";
-        var clock = JsonSerializer.Deserialize<Revision>(json);
-        Assert.Equal(Revision.From(123), clock);
+        _ = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Revision>(json));
     }
 
     [Fact]

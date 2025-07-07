@@ -29,7 +29,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Owner_DirectMembership()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var docSubjectSet = new SubjectSet(
             new Resource("doc", "readme"),
             "owner");
@@ -45,7 +45,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Editor_DirectMembership()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var editorSet = new SubjectSet(
             new Resource("doc", "readme"),
             "editor");
@@ -61,7 +61,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Editor_ComputedFromOwner()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var resource = new Resource("doc", "readme");
         var ownerSet = new SubjectSet(
             resource,
@@ -81,7 +81,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Viewer_DirectMembership()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var viewerSet = new SubjectSet(
             new Resource("doc", "readme"),
             "viewer");
@@ -97,7 +97,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Viewer_ComputedFromEditor()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var resource = new Resource("doc", "readme");
         var editorSet = new SubjectSet(
             resource,
@@ -117,7 +117,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Viewer_ComputedFromOwnerViaEditor()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var resource = new Resource("doc", "readme");
         var ownerSet = new SubjectSet(
             resource,
@@ -137,7 +137,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_False_WhenNotIncluded()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var viewerSet = new SubjectSet(
             new Resource("doc", "readme"),
             "viewer");
@@ -151,7 +151,7 @@ public sealed class AclStoreTests
     [Fact]
     public async Task IsAMemberOf_Viewer_ComputedFromParentFolderViewer()
     {
-        var subject = new Subject(Guid.NewGuid());
+        var subject = new Subject(1);
         var docResource = new Resource("doc", "readme");
         var folderResource = new Resource("folder", "documents");
 

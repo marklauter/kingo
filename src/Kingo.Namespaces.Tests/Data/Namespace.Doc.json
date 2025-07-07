@@ -38,6 +38,21 @@
           }
         ]
       }
+    },
+    {
+      "Name": "auditor",
+      "SubjectSetRewrite": {
+        "Type": "IntersectionRewrite",
+        "Children": [
+          {
+            "Type": "This"
+          },
+          {
+            "Type": "ComputedSubjectSetRewrite",
+            "Relationship": "viewer"
+          }
+        ]
+      }
     }
   ]
 }

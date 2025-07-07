@@ -22,7 +22,7 @@ public sealed class NamespaceWriterTests
 
         var results = nsWriter.Insert(spec, CancellationToken.None);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
 
         var rewriteReader = new RewriteReader(reader);
@@ -41,6 +41,11 @@ public sealed class NamespaceWriterTests
             .Match(
                 Some: viewer => Assert.IsType<UnionRewrite>(viewer),
                 None: () => Assert.Fail("Expected to find viewer rewrite rule."));
+
+        _ = rewriteReader.Read("doc", "auditor")
+            .Match(
+                Some: viewer => Assert.IsType<IntersectionRewrite>(viewer),
+                None: () => Assert.Fail("Expected to find viewer rewrite rule."));
     }
 
     [Fact]
@@ -54,7 +59,7 @@ public sealed class NamespaceWriterTests
 
         var results = nsWriter.Insert(spec, CancellationToken.None);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(4, results.Length);
         Assert.All(results, result =>
         {
             Assert.True(result.IsLeft);
@@ -73,7 +78,7 @@ public sealed class NamespaceWriterTests
 
         var results = nsWriter.Update(spec, CancellationToken.None);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
 
         var docReader = new DocumentReader(index);
@@ -92,7 +97,7 @@ public sealed class NamespaceWriterTests
 
         var results = nsWriter.Update(spec, CancellationToken.None);
 
-        Assert.Equal(3, results.Length);
+        Assert.Equal(4, results.Length);
         Assert.All(results, result =>
         {
             Assert.True(result.IsLeft);

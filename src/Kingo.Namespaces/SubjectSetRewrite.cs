@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using LanguageExt;
+using System.Runtime.CompilerServices;
 
 namespace Kingo.Namespaces;
 
@@ -18,19 +19,25 @@ public sealed record ComputedSubjectSetRewrite(Relationship Relationship)
 }
 
 public sealed record UnionRewrite(
-    IReadOnlyList<SubjectSetRewrite> Children)
+    Seq<SubjectSetRewrite> Children)
     : SubjectSetRewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static UnionRewrite From(SubjectSetRewrite[] children) => new(children);
+    public static UnionRewrite From(IEnumerable<SubjectSetRewrite> children) => new(Seq.createRange(children));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static UnionRewrite From(Seq<SubjectSetRewrite> children) => new(children);
 }
 
 public sealed record IntersectionRewrite(
-    IReadOnlyList<SubjectSetRewrite> Children)
+    Seq<SubjectSetRewrite> Children)
     : SubjectSetRewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntersectionRewrite From(SubjectSetRewrite[] children) => new(children);
+    public static IntersectionRewrite From(IEnumerable<SubjectSetRewrite> children) => new(Seq.createRange(children));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IntersectionRewrite From(Seq<SubjectSetRewrite> children) => new(children);
 }
 
 public sealed record ExclusionRewrite(

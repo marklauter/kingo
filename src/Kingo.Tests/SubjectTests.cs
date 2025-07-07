@@ -5,7 +5,7 @@ public sealed class SubjectTests
     [Fact]
     public void Constructor_InitializesId()
     {
-        var id = Guid.NewGuid();
+        var id = ShortId.Zero;
         var subject = new Subject(id);
         Assert.Equal(id, subject.Id);
     }
@@ -13,7 +13,7 @@ public sealed class SubjectTests
     [Fact]
     public void Equality_ReturnsTrue_ForEqualInstances()
     {
-        var id = Guid.NewGuid();
+        var id = ShortId.Zero;
         var subject1 = new Subject(id);
         var subject2 = new Subject(id);
 
@@ -25,8 +25,8 @@ public sealed class SubjectTests
     [Fact]
     public void Equality_ReturnsFalse_ForDifferentInstances()
     {
-        var subject1 = new Subject(Guid.NewGuid());
-        var subject2 = new Subject(Guid.NewGuid());
+        var subject1 = new Subject(1);
+        var subject2 = new Subject(2);
 
         Assert.False(subject1 == subject2);
         Assert.True(subject1 != subject2);

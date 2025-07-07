@@ -12,20 +12,20 @@ public static class SubjectSetRewriteExtensions
         {
             Serializable.This => This.Default,
             Serializable.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
-            Serializable.UnionRewrite union => UnionRewrite.From([.. union.Children.Select(TransformRewrite)]),
-            Serializable.IntersectionRewrite intersection => IntersectionRewrite.From([.. intersection.Children.Select(TransformRewrite)]),
+            Serializable.UnionRewrite union => UnionRewrite.From(union.Children.Select(TransformRewrite)),
+            Serializable.IntersectionRewrite intersection => IntersectionRewrite.From(intersection.Children.Select(TransformRewrite)),
             Serializable.ExclusionRewrite exclusion => ExclusionRewrite.From(TransformRewrite(exclusion.Include), TransformRewrite(exclusion.Exclude)),
             Serializable.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
             _ => throw new NotSupportedException()
         };
 
-    internal static IEnumerable<Document<SubjectSetRewrite>> TransformRewrite(this NamespaceSpec spec) =>
+    internal static Seq<Document<SubjectSetRewrite>> TransformRewrite(this NamespaceSpec spec) =>
         spec.Relationships.TransformRewrite($"{nameof(Namespace)}/{spec.Name}");
 
-    private static IEnumerable<Document<SubjectSetRewrite>> TransformRewrite(
+    private static Seq<Document<SubjectSetRewrite>> TransformRewrite(
         this IReadOnlyList<RelationshipSpec> relationships,
         Key namespaceHk) =>
-        relationships.Select(r => r.ToDocument(namespaceHk));
+        Seq.createRange(relationships.Select(r => r.ToDocument(namespaceHk)));
 
     private static Document<SubjectSetRewrite> ToDocument(this RelationshipSpec relationship, Key namespaceHk) =>
         Document.Cons(

@@ -5,15 +5,15 @@ namespace Kingo.Namespaces.Tests;
 public class NamespaceSpecTests
 {
     [Theory]
-    [InlineData("Data/Namespace.Doc.json", "doc")]
-    [InlineData("Data/Namespace.Folder.json", "folder")]
-    public async Task ParsesFromJsonAsync(string path, string ns)
+    [InlineData("Data/Namespace.Doc.json", "doc", 4)]
+    [InlineData("Data/Namespace.Folder.json", "folder", 3)]
+    public async Task ParsesFromJsonAsync(string path, string ns, int expected)
     {
         var nsSpec = await NamespaceSpec.FromFileAsync(path);
         Assert.NotNull(nsSpec);
 
         Assert.Equal(ns, nsSpec.Name);
-        Assert.Equal(3, nsSpec.Relationships.Count);
+        Assert.Equal(expected, nsSpec.Relationships.Count);
 
         var owner = nsSpec.Relationships[0];
         Assert.Equal("owner", owner.Name);

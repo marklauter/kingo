@@ -10,7 +10,7 @@ public sealed class ULongConvertible<T>
     public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
         reader.TokenType == JsonTokenType.Number
         ? reader.GetUInt64() is ulong value ? T.From(value) : T.Empty()
-        : throw new JsonException($"Expected a JSON string to deserialize to {typeof(T).Name}, but got {reader.TokenType}.");
+        : throw new JsonException($"Expected a JsonTokenType.Number to deserialize to {typeof(T).Name}, but got {reader.TokenType}.");
 
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToString());
