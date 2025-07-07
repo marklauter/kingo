@@ -1,19 +1,20 @@
 ﻿using Kingo.Storage;
 using Kingo.Storage.Indexing;
+using Kingo.Storage.Keys;
 
 namespace Kingo.DictionaryEncoding.Tests;
 
 public class KeyEncoderTests
 {
-    private readonly DocumentIndex index = DocumentIndex.Empty();
-    private readonly DocumentReader reader;
-    private readonly DocumentWriter writer;
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
+    private readonly DocumentReader<Key, Key> reader;
+    private readonly DocumentWriter<Key, Key> writer;
     private readonly KeyEncoder encoder;
 
     public KeyEncoderTests()
     {
-        reader = new DocumentReader(index);
-        writer = new DocumentWriter(index);
+        reader = new DocumentReader<Key, Key>(index);
+        writer = new DocumentWriter<Key, Key>(index);
         encoder = new KeyEncoder(reader, writer);
     }
 

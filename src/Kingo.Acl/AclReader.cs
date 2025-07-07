@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-public sealed class AclReader(DocumentReader reader)
+public sealed class AclReader(DocumentReader<Key, Key> reader)
 {
     private readonly RewriteReader nsReader = new(reader);
 
@@ -39,7 +39,7 @@ public sealed class AclReader(DocumentReader reader)
                 reader.Find<SubjectSet>(
                     subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
                     Storage.Keys.RangeKey.Unbound)
-                    .Any((object parentSubjectSet) =>
+                    .Any(parentSubjectSet =>
                         IsAMemberOf(
                             subject,
                             new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation))),

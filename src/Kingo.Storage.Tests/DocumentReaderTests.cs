@@ -9,7 +9,7 @@ public sealed class DocumentReaderTests
     private sealed record TestTuple(string Value);
     private sealed record AnotherTestTuple(string Value);
 
-    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty();
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
 
     private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));

@@ -1,5 +1,6 @@
 using Kingo.Storage.Clocks;
 using Kingo.Storage.Indexing;
+using Kingo.Storage.Keys;
 
 namespace Kingo.Storage.Tests;
 
@@ -7,9 +8,9 @@ public sealed class DocumentWriterTests
 {
     private sealed record TestTuple(string Value);
 
-    private readonly DocumentIndex index = DocumentIndex.Empty();
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
 
-    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+    private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));
 
     [Fact]
@@ -17,7 +18,7 @@ public sealed class DocumentWriterTests
     {
         var (_, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         var result = writer.Insert(document, CancellationToken.None);
         Assert.True(result.IsRight);
     }
@@ -27,7 +28,7 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
         var result = writer.Insert(document, CancellationToken.None);
         Assert.True(result.IsLeft);
@@ -39,7 +40,7 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
         var result = writer.Insert(document, cts.Token);
@@ -52,16 +53,16 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
 
-        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         var updated = read with { Record = new TestTuple("bar") };
 
         var result = writer.Update(updated, CancellationToken.None);
         Assert.True(result.IsRight);
 
-        var reread = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var reread = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         Assert.Equal("bar", reread.Record.Value);
         Assert.True(reread.Version > read.Version);
     }
@@ -71,7 +72,7 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         var result = writer.Update(document, CancellationToken.None);
         Assert.True(result.IsLeft);
         _ = result.IfLeft(error => Assert.Equal(ErrorCodes.NotFoundError, error.Code));
@@ -82,10 +83,10 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
 
-        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         var updated = read with { Version = read.Version.Tick(), Record = new TestTuple("bar") };
 
         var result = writer.Update(updated, CancellationToken.None);
@@ -98,9 +99,9 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
-        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -115,11 +116,11 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         var result = writer.InsertOrUpdate(document, CancellationToken.None);
         Assert.True(result.IsRight);
 
-        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         Assert.Equal("foo", read.Record.Value);
         Assert.Equal(Revision.Zero, read.Version);
     }
@@ -129,16 +130,16 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
 
-        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         var updated = read with { Record = new TestTuple("bar") };
 
         var result = writer.InsertOrUpdate(updated, CancellationToken.None);
         Assert.True(result.IsRight);
 
-        var reread = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var reread = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         Assert.Equal("bar", reread.Record.Value);
         Assert.True(reread.Version > read.Version);
     }
@@ -148,10 +149,10 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
 
-        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<TestTuple>>);
+        var read = reader.Find<TestTuple>("h", "r").IfNone(Fail<Document<Key, Key, TestTuple>>);
         var updated = read with { Version = read.Version.Tick(), Record = new TestTuple("bar") };
 
         var result = writer.InsertOrUpdate(updated, CancellationToken.None);
@@ -164,7 +165,7 @@ public sealed class DocumentWriterTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
         var result = writer.InsertOrUpdate(document, cts.Token);

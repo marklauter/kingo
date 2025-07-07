@@ -2,14 +2,15 @@ using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
 using Kingo.Storage.Clocks;
 using Kingo.Storage.Indexing;
+using Kingo.Storage.Keys;
 
 namespace Kingo.Namespaces.Tests;
 
 public sealed class NamespaceWriterTests
 {
-    private readonly DocumentIndex index = DocumentIndex.Empty();
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
 
-    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+    private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));
 
     [Fact]
@@ -20,7 +21,7 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        var results = NamespaceWriter.Insert(spec, CancellationToken.None);
+        var results = nsWriter.Insert(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
@@ -55,9 +56,9 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        Assert.All(NamespaceWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(nsWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
 
-        var results = NamespaceWriter.Insert(spec, CancellationToken.None);
+        var results = nsWriter.Insert(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result =>
@@ -74,15 +75,14 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        Assert.All(NamespaceWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(nsWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
 
-        var results = NamespaceWriter.Update(spec, CancellationToken.None);
+        var results = nsWriter.Update(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
 
-        var docReader = new DocumentReader(index);
-        var ownerDoc = docReader.Find<SubjectSetRewrite>("Namespace/doc", "owner");
+        var ownerDoc = reader.Find<SubjectSetRewrite>("Namespace/doc", "owner");
 
         Assert.True(ownerDoc.IsSome);
         _ = ownerDoc.IfSome(doc => Assert.True(doc.Version > Revision.Zero));
@@ -95,7 +95,7 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        var results = NamespaceWriter.Update(spec, CancellationToken.None);
+        var results = nsWriter.Update(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result =>

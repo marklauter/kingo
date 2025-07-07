@@ -6,14 +6,14 @@ namespace Kingo.Storage.Tests.Keys;
 public sealed class KeyRangeTests
 {
     [Fact]
-    public void Unbound_ReturnsUnboundInstance() => Assert.IsType<Unbound>(Storage.Keys.RangeKey.Unbound);
+    public void Unbound_ReturnsUnboundInstance() => Assert.IsType<Unbound>(RangeKey.Unbound);
 
     [Fact]
     public void Since_ReturnsSinceInstance()
     {
         var key = Key.From("a");
-        var since = Storage.Keys.RangeKey.Since(key);
-        _ = Assert.IsType<Since>(since);
+        var since = RangeKey.Since<Key>(key);
+        _ = Assert.IsType<Since<Key>>(since);
         Assert.Equal(key, since.FromKey);
     }
 
@@ -21,8 +21,8 @@ public sealed class KeyRangeTests
     public void Until_ReturnsUntilInstance()
     {
         var key = Key.From("a");
-        var until = Storage.Keys.RangeKey.Until(key);
-        _ = Assert.IsType<Until>(until);
+        var until = RangeKey.Until<Key>(key);
+        _ = Assert.IsType<Until<Key>>(until);
         Assert.Equal(key, until.ToKey);
     }
 
@@ -31,8 +31,8 @@ public sealed class KeyRangeTests
     {
         var fromKey = Key.From("a");
         var toKey = Key.From("b");
-        var between = Storage.Keys.RangeKey.Between(fromKey, toKey);
-        _ = Assert.IsType<Between>(between);
+        var between = RangeKey.Between<Key>(fromKey, toKey);
+        _ = Assert.IsType<Between<Key>>(between);
         Assert.Equal(fromKey, between.FromKey);
         Assert.Equal(toKey, between.ToKey);
     }

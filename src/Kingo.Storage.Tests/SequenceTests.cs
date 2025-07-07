@@ -7,9 +7,9 @@ namespace Kingo.Storage.Tests;
 
 public sealed class SequenceTests
 {
-    private readonly DocumentIndex index = DocumentIndex.Empty();
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
 
-    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+    private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));
 
     [Fact]

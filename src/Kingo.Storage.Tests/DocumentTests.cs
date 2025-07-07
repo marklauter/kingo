@@ -45,8 +45,8 @@ public sealed class DocumentTests
     [Fact]
     public void DocumentOfT_IsSubclassOfDocument()
     {
-        var docT = Document.Cons("h", "r", new TestTuple("foo"));
-        _ = Assert.IsType<Document>(docT, exactMatch: false);
-        _ = Assert.IsType<Document<TestTuple>>(docT, exactMatch: false);
+        var docT = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
+        _ = Assert.IsType<Document<Key, Key>>(docT, exactMatch: false);
+        _ = Assert.IsType<Document<Key, Key, TestTuple>>(docT, exactMatch: true);
     }
 }

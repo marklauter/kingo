@@ -2,26 +2,27 @@
 using Kingo.Namespaces.Serializable;
 using Kingo.Storage;
 using Kingo.Storage.Indexing;
+using Kingo.Storage.Keys;
 
 namespace Kingo.Acl.Tests;
 
 public sealed class AclStoreTests
 {
-    private readonly DocumentIndex index = DocumentIndex.Empty();
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
 
-    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+    private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));
 
-    private async Task<(DocumentReader reader, DocumentWriter writer)> GetPrimedReaderWriterAsync()
+    private async Task<(DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer)> GetPrimedReaderWriterAsync()
     {
         var (reader, writer) = ReaderWriter();
         var nsWriter = new NamespaceWriter(writer);
 
         var docSpec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
-        Assert.All(NamespaceWriter.Insert(docSpec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(nsWriter.Insert(docSpec, CancellationToken.None), result => Assert.True(result.IsRight));
 
         var folderSpec = await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json");
-        Assert.All(NamespaceWriter.Insert(folderSpec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(nsWriter.Insert(folderSpec, CancellationToken.None), result => Assert.True(result.IsRight));
 
         return (reader, writer);
     }
