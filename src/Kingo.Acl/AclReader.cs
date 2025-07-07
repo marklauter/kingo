@@ -38,8 +38,8 @@ public sealed class AclReader(DocumentReader reader)
             TupleToSubjectSetRewrite tupleToSubjectSet =>
                 reader.Find<SubjectSet>(
                     subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
-                    KeyRange.Unbound)
-                    .Any(parentSubjectSet =>
+                    Storage.Keys.RangeKey.Unbound)
+                    .Any((object parentSubjectSet) =>
                         IsAMemberOf(
                             subject,
                             new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation))),

@@ -58,7 +58,7 @@ public sealed class DocumentReaderTests
         Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
         Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
 
-        var docs = reader.Find<TestTuple>("h", KeyRange.Unbound).ToArray();
+        var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Unbound).ToArray();
 
         Assert.Equal(3, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");
@@ -75,7 +75,7 @@ public sealed class DocumentReaderTests
         Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
         Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
 
-        var docs = reader.Find<TestTuple>("h", KeyRange.Since("b")).ToArray();
+        var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Since("b")).ToArray();
 
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "B");
@@ -91,7 +91,7 @@ public sealed class DocumentReaderTests
         Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
         Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
 
-        var docs = reader.Find<TestTuple>("h", KeyRange.Until("b")).ToArray();
+        var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Until("b")).ToArray();
 
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");
@@ -107,7 +107,7 @@ public sealed class DocumentReaderTests
         Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
         Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
 
-        var docs = reader.Find<TestTuple>("h", KeyRange.Between("a", "c")).ToArray();
+        var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Between("a", "c")).ToArray();
 
         Assert.Equal(3, docs.Length);
         Assert.Contains(docs, d => d.Record.Value == "A");

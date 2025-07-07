@@ -1,3 +1,3 @@
 ﻿namespace Kingo.Storage.Keys;
 
-public sealed record Unbound : KeyRange;
+public sealed record Unbound : RangeKey;

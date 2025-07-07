@@ -1,13 +1,23 @@
-﻿using Kingo.Storage.Keys;
-using LanguageExt;
+﻿using LanguageExt;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Indexing;
 
-public sealed record Snapshot(Map<Key, Map<Key, Document>> Map)
+public static class Snapshot
 {
-    public static Snapshot Empty { get; } = new(Prelude.Empty);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Snapshot<HK, RK> Empty<HK, RK>()
+    where HK : IEquatable<HK>, IComparable<HK>
+    where RK : IEquatable<RK>, IComparable<RK>
+        => new(Prelude.Empty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Snapshot From(Map<Key, Map<Key, Document>> map) => new(map);
+    public static Snapshot<HK, RK> From<HK, RK>(Map<HK, Map<RK, Document<HK, RK>>> map)
+    where HK : IEquatable<HK>, IComparable<HK>
+    where RK : IEquatable<RK>, IComparable<RK>
+        => new(map);
 }
+
+public sealed record Snapshot<HK, RK>(Map<HK, Map<RK, Document<HK, RK>>> Map)
+    where HK : IEquatable<HK>, IComparable<HK>
+    where RK : IEquatable<RK>, IComparable<RK>;
