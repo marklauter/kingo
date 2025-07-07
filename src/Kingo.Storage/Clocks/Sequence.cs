@@ -7,8 +7,9 @@ using System.Runtime.CompilerServices;
 namespace Kingo.Storage.Clocks;
 
 public sealed class Sequence<N>(
-    DocumentReader reader,
-    DocumentWriter writer) where N : INumber<N>
+    DocumentReader<Key, Key> reader,
+    DocumentWriter<Key, Key> writer)
+    where N : INumber<N>
 {
     private static readonly Key RangeKey = Key.From("seq");
 

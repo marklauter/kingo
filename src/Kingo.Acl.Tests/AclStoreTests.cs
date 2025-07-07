@@ -18,10 +18,10 @@ public sealed class AclStoreTests
         var nsWriter = new NamespaceWriter(writer);
 
         var docSpec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
-        Assert.All(nsWriter.Insert(docSpec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(NamespaceWriter.Insert(docSpec, CancellationToken.None), result => Assert.True(result.IsRight));
 
         var folderSpec = await NamespaceSpec.FromFileAsync("Data/Namespace.Folder.json");
-        Assert.All(nsWriter.Insert(folderSpec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(NamespaceWriter.Insert(folderSpec, CancellationToken.None), result => Assert.True(result.IsRight));
 
         return (reader, writer);
     }

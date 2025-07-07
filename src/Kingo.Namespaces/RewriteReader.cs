@@ -4,7 +4,7 @@ using LanguageExt;
 
 namespace Kingo.Namespaces;
 
-public sealed class RewriteReader(DocumentReader reader)
+public sealed class RewriteReader(DocumentReader<Key, Key> reader)
 {
     public Option<SubjectSetRewrite> Read(Namespace @namespace, Relationship relationship) =>
         reader

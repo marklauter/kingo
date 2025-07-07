@@ -19,19 +19,18 @@ public static class SubjectSetRewriteExtensions
             _ => throw new NotSupportedException()
         };
 
-    internal static Seq<Document<SubjectSetRewrite>> TransformRewrite(this NamespaceSpec spec) =>
+    internal static Seq<Document<Key, Key, SubjectSetRewrite>> TransformRewrite(this NamespaceSpec spec) =>
         spec.Relationships.TransformRewrite($"{nameof(Namespace)}/{spec.Name}");
 
-    private static Seq<Document<SubjectSetRewrite>> TransformRewrite(
+    private static Seq<Document<Key, Key, SubjectSetRewrite>> TransformRewrite(
         this IReadOnlyList<RelationshipSpec> relationships,
         Key namespaceHk) =>
         Seq.createRange(relationships.Select(r => r.ToDocument(namespaceHk)));
 
-    private static Document<SubjectSetRewrite> ToDocument(this RelationshipSpec relationship, Key namespaceHk) =>
+    private static Document<Key, Key, SubjectSetRewrite> ToDocument(this RelationshipSpec relationship, Key namespaceHk) =>
         Document.Cons(
             namespaceHk,
             Key.From(relationship.Name),
             relationship.SubjectSetRewrite.TransformRewrite());
-
 }
 

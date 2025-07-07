@@ -8,8 +8,8 @@ using System.Runtime.CompilerServices;
 namespace Kingo.DictionaryEncoding;
 
 public class KeyEncoder(
-    DocumentReader reader,
-    DocumentWriter writer)
+    DocumentReader<Key, Key> reader,
+    DocumentWriter<Key, Key> writer)
 {
     private readonly Sequence<ulong> sequence = new(reader, writer);
     private static readonly Key NamespaceKey = Key.From("namespace");

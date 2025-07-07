@@ -9,9 +9,9 @@ public sealed class DocumentReaderTests
     private sealed record TestTuple(string Value);
     private sealed record AnotherTestTuple(string Value);
 
-    private readonly DocumentIndex index = DocumentIndex.Empty();
+    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty();
 
-    private (DocumentReader reader, DocumentWriter writer) ReaderWriter() =>
+    private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));
 
     [Fact]
@@ -19,7 +19,7 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
 
         var result = reader.Find<TestTuple>("h", "r");
@@ -42,7 +42,7 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        var document = Document.Cons("h", "r", new TestTuple("foo"));
+        var document = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
 
         var result = reader.Find<AnotherTestTuple>("h", "r");
@@ -54,9 +54,9 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), new TestTuple("A")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), new TestTuple("B")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), new TestTuple("C")), CancellationToken.None).IsRight);
 
         var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Unbound).ToArray();
 
@@ -71,9 +71,9 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), new TestTuple("A")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), new TestTuple("B")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), new TestTuple("C")), CancellationToken.None).IsRight);
 
         var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Since("b")).ToArray();
 
@@ -87,9 +87,9 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), new TestTuple("A")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), new TestTuple("B")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), new TestTuple("C")), CancellationToken.None).IsRight);
 
         var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Until("b")).ToArray();
 
@@ -103,9 +103,9 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), new TestTuple("A")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), new TestTuple("B")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), new TestTuple("C")), CancellationToken.None).IsRight);
 
         var docs = reader.Find<TestTuple>("h", Storage.Keys.RangeKey.Between("a", "c")).ToArray();
 
@@ -120,9 +120,9 @@ public sealed class DocumentReaderTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons("h", "a", new TestTuple("A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "b", new TestTuple("B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons("h", "c", new TestTuple("C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), new TestTuple("A")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), new TestTuple("B")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), new TestTuple("C")), CancellationToken.None).IsRight);
 
         var docs = reader.Where<TestTuple>("h", d => d.Record.Value != "B").ToArray();
 

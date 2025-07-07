@@ -20,7 +20,7 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        var results = nsWriter.Insert(spec, CancellationToken.None);
+        var results = NamespaceWriter.Insert(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
@@ -55,9 +55,9 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        Assert.All(nsWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(NamespaceWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
 
-        var results = nsWriter.Insert(spec, CancellationToken.None);
+        var results = NamespaceWriter.Insert(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result =>
@@ -74,9 +74,9 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        Assert.All(nsWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
+        Assert.All(NamespaceWriter.Insert(spec, CancellationToken.None), result => Assert.True(result.IsRight));
 
-        var results = nsWriter.Update(spec, CancellationToken.None);
+        var results = NamespaceWriter.Update(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
@@ -95,7 +95,7 @@ public sealed class NamespaceWriterTests
         var nsWriter = new NamespaceWriter(writer);
         var spec = await NamespaceSpec.FromFileAsync("Data/Namespace.Doc.json");
 
-        var results = nsWriter.Update(spec, CancellationToken.None);
+        var results = NamespaceWriter.Update(spec, CancellationToken.None);
 
         Assert.Equal(4, results.Length);
         Assert.All(results, result =>
