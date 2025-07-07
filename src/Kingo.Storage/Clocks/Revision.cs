@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Kingo.Storage.Clocks;
 
-[JsonConverter(typeof(StringConvertible<Revision>))]
+[JsonConverter(typeof(ULongConvertible<Revision>))]
 public readonly struct Revision
     : IStringConvertible<Revision>
     , IULongConvertible<Revision>
