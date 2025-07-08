@@ -7,9 +7,9 @@ namespace Kingo.Storage.Tests;
 
 public sealed class SequenceTests
 {
-    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
+    private readonly DocumentIndex<Key> index = DocumentIndex.Empty<Key>();
 
-    private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
+    private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
         (new(index), new(index));
 
     [Fact]
@@ -18,10 +18,9 @@ public sealed class SequenceTests
         var (reader, writer) = ReaderWriter();
         var sequence = new Sequence<int>(reader, writer);
         var seqName = Key.From("my-seq");
-        var token = CancellationToken.None;
 
-        var result1 = sequence.Next(seqName, token);
-        var result2 = sequence.Next(seqName, token);
+        var result1 = sequence.Next(seqName, CancellationToken.None);
+        var result2 = sequence.Next(seqName, CancellationToken.None);
 
         Assert.Equal(Prelude.Right(1), result1);
         Assert.Equal(Prelude.Right(2), result2);
@@ -48,19 +47,18 @@ public sealed class SequenceTests
         var (reader, writer) = ReaderWriter();
         var sequence = new Sequence<int>(reader, writer);
         var seqName = Key.From("my-seq");
-        var token = CancellationToken.None;
 
         // first call to create the sequence
-        _ = sequence.Next(seqName, token);
+        _ = sequence.Next(seqName, CancellationToken.None);
 
         // Manually update the document to create a version conflict
-        var maybeDoc = reader.Find<int>(Key.From($"seq/{seqName}"), Key.From("seq"));
+        var maybeDoc = reader.Find(Key.From($"seq/{seqName}"));
 
         _ = maybeDoc.Match(
-            Some: doc => _ = writer.Update(doc with { Version = doc.Version.Tick() }, token),
+            Some: doc => _ = writer.Update(doc with { Version = doc.Version.Tick() }, CancellationToken.None),
             None: () => Assert.Fail("The document should exist at this point."));
 
-        var result = sequence.Next(seqName, token);
+        var result = sequence.Next(seqName, CancellationToken.None);
 
         Assert.Equal(Prelude.Right(2), result);
     }

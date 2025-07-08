@@ -1,52 +1,76 @@
 using Kingo.Storage.Clocks;
 using Kingo.Storage.Keys;
+using LanguageExt;
 
 namespace Kingo.Storage.Tests;
 
 public sealed class DocumentTests
 {
-    private sealed record TestTuple(string Value);
+    private static readonly Key SomeKey = Key.From("SomeKey");
+    private static readonly string SomeValue = "SomeValue";
+    private static readonly Map<Key, string> SomeData = Map.create((SomeKey, SomeValue));
 
     [Fact]
-    public void Cons_CreatesDocumentWithZeroVersionAndCurrentTimestamp()
+    public void Cons_CreatesDocumentWithHashKeyAndZeroVersion()
     {
         var hashKey = Key.From("h");
-        var rangeKey = Key.From("r");
-        var record = new TestTuple("foo");
-        var before = DateTime.UtcNow;
-        var doc = Document.Cons(hashKey, rangeKey, record);
-        var after = DateTime.UtcNow;
+        var doc = Document.Cons(hashKey, SomeData);
 
         Assert.Equal(hashKey, doc.HashKey);
-        Assert.Equal(rangeKey, doc.RangeKey);
-        Assert.Equal(record, doc.Record);
         Assert.Equal(Revision.Zero, doc.Version);
-        Assert.InRange(doc.Timestamp, before, after);
+        Assert.Equal(SomeData, doc.Data);
     }
 
     [Fact]
-    public void Cons_WithVersion_CreatesDocumentWithSpecifiedVersionAndCurrentTimestamp()
+    public void Cons_WithVersion_CreatesDocumentWithHashKeyAndSpecifiedVersion()
+    {
+        var hashKey = Key.From("h");
+        var version = Revision.From(123);
+        var doc = Document.Cons(hashKey, version, SomeData);
+
+        Assert.Equal(hashKey, doc.HashKey);
+        Assert.Equal(version, doc.Version);
+        Assert.Equal(SomeData, doc.Data);
+    }
+
+    [Fact]
+    public void Cons_CreatesDocumentWithHashKeyAndRangeKeyAndZeroVersion()
+    {
+        var hashKey = Key.From("h");
+        var rangeKey = Key.From("r");
+        var doc = Document.Cons(hashKey, rangeKey, SomeData);
+
+        Assert.Equal(hashKey, doc.HashKey);
+        Assert.Equal(rangeKey, doc.RangeKey);
+        Assert.Equal(Revision.Zero, doc.Version);
+        Assert.Equal(SomeData, doc.Data);
+    }
+
+    [Fact]
+    public void Cons_WithVersion_CreatesDocumentWithHashKeyAndRangeKeyAndSpecifiedVersion()
     {
         var hashKey = Key.From("h");
         var rangeKey = Key.From("r");
         var version = Revision.From(123);
-        var record = new TestTuple("foo");
-        var before = DateTime.UtcNow;
-        var doc = Document.Cons(hashKey, rangeKey, version, record);
-        var after = DateTime.UtcNow;
+        var doc = Document.Cons(hashKey, rangeKey, version, SomeData);
 
         Assert.Equal(hashKey, doc.HashKey);
         Assert.Equal(rangeKey, doc.RangeKey);
-        Assert.Equal(record, doc.Record);
         Assert.Equal(version, doc.Version);
-        Assert.InRange(doc.Timestamp, before, after);
+        Assert.Equal(SomeData, doc.Data);
     }
 
     [Fact]
-    public void DocumentOfT_IsSubclassOfDocument()
+    public void DocumentOfHK_IsSubclassOfDocument()
     {
-        var docT = Document.Cons(Key.From("h"), Key.From("r"), new TestTuple("foo"));
-        _ = Assert.IsType<Document<Key, Key>>(docT, exactMatch: false);
-        _ = Assert.IsType<Document<Key, Key, TestTuple>>(docT, exactMatch: true);
+        var doc = Document.Cons(Key.From("h"), SomeData);
+        _ = Assert.IsAssignableFrom<Document>(doc);
+    }
+
+    [Fact]
+    public void DocumentOfHKRK_IsSubclassOfDocumentOfHK()
+    {
+        var doc = Document.Cons(Key.From("h"), Key.From("r"), SomeData);
+        _ = Assert.IsAssignableFrom<Document<Key>>(doc);
     }
 }

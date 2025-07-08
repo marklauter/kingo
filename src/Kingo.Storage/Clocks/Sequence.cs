@@ -1,17 +1,18 @@
 ﻿using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Clocks;
 
 public sealed class Sequence<N>(
-    DocumentReader<Key, Key> reader,
-    DocumentWriter<Key, Key> writer)
+    DocumentReader<Key> reader,
+    DocumentWriter<Key> writer)
     where N : INumber<N>
 {
-    private static readonly Key RangeKey = Key.From("seq");
+    private static readonly Key ValueKey = Key.From("v");
 
     public Either<Error, N> Next(Key seqName, CancellationToken cancellationToken)
     {
@@ -31,15 +32,17 @@ public sealed class Sequence<N>(
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Key ToHashKey(Key seqName) => Key.From($"seq/{seqName}");
 
+    private static Map<Key, string> ToMap(N value) => Map.create((ValueKey, value.ToString()!));
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private N Read(Key seqName) =>
-        reader.Find<N>(ToHashKey(seqName), RangeKey)
+        reader.Find(ToHashKey(seqName))
         .Match(
-            Some: d => d.Record,
+            Some: d => N.Parse(d.Data[ValueKey], CultureInfo.InvariantCulture),
             None: () => N.Zero);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Either<Error, N> Write(Key seqName, N n, CancellationToken cancellationToken) =>
-        writer.InsertOrUpdate(Document.Cons(ToHashKey(seqName), RangeKey, n), cancellationToken)
+        writer.InsertOrUpdate(Document.Cons(ToHashKey(seqName), ToMap(n)), cancellationToken)
         .Map(_ => n);
 }

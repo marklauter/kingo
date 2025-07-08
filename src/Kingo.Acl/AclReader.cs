@@ -1,49 +1,83 @@
-﻿using Kingo.Namespaces;
+﻿using Kingo.DictionaryEncoding;
+using Kingo.Namespaces;
 using Kingo.Storage;
 using Kingo.Storage.Keys;
+using LanguageExt;
+using LanguageExt.Common;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
-public sealed class AclReader(DocumentReader<Key, Key> reader)
+public sealed class AclReader(
+    DocumentReader<BigId, BigId> documentReader,
+    RewriteReader rewriteReader,
+    KeyEncoder encoder)
 {
-    private readonly RewriteReader nsReader = new(reader);
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsAMemberOf(Subject subject, SubjectSet subjectSet) =>
-        nsReader
+    public Either<Error, bool> IsAMemberOf(Subject subject, SubjectSet subjectSet, CancellationToken ct) =>
+        rewriteReader
             .Read(subjectSet.Resource.Namespace, subjectSet.Relationship)
             .Match(
-                Some: rewrite => EvaluateRewrite(subject, subjectSet, rewrite),
+                Some: rewrite => EvaluateRewrite(subject, subjectSet, rewrite, ct),
                 None: () => false);
 
-    private bool EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node)
-        => node switch
+    private Either<Error, bool> EvaluateRewrite(Subject subject, SubjectSet subjectSet, SubjectSetRewrite node, CancellationToken ct)
+    {
+        static Either<Error, bool> Any(
+            IEnumerable<SubjectSetRewrite> children,
+            Func<SubjectSetRewrite, Either<Error, bool>> f) =>
+            children.Select(f).Aggregate(
+                Prelude.Right<Error, bool>(false),
+                (acc, next) => acc.Bind(a => next.Map(n => a || n)));
+
+        static Either<Error, bool> All(
+            IEnumerable<SubjectSetRewrite> children,
+            Func<SubjectSetRewrite, Either<Error, bool>> f) =>
+            children.Select(f).Aggregate(
+                Prelude.Right<Error, bool>(true),
+                (acc, next) => acc.Bind(a => next.Map(n => a && n)));
+
+        return node switch
         {
-            This => reader.Find<Subject>(subjectSet.AsKey(), subject.AsKey()).IsSome,
+            This => encoder.Pack(subjectSet, ct)
+                .Map(BigId.From)
+                .Map(hk => documentReader.Find<Subject>(hk, subject.Id).IsSome),
 
             ComputedSubjectSetRewrite computedSet =>
-                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship)),
+                IsAMemberOf(subject, new SubjectSet(subjectSet.Resource, computedSet.Relationship), ct),
 
             UnionRewrite union =>
-                union.Children.Any(child => EvaluateRewrite(subject, subjectSet, child)),
+                Any(union.Children, child => EvaluateRewrite(subject, subjectSet, child, ct)),
 
             IntersectionRewrite intersection =>
-                intersection.Children.All(child => EvaluateRewrite(subject, subjectSet, child)),
+                All(intersection.Children, child => EvaluateRewrite(subject, subjectSet, child, ct)),
 
             ExclusionRewrite exclusion =>
-                EvaluateRewrite(subject, subjectSet, exclusion.Include)
-            && !EvaluateRewrite(subject, subjectSet, exclusion.Exclude),
+                Prelude.Right<Error, Func<bool, bool, bool>>((included, excluded) => included && !excluded)
+                    .Apply(EvaluateRewrite(subject, subjectSet, exclusion.Include, ct))
+                    .Apply(EvaluateRewrite(subject, subjectSet, exclusion.Exclude, ct)),
 
             TupleToSubjectSetRewrite tupleToSubjectSet =>
-                reader.Find<SubjectSet>(
-                    subjectSet.Resource.AsKey(tupleToSubjectSet.TuplesetRelation),
-                    RangeKey.Unbound)
-                    .Any(parentSubjectSet =>
-                        IsAMemberOf(
-                            subject,
-                            new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation))),
+                encoder.Pack(subjectSet.Resource, tupleToSubjectSet.TuplesetRelation, ct)
+                .Map(BigId.From)
+                .Bind(hk => documentReader
+                    .Find<SubjectSet>(hk, RangeKey.Unbound)
+                    .Map(parentSubjectSet =>
+                        IsAMemberOf(subject, new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation), ct))
+                    .Aggregate(
+                        Prelude.Right<Error, bool>(false),
+                        (acc, next) => acc.Bind(a => next.Map(n => a || n)))),
 
-            _ => throw new NotSupportedException($"node type {node.GetType()} no supported")
+            TupleToSubjectSetRewrite tupleToSubjectSet =>
+                encoder.Pack(subjectSet.Resource, tupleToSubjectSet.TuplesetRelation, ct)
+                .Map(BigId.From)
+                .Bind(hk => documentReader
+                    .Find<SubjectSet>(hk, RangeKey.Unbound)
+                    .Any(parentSubjectSet =>
+                        (bool)IsAMemberOf(subject, new SubjectSet(parentSubjectSet.Record.Resource, tupleToSubjectSet.ComputedSubjectSetRelation), ct))
+                    ,
+
+            _ => throw new NotSupportedException($"node type {node.GetType()} not supported")
         };
+    }
 }

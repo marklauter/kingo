@@ -1,5 +1,4 @@
-﻿using Kingo.Storage.Clocks;
-using Kingo.Storage.Indexing;
+﻿using Kingo.Storage.Indexing;
 using LanguageExt;
 using LanguageExt.Common;
 
@@ -53,7 +52,7 @@ public sealed class DocumentWriter<HK>(DocumentIndex<HK> index)
         return Recur(document, cancellationToken);
     }
 
-    public Either<Error, Unit> Update<R>(Document<HK> document, CancellationToken cancellationToken) where R : notnull
+    public Either<Error, Unit> Update(Document<HK> document, CancellationToken cancellationToken)
     {
         Either<Error, Unit> Recur(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
@@ -72,7 +71,7 @@ public sealed class DocumentWriter<HK>(DocumentIndex<HK> index)
     private static Either<Error, Unit> CheckVersion(Document<HK> original, Document<HK> replacement) =>
         original.Version == replacement.Version
             ? Prelude.unit
-            : Error.New(ErrorCodes.VersionConflictError, $"version concflict {replacement.HashKey}, expected: {replacement.Version}, actual: {original.Version}");
+            : Error.New(ErrorCodes.VersionConflictError, $"version conflict {replacement.HashKey}, expected: {replacement.Version}, actual: {original.Version}");
 
     private bool Update(Snapshot<HK> snapshot, Document<HK> document) =>
         index.Exchange(snapshot, Update(snapshot.Map, document));
@@ -140,7 +139,7 @@ public sealed class DocumentWriter<HK, RK>(DocumentIndex<HK, RK> index)
         return Recur(document, cancellationToken);
     }
 
-    public Either<Error, Unit> Update<R>(Document<HK, RK> document, CancellationToken cancellationToken) where R : notnull
+    public Either<Error, Unit> Update(Document<HK, RK> document, CancellationToken cancellationToken)
     {
         Either<Error, Unit> Recur(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
@@ -159,7 +158,7 @@ public sealed class DocumentWriter<HK, RK>(DocumentIndex<HK, RK> index)
     private static Either<Error, Unit> CheckVersion(Document<HK, RK> original, Document<HK, RK> replacement) =>
         original.Version == replacement.Version
             ? Prelude.unit
-            : Error.New(ErrorCodes.VersionConflictError, $"version concflict {replacement.HashKey}/{replacement.RangeKey}, expected: {replacement.Version}, actual: {original.Version}");
+            : Error.New(ErrorCodes.VersionConflictError, $"version conflict {replacement.HashKey}/{replacement.RangeKey}, expected: {replacement.Version}, actual: {original.Version}");
 
     private bool Update(Snapshot<HK, RK> snapshot, Document<HK, RK> document) =>
         index.Exchange(snapshot, Update(snapshot.Map, document));

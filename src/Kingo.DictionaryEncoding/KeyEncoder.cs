@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.DictionaryEncoding;
 
+// todo: key encoder needs reader/writer that don't require range key
 public class KeyEncoder(
     DocumentReader<Key, Key> reader,
     DocumentWriter<Key, Key> writer)
