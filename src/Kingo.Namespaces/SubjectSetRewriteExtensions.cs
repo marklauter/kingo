@@ -9,18 +9,6 @@ public static class SubjectSetRewriteExtensions
 {
     private static readonly Key RewriteValueKey = Key.From("ssr");
 
-    public static SubjectSetRewrite TransformRewrite(this Serializable.SubjectSetRewrite rewrite) =>
-        rewrite switch
-        {
-            Serializable.This => This.Default,
-            Serializable.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
-            Serializable.UnionRewrite union => UnionRewrite.From(union.Children.Select(TransformRewrite)),
-            Serializable.IntersectionRewrite intersection => IntersectionRewrite.From(intersection.Children.Select(TransformRewrite)),
-            Serializable.ExclusionRewrite exclusion => ExclusionRewrite.From(TransformRewrite(exclusion.Include), TransformRewrite(exclusion.Exclude)),
-            Serializable.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
-            _ => throw new NotSupportedException()
-        };
-
     internal static Seq<Document<Key, Key>> TransformRewrite(this NamespaceSpec spec) =>
         spec.Relationships.TransformRewrite($"{nameof(Namespace)}/{spec.Name}");
 
@@ -34,5 +22,17 @@ public static class SubjectSetRewriteExtensions
             namespaceHk,
             Key.From(relationship.Name),
             Document.ConsData(RewriteValueKey, relationship.SubjectSetRewrite.TransformRewrite()));
+
+    private static SubjectSetRewrite TransformRewrite(this Serializable.SubjectSetRewrite rewrite) =>
+        rewrite switch
+        {
+            Serializable.This => This.Default,
+            Serializable.ComputedSubjectSetRewrite computedSet => ComputedSubjectSetRewrite.From(computedSet.Relationship),
+            Serializable.UnionRewrite union => UnionRewrite.From(union.Children.Select(TransformRewrite)),
+            Serializable.IntersectionRewrite intersection => IntersectionRewrite.From(intersection.Children.Select(TransformRewrite)),
+            Serializable.ExclusionRewrite exclusion => ExclusionRewrite.From(TransformRewrite(exclusion.Include), TransformRewrite(exclusion.Exclude)),
+            Serializable.TupleToSubjectSetRewrite tupleToSubjectSet => TupleToSubjectSetRewrite.From(tupleToSubjectSet.TuplesetRelation, tupleToSubjectSet.ComputedSubjectSetRelation),
+            _ => throw new NotSupportedException()
+        };
 }
 

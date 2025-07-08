@@ -1,5 +1,4 @@
 ﻿using Kingo.Storage;
-using Kingo.Storage.Clocks;
 using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
@@ -8,11 +7,9 @@ using System.Runtime.CompilerServices;
 namespace Kingo.DictionaryEncoding;
 
 // todo: key encoder needs reader/writer that don't require range key
-public class KeyEncoder(
-    DocumentReader<Key, Key> reader,
-    DocumentWriter<Key, Key> writer)
+public sealed class KeyEncoder(DocumentReader<BigId> reader)
+//DocumentWriter<Key> writer)
 {
-    private readonly Sequence<ulong> sequence = new(reader, writer);
     private static readonly Key NamespaceKey = Key.From("namespace");
     private static readonly Key ResourceKey = Key.From("resource");
     private static readonly Key RelationshipKey = Key.From("relationship");
