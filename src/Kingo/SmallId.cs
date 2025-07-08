@@ -5,34 +5,34 @@ using System.Text.Json.Serialization;
 
 namespace Kingo;
 
-[JsonConverter(typeof(IntConvertible<ShortId>))]
-public readonly struct ShortId
-    : IStringConvertible<ShortId>
-    , IIntConvertible<ShortId>
-    , IEquatable<ShortId>
-    , IComparable<ShortId>
+[JsonConverter(typeof(IntConvertible<SmallId>))]
+public readonly struct SmallId
+    : IStringConvertible<SmallId>
+    , IIntConvertible<SmallId>
+    , IEquatable<SmallId>
+    , IComparable<SmallId>
     , IEquatable<int>
     , IComparable<int>
 {
     private readonly int value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ShortId(int l) => value = l;
+    private SmallId(int l) => value = l;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private ShortId(string s)
+    private SmallId(string s)
         : this(Parse(s))
     {
     }
 
-    public static ShortId Zero { get; }
+    public static SmallId Zero { get; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ShortId From(int l) => new(l);
+    public static SmallId From(int l) => new(l);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ShortId From(string s) => new(s);
+    public static SmallId From(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int Parse(string s) =>
@@ -45,28 +45,28 @@ public readonly struct ShortId
     public override int GetHashCode() => value.GetHashCode();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(ShortId other) => value == other.value;
+    public bool Equals(SmallId other) => value == other.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ShortId(string s) => new(s);
+    public static implicit operator SmallId(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(ShortId c) => c.ToString();
+    public static implicit operator string(SmallId c) => c.ToString();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ShortId(int l) => new(l);
+    public static implicit operator SmallId(int l) => new(l);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator int(ShortId c) => c.value;
+    public static implicit operator int(SmallId c) => c.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is ShortId clock && Equals(clock);
+    public override bool Equals(object? obj) => obj is SmallId clock && Equals(clock);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ShortId Empty() => Zero;
+    public static SmallId Empty() => Zero;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(ShortId other) => value.CompareTo(other.value);
+    public int CompareTo(SmallId other) => value.CompareTo(other.value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(int other) => value == other;
@@ -75,21 +75,21 @@ public readonly struct ShortId
     public int CompareTo(int other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(ShortId left, ShortId right) => left.Equals(right);
+    public static bool operator ==(SmallId left, SmallId right) => left.Equals(right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(ShortId left, ShortId right) => !(left == right);
+    public static bool operator !=(SmallId left, SmallId right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(ShortId left, ShortId right) => left.CompareTo(right) < 0;
+    public static bool operator <(SmallId left, SmallId right) => left.CompareTo(right) < 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(ShortId left, ShortId right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(SmallId left, SmallId right) => left.CompareTo(right) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(ShortId left, ShortId right) => left.CompareTo(right) > 0;
+    public static bool operator >(SmallId left, SmallId right) => left.CompareTo(right) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(ShortId left, ShortId right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(SmallId left, SmallId right) => left.CompareTo(right) >= 0;
 }
 
