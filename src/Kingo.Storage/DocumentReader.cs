@@ -5,62 +5,48 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Kingo.Storage;
 
-public class DocumentReader<HK, RK>(DocumentIndex<HK, RK> index)
+public sealed class DocumentReader<HK>(DocumentIndex<HK> index)
+    where HK : IEquatable<HK>, IComparable<HK>
+{
+    public Option<Document<HK>> Find(HK hashKey) =>
+        index.Snapshot().Map.Find(hashKey);
+}
+
+public sealed class DocumentReader<HK, RK>(DocumentIndex<HK, RK> index)
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
-    public Option<Document<HK, RK, R>> Find<R>(HK hashKey, RK rangeKey) where R : notnull =>
+    public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
         index.Snapshot().Map.Find(hashKey)
-        .Match(
-            None: () => Prelude.None,
-            Some: m =>
-                m.Find(rangeKey)
-                .Filter(document => document is Document<HK, RK, R>)
-                .Map(document => (Document<HK, RK, R>)document));
+        .Bind(m => m.Find(rangeKey));
 
-    public Iterable<Document<HK, RK, R>> Find<R>(HK hashKey, Keys.RangeKey range) where R : notnull =>
+    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
+    public Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range) =>
         index.Snapshot().Map.Find(hashKey)
-        .Match(
-            None: () => Prelude.Empty,
-            Some: m => range switch
-            {
-                Since<RK> since => FindRange<R>(m, since),
-                Until<RK> until => FindRange<R>(m, until),
-                Between<RK> span => FindRange<R>(m, span),
-                Unbound u => FindRange<R>(m, u),
-                _ => throw new NotSupportedException("unknown range type")
-            });
+        .Map(m => range switch
+        {
+            Since<RK> since => FindRange(m, since),
+            Until<RK> until => FindRange(m, until),
+            Between<RK> span => FindRange(m, span),
+            Unbound u => m.Values,
+            _ => throw new NotSupportedException("unknown range type")
+        })
+        .IfNone(Iterable<Document<HK, RK>>.Empty);
 
-    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "I prefer explicit empty here")]
-    public Iterable<Document<HK, RK, R>> Where<R>(HK hashKey, Func<Document<HK, RK, R>, bool> predicate) where R : notnull =>
+    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
+    public Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
         index.Snapshot().Map.Find(hashKey)
-        .Match(
-            None: () => Iterable<Document<HK, RK, R>>.Empty,
-            Some: m =>
-                m.Filter(document =>
-                    document is Document<HK, RK, R> documentT
-                    && predicate(documentT))
-                .Values
-                .Map(document => (Document<HK, RK, R>)document));
+        .Map(m => m.Filter(document => predicate(document)).Values)
+        .IfNone(Iterable<Document<HK, RK>>.Empty);
 
-    private static Iterable<Document<HK, RK, R>> FindRange<R>(Map<RK, Document<HK, RK>> map, Since<RK> since) where R : notnull =>
-        map.Filter(document =>
-            document is Document<HK, RK, R> documentT
-            && documentT.RangeKey.CompareTo(since.FromKey) >= 0)
-        .Values.Map(document => (Document<HK, RK, R>)document);
+    private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Since<RK> since) =>
+        map.Filter(document => document.RangeKey.CompareTo(since.FromKey) >= 0)
+        .Values;
 
-    private static Iterable<Document<HK, RK, R>> FindRange<R>(Map<RK, Document<HK, RK>> map, Until<RK> until) where R : notnull =>
-        map.Filter(document =>
-            document is Document<HK, RK, R> documentT
-            && documentT.RangeKey.CompareTo(until.ToKey) <= 0)
-        .Values.Map(document => (Document<HK, RK, R>)document);
+    private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Until<RK> until) =>
+        map.Filter(document => document.RangeKey.CompareTo(until.ToKey) <= 0)
+        .Values;
 
-    private static Iterable<Document<HK, RK, R>> FindRange<R>(Map<RK, Document<HK, RK>> map, Between<RK> span) where R : notnull =>
-        map.FindRange(span.FromKey, span.ToKey)
-        .Filter(document => document is Document<HK, RK, R>)
-        .Map(document => (Document<HK, RK, R>)document);
-
-    private static Iterable<Document<HK, RK, R>> FindRange<R>(Map<RK, Document<HK, RK>> map, Unbound _) where R : notnull =>
-        map.Filter(document => document is Document<HK, RK, R>)
-        .Values.Map(document => (Document<HK, RK, R>)document);
+    private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Between<RK> span) =>
+        map.FindRange(span.FromKey, span.ToKey);
 }
