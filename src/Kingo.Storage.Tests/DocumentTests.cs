@@ -8,7 +8,7 @@ public sealed class DocumentTests
 {
     private static readonly Key SomeKey = Key.From("SomeKey");
     private static readonly string SomeValue = "SomeValue";
-    private static readonly Map<Key, string> SomeData = Map.create((SomeKey, SomeValue));
+    private static readonly Map<Key, object> SomeData = Document.ConsData(SomeKey, SomeValue);
 
     [Fact]
     public void Cons_CreatesDocumentWithHashKeyAndZeroVersion()
@@ -64,13 +64,13 @@ public sealed class DocumentTests
     public void DocumentOfHK_IsSubclassOfDocument()
     {
         var doc = Document.Cons(Key.From("h"), SomeData);
-        _ = Assert.IsAssignableFrom<Document>(doc);
+        _ = Assert.IsType<Document>(doc, exactMatch: false);
     }
 
     [Fact]
     public void DocumentOfHKRK_IsSubclassOfDocumentOfHK()
     {
         var doc = Document.Cons(Key.From("h"), Key.From("r"), SomeData);
-        _ = Assert.IsAssignableFrom<Document<Key>>(doc);
+        _ = Assert.IsType<Document<Key>>(doc, exactMatch: false);
     }
 }

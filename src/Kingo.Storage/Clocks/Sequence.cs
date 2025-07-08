@@ -1,7 +1,6 @@
 ﻿using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
-using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -32,17 +31,15 @@ public sealed class Sequence<N>(
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Key ToHashKey(Key seqName) => Key.From($"seq/{seqName}");
 
-    private static Map<Key, string> ToMap(N value) => Map.create((ValueKey, value.ToString()!));
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private N Read(Key seqName) =>
         reader.Find(ToHashKey(seqName))
         .Match(
-            Some: d => N.Parse(d.Data[ValueKey], CultureInfo.InvariantCulture),
+            Some: d => (N)d.Data[ValueKey],
             None: () => N.Zero);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Either<Error, N> Write(Key seqName, N n, CancellationToken cancellationToken) =>
-        writer.InsertOrUpdate(Document.Cons(ToHashKey(seqName), ToMap(n)), cancellationToken)
+        writer.InsertOrUpdate(Document.Cons(ToHashKey(seqName), Document.ConsData(ValueKey, n)), cancellationToken)
         .Map(_ => n);
 }

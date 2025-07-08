@@ -8,7 +8,7 @@ public sealed class DocumentReaderHKTests
 {
     private static readonly Key SomeKey = Key.From("SomeKey");
     private static readonly string SomeValue = "SomeValue";
-    private static readonly Map<Key, string> Data = Map.create((SomeKey, SomeValue));
+    private static readonly Map<Key, object> Data = Document.ConsData(SomeKey, SomeValue);
 
     private readonly DocumentIndex<Key> index = DocumentIndex.Empty<Key>();
 

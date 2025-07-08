@@ -6,7 +6,8 @@ namespace Kingo.Storage.Tests;
 
 public sealed class DocumentWriterHKTests
 {
-    private static Map<Key, string> TestTuple(string key) => Map.create((Key.From(key), key));
+    private static Map<Key, object> TestTuple(string key) =>
+        Document.ConsData(key, key);
 
     private readonly DocumentIndex<Key> index = DocumentIndex.Empty<Key>();
 

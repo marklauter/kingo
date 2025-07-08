@@ -33,7 +33,7 @@ public sealed class DocumentIndexTests
     {
         var index = DocumentIndex.Empty<Key>();
         var original = index.Snapshot();
-        var doc = Document.Cons(Key.From("h"), Map<Key, string>.Empty);
+        var doc = Document.Cons(Key.From("h"), Map<Key, object>.Empty);
         var map = Map.create((Key.From("h"), doc));
         var replacement = Snapshot.From(map);
         var exchanged = index.Exchange(original, replacement);
@@ -46,7 +46,7 @@ public sealed class DocumentIndexTests
     {
         var index = DocumentIndex.Empty<Key, Key>();
         var original = index.Snapshot();
-        var doc = Document.Cons(Key.From("h"), Key.From("r"), Map<Key, string>.Empty);
+        var doc = Document.Cons(Key.From("h"), Key.From("r"), Map<Key, object>.Empty);
         var innerMap = Map.create((Key.From("r"), doc));
         var map = Map.create((Key.From("h"), innerMap));
         var replacement = Snapshot.From(map);
