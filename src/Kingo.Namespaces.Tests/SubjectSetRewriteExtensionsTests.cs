@@ -180,24 +180,24 @@ public sealed class SubjectSetRewriteExtensionsTests
         var ownerDoc = documents[0];
         Assert.Equal(Key.From("Namespace/doc"), ownerDoc.HashKey.ToString());
         Assert.Equal(Key.From("owner"), ownerDoc.RangeKey.ToString());
-        _ = Assert.IsType<This>(ownerDoc.Record);
+        _ = ownerDoc[Key.From("ssr")].Map(Assert.IsType<This>).IfNone(() => Assert.Fail("fail"));
 
         // Check editor relationship
         var editorDoc = documents[1];
         Assert.Equal(Key.From("Namespace/doc"), editorDoc.HashKey.ToString());
         Assert.Equal(Key.From("editor"), editorDoc.RangeKey.ToString());
-        _ = Assert.IsType<UnionRewrite>(editorDoc.Record);
+        _ = editorDoc[Key.From("ssr")].Map(Assert.IsType<UnionRewrite>).IfNone(() => Assert.Fail("fail"));
 
         // Check viewer relationship
         var viewerDoc = documents[2];
         Assert.Equal(Key.From("Namespace/doc"), viewerDoc.HashKey.ToString());
         Assert.Equal(Key.From("viewer"), viewerDoc.RangeKey.ToString());
-        _ = Assert.IsType<UnionRewrite>(viewerDoc.Record);
+        _ = viewerDoc[Key.From("ssr")].Map(Assert.IsType<UnionRewrite>).IfNone(() => Assert.Fail("fail"));
 
         var auditorDoc = documents[3];
         Assert.Equal(Key.From("Namespace/doc"), auditorDoc.HashKey.ToString());
         Assert.Equal(Key.From("auditor"), auditorDoc.RangeKey.ToString());
-        _ = Assert.IsType<IntersectionRewrite>(auditorDoc.Record);
+        _ = auditorDoc[Key.From("ssr")].Map(Assert.IsType<IntersectionRewrite>).IfNone(() => Assert.Fail("fail"));
     }
 
     [Fact]
@@ -237,17 +237,20 @@ public sealed class SubjectSetRewriteExtensionsTests
         var result = spec.TransformRewrite();
 
         var viewerDoc = result.ToArray()[2];
-        var viewerRewrite = Assert.IsType<UnionRewrite>(viewerDoc.Record);
+        var viewerRewrite = viewerDoc[Key.From("ssr")].Map(Assert.IsType<UnionRewrite>);
+        _ = viewerRewrite.IfNone(() => Assert.Fail("doc not found"));
+        _ = viewerRewrite.IfSome(ur =>
+        {
+            Assert.Equal(3, ur.Children.Count);
+            _ = Assert.IsType<This>(ur.Children[0]);
 
-        Assert.Equal(3, viewerRewrite.Children.Count);
-        _ = Assert.IsType<This>(viewerRewrite.Children[0]);
+            var editorComputed = Assert.IsType<ComputedSubjectSetRewrite>(ur.Children[1]);
+            Assert.Equal("editor", editorComputed.Relationship.ToString());
 
-        var editorComputed = Assert.IsType<ComputedSubjectSetRewrite>(viewerRewrite.Children[1]);
-        Assert.Equal("editor", editorComputed.Relationship.ToString());
-
-        var tupleToSubject = Assert.IsType<TupleToSubjectSetRewrite>(viewerRewrite.Children[2]);
-        Assert.Equal("parent", tupleToSubject.TuplesetRelation.ToString());
-        Assert.Equal("viewer", tupleToSubject.ComputedSubjectSetRelation.ToString());
+            var tupleToSubject = Assert.IsType<TupleToSubjectSetRewrite>(ur.Children[2]);
+            Assert.Equal("parent", tupleToSubject.TuplesetRelation.ToString());
+            Assert.Equal("viewer", tupleToSubject.ComputedSubjectSetRelation.ToString());
+        });
     }
 
     [Fact]
@@ -275,7 +278,7 @@ public sealed class SubjectSetRewriteExtensionsTests
             {
                 Assert.Equal(Key.From("Namespace/test"), doc.HashKey.ToString());
                 Assert.Equal(Key.From("test"), doc.RangeKey.ToString());
-                _ = Assert.IsType<This>(doc.Record);
+                _ = doc[Key.From("ssr")].Map(Assert.IsType<This>).IfNone(() => Assert.Fail("fail"));
             },
             None: () => Assert.Fail("Expected a document but got None."));
     }

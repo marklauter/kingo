@@ -7,6 +7,8 @@ namespace Kingo.Namespaces;
 
 public static class SubjectSetRewriteExtensions
 {
+    private static readonly Key RewriteValueKey = Key.From("ssr");
+
     public static SubjectSetRewrite TransformRewrite(this Serializable.SubjectSetRewrite rewrite) =>
         rewrite switch
         {
@@ -31,8 +33,6 @@ public static class SubjectSetRewriteExtensions
         Document.Cons(
             namespaceHk,
             Key.From(relationship.Name),
-            relationship.SubjectSetRewrite.TransformRewrite());
-
-    private static Map<Key, >
+            Document.ConsData(RewriteValueKey, relationship.SubjectSetRewrite.TransformRewrite()));
 }
 

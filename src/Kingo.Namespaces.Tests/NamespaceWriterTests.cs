@@ -82,10 +82,10 @@ public sealed class NamespaceWriterTests
         Assert.Equal(4, results.Length);
         Assert.All(results, result => Assert.True(result.IsRight));
 
-        var ownerDoc = reader.Find<SubjectSetRewrite>("Namespace/doc", "owner");
+        var ownerDoc = reader.Find("Namespace/doc", "owner");
 
         Assert.True(ownerDoc.IsSome);
-        _ = ownerDoc.IfSome((object doc) => Assert.True(doc.Version > Storage.Clocks.Revision.Zero));
+        _ = ownerDoc.IfSome(doc => Assert.True(doc.Version > Revision.Zero));
     }
 
     [Fact]

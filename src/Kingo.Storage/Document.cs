@@ -10,6 +10,10 @@ public record Document(
 {
     public static Map<Key, object> ConsData(Key key, object value) => Map.create((key, value));
 
+    public Option<object> this[Key key] => Data.Find(key);
+
+    public Option<T> Field<T>(Key key) => Data.Find(key).Map(o => (T)o);
+
     public static Document<HK> Cons<HK>(HK hashKey, Map<Key, object> Data)
         where HK : IEquatable<HK>, IComparable<HK> =>
         new(hashKey, Data);

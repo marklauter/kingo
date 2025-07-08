@@ -24,7 +24,7 @@ public sealed class NamespaceWriter(DocumentWriter<Key, Key> writer)
     public Arr<Either<Error, Unit>> Update(NamespaceSpec spec, CancellationToken cancellationToken) =>
         [.. spec.TransformRewrite().Map(d => Update(d, cancellationToken))];
 
-    private Either<Error, Unit> Update(Document<Key, Key, SubjectSetRewrite> document, CancellationToken cancellationToken) =>
+    private Either<Error, Unit> Update(Document<Key, Key> document, CancellationToken cancellationToken) =>
         writer.Update(document, cancellationToken)
         .MapLeft(e => Error.New(e.Code, $" failed to update {nameof(SubjectSetRewrite)}: {document.HashKey}/{document.RangeKey}", e));
 }
