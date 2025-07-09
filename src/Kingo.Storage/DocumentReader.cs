@@ -2,6 +2,7 @@
 using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage;
 
@@ -17,12 +18,11 @@ public sealed class DocumentReader<HK, RK>(DocumentIndex<HK, RK> index)
     where RK : IEquatable<RK>, IComparable<RK>
 {
     public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
-        index.Snapshot().Map.Find(hashKey)
-        .Bind(m => m.Find(rangeKey));
+        Find(hashKey).Bind(m => m.Find(rangeKey));
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     public Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range) =>
-        index.Snapshot().Map.Find(hashKey)
+        Find(hashKey)
         .Map(m => range switch
         {
             Since<RK> since => FindRange(m, since),
@@ -35,18 +35,28 @@ public sealed class DocumentReader<HK, RK>(DocumentIndex<HK, RK> index)
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     public Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
-        index.Snapshot().Map.Find(hashKey)
+        Find(hashKey)
         .Map(m => m.Filter(document => predicate(document)).Values)
         .IfNone(Iterable<Document<HK, RK>>.Empty);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Since<RK> since) =>
         map.Filter(document => document.RangeKey.CompareTo(since.FromKey) >= 0)
         .Values;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Until<RK> until) =>
         map.Filter(document => document.RangeKey.CompareTo(until.ToKey) <= 0)
         .Values;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Between<RK> span) =>
         map.FindRange(span.FromKey, span.ToKey);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Map<HK, Map<RK, Document<HK, RK>>> Map() => index.Snapshot().Map;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Option<Map<RK, Document<HK, RK>>> Find(HK hashKey) => Map().Find(hashKey);
+
 }
