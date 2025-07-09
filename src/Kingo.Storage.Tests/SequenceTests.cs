@@ -6,7 +6,7 @@ namespace Kingo.Storage.Tests;
 
 public sealed class SequenceTests
 {
-    private readonly DocumentIndex<Key> index = DocumentIndex.Empty<Key>();
+    private readonly Index<Key> index = Indexing.Index.Empty<Key>();
 
     private Sequence<int> Sequence() =>
         new(new(index), new(index));

@@ -9,7 +9,7 @@ public sealed class DocumentWriterHKTests
     private static Map<Key, object> TestTuple(string key) =>
         Document.ConsData(key, key);
 
-    private readonly DocumentIndex<Key> index = DocumentIndex.Empty<Key>();
+    private readonly Index<Key> index = Indexing.Index.Empty<Key>();
 
     private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
         (new(index), new(index));

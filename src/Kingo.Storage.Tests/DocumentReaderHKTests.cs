@@ -10,7 +10,7 @@ public sealed class DocumentReaderHKTests
     private static readonly string SomeValue = "SomeValue";
     private static readonly Map<Key, object> Data = Document.ConsData(SomeKey, SomeValue);
 
-    private readonly DocumentIndex<Key> index = DocumentIndex.Empty<Key>();
+    private readonly Index<Key> index = Indexing.Index.Empty<Key>();
 
     private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
         (new(index), new(index));
