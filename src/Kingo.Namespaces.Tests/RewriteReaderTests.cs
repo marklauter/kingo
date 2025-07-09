@@ -7,7 +7,7 @@ namespace Kingo.Namespaces.Tests;
 
 public sealed class RewriteReaderTests
 {
-    private readonly DocumentIndex<Key, Key> index = DocumentIndex.Empty<Key, Key>();
+    private readonly DocumentIndex<Key, Key> index = Storage.Indexing.Index.Empty<Key, Key>();
 
     private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));

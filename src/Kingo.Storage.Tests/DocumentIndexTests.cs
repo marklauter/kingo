@@ -22,7 +22,7 @@ public sealed class DocumentIndexTests
     {
         var index = Indexing.Index.Empty<Key, Key>();
         Assert.NotNull(index);
-        _ = Assert.IsType<DocumentIndex<Key, Key>>(index);
+        _ = Assert.IsType<Index<Key, Key>>(index);
         var snapshot = index.Snapshot();
         Assert.NotNull(snapshot);
         Assert.Empty(snapshot.Map);
