@@ -8,11 +8,21 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Acl;
 
+// PDP - policy decision point
+
 public sealed class AclReader(
     DocumentReader<BigId, BigId> documentReader,
     RewriteReader rewriteReader,
     KeyEncoder encoder)
 {
+
+    // todo: consider returning a Decision response 
+    // decision
+    //   allowed | denied
+    //   time
+    //   subject
+    //   subjectset
+    //   other???
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<Error, bool> IsAMemberOf(Subject subject, SubjectSet subjectSet, CancellationToken ct) =>
         rewriteReader
