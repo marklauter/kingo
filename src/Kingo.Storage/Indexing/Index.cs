@@ -2,19 +2,19 @@
 
 namespace Kingo.Storage.Indexing;
 
-public static class DocumentIndex
+public static class Index
 {
-    public static DocumentIndex<HK> Empty<HK>()
+    public static Index<HK> Empty<HK>()
         where HK : IEquatable<HK>, IComparable<HK> =>
         new();
 
-    public static DocumentIndex<HK, RK> Empty<HK, RK>()
+    public static Index<HK, RK> Empty<HK, RK>()
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK> =>
         new();
 }
 
-public sealed class DocumentIndex<HK>
+public sealed class Index<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private Snapshot<HK> snapshot = Indexing.Snapshot.Empty<HK>();
@@ -27,7 +27,7 @@ public sealed class DocumentIndex<HK>
         ReferenceEquals(Interlocked.CompareExchange(ref this.snapshot, replacement, snapshot), snapshot);
 }
 
-public sealed class DocumentIndex<HK, RK>
+public sealed class Index<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {

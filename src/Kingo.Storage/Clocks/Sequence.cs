@@ -12,11 +12,11 @@ public sealed class Sequence<N>(
 {
     private static readonly Key ValueKey = Key.From("v");
 
-    public Either<StorageError, N> Next(Key name, CancellationToken cancellationToken)
+    public Either<DocumentWriterError, N> Next(Key name, CancellationToken cancellationToken)
     {
-        Either<StorageError, N> Recur(CancellationToken ct) =>
+        Either<DocumentWriterError, N> Recur(CancellationToken ct) =>
             ct.IsCancellationRequested
-            ? StorageError.New(ErrorCodes.TimeoutError, $"timeout updating sequence {name}")
+            ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout updating sequence {name}")
             : Write(Read(name), ct)
             .Match(
                 Right: n => n,
@@ -38,7 +38,7 @@ public sealed class Sequence<N>(
             None: () => (Document.Cons(ToHashKey(name), Document.ConsData(ValueKey, N.One)), N.One));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Either<StorageError, N> Write((Document<Key> d, N n) dn, CancellationToken cancellationToken) =>
+    private Either<DocumentWriterError, N> Write((Document<Key> d, N n) dn, CancellationToken cancellationToken) =>
         writer.InsertOrUpdate(dn.d with { Data = Document.ConsData(ValueKey, dn.n) }, cancellationToken)
         .Map(_ => dn.n);
 }

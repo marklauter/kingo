@@ -11,20 +11,20 @@ public static class ErrorCodes
     public const int VersionConflictError = 4;
 }
 
-public sealed record StorageError(
+public sealed record DocumentWriterError(
     string Message,
     int Code,
     Option<Error> Inner = default)
     : Expected(Message, Code, Inner)
 {
     // mimics Error.New
-    public static StorageError New(int code, string message, Option<Error> inner = default) =>
+    public static DocumentWriterError New(int code, string message, Option<Error> inner = default) =>
         new(message, code, inner);
 
-    public override ErrorException ToErrorException() => new StorageException(Message, Code);
+    public override ErrorException ToErrorException() => new DocumentWriterException(Message, Code);
 }
 
-public sealed class StorageException(
+public sealed class DocumentWriterException(
     string message,
     int code,
     Option<ErrorException> inner = default)

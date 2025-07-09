@@ -6,14 +6,14 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage;
 
-public sealed class DocumentReader<HK>(DocumentIndex<HK> index)
+public sealed class DocumentReader<HK>(Index<HK> index)
     where HK : IEquatable<HK>, IComparable<HK>
 {
     public Option<Document<HK>> Find(HK hashKey) =>
         index.Snapshot().Map.Find(hashKey);
 }
 
-public sealed class DocumentReader<HK, RK>(DocumentIndex<HK, RK> index)
+public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
@@ -58,5 +58,4 @@ public sealed class DocumentReader<HK, RK>(DocumentIndex<HK, RK> index)
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Option<Map<RK, Document<HK, RK>>> Find(HK hashKey) => Map().Find(hashKey);
-
 }
