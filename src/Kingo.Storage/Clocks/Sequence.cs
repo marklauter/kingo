@@ -1,6 +1,5 @@
 ﻿using Kingo.Storage.Keys;
 using LanguageExt;
-using LanguageExt.Common;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -13,12 +12,12 @@ public sealed class Sequence<N>(
 {
     private static readonly Key ValueKey = Key.From("v");
 
-    public Either<Error, N> Next(Key seqName, CancellationToken cancellationToken)
+    public Either<StorageError, N> Next(Key name, CancellationToken cancellationToken)
     {
-        Either<Error, N> Recur(CancellationToken ct) =>
+        Either<StorageError, N> Recur(CancellationToken ct) =>
             ct.IsCancellationRequested
-            ? (Either<Error, N>)Error.New(ErrorCodes.TimeoutError, $"timeout updating sequence {seqName}")
-            : Write(seqName, Read(seqName) + N.One, ct)
+            ? StorageError.New(ErrorCodes.TimeoutError, $"timeout updating sequence {name}")
+            : Write(Read(name), ct)
             .Match(
                 Right: n => n,
                 Left: error => error.Code == ErrorCodes.VersionConflictError
@@ -29,17 +28,17 @@ public sealed class Sequence<N>(
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Key ToHashKey(Key seqName) => Key.From($"seq/{seqName}");
+    private static Key ToHashKey(Key name) => Key.From($"seq/{name}");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private N Read(Key seqName) =>
-        reader.Find(ToHashKey(seqName))
+    private (Document<Key> d, N n) Read(Key name) =>
+        reader.Find(ToHashKey(name))
         .Match(
-            Some: d => (N)d.Data[ValueKey],
-            None: () => N.Zero);
+            Some: d => (d, (N)d.Data[ValueKey] + N.One),
+            None: () => (Document.Cons(ToHashKey(name), Document.ConsData(ValueKey, N.One)), N.One));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Either<StorageError, N> Write(Key seqName, N n, CancellationToken cancellationToken) =>
-        writer.InsertOrUpdate(Document.Cons(ToHashKey(seqName), Document.ConsData(ValueKey, n)), cancellationToken)
-        .Map(_ => n);
+    private Either<StorageError, N> Write((Document<Key> d, N n) dn, CancellationToken cancellationToken) =>
+        writer.InsertOrUpdate(dn.d with { Data = Document.ConsData(ValueKey, dn.n) }, cancellationToken)
+        .Map(_ => dn.n);
 }
