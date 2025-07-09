@@ -11,7 +11,7 @@ public static class Snapshot
         new(Prelude.Empty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Snapshot<HK> From<HK>(Map<HK, Document<HK>> map)
+    public static Snapshot<HK> Cons<HK>(Map<HK, Document<HK>> map)
         where HK : IEquatable<HK>, IComparable<HK> =>
         new(map);
 
@@ -22,7 +22,7 @@ public static class Snapshot
         new(Prelude.Empty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Snapshot<HK, RK> From<HK, RK>(Map<HK, Map<RK, Document<HK, RK>>> map)
+    public static Snapshot<HK, RK> Cons<HK, RK>(Map<HK, Map<RK, Document<HK, RK>>> map)
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK> =>
         new(map);

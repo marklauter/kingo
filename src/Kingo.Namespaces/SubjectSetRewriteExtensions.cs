@@ -2,6 +2,7 @@
 using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
+using LanguageExt.Common;
 
 namespace Kingo.Namespaces;
 
@@ -9,21 +10,31 @@ public static class SubjectSetRewriteExtensions
 {
     private static readonly Key RewriteValueKey = Key.From("ssr");
 
-    internal static Seq<Document<Key, Key>> TransformRewrite(this NamespaceSpec spec) =>
-        spec.Relationships.TransformRewrite($"{nameof(Namespace)}/{spec.Name}");
+    internal static Either<Error, Seq<Document<Key, Key>>> TransformRewrite(
+        this NamespaceSpec spec,
+        Option<INamespaceDiscoveryVisitor> discoveryVisitor)
+    {
+        _ = discoveryVisitor
+            .Map(visitor => visitor.OnNamespace(spec.Name));
+        _ = spec.Relationships.TransformRewrite($"{nameof(Namespace)}/{spec.Name}", discoveryVisitor);
+    }
 
     private static Seq<Document<Key, Key>> TransformRewrite(
         this IReadOnlyList<RelationshipSpec> relationships,
-        Key namespaceHk) =>
+        Key namespaceHk,
+        Option<INamespaceDiscoveryVisitor> discoveryVisitor) =>
         Seq.createRange(relationships.Select(r => r.ToDocument(namespaceHk)));
 
-    private static Document<Key, Key> ToDocument(this RelationshipSpec relationship, Key namespaceHk) =>
+    private static Document<Key, Key> ToDocument(
+        this RelationshipSpec relationship,
+        Key namespaceHk) =>
         Document.Cons(
             namespaceHk,
             Key.From(relationship.Name),
             Document.ConsData(RewriteValueKey, relationship.SubjectSetRewrite.TransformRewrite()));
 
-    private static SubjectSetRewrite TransformRewrite(this Serializable.SubjectSetRewrite rewrite) =>
+    private static SubjectSetRewrite TransformRewrite(
+        this Serializable.SubjectSetRewrite rewrite) =>
         rewrite switch
         {
             Serializable.This => This.Default,

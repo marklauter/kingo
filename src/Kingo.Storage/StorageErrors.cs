@@ -17,6 +17,10 @@ public sealed record StorageError(
     Option<Error> Inner = default)
     : Expected(Message, Code, Inner)
 {
+    // mimics Error.New
+    public static StorageError New(int code, string message, Option<Error> inner = default) =>
+        new(message, code, inner);
+
     public override ErrorException ToErrorException() => new StorageException(Message, Code);
 }
 

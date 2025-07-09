@@ -39,7 +39,7 @@ public sealed class Sequence<N>(
             None: () => N.Zero);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Either<Error, N> Write(Key seqName, N n, CancellationToken cancellationToken) =>
+    private Either<StorageError, N> Write(Key seqName, N n, CancellationToken cancellationToken) =>
         writer.InsertOrUpdate(Document.Cons(ToHashKey(seqName), Document.ConsData(ValueKey, n)), cancellationToken)
         .Map(_ => n);
 }
