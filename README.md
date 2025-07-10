@@ -169,6 +169,8 @@ FUT - work planned
 - 03 JUL 2025 - began dictionary encoding refactor
 - 04 JUL 2025 - began document store refactor - FP: it's turtles all the way down
 - 05 JUL 2025 - finished document store refactor
+- WIP - project reorg for better domain cohesion
+- WIP - namespace specification language
 - WIP - dictionary encoding refactor
 - FUT: Implement durable storage using SQLite to emulate DynamoDB structure
 
