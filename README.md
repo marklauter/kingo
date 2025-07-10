@@ -9,7 +9,7 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 ## namespace specs / subjectset rewrite rules
 json-based namespace, relation, and rewrite definitions
 
-sample:
+working sample:
 ```json
 {
   "Name": "doc",
@@ -56,16 +56,83 @@ sample:
 }
 ```
 
+custom language (work in progress):
+BNF
+```xml
+<document> ::= <comment-lines> <namespace>
+
+<comment-lines> ::= 
+    | <comment-lines> <comment> <newline>
+
+<namespace> ::= <identifier> <newline> <relationship-list>
+
+<relationship-list> ::= <relationship-line>
+    | <relationship-list> <relationship-line>
+
+<relationship-line> ::= <relationship> <newline>
+    | <comment> <newline>
+
+<relationship> ::= <identifier>
+    | <identifier> '(' <rewrite-rule> ')'
+
+<rewrite-rule> ::= 'this'
+    | 'cp:' <identifier>
+    | 'tp:(' <identifier> ',' <identifier> ')'
+    | <rewrite-rule> '|' <rewrite-rule>
+    | <rewrite-rule> '&' <rewrite-rule>
+    | <rewrite-rule> '!' <rewrite-rule>
+    | '(' <rewrite-rule> ')'
+
+<comment> ::= '#' <text-line>
+
+<newline> ::= '\n'
+<text-line> ::= [^\n]*
+<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+```
+
+sample format:
+```csharp
+# comments are prefixed with #
+# <namespace>
+# <relationship>(<rewrite-rule>)
+# rewrite set operators:
+# | = union operator
+# & = intersection operator
+# ! = exclusion operator
+# rewrite rules:
+# directly assigned subjects = this
+# ComputedSubjectSetRewrite = cp:<relationship>
+# TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+
+# namespace name
+file
+
+# empty relationship - implicit this
+owner 
+
+# relationship with union rewrite
+editor (this | cp:owner) 
+
+# relationship with union and exclusion rewrites
+viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+
+# relationship with intersection rewrite
+auditor (this & cp:viewer) 
+
+# empty relationship - implicit this
+banned 
+```
+
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
 - todo: describe ACL tuples 
-- todo: describe ACL tuple binary packing (for now see `performance ideas`)
+- todo: describe ACL tuple binary packing (for now, see `performance ideas`)
 - todo: describe ACL tuple storage and retrieval
 - todo: describe ACL subjectset rewrite recursion 
 
 ## storage system
 - current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
-- future: an event-based store like an account ledger. inspired by Datomic. state of an entity is determined by folding over its events. periodic snapshots for performance.
+- future: an event-based store like an account ledger. inspired by Datomic. entity state is determined by folding over its events. periodic snapshots for performance.
 
 example: 
 ```
@@ -102,17 +169,19 @@ FUT - work planned
 - 03 JUL 2025 - began dictionary encoding refactor
 - 04 JUL 2025 - began document store refactor - FP: it's turtles all the way down
 - 05 JUL 2025 - finished document store refactor
+- WIP - project reorg for better domain cohesion
+- WIP - namespace specification language
 - WIP - dictionary encoding refactor
 - FUT: Implement durable storage using SQLite to emulate DynamoDB structure
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
-1. something like 64 bits for namespace, resource, and relation, as a partition key and a uint for range key
+1. something like 64 bits for namespace, resource, and relation, as a partition key, and a uint for range key
 1. 16 bits for namespace (65k slots)
 1. 14 bits for relation (16k slots per namespace)
 1. 34 bits for resource (17 billion slots per namespace)
 1. 32 bits for users (4 billion)
 1. bit packing requires every tuple element to be integer addressable
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, and subjects to integer values
-1. the integer values can be packed into that 64-bit mentioned in item 1
+1. the integer values can be packed into the 64-bit mentioned in item 1
 1. imagine the tuple lookup as a straight-up integer lookup in a btree or LSM - it's fast AF
