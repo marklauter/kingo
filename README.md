@@ -90,11 +90,15 @@ BNF
 
 <computed-subjectset-rewrite> ::= 'cp:' <relationship-name>
 
-<tuple-to-subjectset-rewrite> ::= 'tp:(' <relationship-name> ',' <relationship-name> ')'
+<tuple-to-subjectset-rewrite> ::= 'tp:(' <tupleset-relationship> ',' <computed-subjectset-relationship> ')'
 
 <namespace-identifier> ::= 'ns:' <namespace-name>
 
 <relationship-identifier> ::= 're:' <relationship-name>
+
+<tupleset-relationship> ::= <relationship-name>
+
+<computed-subjectset-relationship> ::= <relationship-name>
 
 <namespace-name> ::= <identifier>
 
@@ -103,7 +107,9 @@ BNF
 <comment> ::= '#' <text-line>
 
 <newline> ::= '\n'
+
 <text-line> ::= [^\n]*
+
 <identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
 ```
 
