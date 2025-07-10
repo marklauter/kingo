@@ -1,3 +1,4 @@
+ - the project, called Kingo, is a Google Zanzibar style ReBAC system
  - use dotnet 9
  - use C# 13
  - use the language-ext (LanguageExt) library version 5
