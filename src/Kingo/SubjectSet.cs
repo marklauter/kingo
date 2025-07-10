@@ -1,3 +1,3 @@
 ﻿namespace Kingo;
 
-public sealed record SubjectSet(Resource Resource, Relationship Relationship);
+public sealed record SubjectSet(Resource Resource, RelationshipName Relationship);

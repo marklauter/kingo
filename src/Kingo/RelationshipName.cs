@@ -7,27 +7,28 @@ using System.Text.RegularExpressions;
 
 namespace Kingo;
 
-[JsonConverter(typeof(StringConvertible<Namespace>))]
-[SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "this is for C# wizards only")]
-public readonly struct Namespace
-    : IStringConvertible<Namespace>
-    , IEquatable<Namespace>
-    , IComparable<Namespace>
+[JsonConverter(typeof(StringConvertible<RelationshipName>))]
+public readonly struct RelationshipName
+    : IStringConvertible<RelationshipName>
+    , IEquatable<RelationshipName>
+    , IComparable<RelationshipName>
     , IEquatable<string>
     , IComparable<string>
 {
     private readonly string value;
-    private static readonly Regex Validation = RegExPatterns.Identifier();
+    private static readonly Regex Validation = RegExPatterns.Relationship();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Namespace Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
+    public static RelationshipName Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
+
+    public static RelationshipName Nothing { get; } = From("...");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Namespace From(string s) => new(s);
+    public static RelationshipName From(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private Namespace(string value) => this.value = ValidValue(value);
+    private RelationshipName(string value) => this.value = ValidValue(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string ValidValue(string value)
@@ -45,13 +46,13 @@ public readonly struct Namespace
     public override string ToString() => value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Namespace other) => string.Equals(value, other.value, StringComparison.Ordinal);
+    public bool Equals(RelationshipName other) => string.Equals(value, other.value, StringComparison.Ordinal);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is Namespace @namespace && Equals(@namespace);
+    public override bool Equals(object? obj) => obj is RelationshipName relationship && Equals(relationship);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Namespace other) => string.CompareOrdinal(value, other.value);
+    public int CompareTo(RelationshipName other) => string.CompareOrdinal(value, other.value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
@@ -61,27 +62,26 @@ public readonly struct Namespace
     public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(Namespace @namespace) => @namespace.value;
+    public static implicit operator string(RelationshipName relationship) => relationship.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Namespace(string value) => new(value);
+    public static implicit operator RelationshipName(string value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Namespace left, Namespace right) => left.Equals(right);
+    public static bool operator ==(RelationshipName left, RelationshipName right) => left.Equals(right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Namespace left, Namespace right) => !(left == right);
+    public static bool operator !=(RelationshipName left, RelationshipName right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(Namespace left, Namespace right) => left.CompareTo(right) < 0;
+    public static bool operator <(RelationshipName left, RelationshipName right) => left.CompareTo(right) < 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(Namespace left, Namespace right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(RelationshipName left, RelationshipName right) => left.CompareTo(right) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(Namespace left, Namespace right) => left.CompareTo(right) > 0;
+    public static bool operator >(RelationshipName left, RelationshipName right) => left.CompareTo(right) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(Namespace left, Namespace right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(RelationshipName left, RelationshipName right) => left.CompareTo(right) >= 0;
 }
-

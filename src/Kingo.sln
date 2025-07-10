@@ -32,9 +32,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Storage.Tests", "King
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Namespaces", "Namespaces", "{828073E2-6512-482A-B9F8-45A4CCB3CA23}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Namespaces", "Kingo.Namespaces\Kingo.Namespaces.csproj", "{C4FD4762-8E4C-4435-B036-BA7B085067C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policies", "Kingo.Namespaces\Kingo.Policies.csproj", "{C4FD4762-8E4C-4435-B036-BA7B085067C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Namespaces.Tests", "Kingo.Namespaces.Tests\Kingo.Namespaces.Tests.csproj", "{5FAFFE00-6720-449F-89B3-08C4E8B4A91F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policies.Tests", "Kingo.Namespaces.Tests\Kingo.Policies.Tests.csproj", "{5FAFFE00-6720-449F-89B3-08C4E8B4A91F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DictionaryEncoding", "DictionaryEncoding", "{AD13AF37-978C-43B9-8D72-A3DA39E281FC}"
 EndProject

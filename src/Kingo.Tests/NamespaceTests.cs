@@ -4,13 +4,13 @@ public sealed class NamespaceTests
 {
     [Fact]
     public void From_Throws_IfValueIsNull() =>
-        Assert.Throws<ArgumentNullException>(() => Namespace.From(null!));
+        Assert.Throws<ArgumentNullException>(() => PolicyName.From(null!));
 
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
     public void From_Throws_IfValueIsWhitespace(string value) =>
-        Assert.Throws<ArgumentException>(() => Namespace.From(value));
+        Assert.Throws<ArgumentException>(() => PolicyName.From(value));
 
     [Theory]
     [InlineData("a-b")]
@@ -18,7 +18,7 @@ public sealed class NamespaceTests
     [InlineData("a b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
-        var exception = Assert.Throws<ArgumentException>("value", () => Namespace.From(value));
+        var exception = Assert.Throws<ArgumentException>("value", () => PolicyName.From(value));
         Assert.StartsWith("value contains invalid characters", exception.Message);
         Assert.Contains(value, exception.Message);
     }
@@ -30,15 +30,15 @@ public sealed class NamespaceTests
     [InlineData("a0")]
     public void From_ReturnsNamespace_IfValueIsValid(string value)
     {
-        var @namespace = Namespace.From(value);
+        var @namespace = PolicyName.From(value);
         Assert.Equal(value, @namespace.ToString());
     }
 
     [Fact]
     public void Equals_ReturnsTrue_IfValuesAreEqual()
     {
-        var namespace1 = Namespace.From("a");
-        var namespace2 = Namespace.From("a");
+        var namespace1 = PolicyName.From("a");
+        var namespace2 = PolicyName.From("a");
 
         Assert.True(namespace1.Equals(namespace2));
         Assert.True(namespace1.Equals((object)namespace2));
@@ -50,8 +50,8 @@ public sealed class NamespaceTests
     [Fact]
     public void Equals_ReturnsFalse_IfValuesAreNotEqual()
     {
-        var namespace1 = Namespace.From("a");
-        var namespace2 = Namespace.From("b");
+        var namespace1 = PolicyName.From("a");
+        var namespace2 = PolicyName.From("b");
 
         Assert.False(namespace1.Equals(namespace2));
         Assert.False(namespace1.Equals((object)namespace2));
@@ -63,8 +63,8 @@ public sealed class NamespaceTests
     [Fact]
     public void CompareTo_ReturnsCorrectValue()
     {
-        var namespace1 = Namespace.From("a");
-        var namespace2 = Namespace.From("b");
+        var namespace1 = PolicyName.From("a");
+        var namespace2 = PolicyName.From("b");
 
         Assert.True(namespace1.CompareTo(namespace2) < 0);
         Assert.True(namespace1 < namespace2);
@@ -77,8 +77,8 @@ public sealed class NamespaceTests
     [Fact]
     public void GetHashCode_ReturnsSameValue_ForEqualNamespaces()
     {
-        var namespace1 = Namespace.From("a");
-        var namespace2 = Namespace.From("a");
+        var namespace1 = PolicyName.From("a");
+        var namespace2 = PolicyName.From("a");
         Assert.Equal(namespace1.GetHashCode(), namespace2.GetHashCode());
     }
 
@@ -86,7 +86,7 @@ public sealed class NamespaceTests
     public void ToString_ReturnsValue()
     {
         const string value = "a.b_c";
-        var @namespace = Namespace.From(value);
+        var @namespace = PolicyName.From(value);
         Assert.Equal(value, @namespace.ToString());
     }
 
@@ -94,7 +94,7 @@ public sealed class NamespaceTests
     public void ImplicitConversion_ToString_ReturnsValue()
     {
         const string value = "a.b_c";
-        var @namespace = Namespace.From(value);
+        var @namespace = PolicyName.From(value);
         string s = @namespace;
         Assert.Equal(value, s);
     }
@@ -103,11 +103,11 @@ public sealed class NamespaceTests
     public void ImplicitConversion_ToNamespace_ReturnsNamespace()
     {
         const string value = "a.b_c";
-        Namespace @namespace = value;
+        PolicyName @namespace = value;
         Assert.Equal(value, @namespace.ToString());
     }
 
     [Fact]
     public void Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => Namespace.Empty());
+        Assert.Throws<ArgumentException>(() => PolicyName.Empty());
 }

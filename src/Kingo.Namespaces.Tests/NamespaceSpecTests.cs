@@ -1,42 +1,42 @@
-﻿using Kingo.Namespaces.Serializable;
+﻿//using Kingo.Namespaces.Serializable;
 
-namespace Kingo.Namespaces.Tests;
+//namespace Kingo.Namespaces.Tests;
 
-public class NamespaceSpecTests
-{
-    [Theory]
-    [InlineData("Data/Namespace.Doc.json", "doc", 4)]
-    [InlineData("Data/Namespace.Folder.json", "folder", 3)]
-    public async Task ParsesFromJsonAsync(string path, string ns, int expected)
-    {
-        var nsSpec = await NamespaceSpec.FromFileAsync(path);
-        Assert.NotNull(nsSpec);
+//public class NamespaceSpecTests
+//{
+//    [Theory]
+//    [InlineData("Data/Namespace.Doc.json", "doc", 4)]
+//    [InlineData("Data/Namespace.Folder.json", "folder", 3)]
+//    public async Task ParsesFromJsonAsync(string path, string ns, int expected)
+//    {
+//        var nsSpec = await NamespaceSpec.FromFileAsync(path);
+//        Assert.NotNull(nsSpec);
 
-        Assert.Equal(ns, nsSpec.Name);
-        Assert.Equal(expected, nsSpec.Relationships.Count);
+//        Assert.Equal(ns, nsSpec.Name);
+//        Assert.Equal(expected, nsSpec.Relationships.Count);
 
-        var owner = nsSpec.Relationships[0];
-        Assert.Equal("owner", owner.Name);
-        _ = Assert.IsType<Serializable.This>(owner.SubjectSetRewrite);
+//        var owner = nsSpec.Relationships[0];
+//        Assert.Equal("owner", owner.Name);
+//        _ = Assert.IsType<Serializable.This>(owner.SubjectSetRewrite);
 
-        var editor = nsSpec.Relationships[1];
-        Assert.Equal("editor", editor.Name);
-        var editorRewrite = Assert.IsType<Serializable.UnionRewrite>(editor.SubjectSetRewrite);
-        Assert.Equal(2, editorRewrite.Children.Count);
-        _ = Assert.IsType<Serializable.This>(editorRewrite.Children[0]);
-        var editorOwner = Assert.IsType<Serializable.ComputedSubjectSetRewrite>(editorRewrite.Children[1]);
-        Assert.Equal("owner", editorOwner.Relationship);
+//        var editor = nsSpec.Relationships[1];
+//        Assert.Equal("editor", editor.Name);
+//        var editorRewrite = Assert.IsType<Serializable.UnionRewrite>(editor.SubjectSetRewrite);
+//        Assert.Equal(2, editorRewrite.Children.Count);
+//        _ = Assert.IsType<Serializable.This>(editorRewrite.Children[0]);
+//        var editorOwner = Assert.IsType<Serializable.ComputedSubjectSetRewrite>(editorRewrite.Children[1]);
+//        Assert.Equal("owner", editorOwner.Relationship);
 
-        var viewer = nsSpec.Relationships[2];
-        Assert.Equal("viewer", viewer.Name);
-        var viewerRewrite = Assert.IsType<Serializable.UnionRewrite>(viewer.SubjectSetRewrite);
-        Assert.Equal(3, viewerRewrite.Children.Count);
-        _ = Assert.IsType<Serializable.This>(viewerRewrite.Children[0]);
-        var viewerEditor = Assert.IsType<Serializable.ComputedSubjectSetRewrite>(viewerRewrite.Children[1]);
-        Assert.Equal("editor", viewerEditor.Relationship);
+//        var viewer = nsSpec.Relationships[2];
+//        Assert.Equal("viewer", viewer.Name);
+//        var viewerRewrite = Assert.IsType<Serializable.UnionRewrite>(viewer.SubjectSetRewrite);
+//        Assert.Equal(3, viewerRewrite.Children.Count);
+//        _ = Assert.IsType<Serializable.This>(viewerRewrite.Children[0]);
+//        var viewerEditor = Assert.IsType<Serializable.ComputedSubjectSetRewrite>(viewerRewrite.Children[1]);
+//        Assert.Equal("editor", viewerEditor.Relationship);
 
-        var tupleToUserset = Assert.IsType<Serializable.TupleToSubjectSetRewrite>(viewerRewrite.Children[2]);
-        Assert.Equal("parent", tupleToUserset.TuplesetRelation);
-        Assert.Equal("viewer", tupleToUserset.ComputedSubjectSetRelation);
-    }
-}
+//        var tupleToUserset = Assert.IsType<Serializable.TupleToSubjectSetRewrite>(viewerRewrite.Children[2]);
+//        Assert.Equal("parent", tupleToUserset.TuplesetRelation);
+//        Assert.Equal("viewer", tupleToUserset.ComputedSubjectSetRelation);
+//    }
+//}

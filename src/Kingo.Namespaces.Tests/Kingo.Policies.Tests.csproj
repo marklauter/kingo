@@ -35,7 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Namespaces\Kingo.Namespaces.csproj" />
+	  <ProjectReference Include="..\Kingo.Namespaces\Kingo.Policies.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

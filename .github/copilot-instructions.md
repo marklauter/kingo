@@ -2,30 +2,30 @@
 ## solution description
 The solution, called Kingo, is a Google Zanzibar style ReBAC system.
 Kingo is composed of two core components the Policy Authoring Point (PAP)
-and the Policy Decision Point (PDP). Users can author namespaces and manage the ACL through the PAP. 
-The PDP evaluates namespace rewrite rules against the access control list (ACL) and returns policy decisions.
+and the Policy Decision Point (PDP). Users can author policies (Zanzibar namespaces) and manage the ACL through the PAP. 
+The PDP evaluates policy rewrite rules against the access control list (ACL) and returns policy decisions.
 
 ## key projects
 - Kingo: root namespace contains primitive types
 - Kingo.Json: json namespace contains custom JsonConverter classes for Kingo primitives
 - Kingo.Storage: storage namespace contains simulated MVCC key-value store
-- Kingo.Namespaces: namespaces namespace contains PDL namespace classes and PDL parser
+- Kingo.Pdl: pdl namespace contains PDL policy classes and PDL parser
 
 PDP decisions are recorded in the descision journal.
 
-Namespaces are defined with a custom policy description language (PDL).
+Policies are defined with a custom policy description language (PDL).
 
 PDL BNF
 ```bnf
-<document> ::= <comment-lines> <namespace-list>
+<document> ::= <comment-lines> <policy-list>
 
-<namespace-list> ::= <namespace>
-    | <namespace-list> <comment-lines> <namespace>
+<policy-list> ::= <policy>
+    | <policy-list> <comment-lines> <policy>
 
 <comment-lines> ::= 
     | <comment-lines> <comment> <newline>
 
-<namespace> ::= <namespace-identifier> <newline> <relationship-list>
+<policy> ::= <policy-identifier> <newline> <relationship-list>
 
 <relationship-list> ::= <relationship-line>
     | <relationship-list> <relationship-line>
@@ -50,7 +50,7 @@ PDL BNF
 
 <tuple-to-subjectset-rewrite> ::= 'tp:(' <tupleset-relationship> ',' <computed-subjectset-relationship> ')'
 
-<namespace-identifier> ::= 'ns:' <namespace-name>
+<policy-identifier> ::= 'pn:' <policy-name>
 
 <relationship-identifier> ::= 're:' <relationship-name>
 
@@ -58,7 +58,7 @@ PDL BNF
 
 <computed-subjectset-relationship> ::= <relationship-name>
 
-<namespace-name> ::= <identifier>
+<policy-name> ::= <identifier>
 
 <relationship-name> ::= <identifier>
 
@@ -83,8 +83,8 @@ sample format:
 #   ComputedSubjectSetRewrite = cp:<relationship-name>
 #   TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
 
-# namespace name
-ns:file
+# policy name
+pn:file
 
 # empty relationship - implicit this
 re:owner 
@@ -101,8 +101,8 @@ re:auditor (this & cp:viewer)
 # empty relationship - implicit this
 re:banned 
 
-# second namespace within same document
-ns:folder
+# second policy defined within same document
+dn:folder
 re:owner 
 re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
 ```

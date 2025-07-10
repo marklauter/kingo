@@ -1,6 +1,6 @@
 ﻿using Superpower.Display;
 
-namespace Kingo.Namespaces.Pdl;
+namespace Kingo.Polcies.Pdl;
 
 public enum PdlToken
 {

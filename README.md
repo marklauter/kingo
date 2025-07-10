@@ -6,68 +6,20 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
-## namespace specs / subjectset rewrite rules
-json-based namespace, relation, and rewrite definitions
+## policy specs / subjectset rewrite rules
+policy definition language for building relationships and rewrite definitions
 
-working sample:
-```json
-{
-  "Name": "doc",
-  "Relationships": [
-    {
-      "Name": "owner"
-    },
-    {
-      "Name": "editor",
-      "SubjectSetRewrite": {
-        "Type": "UnionRewrite",
-        "Children": [
-          {
-            "Type": "This"
-          },
-          {
-            "Type": "ComputedSubjectSetRewrite",
-            "Relationship": "owner"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "viewer",
-      "SubjectSetRewrite": {
-        "Type": "UnionRewrite",
-        "Children": [
-          {
-            "Type": "This"
-          },
-          {
-            "Type": "ComputedSubjectSetRewrite",
-            "Relationship": "editor"
-          },
-          {
-            "Type": "TupleToSubjectSetRewrite",
-            "TuplesetRelation": "parent",
-            "ComputedSubjectSetRelation": "viewer"
-          }
-        ]
-      }
-    }
-  ]
-}
-```
-
-custom language (work in progress):
-BNF
+PDL BNF
 ```xml
-<document> ::= <comment-lines> <namespace-list>
+<document> ::= <comment-lines> <policy-list>
 
-<namespace-list> ::= <namespace>
-    | <namespace-list> <comment-lines> <namespace>
+<policy-list> ::= <policy>
+    | <policy-list> <comment-lines> <policy>
 
 <comment-lines> ::= 
     | <comment-lines> <comment> <newline>
 
-<namespace> ::= <namespace-identifier> <newline> <relationship-list>
+<policy> ::= <policy-identifier> <newline> <relationship-list>
 
 <relationship-list> ::= <relationship-line>
     | <relationship-list> <relationship-line>
@@ -92,7 +44,7 @@ BNF
 
 <tuple-to-subjectset-rewrite> ::= 'tp:(' <tupleset-relationship> ',' <computed-subjectset-relationship> ')'
 
-<namespace-identifier> ::= 'ns:' <namespace-name>
+<policy-identifier> ::= 'pn:' <policy-name>
 
 <relationship-identifier> ::= 're:' <relationship-name>
 
@@ -100,7 +52,7 @@ BNF
 
 <computed-subjectset-relationship> ::= <relationship-name>
 
-<namespace-name> ::= <identifier>
+<policy-name> ::= <identifier>
 
 <relationship-name> ::= <identifier>
 
@@ -116,19 +68,17 @@ BNF
 sample format:
 ```yaml
 # comments are prefixed with #
-# <namespace>
-# <relationship>(<rewrite-rule>)
 # rewrite set operators:
-# | = union operator
-# & = intersection operator
-# ! = exclusion operator
+#   | = union operator
+#   & = intersection operator
+#   ! = exclusion operator
 # rewrite rules:
-# directly assigned subjects = this
-# ComputedSubjectSetRewrite = cp:<relationship>
-# TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+#   directly assigned subjects = this
+#   ComputedSubjectSetRewrite = cp:<relationship-name>
+#   TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
 
-# namespace name
-ns:file
+# policy name
+pn:file
 
 # empty relationship - implicit this
 re:owner 
@@ -145,8 +95,8 @@ re:auditor (this & cp:viewer)
 # empty relationship - implicit this
 re:banned 
 
-# second namespace within same document
-ns:folder
+# second policy defined within same document
+dn:folder
 re:owner 
 re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
 ```

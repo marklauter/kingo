@@ -5,8 +5,8 @@ public sealed class SubjectSetTests
     [Fact]
     public void Constructor_InitializesProperties()
     {
-        var resource = new Resource(Namespace.From("ns"), Identifier.From("id"));
-        var relationship = Relationship.From("rel");
+        var resource = new Resource(PolicyName.From("ns"), Identifier.From("id"));
+        var relationship = RelationshipName.From("rel");
 
         var subjectSet = new SubjectSet(resource, relationship);
 
@@ -17,8 +17,8 @@ public sealed class SubjectSetTests
     [Fact]
     public void Equality_ReturnsTrue_ForEqualInstances()
     {
-        var resource = new Resource(Namespace.From("ns"), Identifier.From("id"));
-        var relationship = Relationship.From("rel");
+        var resource = new Resource(PolicyName.From("ns"), Identifier.From("id"));
+        var relationship = RelationshipName.From("rel");
 
         var subjectSet1 = new SubjectSet(resource, relationship);
         var subjectSet2 = new SubjectSet(resource, relationship);
@@ -31,12 +31,12 @@ public sealed class SubjectSetTests
     [Fact]
     public void Equality_ReturnsFalse_ForDifferentInstances()
     {
-        var resource1 = new Resource(Namespace.From("ns"), Identifier.From("id"));
-        var relationship1 = Relationship.From("rel");
+        var resource1 = new Resource(PolicyName.From("ns"), Identifier.From("id"));
+        var relationship1 = RelationshipName.From("rel");
         var subjectSet1 = new SubjectSet(resource1, relationship1);
 
-        var resource2 = new Resource(Namespace.From("ns2"), Identifier.From("id2"));
-        var relationship2 = Relationship.From("rel2");
+        var resource2 = new Resource(PolicyName.From("ns2"), Identifier.From("id2"));
+        var relationship2 = RelationshipName.From("rel2");
         var subjectSet2 = new SubjectSet(resource2, relationship2);
 
         Assert.False(subjectSet1 == subjectSet2);
