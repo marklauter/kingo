@@ -9,7 +9,7 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 ## namespace specs / subjectset rewrite rules
 json-based namespace, relation, and rewrite definitions
 
-sample:
+working sample:
 ```json
 {
   "Name": "doc",
@@ -54,6 +54,73 @@ sample:
     }
   ]
 }
+```
+
+custom language (work in progress):
+BNF
+```xml
+<document> ::= <comment-lines> <namespace>
+
+<comment-lines> ::= 
+    | <comment-lines> <comment> <newline>
+
+<namespace> ::= <identifier> <newline> <relationship-list>
+
+<relationship-list> ::= <relationship-line>
+    | <relationship-list> <relationship-line>
+
+<relationship-line> ::= <relationship> <newline>
+    | <comment> <newline>
+
+<relationship> ::= <identifier>
+    | <identifier> '(' <rewrite-rule> ')'
+
+<rewrite-rule> ::= 'this'
+    | 'cp:' <identifier>
+    | 'tp:(' <identifier> ',' <identifier> ')'
+    | <rewrite-rule> '|' <rewrite-rule>
+    | <rewrite-rule> '&' <rewrite-rule>
+    | <rewrite-rule> '!' <rewrite-rule>
+    | '(' <rewrite-rule> ')'
+
+<comment> ::= '#' <text-line>
+
+<newline> ::= '\n'
+<text-line> ::= [^\n]*
+<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+```
+
+sample format:
+```csharp
+# comments are prefixed with #
+# <namespace>
+# <relationship>(<rewrite-rule>)
+# rewrite set operators:
+# | = union operator
+# & = intersection operator
+# ! = exclusion operator
+# rewrite rules:
+# directly assigned subjects = this
+# ComputedSubjectSetRewrite = cp:<relationship>
+# TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+
+# namespace name
+file
+
+# empty relationship - implicit this
+owner 
+
+# relationship with union rewrite
+editor (this | cp:owner) 
+
+# relationship with union and exclusion rewrites
+viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+
+# relationship with intersection rewrite
+auditor (this & cp:viewer) 
+
+# empty relationship - implicit this
+banned 
 ```
 
 ## access control subsystem
