@@ -1,37 +1,116 @@
 using LanguageExt;
 using LanguageExt.Common;
 using Superpower;
+using Superpower.Display;
 using Superpower.Model;
 using Superpower.Parsers;
+using Superpower.Tokenizers;
 using static LanguageExt.Prelude;
 using Unit = LanguageExt.Unit;
 
-namespace Kingo.Polcies.Pdl;
+namespace Kingo.Policies.Pdl;
+
+public enum PdlToken
+{
+    None,
+
+    [Token(Category = "identifier", Example = "file")]
+    Identifier,
+
+    [Token(Category = "keyword", Example = "pn:")]
+    PolicyPrefix,    // pn:
+
+    [Token(Category = "keyword", Example = "re:")]
+    RelationshipPrefix, // re:
+
+    [Token(Category = "keyword", Example = "cp:")]
+    ComputedPrefix,     // cp:
+
+    [Token(Category = "keyword", Example = "tp:")]
+    TuplePrefix,        // tp:
+
+    [Token(Category = "keyword", Example = "this")]
+    This,               // this
+
+    [Token(Category = "operator", Example = "|")]
+    Union,              // |
+
+    [Token(Category = "operator", Example = "&")]
+    Intersection,       // &
+
+    [Token(Category = "operator", Example = "!")]
+    Exclusion,          // !
+
+    [Token(Category = "delimiter", Example = "(")]
+    LeftParen,          // (
+
+    [Token(Category = "delimiter", Example = ")")]
+    RightParen,         // )
+
+    [Token(Category = "delimiter", Example = ",")]
+    Comma,              // ,
+
+    [Token(Category = "comment", Example = "# This is a comment")]
+    Comment,            // # ...
+
+    [Token(Category = "newline", Example = "\\n")]
+    Newline             // \n
+}
+
+public static class PdlTokenizer
+{
+    public static Tokenizer<PdlToken> Create() => new TokenizerBuilder<PdlToken>()
+            .Ignore(Character.EqualTo(' ').Or(Character.EqualTo('\t')).Many())
+            .Match(Character.EqualTo('\n'), PdlToken.Newline)
+            .Match(Span.EqualTo("pn:"), PdlToken.PolicyPrefix)
+            .Match(Span.EqualTo("re:"), PdlToken.RelationshipPrefix)
+            .Match(Span.EqualTo("cp:"), PdlToken.ComputedPrefix)
+            .Match(Span.EqualTo("tp:"), PdlToken.TuplePrefix)
+            .Match(Span.EqualTo("this"), PdlToken.This)
+            .Match(Character.EqualTo('|'), PdlToken.Union)
+            .Match(Character.EqualTo('&'), PdlToken.Intersection)
+            .Match(Character.EqualTo('!'), PdlToken.Exclusion)
+            .Match(Character.EqualTo('('), PdlToken.LeftParen)
+            .Match(Character.EqualTo(')'), PdlToken.RightParen)
+            .Match(Character.EqualTo(','), PdlToken.Comma)
+            .Match(Comment, PdlToken.Comment)
+            .Match(Identifier, PdlToken.Identifier)
+            .Build();
+
+    private static readonly TextParser<Unit> Comment =
+        from hash in Character.EqualTo('#')
+        from content in Character.ExceptIn('\n').Many()
+        select unit;
+
+    private static readonly TextParser<Unit> Identifier =
+        from first in Character.Letter.Or(Character.EqualTo('_'))
+        from rest in Character.LetterOrDigit.Or(Character.EqualTo('_')).Many()
+        select unit;
+}
 
 public static class PdlParser
 {
     private static readonly TokenListParser<PdlToken, string> Identifier =
         Token.EqualTo(PdlToken.Identifier)
-            .Apply(Span.EqualTo)
-            .Select(span => span.ToStringValue());
+            .Select(t => t.Span.ToStringValue());
 
     private static readonly TokenListParser<PdlToken, Unit> OptionalNewlines =
-        Token.EqualTo(PdlToken.Newline).IgnoreMany().Select(_ => Unit.Value);
+        Token.EqualTo(PdlToken.Newline).Many().Select(_ => unit);
 
     private static readonly TokenListParser<PdlToken, Unit> RequiredNewline =
-        Token.EqualTo(PdlToken.Newline).Ignore().Select(_ => Unit.Value);
+        Token.EqualTo(PdlToken.Newline).Select(_ => unit);
 
     private static readonly TokenListParser<PdlToken, Unit> CommentLine =
         from comment in Token.EqualTo(PdlToken.Comment)
         from newline in RequiredNewline
-        select Unit.Value;
+        select unit;
 
     private static readonly TokenListParser<PdlToken, Unit> CommentLines =
-        CommentLine.IgnoreMany().Select(_ => Unit.Value);
+        CommentLine.Many().Select(_ => unit);
 
-    // <namespace-identifier> ::= 'ns:' <namespace-name>
-    private static readonly TokenListParser<PdlToken, string> NamespaceIdentifier =
-        from prefix in Token.EqualTo(PdlToken.NamespacePrefix)
+    // <policy-identifier> ::= 'pn:' <policy-name>
+    private static readonly TokenListParser<PdlToken, string> PolicyIdentifierParser =
+        from prefix in Token.EqualTo(PdlToken.PolicyPrefix)
         from name in Identifier
         select name;
 
@@ -44,7 +123,7 @@ public static class PdlParser
     // <all-direct-subjects> ::= 'this'
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> AllDirectSubjects =
         Token.EqualTo(PdlToken.This)
-            .Value(This.Default as SubjectSetRewrite);
+            .Value(Policies.This.Default as SubjectSetRewrite);
 
     // <computed-subjectset-rewrite> ::= 'cp:' <relationship-name>
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser =
@@ -60,11 +139,11 @@ public static class PdlParser
         from comma in Token.EqualTo(PdlToken.Comma)
         from computedSubjectSetRelation in Identifier
         from rightParen in Token.EqualTo(PdlToken.RightParen)
-        select (SubjectSetRewrite)TupleToSubjectSetRewrite.From(Kingo.RelationshipName.From(tuplesetRelation), Kingo.RelationshipName.From(computedSubjectSetRelation));
+        select (SubjectSetRewrite)TupleToSubjectSetRewrite.Cons(Kingo.RelationshipName.From(tuplesetRelation), Kingo.RelationshipName.From(computedSubjectSetRelation));
 
     // Forward reference for recursive grammar
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteRule =
-        Parse.Ref(() => UnionExpression);
+        Superpower.Parse.Ref(() => UnionExpression);
 
     // Parenthesized expression: '(' <rewrite-rule> ')'
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ParenthesizedExpression =
@@ -82,91 +161,90 @@ public static class PdlParser
 
     // Exclusion expressions: <primary> | '!' <exclusion>
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ExclusionExpression =
-        Parse.Chain(
+        Superpower.Parse.Chain(
             Token.EqualTo(PdlToken.Exclusion),
             PrimaryExpression,
-            (left, right) => ExclusionRewrite.From(left, right));
+            (op, left, right) => ExclusionRewrite.Cons(left, right));
 
     // Intersection expressions: <exclusion> ('&' <exclusion>)*
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> IntersectionExpression =
-        Parse.Chain(
+        Superpower.Parse.Chain(
             Token.EqualTo(PdlToken.Intersection),
             ExclusionExpression,
-            (left, right) => CombineIntersection(left, right));
+            (op, left, right) => CombineIntersection(left, right));
 
     // Union expressions: <intersection> ('|' <intersection>)*
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> UnionExpression =
-        Parse.Chain(
+        Superpower.Parse.Chain(
             Token.EqualTo(PdlToken.Union),
             IntersectionExpression,
-            (left, right) => CombineUnion(left, right));
+            (op, left, right) => CombineUnion(left, right));
 
     // Helper methods to combine union and intersection expressions
     private static SubjectSetRewrite CombineUnion(SubjectSetRewrite left, SubjectSetRewrite right) =>
         left switch
         {
-            UnionRewrite union => UnionRewrite.From(union.Children.Add(right)),
-            _ => UnionRewrite.From(Seq.create(left, right))
+            UnionRewrite union => UnionRewrite.Cons(union.Children.Add(right)),
+            _ => UnionRewrite.Cons(Seq(left, right))
         };
 
     private static SubjectSetRewrite CombineIntersection(SubjectSetRewrite left, SubjectSetRewrite right) =>
         left switch
         {
-            IntersectionRewrite intersection => IntersectionRewrite.From(intersection.Children.Add(right)),
-            _ => IntersectionRewrite.From(Seq.create(left, right))
+            IntersectionRewrite intersection => IntersectionRewrite.Cons(intersection.Children.Add(right)),
+            _ => IntersectionRewrite.Cons(Seq(left, right))
         };
 
     // <relationship> ::= <relationship-identifier> | <relationship-identifier> '(' <rewrite-rule> ')'
-    private static readonly TokenListParser<PdlToken, PdlRelationship> RelationshipParser =
+    private static readonly TokenListParser<PdlToken, Relationship> RelationshipParser =
         from name in RelationshipIdentifier
         from rewriteRule in (from leftParen in Token.EqualTo(PdlToken.LeftParen)
-                           from rule in RewriteRule
-                           from rightParen in Token.EqualTo(PdlToken.RightParen)
-                           select rule).OptionalOrDefault()
-        select rewriteRule != null
-            ? PdlRelationship.Create(name, rewriteRule)
-            : PdlRelationship.Create(name);
+                             from rule in RewriteRule
+                             from rightParen in Token.EqualTo(PdlToken.RightParen)
+                             select rule).OptionalOrDefault(Policies.This.Default)
+        select new Relationship(Kingo.RelationshipName.From(name), rewriteRule);
 
     // <relationship-line> ::= <relationship> <newline> | <comment> <newline>
-    private static readonly TokenListParser<PdlToken, Option<PdlRelationship>> RelationshipLine =
-        RelationshipParser.Select(Option<PdlRelationship>.Some)
-            .Try()
-            .Or(CommentLine.Value(Option<PdlRelationship>.None))
-            .Then(RequiredNewline.Try().Optional());
+    private static readonly TokenListParser<PdlToken, Option<Relationship>> RelationshipLine =
+        (from r in RelationshipParser.Select(Option<Relationship>.Some)
+         from nl in RequiredNewline
+         select r)
+        .Try()
+        .Or(CommentLine.Value(Option<Relationship>.None));
 
     // <relationship-list> ::= <relationship-line> | <relationship-list> <relationship-line>
-    private static readonly TokenListParser<PdlToken, Seq<PdlRelationship>> RelationshipList =
+    private static readonly TokenListParser<PdlToken, Seq<Relationship>> RelationshipList =
         RelationshipLine
             .Many()
-            .Select(relationships => relationships.ToSeq().Choose(r => r));
+            .Select(relationships => toSeq(relationships).Somes());
 
-    // <namespace> ::= <namespace-identifier> <newline> <relationship-list>
-    private static readonly TokenListParser<PdlToken, PdlNamespace> NamespaceParser =
-        from name in NamespaceIdentifier
+    // <policy> ::= <policy-identifier> <newline> <relationship-list>
+    private static readonly TokenListParser<PdlToken, Policy> PolicyParser =
+        from name in PolicyIdentifierParser
         from newline in RequiredNewline
         from relationships in RelationshipList
-        select PdlNamespace.Create(name, relationships);
+        select new Policy(Kingo.PolicyName.From(name), relationships);
 
-    // <namespace-list> ::= <namespace> | <namespace-list> <comment-lines> <namespace>
-    private static readonly TokenListParser<PdlToken, Seq<PdlNamespace>> NamespaceList =
-        from namespaces in NamespaceParser.ManyDelimitedBy(CommentLines)
-        select Seq.createRange(namespaces);
+    // <policy-list> ::= <policy> | <policy-list> <comment-lines> <policy>
+    private static readonly TokenListParser<PdlToken, Seq<Policy>> PolicyList =
+        from policies in PolicyParser.ManyDelimitedBy(CommentLines)
+        select toSeq(policies);
 
-    // <document> ::= <comment-lines> <namespace-list>
-    private static readonly TokenListParser<PdlToken, PdlDocument> Document =
+    // <document> ::= <comment-lines> <policy-list>
+    private static readonly TokenListParser<PdlToken, Document> DocumentParser =
         from commentLines in CommentLines
-        from namespaces in NamespaceList
+        from policies in PolicyList
         from endComments in CommentLines
-        select PdlDocument.Create(namespaces);
+        select new Document(policies);
 
-    public static Either<Error, PdlDocument> Parse(string input)
+    public static Either<Error, Document> Parse(string input)
     {
         try
         {
             var tokenizer = PdlTokenizer.Create();
             var tokens = tokenizer.Tokenize(input);
-            var result = Document.AtEnd().Parse(tokens);
-            return result.HasValue ? Prelude.Right(result.Value) : Prelude.Left<Error, PdlDocument>(Error.New(result.ToString()));
+            TokenListParserResult<PdlToken, Document> result = DocumentParser.AtEnd().Parse(tokens);
+            return result.HasValue ? Right(result.Value) : Left<Error, Document>(Error.New(result.ToString()));
         }
         catch (ParseException ex)
         {
@@ -178,7 +256,7 @@ public static class PdlParser
         }
     }
 
-    public static Either<Error, PdlDocument> ParseFromFile(string filePath)
+    public static Either<Error, Document> ParseFromFile(string filePath)
     {
         try
         {
