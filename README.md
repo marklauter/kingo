@@ -59,12 +59,15 @@ working sample:
 custom language (work in progress):
 BNF
 ```xml
-<document> ::= <comment-lines> <namespace>
+<document> ::= <comment-lines> <namespace-list>
+
+<namespace-list> ::= <namespace>
+    | <namespace-list> <comment-lines> <namespace>
 
 <comment-lines> ::= 
     | <comment-lines> <comment> <newline>
 
-<namespace> ::= <identifier> <newline> <relationship-list>
+<namespace> ::= <namespace-identifier> <newline> <relationship-list>
 
 <relationship-list> ::= <relationship-line>
     | <relationship-list> <relationship-line>
@@ -72,16 +75,30 @@ BNF
 <relationship-line> ::= <relationship> <newline>
     | <comment> <newline>
 
-<relationship> ::= <identifier>
-    | <identifier> '(' <rewrite-rule> ')'
+<relationship> ::= <relationship-identifier>
+    | <relationship-identifier> '(' <rewrite-rule> ')'
 
-<rewrite-rule> ::= 'this'
-    | 'cp:' <identifier>
-    | 'tp:(' <identifier> ',' <identifier> ')'
+<rewrite-rule> ::= <all-direct-subjects>
+    | <computed-subjectset-rewrite>
+    | <tuple-to-subjectset-rewrite>
     | <rewrite-rule> '|' <rewrite-rule>
     | <rewrite-rule> '&' <rewrite-rule>
     | <rewrite-rule> '!' <rewrite-rule>
     | '(' <rewrite-rule> ')'
+
+<all-direct-subjects> ::= 'this'
+
+<computed-subjectset-rewrite> ::= 'cp:' <relationship-name>
+
+<tuple-to-subjectset-rewrite> ::= 'tp:(' <relationship-name> ',' <relationship-name> ')'
+
+<namespace-identifier> ::= 'ns:' <namespace-name>
+
+<relationship-identifier> ::= 're:' <relationship-name>
+
+<namespace-name> ::= <identifier>
+
+<relationship-name> ::= <identifier>
 
 <comment> ::= '#' <text-line>
 
@@ -91,7 +108,7 @@ BNF
 ```
 
 sample format:
-```csharp
+```yaml
 # comments are prefixed with #
 # <namespace>
 # <relationship>(<rewrite-rule>)
@@ -105,22 +122,27 @@ sample format:
 # TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
 
 # namespace name
-file
+ns:file
 
 # empty relationship - implicit this
-owner 
+re:owner 
 
 # relationship with union rewrite
-editor (this | cp:owner) 
+re:editor (this | cp:owner) 
 
 # relationship with union and exclusion rewrites
-viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
 
 # relationship with intersection rewrite
-auditor (this & cp:viewer) 
+re:auditor (this & cp:viewer) 
 
 # empty relationship - implicit this
-banned 
+re:banned 
+
+# second namespace within same document
+ns:folder
+re:owner 
+re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
 ```
 
 ## access control subsystem
