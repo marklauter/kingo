@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Storage", "Kingo.Stor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Storage.Tests", "Kingo.Storage.Tests\Kingo.Storage.Tests.csproj", "{2115CCA2-DE30-6DA9-F0F8-60D78FCAD3F4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Namespaces", "Namespaces", "{828073E2-6512-482A-B9F8-45A4CCB3CA23}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Policies", "Policies", "{828073E2-6512-482A-B9F8-45A4CCB3CA23}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policies", "Kingo.Namespaces\Kingo.Policies.csproj", "{C4FD4762-8E4C-4435-B036-BA7B085067C4}"
 EndProject
