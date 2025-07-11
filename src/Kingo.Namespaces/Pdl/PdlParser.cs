@@ -62,7 +62,7 @@ public static class PdlParser
 
     // Forward reference for recursive grammar
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteRule =
-        Superpower.Parse.Ref(() => UnionExpression);
+        Superpower.Parse.Ref(() => UnionExpression!);
 
     // Parenthesized expression: '(' <rewrite-rule> ')'
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ParenthesizedExpression =

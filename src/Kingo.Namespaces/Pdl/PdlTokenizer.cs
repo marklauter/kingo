@@ -10,7 +10,7 @@ namespace Kingo.Policies.Pdl;
 public static class PdlTokenizer
 {
     public static Tokenizer<PdlToken> Create() => new TokenizerBuilder<PdlToken>()
-            .Ignore(Character.EqualTo(' ').Or(Character.EqualTo('\t')).Many())
+            .Ignore(Character.EqualTo(' ').Or(Character.EqualTo('\t')).AtLeastOnce())
             .Match(Character.EqualTo('\n'), PdlToken.Newline)
             .Match(Span.EqualTo("pn:"), PdlToken.PolicyPrefix)
             .Match(Span.EqualTo("re:"), PdlToken.RelationshipPrefix)
