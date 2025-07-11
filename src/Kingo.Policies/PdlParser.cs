@@ -4,7 +4,7 @@ using Superpower.Model;
 using Superpower.Parsers;
 using static LanguageExt.Prelude;
 
-namespace Kingo.Policies.Pdl;
+namespace Kingo.Policies;
 
 /// <summary>
 /// PDL BNF
@@ -35,6 +35,20 @@ namespace Kingo.Policies.Pdl;
 /// </summary>
 public static class PdlParser
 {
+    public static Either<ParseError, PdlDocument> Parse(string pdl) =>
+        PdlTokenizer
+        .TryTokenize(pdl)
+        .Bind(TryParse)
+        .Map(ps => new PdlDocument(pdl, ps));
+
+    private static Either<ParseError, PolicySet> TryParse(TokenList<PdlToken> input)
+    {
+        var parseResult = PolicySet.AtEnd().TryParse(input);
+        return parseResult.HasValue
+            ? parseResult.Value
+            : ParseError.New(ParseErrorCodes.ParseEerror, $"parse error: {parseResult}");
+    }
+
     static PdlParser()
     {
         Term =
@@ -108,18 +122,4 @@ public static class PdlParser
     private static readonly TokenListParser<PdlToken, Policy> Policy;
 
     private static readonly TokenListParser<PdlToken, PolicySet> PolicySet;
-
-    public static Either<ParseError, PdlDocument> Parse(string pdl) =>
-        PdlTokenizer
-        .TryTokenize(pdl)
-        .Bind(TryParse)
-        .Map(ps => new PdlDocument(pdl, ps));
-
-    private static Either<ParseError, PolicySet> TryParse(TokenList<PdlToken> input)
-    {
-        var parseResult = PolicySet.AtEnd().TryParse(input);
-        return parseResult.HasValue
-            ? parseResult.Value
-            : ParseError.New(ErrorCodes.ParseEerror, $"parse error: {parseResult}");
-    }
 }

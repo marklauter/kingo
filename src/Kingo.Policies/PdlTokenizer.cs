@@ -5,7 +5,7 @@ using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
-namespace Kingo.Policies.Pdl;
+namespace Kingo.Policies;
 
 internal enum PdlToken
 {
@@ -50,17 +50,15 @@ internal enum PdlToken
 
 internal static class PdlTokenizer
 {
-    private static readonly Tokenizer<PdlToken> Tokenizer = Create();
-
     public static Either<ParseError, TokenList<PdlToken>> TryTokenize(string input)
     {
         var tokensResult = Tokenizer.TryTokenize(input);
         return tokensResult.HasValue
             ? tokensResult.Value
-            : ParseError.New(ErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
+            : ParseError.New(ParseErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
     }
 
-    private static Tokenizer<PdlToken> Create() =>
+    private static readonly Tokenizer<PdlToken> Tokenizer =
         new TokenizerBuilder<PdlToken>()
             .Ignore(Span.WhiteSpace)
             .Ignore(Comment.ShellStyle)

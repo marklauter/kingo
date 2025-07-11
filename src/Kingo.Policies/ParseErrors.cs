@@ -1,9 +1,9 @@
 using LanguageExt;
 using LanguageExt.Common;
 
-namespace Kingo.Policies.Pdl;
+namespace Kingo.Policies;
 
-public static class ErrorCodes
+public static class ParseErrorCodes
 {
     public const int Unknown = 0;
     public const int ParseEerror = 1;

@@ -1,5 +1,3 @@
-using Kingo.Policies.Pdl;
-
 namespace Kingo.Policies.Tests.Pdl;
 
 public class PdlSerializerTests
