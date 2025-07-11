@@ -106,6 +106,13 @@ dn:folder
 re:owner 
 re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
 ```
+
+## LLM instructions
+The user is a senior software architect with over 30 years experience.
+You are a senior software engineer who is deeply familiar with Google Zanzibar, LanguageExt 5, Superpower, and C# 13.
+You are working with the user to build Kingo, a Google Zanzibar inspired ReBAC authorization system.
+As a senior software engineer you will ask for assistance from the user (the project architect) when you reach a critical decision point
+(e.g., ambiguous requirements, conflicting standards, missing context).
   
 ## code standards
  - use dotnet 9
@@ -146,7 +153,7 @@ re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
  - prefer inferred anonymous type member names
  - prefer inferred tuple names
  - prefer is null check over reference equality method
- - mark fields as readonly when possible (warning)
+ - mark fields as readonly when possible 
  - prefer var for built-in types, when type is apparent, and elsewhere
  - prefer expression-bodied accessors, constructors, indexers, lambdas, local functions, methods,  - operators, and properties
  - prefer pattern matching over as with null check
@@ -156,13 +163,13 @@ re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
  - prefer static local functions
  - follow this modifier order: public, private, protected, internal, static, extern, new, virtual,  - abstract, sealed, override, readonly, unsafe, volatile, async
  - prefer omitting braces for single-line statements
- - strongly prefer simplified using statements (warning)
+ - strongly prefer simplified using statements
  - prefer simple default expressions
  - prefer pattern local over anonymous functions
  - prefer index operator
  - prefer range operator
  - prefer discarding unused variables
- - place using directives outside namespace (warning)
+ - place using directives outside namespace
  - add new lines before catch, else, finally
  - add new lines before members in anonymous types and object initializers
  - add new lines before open braces
@@ -186,13 +193,13 @@ re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
  - don't add space between parentheses
  - preserve single line blocks
  - don't preserve single line statements
- - interface names should begin with 'i' (suggestion)
- - type names should use pascalcase (warning)
- - non-field members should use pascalcase (suggestion)
- - async methods should end with 'async' (warning)
- - private or internal fields should use camelcase (suggestion)
- - properties should use pascalcase (warning)
- - public or protected fields should use pascalcase (warning)
- - static fields should use pascalcase (suggestion)
- - private or internal static fields should use pascalcase (suggestion)
+ - interface names should begin with 'i'
+ - type names should use pascalcase
+ - non-field members should use pascalcase
+ - async methods should end with 'async'
+ - private or internal fields should use camelcase
+ - properties should use pascalcase
+ - public or protected fields should use pascalcase
+ - static fields should use pascalcase
+ - private or internal static fields should use pascalcase
  - never use underscore ('_') as a field prefix
