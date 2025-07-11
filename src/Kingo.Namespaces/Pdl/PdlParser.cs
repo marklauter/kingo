@@ -69,22 +69,23 @@ public static class PdlParser
                         Kingo.RelationshipName.From(tuplesetRelation),
                         Kingo.RelationshipName.From(computedSubjectSetRelation)))));
 
-    // Forward reference for recursive grammar
+    // An optional, parenthesized rewrite rule.
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ParenthesizedRewriteRule =
+        from _ in Token.EqualTo(PdlToken.LeftParen)
+        from rule in Superpower.Parse.Ref(() => UnionExpression!)
+        from __ in Token.EqualTo(PdlToken.RightParen)
+        select rule;
+
+    // A rewrite rule is either a parenthesized expression or one of the base cases.
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteRule =
-        Superpower.Parse.Ref(() => UnionExpression!);
-
-    // Parenthesized expression: '(' <rewrite-rule> ')'
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ParenthesizedExpression =
-        Token.EqualTo(PdlToken.LeftParen)
-            .IgnoreThen(RewriteRule)
-            .Then(rule => Token.EqualTo(PdlToken.RightParen).Select(_ => rule));
-
-    // Primary expressions (highest precedence)
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> PrimaryExpression =
-        AllDirectSubjects
+        ParenthesizedRewriteRule
+            .Or(AllDirectSubjects)
             .Or(ComputedSubjectSetRewriteParser)
-            .Or(TupleToSubjectSetRewriteParser)
-            .Or(ParenthesizedExpression);
+            .Or(TupleToSubjectSetRewriteParser);
+
+    // The operator precedence parsers now correctly build upon the primary expressions.
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> PrimaryExpression =
+        RewriteRule; // Primary is now just the base rewrite rule
 
     // Exclusion expressions: <primary> | '!' <exclusion>
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ExclusionExpression =
@@ -120,9 +121,13 @@ public static class PdlParser
 
     // <relationship> ::= <relationship-identifier> | <relationship-identifier> '(' <rewrite-rule> ')'
     private static readonly TokenListParser<PdlToken, Relationship> RelationshipParser =
-        from name in RelationshipIdentifier
-        from rewriteRule in RewriteRule.OptionalOrDefault(This.Default)
-        select new Relationship(Kingo.RelationshipName.From(name), rewriteRule);
+        RelationshipIdentifier.Then(name =>
+            (from _ in Token.EqualTo(PdlToken.LeftParen)
+             from rule in UnionExpression // The lowest-precedence operator
+             from __ in Token.EqualTo(PdlToken.RightParen)
+             select rule)
+            .OptionalOrDefault(This.Default)
+            .Select(rewriteRule => new Relationship(Kingo.RelationshipName.From(name), rewriteRule)));
 
     // <relationship-line> ::= <relationship> <newline> | <comment> <newline>
     private static readonly TokenListParser<PdlToken, Option<Relationship>> RelationshipLine =
