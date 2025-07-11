@@ -1,0 +1,33 @@
+﻿# comments are prefixed with #
+# rewrite set operators:
+#   | = union operator
+#   & = intersection operator
+#   ! = exclusion operator
+# rewrite rules:
+#   directly assigned subjects = this
+#   ComputedSubjectSetRewrite = cp:<relationship-name>
+#   TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+
+# policy name
+pn:file
+
+# empty relationship - implicit this
+re:owner 
+
+# relationship with union rewrite
+re:editor (this | cp:owner) 
+
+# relationship with union and exclusion rewrites
+re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+
+# relationship with intersection rewrite
+re:auditor (this & cp:viewer) 
+
+# empty relationship - implicit this
+re:banned 
+
+# second policy defined within same document
+pn:folder
+re:owner
+re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
+re:banned 
