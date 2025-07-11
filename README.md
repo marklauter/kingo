@@ -27,16 +27,17 @@ PDL BNF
 <relationship-line> ::= <relationship> <newline>
     | <comment> <newline>
 
-<relationship> ::= <relationship-identifier>
-    | <relationship-identifier> '(' <rewrite-rule> ')'
+<relationship> ::= <relationship-identifier> [ '(' <rewrite-expression> ')' ]
 
-<rewrite-rule> ::= <all-direct-subjects>
-    | <computed-subjectset-rewrite>
-    | <tuple-to-subjectset-rewrite>
-    | <rewrite-rule> '|' <rewrite-rule>
-    | <rewrite-rule> '&' <rewrite-rule>
-    | <rewrite-rule> '!' <rewrite-rule>
-    | '(' <rewrite-rule> ')'
+// Operator Precedence: !, &, |
+<rewrite-expression>    ::= <union-expr>
+<union-expr>            ::= <intersection-expr> [ '|' <intersection-expr> ]*
+<intersection-expr>     ::= <exclusion-expr> [ '&' <exclusion-expr> ]*
+<exclusion-expr>        ::= <term> [ '!' <term> ]
+<term>                  ::= <all-direct-subjects>
+                         | <computed-subjectset-rewrite>
+                         | <tuple-to-subjectset-rewrite>
+                         | '(' <rewrite-expression> ')'
 
 <all-direct-subjects> ::= 'this'
 
@@ -99,6 +100,7 @@ re:banned
 pn:folder
 re:owner
 re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
+re:banned 
 ```
 
 ## access control subsystem
