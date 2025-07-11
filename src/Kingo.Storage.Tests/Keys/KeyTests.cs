@@ -94,7 +94,7 @@ public sealed class KeyTests
     [Fact]
     public void ToString_ReturnsValue()
     {
-        const string value = "a.b_c:/@#";
+        const string value = "ab_c/def";
         var key = Key.From(value);
         Assert.Equal(value, key.ToString());
     }
@@ -102,7 +102,7 @@ public sealed class KeyTests
     [Fact]
     public void ImplicitConversion_ToString_ReturnsValue()
     {
-        const string value = "a.b_c:/@#";
+        const string value = "ab_c/def";
         var key = Key.From(value);
         string s = key;
         Assert.Equal(value, s);
@@ -111,7 +111,7 @@ public sealed class KeyTests
     [Fact]
     public void ImplicitConversion_ToKey_ReturnsKey()
     {
-        const string value = "a.b_c:/@#";
+        const string value = "ab_c/def";
         Key key = value;
         Assert.Equal(value, key.ToString());
     }

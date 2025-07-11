@@ -16,6 +16,7 @@ public sealed class IdentifierTests
     [InlineData("a-b")]
     [InlineData("a$b")]
     [InlineData("a b")]
+    [InlineData("a.b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
         var exception = Assert.Throws<ArgumentException>(nameof(value), () => Identifier.From(value));
@@ -25,7 +26,7 @@ public sealed class IdentifierTests
 
     [Theory]
     [InlineData("a")]
-    [InlineData("a.b")]
+    [InlineData("_a")]
     [InlineData("a_b")]
     [InlineData("a0")]
     public void From_ReturnsIdentifier_IfValueIsValid(string value)
@@ -85,7 +86,7 @@ public sealed class IdentifierTests
     [Fact]
     public void ToString_ReturnsValue()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         var identifier = Identifier.From(value);
         Assert.Equal(value, identifier.ToString());
     }
@@ -93,7 +94,7 @@ public sealed class IdentifierTests
     [Fact]
     public void ImplicitConversion_ToString_ReturnsValue()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         var identifier = Identifier.From(value);
         string s = identifier;
         Assert.Equal(value, s);
@@ -102,7 +103,7 @@ public sealed class IdentifierTests
     [Fact]
     public void ImplicitConversion_ToIdentifier_ReturnsIdentifier()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         Identifier identifier = value;
         Assert.Equal(value, identifier.ToString());
     }

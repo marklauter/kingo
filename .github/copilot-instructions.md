@@ -60,13 +60,15 @@ PDL BNF
 
 <policy-name> ::= <identifier>
 
-<relationship-name> ::= <identifier>
+<relationship-name> ::= <identifier> | <relationship-placeholder>
 
 <comment> ::= '#' <text-line>
 
 <newline> ::= '\n'
 
 <text-line> ::= [^\n]*
+
+<relationship-placeholder> ::= '...'
 
 <identifier> ::= [a-zA-Z_][A-Za-z0-9_]*
 ```

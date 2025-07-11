@@ -11,17 +11,17 @@ public sealed class SequenceTests
     private Sequence<int> Sequence() =>
         new(new(index), new(index));
 
-    private readonly Key seqName = Key.From("my-seq");
+    private readonly Key seqName = Key.From("my_seq");
 
     [Fact]
     public void Next_ReturnsNextNumberInSequence_WhenCalled()
     {
         var sequence = Sequence();
 
-        Assert.Equal(1, sequence.Next($"{seqName}-1", CancellationToken.None));
-        Assert.Equal(2, sequence.Next($"{seqName}-1", CancellationToken.None));
-        Assert.Equal(1, sequence.Next($"{seqName}-2", CancellationToken.None));
-        Assert.Equal(2, sequence.Next($"{seqName}-2", CancellationToken.None));
+        Assert.Equal(1, sequence.Next($"{seqName}/1", CancellationToken.None));
+        Assert.Equal(2, sequence.Next($"{seqName}/1", CancellationToken.None));
+        Assert.Equal(1, sequence.Next($"{seqName}/2", CancellationToken.None));
+        Assert.Equal(2, sequence.Next($"{seqName}/2", CancellationToken.None));
     }
 
     [Fact]

@@ -86,7 +86,7 @@ public sealed class RelationshipTests
     [Fact]
     public void ToString_ReturnsValue()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         var relationship = RelationshipName.From(value);
         Assert.Equal(value, relationship.ToString());
     }
@@ -94,7 +94,7 @@ public sealed class RelationshipTests
     [Fact]
     public void ImplicitConversion_ToString_ReturnsValue()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         var relationship = RelationshipName.From(value);
         string s = relationship;
         Assert.Equal(value, s);
@@ -103,7 +103,7 @@ public sealed class RelationshipTests
     [Fact]
     public void ImplicitConversion_ToRelationship_ReturnsRelationship()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         RelationshipName relationship = value;
         Assert.Equal(value, relationship.ToString());
     }

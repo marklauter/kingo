@@ -16,6 +16,7 @@ public sealed class NamespaceTests
     [InlineData("a-b")]
     [InlineData("a$b")]
     [InlineData("a b")]
+    [InlineData("a.b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
         var exception = Assert.Throws<ArgumentException>("value", () => PolicyName.From(value));
@@ -25,7 +26,7 @@ public sealed class NamespaceTests
 
     [Theory]
     [InlineData("a")]
-    [InlineData("a.b")]
+    [InlineData("_a")]
     [InlineData("a_b")]
     [InlineData("a0")]
     public void From_ReturnsNamespace_IfValueIsValid(string value)
@@ -85,7 +86,7 @@ public sealed class NamespaceTests
     [Fact]
     public void ToString_ReturnsValue()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         var @namespace = PolicyName.From(value);
         Assert.Equal(value, @namespace.ToString());
     }
@@ -93,7 +94,7 @@ public sealed class NamespaceTests
     [Fact]
     public void ImplicitConversion_ToString_ReturnsValue()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         var @namespace = PolicyName.From(value);
         string s = @namespace;
         Assert.Equal(value, s);
@@ -102,7 +103,7 @@ public sealed class NamespaceTests
     [Fact]
     public void ImplicitConversion_ToNamespace_ReturnsNamespace()
     {
-        const string value = "a.b_c";
+        const string value = "a_b_c";
         PolicyName @namespace = value;
         Assert.Equal(value, @namespace.ToString());
     }
