@@ -13,6 +13,9 @@ public static class PdlParser
         Token.EqualTo(PdlToken.Identifier)
             .Select(t => t.Span.ToStringValue());
 
+    // <relationship-name> ::= <identifier>
+    private static readonly TokenListParser<PdlToken, string> RelationshipName = Identifier;
+
     private static readonly TokenListParser<PdlToken, Unit> OptionalNewlines =
         Token.EqualTo(PdlToken.Newline).Many().Select(_ => unit);
 
@@ -35,7 +38,7 @@ public static class PdlParser
     // <relationship-identifier> ::= 're:' <relationship-name>
     private static readonly TokenListParser<PdlToken, string> RelationshipIdentifier =
         Token.EqualTo(PdlToken.RelationshipPrefix)
-            .Then(_ => Identifier);
+            .Then(_ => RelationshipName);
 
     // <all-direct-subjects> ::= 'this'
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> AllDirectSubjects =
@@ -45,20 +48,20 @@ public static class PdlParser
     // <computed-subjectset-rewrite> ::= 'cp:' <relationship-name>
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser =
         Token.EqualTo(PdlToken.ComputedPrefix)
-            .IgnoreThen(Identifier)
-            .Select(relationshipName => (SubjectSetRewrite)ComputedSubjectSetRewrite.Cons(RelationshipName.From(relationshipName)));
+            .IgnoreThen(RelationshipName)
+            .Select(relationshipName => (SubjectSetRewrite)ComputedSubjectSetRewrite.Cons(Kingo.RelationshipName.From(relationshipName)));
 
     // <tuple-to-subjectset-rewrite> ::= 'tp:(' <tupleset-relationship> ',' <computed-subjectset-relationship> ')'
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> TupleToSubjectSetRewriteParser =
         Token.EqualTo(PdlToken.TuplePrefix)
             .IgnoreThen(Token.EqualTo(PdlToken.LeftParen))
-            .IgnoreThen(Identifier)
+            .IgnoreThen(RelationshipName)
             .Then(tuplesetRelation => Token.EqualTo(PdlToken.Comma)
-                .IgnoreThen(Identifier)
+                .IgnoreThen(RelationshipName)
                 .Then(computedSubjectSetRelation => Token.EqualTo(PdlToken.RightParen)
                     .Select(_ => (SubjectSetRewrite)TupleToSubjectSetRewrite.Cons(
-                        RelationshipName.From(tuplesetRelation),
-                        RelationshipName.From(computedSubjectSetRelation)))));
+                        Kingo.RelationshipName.From(tuplesetRelation),
+                        Kingo.RelationshipName.From(computedSubjectSetRelation)))));
 
     // Forward reference for recursive grammar
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteRule =
@@ -117,7 +120,7 @@ public static class PdlParser
              from rightParen in Token.EqualTo(PdlToken.RightParen)
              select rule)
             .OptionalOrDefault(This.Default)
-            .Select(rewriteRule => new Relationship(RelationshipName.From(name), rewriteRule)));
+            .Select(rewriteRule => new Relationship(Kingo.RelationshipName.From(name), rewriteRule)));
 
     // <relationship-line> ::= <relationship> <newline> | <comment> <newline>
     private static readonly TokenListParser<PdlToken, Option<Relationship>> RelationshipLine =
