@@ -4,30 +4,29 @@
 #   & = intersection operator
 #   ! = exclusion operator
 # rewrite rules:
-#   directly assigned subjects = this
-#   ComputedSubjectSetRewrite = cp:<relationship-name>
-#   TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+#   directly assigned subjects = direct | dir
+#   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
+#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
 
 # policy name
-pn:file
+policy file
 
-# empty relationship - implicit this
-re:owner
+# empty relationship - implicit direct
+rel owner 
 
 # relationship with union rewrite
-re:editor (this | cp:owner)
+rel editor (direct | cmp owner) 
 
 # relationship with union and exclusion rewrites
-re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
+rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned) 
 
 # relationship with intersection rewrite
-re:auditor (this & cp:viewer)
+rel auditor (direct & cmp viewer) 
 
-# empty relationship - implicit this
-re:banned
+# empty relationship - implicit direct
+rel banned 
 
 # second policy defined within same document
-pn:folder
-re:owner
-re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
-re:banned
+policy folder
+rel owner 
+rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)

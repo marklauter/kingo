@@ -10,97 +10,68 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 policy definition language (PDL) for building relationships and rewrite definitions
 
 PDL BNF
-```xml
-<document> ::= <comment-lines> <policy-list>
-
-<policy-list> ::= <policy>
-    | <policy-list> <comment-lines> <policy>
-
-<comment-lines> ::= 
-    | <comment-lines> <comment> <newline>
-
-<policy> ::= <policy-identifier> <newline> <relationship-list>
-
-<relationship-list> ::= <relationship-line>
-    | <relationship-list> <relationship-line>
-
-<relationship-line> ::= <relationship> <newline>
-    | <comment> <newline>
-
-<relationship> ::= <relationship-identifier> [ '(' <rewrite-expression> ')' ]
+```bnf
+// sets
+<policy-set>    ::= <policy> [ <policy> ]*
+<policy>        ::= <policy-identifier> <relation-set>
+<relation-set>  ::= <relation> [ <relation> ]*
+<relation>      ::= <relation-identifier> [ '(' <rewrite-expression> ')' ]
 
 // Operator Precedence: !, &, |
-<rewrite-expression>    ::= <union-expr>
-<union-expr>            ::= <intersection-expr> [ '|' <intersection-expr> ]*
+<rewrite-expression>    ::= <intersection-expr> [ '|' <intersection-expr> ]*
 <intersection-expr>     ::= <exclusion-expr> [ '&' <exclusion-expr> ]*
-<exclusion-expr>        ::= <term> [ '!' <term> ]
-<term>                  ::= <all-direct-subjects>
-                         | <computed-subjectset-rewrite>
-                         | <tuple-to-subjectset-rewrite>
-                         | '(' <rewrite-expression> ')'
+<exclusion-expr>        ::= <rewrite-term> [ '!' <rewrite-term> ]
+<rewrite-term>          ::= <direct-subjectset-rewrite>
+                          | <computed-subjectset-rewrite>
+                          | <tuple-to-subjectset-rewrite>
+                          | '(' <rewrite-expression> ')'
 
-<all-direct-subjects> ::= 'this'
+// keywords
+<policy-identifier>             ::= 'policy' <identifier>
+<direct-subjectset-rewrite>     ::= ('direct' | 'dir')
+<relation-identifier>           ::= ('relation' | 'rel')  <identifier>
+<computed-subjectset-rewrite>   ::= ('computed' | 'cmp') <identifier>
+<tuple-to-subjectset-rewrite>   ::= ('tuple' | 'tpl') (' <identifier> ',' <identifier> ')'
 
-<computed-subjectset-rewrite> ::= 'cp:' <relationship-name>
-
-<tuple-to-subjectset-rewrite> ::= 'tp:(' <tupleset-relationship> ',' <computed-subjectset-relationship> ')'
-
-<policy-identifier> ::= 'pn:' <policy-name>
-
-<relationship-identifier> ::= 're:' <relationship-name>
-
-<tupleset-relationship> ::= <relationship-name>
-
-<computed-subjectset-relationship> ::= <relationship-name>
-
-<policy-name> ::= <identifier>
-
-<relationship-name> ::= <identifier>
-
-<comment> ::= '#' <text-line>
-
-<newline> ::= '\n'
-
-<text-line> ::= [^\n]*
-
-<identifier> ::= [a-zA-Z_][A-Za-z0-9_]*
+<identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
+<comment>       ::= '#' [^<newline>]*
+<newline>       ::= '\n' | '\r\n'
 ```
 
-sample format:
-```yaml
+PDL sample:
+```pdl
 # comments are prefixed with #
 # rewrite set operators:
 #   | = union operator
 #   & = intersection operator
 #   ! = exclusion operator
 # rewrite rules:
-#   directly assigned subjects = this
-#   ComputedSubjectSetRewrite = cp:<relationship-name>
-#   TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+#   directly assigned subjects = direct | dir
+#   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
+#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
 
 # policy name
-pn:file
+policy file
 
-# empty relationship - implicit this
-re:owner 
+# empty relationship - implicit direct
+rel owner 
 
 # relationship with union rewrite
-re:editor (this | cp:owner) 
+rel editor (direct | cmp owner) 
 
 # relationship with union and exclusion rewrites
-re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned) 
 
 # relationship with intersection rewrite
-re:auditor (this & cp:viewer) 
+rel auditor (direct & cmp viewer) 
 
-# empty relationship - implicit this
-re:banned 
+# empty relationship - implicit direct
+rel banned 
 
 # second policy defined within same document
-pn:folder
-re:owner
-re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
-re:banned 
+policy folder
+rel owner 
+rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
 ```
 
 ## access control subsystem

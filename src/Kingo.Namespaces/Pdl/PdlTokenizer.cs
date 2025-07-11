@@ -1,26 +1,74 @@
 using Superpower;
+using Superpower.Display;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
 namespace Kingo.Policies.Pdl;
 
-public static class PdlTokenizer
+internal enum PdlToken
+{
+    None,
+
+    [Token(Category = "identifier", Example = "myFile")]
+    Identifier,
+
+    [Token(Category = "keyword", Example = "policy")]
+    PolicyPrefix,
+
+    [Token(Category = "keyword", Example = "relation | rel")]
+    RelationshipPrefix,
+
+    [Token(Category = "keyword", Example = "computed | cmp")]
+    ComputedPrefix,
+
+    [Token(Category = "keyword", Example = "tuple | tpl")]
+    TuplePrefix,
+
+    [Token(Category = "keyword", Example = "direct | dir")]
+    Direct,
+
+    [Token(Category = "operator", Example = "|")]
+    Union,
+
+    [Token(Category = "operator", Example = "&")]
+    Intersection,
+
+    [Token(Category = "operator", Example = "!")]
+    Exclusion,
+
+    [Token(Category = "delimiter", Example = "(")]
+    LeftParen,
+
+    [Token(Category = "delimiter", Example = ")")]
+    RightParen,
+
+    [Token(Category = "delimiter", Example = ",")]
+    Comma,
+
+    [Token(Category = "comment", Example = "# This is a comment")]
+    Comment,
+}
+
+internal static class PdlTokenizer
 {
     public static Tokenizer<PdlToken> Create() =>
         new TokenizerBuilder<PdlToken>()
             .Ignore(Span.WhiteSpace)
-            .Match(Span.EqualTo("\r\n").Try().Or(Span.EqualTo("\n")), PdlToken.Newline, true)
-            .Match(Span.EqualTo("pn:"), PdlToken.PolicyPrefix, true)
-            .Match(Span.EqualTo("re:"), PdlToken.RelationshipPrefix, true)
-            .Match(Span.EqualTo("cp:"), PdlToken.ComputedPrefix, true)
-            .Match(Span.EqualTo("tp:"), PdlToken.TuplePrefix, true)
-            .Match(Character.EqualTo('|'), PdlToken.Union, true)
-            .Match(Character.EqualTo('&'), PdlToken.Intersection, true)
-            .Match(Character.EqualTo('!'), PdlToken.Exclusion, true)
-            .Match(Character.EqualTo('('), PdlToken.LeftParen, true)
-            .Match(Character.EqualTo(')'), PdlToken.RightParen, true)
-            .Match(Character.EqualTo(','), PdlToken.Comma, true)
+
+            .Match(Character.EqualTo('('), PdlToken.LeftParen)
+            .Match(Character.EqualTo(')'), PdlToken.RightParen)
+            .Match(Character.EqualTo(','), PdlToken.Comma)
+            .Match(Character.EqualTo('|'), PdlToken.Union)
+            .Match(Character.EqualTo('&'), PdlToken.Intersection)
+            .Match(Character.EqualTo('!'), PdlToken.Exclusion)
+
+            .Match(Span.EqualToIgnoreCase("policy"), PdlToken.PolicyPrefix, true)
+            .Match(Span.EqualToIgnoreCase("relation").Try().Or(Span.EqualToIgnoreCase("rel")), PdlToken.RelationshipPrefix, true)
+            .Match(Span.EqualToIgnoreCase("computed").Try().Or(Span.EqualToIgnoreCase("cmp")), PdlToken.ComputedPrefix, true)
+            .Match(Span.EqualToIgnoreCase("tuple").Try().Or(Span.EqualToIgnoreCase("tpl")), PdlToken.TuplePrefix, true)
+            .Match(Span.EqualToIgnoreCase("direct").Try().Or(Span.EqualToIgnoreCase("dir")), PdlToken.Direct, true)
             .Match(Comment.ShellStyle, PdlToken.Comment, true)
             .Match(Superpower.Parsers.Identifier.CStyle, PdlToken.Identifier, true)
+
             .Build();
 }
