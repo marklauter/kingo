@@ -90,11 +90,11 @@ public sealed class PdlParserTests
     [Fact]
     public void Parse_TupleToSubjectSetRewrite_ParsesCorrectly()
     {
-        var pdl = "pn:test\nre:inherited tp:(parent,owner)\n";
+        var pdl = "pn:test\nre:inherited (tp:(parent,owner))\n";
 
         var result = PdlParser.Parse(pdl);
 
-        Assert.True(result.IsRight);
+        Assert.True(result.IsRight, result.IsLeft ? result.LeftToSeq()[0].ToString() : "Test passed");
         _ = result.IfRight(document =>
         {
             var policy = Assert.Single(document.Policies);

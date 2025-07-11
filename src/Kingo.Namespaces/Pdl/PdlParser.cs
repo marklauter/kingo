@@ -69,43 +69,30 @@ public static class PdlParser
                         Kingo.RelationshipName.From(tuplesetRelation),
                         Kingo.RelationshipName.From(computedSubjectSetRelation)))));
 
-    // An optional, parenthesized rewrite rule.
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ParenthesizedRewriteRule =
-        from _ in Token.EqualTo(PdlToken.LeftParen)
-        from rule in Superpower.Parse.Ref(() => UnionExpression!)
-        from __ in Token.EqualTo(PdlToken.RightParen)
-        select rule;
+    // Forward reference for the overall expression parser
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteExpression =
+        Superpower.Parse.Ref(() => UnionExpression!);
 
-    // A rewrite rule is either a parenthesized expression or one of the base cases.
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteRule =
-        ParenthesizedRewriteRule
-            .Or(AllDirectSubjects)
+    // <term> ::= <all-direct-subjects> | <computed...> | <tuple...> | '(' <rewrite-expression> ')'
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Term =
+        AllDirectSubjects
             .Or(ComputedSubjectSetRewriteParser)
-            .Or(TupleToSubjectSetRewriteParser);
+            .Or(TupleToSubjectSetRewriteParser)
+            .Or(RewriteExpression.Between(Token.EqualTo(PdlToken.LeftParen), Token.EqualTo(PdlToken.RightParen)));
 
-    // The operator precedence parsers now correctly build upon the primary expressions.
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> PrimaryExpression =
-        RewriteRule; // Primary is now just the base rewrite rule
-
-    // Exclusion expressions: <primary> | '!' <exclusion>
+    // <exclusion-expr> ::= <term> [ '!' <term> ]
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ExclusionExpression =
-        Superpower.Parse.Chain(
-            Token.EqualTo(PdlToken.Exclusion),
-            PrimaryExpression,
+        Superpower.Parse.Chain(Token.EqualTo(PdlToken.Exclusion), Term,
             (op, left, right) => ExclusionRewrite.Cons(left, right));
 
-    // Intersection expressions: <exclusion> ('&' <exclusion>)*
+    // <intersection-expr> ::= <exclusion-expr> [ '&' <exclusion-expr> ]*
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> IntersectionExpression =
-        Superpower.Parse.Chain(
-            Token.EqualTo(PdlToken.Intersection),
-            ExclusionExpression,
+        Superpower.Parse.Chain(Token.EqualTo(PdlToken.Intersection), ExclusionExpression,
             (op, left, right) => CombineIntersection(left, right));
 
-    // Union expressions: <intersection> ('|' <intersection>)*
+    // <union-expr> ::= <intersection-expr> [ '|' <intersection-expr> ]*
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> UnionExpression =
-        Superpower.Parse.Chain(
-            Token.EqualTo(PdlToken.Union),
-            IntersectionExpression,
+        Superpower.Parse.Chain(Token.EqualTo(PdlToken.Union), IntersectionExpression,
             (op, left, right) => CombineUnion(left, right));
 
     // Helper methods to combine union and intersection expressions
@@ -119,11 +106,11 @@ public static class PdlParser
             ? IntersectionRewrite.Cons(intersection.Children.Add(right))
             : IntersectionRewrite.Cons(Seq(left, right));
 
-    // <relationship> ::= <relationship-identifier> | <relationship-identifier> '(' <rewrite-rule> ')'
+    // <relationship> ::= <relationship-identifier> [ '(' <rewrite-expression> ')' ]
     private static readonly TokenListParser<PdlToken, Relationship> RelationshipParser =
         RelationshipIdentifier.Then(name =>
             (from _ in Token.EqualTo(PdlToken.LeftParen)
-             from rule in UnionExpression // The lowest-precedence operator
+             from rule in RewriteExpression
              from __ in Token.EqualTo(PdlToken.RightParen)
              select rule)
             .OptionalOrDefault(This.Default)
