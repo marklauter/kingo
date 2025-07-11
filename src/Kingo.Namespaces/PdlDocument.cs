@@ -7,6 +7,10 @@ namespace Kingo.Policies;
 [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "it's a stupid rule")]
 public interface PdlNode;
 
+public sealed record PdlDocument(
+    string Pdl,
+    PolicySet PolicySet);
+
 // <policy-set>
 public sealed record PolicySet(
     Seq<Policy> Policies)
