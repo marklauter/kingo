@@ -68,7 +68,7 @@ PDL BNF
 
 <text-line> ::= [^\n]*
 
-<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+<identifier> ::= [a-zA-Z_][A-Za-z0-9_]*
 ```
 
 sample format:
@@ -102,7 +102,7 @@ re:auditor (this & cp:viewer)
 re:banned 
 
 # second policy defined within same document
-dn:folder
+pn:folder
 re:owner 
 re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
 ```
@@ -117,8 +117,8 @@ As a senior software engineer you will ask for assistance from the user (the pro
 ## code standards
  - use dotnet 9
  - use C# 13
- - use LanguageExt 5
- - don't use LanguageExt 4 because it is deprecated
+ - use LanguageExt version 5
+ - don't use LanguageExt version 4 because it is deprecated
  - use the xUnit testing framework
  - prefer empty collection
  - prefer var
