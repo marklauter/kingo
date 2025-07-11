@@ -20,6 +20,10 @@ public sealed class KeyTests
     [InlineData("(ab)")]
     [InlineData("a$b")]
     [InlineData("a b")]
+    [InlineData("a@b")]
+    [InlineData("a#b")]
+    [InlineData("a.b")]
+    [InlineData("a:b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
         var exception = Assert.Throws<ArgumentException>(nameof(value), () => Key.From(value));
@@ -30,13 +34,9 @@ public sealed class KeyTests
     [Theory]
     [InlineData("a", "a")]
     [InlineData("A", "a")]
-    [InlineData("a.b", "a.b")]
     [InlineData("a_b", "a_b")]
     [InlineData("a0", "a0")]
-    [InlineData("a:b", "a:b")]
     [InlineData("a/b", "a/b")]
-    [InlineData("a@b", "a@b")]
-    [InlineData("a#b", "a#b")]
     public void From_ReturnsKey_IfValueIsValid(string value, string expected)
     {
         var key = Key.From(value);
