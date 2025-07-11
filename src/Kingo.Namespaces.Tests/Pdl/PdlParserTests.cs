@@ -146,7 +146,11 @@ public sealed class PdlParserTests
         var expected = new PolicySet(Seq(filePolicy, folderPolicy));
 
         _ = PdlParser.Parse(pdl).Match(
-            Right: doc => Assert.Equal(expected, doc.PolicySet),
+            Right: doc =>
+            {
+                Assert.Equal(expected, doc.PolicySet);
+                Assert.Equal(pdl, doc.Pdl);
+            },
             Left: error => Assert.Fail(error.ToString())
         );
     }

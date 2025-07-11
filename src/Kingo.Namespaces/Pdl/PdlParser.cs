@@ -109,8 +109,11 @@ public static class PdlParser
 
     private static readonly TokenListParser<PdlToken, PolicySet> PolicySet;
 
-    public static Either<ParseError, PolicySet> Parse(string input) =>
-        PdlTokenizer.TryTokenize(input).Bind(TryParse);
+    public static Either<ParseError, PdlDocument> Parse(string pdl) =>
+        PdlTokenizer
+        .TryTokenize(pdl)
+        .Bind(TryParse)
+        .Map(ps => new PdlDocument(pdl, ps));
 
     private static Either<ParseError, PolicySet> TryParse(TokenList<PdlToken> input)
     {
