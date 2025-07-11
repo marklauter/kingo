@@ -12,22 +12,22 @@
 pn:file
 
 # empty relationship - implicit this
-re:owner 
+re:owner
 
 # relationship with union rewrite
-re:editor (this | cp:owner) 
+re:editor (this | cp:owner)
 
 # relationship with union and exclusion rewrites
-re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
 
 # relationship with intersection rewrite
-re:auditor (this & cp:viewer) 
+re:auditor (this & cp:viewer)
 
 # empty relationship - implicit this
-re:banned 
+re:banned
 
 # second policy defined within same document
 pn:folder
 re:owner
 re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
-re:banned 
+re:banned
