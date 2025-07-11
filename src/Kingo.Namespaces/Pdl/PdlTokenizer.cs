@@ -1,4 +1,5 @@
 using Superpower;
+using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
@@ -21,6 +22,11 @@ public static class PdlTokenizer
             .Match(Character.EqualTo(')'), PdlToken.RightParen)
             .Match(Character.EqualTo(','), PdlToken.Comma)
             .Match(Comment.ShellStyle, PdlToken.Comment)
-            .Match(Superpower.Parsers.Identifier.CStyle, PdlToken.Identifier)
+            .Match(Identifier, PdlToken.Identifier)
             .Build();
+
+    internal static TextParser<TextSpan> Identifier { get; } =
+        Span.MatchedBy(
+            Character.Letter.Or(Character.EqualTo('_'))
+                .IgnoreThen(Character.LetterOrDigit.Or(Character.EqualTo('_')).Many()));
 }
