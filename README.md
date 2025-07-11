@@ -7,7 +7,7 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
 ## policy specs / subjectset rewrite rules
-policy definition language for building relationships and rewrite definitions
+policy definition language (PDL) for building relationships and rewrite definitions
 
 PDL BNF
 ```xml
@@ -62,7 +62,7 @@ PDL BNF
 
 <text-line> ::= [^\n]*
 
-<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
+<identifier> ::= [a-zA-Z_][A-Za-z0-9_]*
 ```
 
 sample format:
@@ -96,9 +96,9 @@ re:auditor (this & cp:viewer)
 re:banned 
 
 # second policy defined within same document
-dn:folder
-re:owner 
-re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+pn:folder
+re:owner
+re:viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned)
 ```
 
 ## access control subsystem
