@@ -7,37 +7,61 @@ namespace Kingo.Policies;
 [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "it's a stupid rule")]
 public interface PdlNode;
 
-public sealed record Document(Seq<Policy> Policies)
+// <policy-set>
+public sealed record PolicySet(
+    Seq<Policy> Policies)
     : PdlNode;
 
+// <policy>
 public sealed record Policy(
+    // <policy-identifier>
     PolicyName Name,
-    Seq<Relationship> Relationships)
+    // <relation-set>
+    Seq<Relation> Relations)
     : PdlNode;
 
-public sealed record Relationship(RelationshipName Name, SubjectSetRewrite SubjectSetRewrite)
+// <relation>
+public sealed record Relation(
+    // <identifier> from <relation-identifier>
+    RelationName Name,
+    // <rewrite>
+    SubjectSetRewrite SubjectSetRewrite)
     : PdlNode
 {
-    public Relationship(RelationshipName name)
-        : this(name, This.Default) { }
+    public Relation(RelationName name)
+        : this(name, DirectRewrite.Default) { }
 };
 
+// <rewrite>
 public abstract record SubjectSetRewrite
     : PdlNode;
 
-public sealed record This
+// <direct>
+public sealed record DirectRewrite
     : SubjectSetRewrite
 {
-    public static This Default { get; } = new();
+    public static DirectRewrite Default { get; } = new();
 }
 
+// <computed-subjectset-rewrite>
 public sealed record ComputedSubjectSetRewrite(
-    RelationshipName Relationship)
+    RelationName Relationship)
     : SubjectSetRewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComputedSubjectSetRewrite Cons(RelationshipName relationship) =>
+    public static ComputedSubjectSetRewrite Cons(RelationName relationship) =>
         new(relationship);
+}
+
+// <tuple-to-subjectset-rewrite>
+public sealed record TupleToSubjectSetRewrite(
+    RelationName TuplesetRelation,
+    RelationName ComputedSubjectSetRelation)
+    : SubjectSetRewrite
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TupleToSubjectSetRewrite Cons(RelationName tuplesetRelation, RelationName computedSubjectSetRelation) =>
+        new(tuplesetRelation, computedSubjectSetRelation);
 }
 
 public sealed record UnionRewrite(
@@ -76,12 +100,3 @@ public sealed record ExclusionRewrite(
         new(include, exclude);
 }
 
-public sealed record TupleToSubjectSetRewrite(
-    RelationshipName TuplesetRelation,
-    RelationshipName ComputedSubjectSetRelation)
-    : SubjectSetRewrite
-{
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TupleToSubjectSetRewrite Cons(RelationshipName tuplesetRelation, RelationshipName computedSubjectSetRelation) =>
-        new(tuplesetRelation, computedSubjectSetRelation);
-}

@@ -3,166 +3,118 @@ using Superpower;
 using Superpower.Model;
 using Superpower.Parsers;
 using static LanguageExt.Prelude;
-using Unit = LanguageExt.Unit;
 
 namespace Kingo.Policies.Pdl;
 
+/// <summary>
+/// PDL BNF
+/// # operator precedence: !, &, | (exclude, intersect, union)
+/// # expressions
+/// <policy-set>    ::= <policy> [ <policy> ]*
+/// <policy>        ::= <policy-identifier> <relation-set>
+/// <relation-set>  ::= <relation> [ <relation> ]*
+/// <relation>      ::= <relation-identifier> [ '(' <rewrite> ')' ]
+/// <rewrite>       ::= <intersection> [ '|' <intersection> ]*
+/// <intersection>  ::= <exclusion> [ '&' <exclusion> ]*
+/// <exclusion>     ::= <term> [ '!' <term> ]
+/// <term>          ::= <direct>
+///                   | <computed-subjectset-rewrite>
+///                   | <tuple-to-subjectset-rewrite>
+///                   | '(' <rewrite> ')'
+/// 
+/// # keywords (terms)
+/// <policy-identifier>             ::= 'policy' <identifier>
+/// <direct>                        ::= ('direct' | 'dir')
+/// <relation-identifier>           ::= ('relation' | 'rel')  <identifier>
+/// <computed-subjectset-rewrite>   ::= ('computed' | 'cmp') <identifier>
+/// <tuple-to-subjectset-rewrite>   ::= ('tuple' | 'tpl') (' <identifier> ',' <identifier> ')'
+/// <identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
+/// 
+/// <comment>       ::= '#' [^<newline>]*
+/// <newline>       ::= '\n' | '\r\n'
+/// </summary>
 public static class PdlParser
 {
-    private static readonly TokenListParser<PdlToken, string> Identifier =
-        Token.EqualTo(PdlToken.Identifier)
-            .Select(t => t.Span.ToStringValue());
-
-    // <relationship-name> ::= <identifier>
-    private static readonly TokenListParser<PdlToken, string> RelationshipName = Identifier;
-
-    private static readonly TokenListParser<PdlToken, Unit> Newline =
-        Token.EqualTo(PdlToken.Newline).Select(_ => unit);
-
-    private static readonly TokenListParser<PdlToken, Unit> CommentLine =
-        Token.EqualTo(PdlToken.Comment)
-            .Then(_ => Newline)
-            .Select(_ => unit);
-
-    // A single line that is either a comment or empty.
-    private static readonly TokenListParser<PdlToken, Unit> SkippableLine =
-        CommentLine.Or(Newline);
-
-    // Zero or more skippable lines.
-    private static readonly TokenListParser<PdlToken, Unit> SkippableLines =
-        SkippableLine.Many().Select(_ => unit);
-
-    // One or more skippable lines, to be used as a delimiter.
-    private static readonly TokenListParser<PdlToken, Unit> Delimiter =
-        SkippableLine.AtLeastOnce().Select(_ => unit);
-
-    // <policy-identifier> ::= 'pn:' <policy-name>
-    private static readonly TokenListParser<PdlToken, string> PolicyIdentifierParser =
-        Token.EqualTo(PdlToken.PolicyPrefix)
-            .Then(_ => Identifier);
-
-    // <relationship-identifier> ::= 're:' <relationship-name>
-    private static readonly TokenListParser<PdlToken, string> RelationshipIdentifier =
-        Token.EqualTo(PdlToken.RelationshipPrefix)
-            .Then(_ => RelationshipName);
-
-    // <all-direct-subjects> ::= 'this'
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> AllDirectSubjects =
-        Token.EqualTo(PdlToken.This)
-            .Value((SubjectSetRewrite)This.Default);
-
-    // <computed-subjectset-rewrite> ::= 'cp:' <relationship-name>
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser =
-        Token.EqualTo(PdlToken.ComputedPrefix)
-            .IgnoreThen(RelationshipName)
-            .Select(relationshipName => (SubjectSetRewrite)ComputedSubjectSetRewrite.Cons(Kingo.RelationshipName.From(relationshipName)));
-
-    // <tuple-to-subjectset-rewrite> ::= 'tp:(' <tupleset-relationship> ',' <computed-subjectset-relationship> ')'
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> TupleToSubjectSetRewriteParser =
-        Token.EqualTo(PdlToken.TuplePrefix)
-            .IgnoreThen(Token.EqualTo(PdlToken.LeftParen))
-            .IgnoreThen(RelationshipName)
-            .Then(tuplesetRelation => Token.EqualTo(PdlToken.Comma)
-                .IgnoreThen(RelationshipName)
-                .Then(computedSubjectSetRelation => Token.EqualTo(PdlToken.RightParen)
-                    .Select(_ => (SubjectSetRewrite)TupleToSubjectSetRewrite.Cons(
-                        Kingo.RelationshipName.From(tuplesetRelation),
-                        Kingo.RelationshipName.From(computedSubjectSetRelation)))));
-
-    // Forward reference for the overall expression parser
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> RewriteExpression =
-        Superpower.Parse.Ref(() => UnionExpression!);
-
-    // <term> ::= <all-direct-subjects> | <computed...> | <tuple...> | '(' <rewrite-expression> ')'
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Term =
-        AllDirectSubjects
-            .Or(ComputedSubjectSetRewriteParser)
-            .Or(TupleToSubjectSetRewriteParser)
-            .Or(RewriteExpression.Between(Token.EqualTo(PdlToken.LeftParen), Token.EqualTo(PdlToken.RightParen)));
-
-    // <exclusion-expr> ::= <term> [ '!' <term> ]
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ExclusionExpression =
-        Superpower.Parse.Chain(Token.EqualTo(PdlToken.Exclusion), Term,
-            (op, left, right) => ExclusionRewrite.Cons(left, right));
-
-    // <intersection-expr> ::= <exclusion-expr> [ '&' <exclusion-expr> ]*
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> IntersectionExpression =
-        Superpower.Parse.Chain(Token.EqualTo(PdlToken.Intersection), ExclusionExpression,
-            (op, left, right) => CombineIntersection(left, right));
-
-    // <union-expr> ::= <intersection-expr> [ '|' <intersection-expr> ]*
-    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> UnionExpression =
-        Superpower.Parse.Chain(Token.EqualTo(PdlToken.Union), IntersectionExpression,
-            (op, left, right) => CombineUnion(left, right));
-
-    // Helper methods to combine union and intersection expressions
-    private static UnionRewrite CombineUnion(SubjectSetRewrite left, SubjectSetRewrite right) =>
-        left is UnionRewrite union
-            ? UnionRewrite.Cons(union.Children.Add(right))
-            : UnionRewrite.Cons(Seq(left, right));
-
-    private static IntersectionRewrite CombineIntersection(SubjectSetRewrite left, SubjectSetRewrite right) =>
-        left is IntersectionRewrite intersection
-            ? IntersectionRewrite.Cons(intersection.Children.Add(right))
-            : IntersectionRewrite.Cons(Seq(left, right));
-
-    // <relationship> ::= <relationship-identifier> [ '(' <rewrite-expression> ')' ]
-    private static readonly TokenListParser<PdlToken, Relationship> RelationshipParser =
-        RelationshipIdentifier.Then(name =>
-            (from _ in Token.EqualTo(PdlToken.LeftParen)
-             from rule in RewriteExpression
-             from __ in Token.EqualTo(PdlToken.RightParen)
-             select rule)
-            .OptionalOrDefault(This.Default)
-            .Select(rewriteRule => new Relationship(Kingo.RelationshipName.From(name), rewriteRule)));
-
-    // <relationship-line> ::= <relationship> <newline> | <comment> <newline>
-    private static readonly TokenListParser<PdlToken, Option<Relationship>> RelationshipLine =
-        (from r in RelationshipParser.Select(Option<Relationship>.Some)
-         from nl in Newline
-         select r)
-        .Try()
-        .Or(CommentLine.Value(Option<Relationship>.None));
-
-    // <relationship-list> ::= <relationship-line> | <relationship-list> <relationship-line>
-    private static readonly TokenListParser<PdlToken, Seq<Relationship>> RelationshipList =
-        RelationshipLine
-            .Many()
-            .Select(relationships => toSeq(relationships).Somes());
-
-    // <policy> ::= <policy-identifier> <newline> <relationship-list>
-    private static readonly TokenListParser<PdlToken, Policy> PolicyParser =
-        PolicyIdentifierParser
-            .Then(name => Newline
-                .IgnoreThen(RelationshipList)
-                .Select(relationships => new Policy(PolicyName.From(name), relationships)));
-
-    // <policy-list> ::= <policy> | <policy-list> <comment-lines> <policy>
-    private static readonly TokenListParser<PdlToken, Seq<Policy>> PolicyList =
-        PolicyParser.ManyDelimitedBy(Delimiter)
-            .Select(policies => toSeq(policies));
-
-    // <document> ::= <comment-lines> <policy-list>
-    private static readonly TokenListParser<PdlToken, Document> DocumentParser =
-        SkippableLines
-            .IgnoreThen(PolicyList)
-            .Then(policies => SkippableLines.Select(_ => policies))
-            .Select(policies => new Document(policies));
-
-    public static Either<ParseError, Document> Parse(string input) =>
-        TryTokenize(input).Bind(TryParse);
-
-    private static Either<ParseError, TokenList<PdlToken>> TryTokenize(string input)
+    static PdlParser()
     {
-        var tokensResult = PdlTokenizer.Create().TryTokenize(input);
-        return tokensResult.HasValue
-            ? tokensResult.Value
-            : ParseError.New(ErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
+        Term =
+            DirectTerm
+                .Or(ComputedSubjectSetRewriteParser)
+                .Or(TupleToSubjectSetRewriteParser)
+                .Or(Superpower.Parse.Ref(() => Rewrite!).Between(Token.EqualTo(PdlToken.LeftParen), Token.EqualTo(PdlToken.RightParen)));
+
+        Exclusion =
+            Superpower.Parse.Chain(Token.EqualTo(PdlToken.Exclusion), Term, (op, left, right) => new ExclusionRewrite(left, right));
+
+        Intersection =
+            Superpower.Parse.Chain(Token.EqualTo(PdlToken.Intersection), Exclusion, (op, left, right) =>
+                left is IntersectionRewrite intersection
+                    ? new IntersectionRewrite(intersection.Children.Add(right))
+                    : new IntersectionRewrite(Seq(left, right)));
+
+        Rewrite =
+            Superpower.Parse.Chain(Token.EqualTo(PdlToken.Union), Intersection, (op, left, right) =>
+                left is UnionRewrite union
+                    ? new UnionRewrite(union.Children.Add(right))
+                    : new UnionRewrite(Seq(left, right)));
+
+        Relation =
+            from _ in Token.EqualTo(PdlToken.RelationshipPrefix)
+            from name in Identifier
+            from rewrite in Rewrite.Between(Token.EqualTo(PdlToken.LeftParen), Token.EqualTo(PdlToken.RightParen)).OptionalOrDefault(DirectRewrite.Default)
+            select new Relation(RelationName.From(name), rewrite);
+
+        Policy =
+            from _ in Token.EqualTo(PdlToken.PolicyPrefix)
+            from name in Identifier
+            from relations in Relation.Many()
+            select new Policy(PolicyName.From(name), toSeq(relations));
+
+        PolicySet =
+            from policies in Policy.Many()
+            select new PolicySet(toSeq(policies));
     }
 
-    private static Either<ParseError, Document> TryParse(TokenList<PdlToken> input)
+    private static readonly TokenListParser<PdlToken, string> Identifier =
+        Token.EqualTo(PdlToken.Identifier).Select(token => token.ToStringValue());
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> DirectTerm =
+        Token.EqualTo(PdlToken.Direct).Select(_ => (SubjectSetRewrite)DirectRewrite.Default);
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser =
+        from _ in Token.EqualTo(PdlToken.ComputedPrefix)
+        from name in Identifier
+        select (SubjectSetRewrite)new ComputedSubjectSetRewrite(RelationName.From(name));
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> TupleToSubjectSetRewriteParser =
+        from _ in Token.EqualTo(PdlToken.TuplePrefix)
+        from lparen in Token.EqualTo(PdlToken.LeftParen)
+        from name in Identifier
+        from comma in Token.EqualTo(PdlToken.Comma)
+        from mapsTo in Identifier
+        from rparen in Token.EqualTo(PdlToken.RightParen)
+        select (SubjectSetRewrite)new TupleToSubjectSetRewrite(RelationName.From(name), RelationName.From(mapsTo));
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Term;
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Rewrite;
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Exclusion;
+
+    private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Intersection;
+
+    private static readonly TokenListParser<PdlToken, Relation> Relation;
+
+    private static readonly TokenListParser<PdlToken, Policy> Policy;
+
+    private static readonly TokenListParser<PdlToken, PolicySet> PolicySet;
+
+    public static Either<ParseError, PolicySet> Parse(string input) =>
+        PdlTokenizer.TryTokenize(input).Bind(TryParse);
+
+    private static Either<ParseError, PolicySet> TryParse(TokenList<PdlToken> input)
     {
-        var parseResult = DocumentParser.AtEnd().TryParse(input);
+        var parseResult = PolicySet.AtEnd().TryParse(input);
         return parseResult.HasValue
             ? parseResult.Value
             : ParseError.New(ErrorCodes.ParseEerror, $"parse error: {parseResult}");

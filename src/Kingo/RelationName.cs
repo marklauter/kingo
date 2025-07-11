@@ -7,11 +7,11 @@ using System.Text.RegularExpressions;
 
 namespace Kingo;
 
-[JsonConverter(typeof(StringConvertible<RelationshipName>))]
-public readonly struct RelationshipName
-    : IStringConvertible<RelationshipName>
-    , IEquatable<RelationshipName>
-    , IComparable<RelationshipName>
+[JsonConverter(typeof(StringConvertible<RelationName>))]
+public readonly struct RelationName
+    : IStringConvertible<RelationName>
+    , IEquatable<RelationName>
+    , IComparable<RelationName>
     , IEquatable<string>
     , IComparable<string>
 {
@@ -19,16 +19,16 @@ public readonly struct RelationshipName
     private static readonly Regex Validation = RegExPatterns.Relationship();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RelationshipName Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
+    public static RelationName Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
 
-    public static RelationshipName Nothing { get; } = From("...");
+    public static RelationName Nothing { get; } = From("...");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RelationshipName From(string s) => new(s);
+    public static RelationName From(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private RelationshipName(string value) => this.value = ValidValue(value);
+    private RelationName(string value) => this.value = ValidValue(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string ValidValue(string value)
@@ -46,13 +46,13 @@ public readonly struct RelationshipName
     public override string ToString() => value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(RelationshipName other) => string.Equals(value, other.value, StringComparison.Ordinal);
+    public bool Equals(RelationName other) => string.Equals(value, other.value, StringComparison.Ordinal);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is RelationshipName relationship && Equals(relationship);
+    public override bool Equals(object? obj) => obj is RelationName relationship && Equals(relationship);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(RelationshipName other) => string.CompareOrdinal(value, other.value);
+    public int CompareTo(RelationName other) => string.CompareOrdinal(value, other.value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
@@ -62,26 +62,26 @@ public readonly struct RelationshipName
     public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(RelationshipName relationship) => relationship.value;
+    public static implicit operator string(RelationName relationship) => relationship.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator RelationshipName(string value) => new(value);
+    public static implicit operator RelationName(string value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(RelationshipName left, RelationshipName right) => left.Equals(right);
+    public static bool operator ==(RelationName left, RelationName right) => left.Equals(right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(RelationshipName left, RelationshipName right) => !(left == right);
+    public static bool operator !=(RelationName left, RelationName right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(RelationshipName left, RelationshipName right) => left.CompareTo(right) < 0;
+    public static bool operator <(RelationName left, RelationName right) => left.CompareTo(right) < 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(RelationshipName left, RelationshipName right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(RelationName left, RelationName right) => left.CompareTo(right) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(RelationshipName left, RelationshipName right) => left.CompareTo(right) > 0;
+    public static bool operator >(RelationName left, RelationName right) => left.CompareTo(right) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(RelationshipName left, RelationshipName right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(RelationName left, RelationName right) => left.CompareTo(right) >= 0;
 }
