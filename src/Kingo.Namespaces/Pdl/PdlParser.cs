@@ -120,13 +120,9 @@ public static class PdlParser
 
     // <relationship> ::= <relationship-identifier> | <relationship-identifier> '(' <rewrite-rule> ')'
     private static readonly TokenListParser<PdlToken, Relationship> RelationshipParser =
-        RelationshipIdentifier.Then(name =>
-            (from leftParen in Token.EqualTo(PdlToken.LeftParen)
-             from rule in RewriteRule
-             from rightParen in Token.EqualTo(PdlToken.RightParen)
-             select rule)
-            .OptionalOrDefault(This.Default)
-            .Select(rewriteRule => new Relationship(Kingo.RelationshipName.From(name), rewriteRule)));
+        from name in RelationshipIdentifier
+        from rewriteRule in RewriteRule.OptionalOrDefault(This.Default)
+        select new Relationship(Kingo.RelationshipName.From(name), rewriteRule);
 
     // <relationship-line> ::= <relationship> <newline> | <comment> <newline>
     private static readonly TokenListParser<PdlToken, Option<Relationship>> RelationshipLine =
