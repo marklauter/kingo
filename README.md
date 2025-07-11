@@ -11,29 +11,28 @@ policy definition language (PDL) for building relationships and rewrite definiti
 
 PDL BNF
 ```bnf
-// sets
+# operator precedence: !, &, | (exclude, intersect, union)
+# expressions
 <policy-set>    ::= <policy> [ <policy> ]*
 <policy>        ::= <policy-identifier> <relation-set>
 <relation-set>  ::= <relation> [ <relation> ]*
-<relation>      ::= <relation-identifier> [ '(' <rewrite-expression> ')' ]
+<relation>      ::= <relation-identifier> [ '(' <rewrite> ')' ]
+<rewrite>       ::= <intersection> [ '|' <intersection> ]*
+<intersection>  ::= <exclusion> [ '&' <exclusion> ]*
+<exclusion>     ::= <term> [ '!' <term> ]
+<term>          ::= <direct>
+                  | <computed-subjectset-rewrite>
+                  | <tuple-to-subjectset-rewrite>
+                  | '(' <rewrite> ')'
 
-// Operator Precedence: !, &, |
-<rewrite-expression>    ::= <intersection-expr> [ '|' <intersection-expr> ]*
-<intersection-expr>     ::= <exclusion-expr> [ '&' <exclusion-expr> ]*
-<exclusion-expr>        ::= <rewrite-term> [ '!' <rewrite-term> ]
-<rewrite-term>          ::= <direct-subjectset-rewrite>
-                          | <computed-subjectset-rewrite>
-                          | <tuple-to-subjectset-rewrite>
-                          | '(' <rewrite-expression> ')'
-
-// keywords
+# keywords (terms)
 <policy-identifier>             ::= 'policy' <identifier>
-<direct-subjectset-rewrite>     ::= ('direct' | 'dir')
-<relation-identifier>           ::= ('relation' | 'rel')  <identifier>
+<direct>                        ::= ('direct' | 'dir')
+<relation-identifier>           ::= ('relation' | 'rel') <identifier>
 <computed-subjectset-rewrite>   ::= ('computed' | 'cmp') <identifier>
 <tuple-to-subjectset-rewrite>   ::= ('tuple' | 'tpl') (' <identifier> ',' <identifier> ')'
+<identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
 
-<identifier>    ::= [a-zA-Z_][a-zA-Z0-9_]*
 <comment>       ::= '#' [^<newline>]*
 <newline>       ::= '\n' | '\r\n'
 ```
@@ -42,10 +41,10 @@ PDL sample:
 ```pdl
 # comments are prefixed with #
 # rewrite set operators:
-#   | = union operator
-#   & = intersection operator
 #   ! = exclusion operator
-# rewrite rules:
+#   & = intersection operator
+#   | = union operator
+# rewrite:
 #   directly assigned subjects = direct | dir
 #   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
 #   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)

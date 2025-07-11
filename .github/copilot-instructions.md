@@ -34,7 +34,7 @@ PDL BNF
 # keywords (terms)
 <policy-identifier>             ::= 'policy' <identifier>
 <direct>                        ::= ('direct' | 'dir')
-<relation-identifier>           ::= ('relation' | 'rel')  <identifier>
+<relation-identifier>           ::= ('relation' | 'rel') <identifier>
 <computed-subjectset-rewrite>   ::= ('computed' | 'cmp') <identifier>
 <tuple-to-subjectset-rewrite>   ::= ('tuple' | 'tpl') (' <identifier> ',' <identifier> ')'
 <identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
