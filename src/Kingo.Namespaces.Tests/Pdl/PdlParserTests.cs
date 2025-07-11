@@ -40,7 +40,8 @@ public sealed class PdlParserTests
         Assert.True(result.IsRight);
         _ = result.IfRight(document =>
         {
-            var relationship = document.Policies[0].Relationships[0];
+            var policy = Assert.Single(document.Policies);
+            var relationship = Assert.Single(policy.Relationships);
             Assert.Equal("simple", relationship.Name.ToString());
             _ = Assert.IsType<This>(relationship.SubjectSetRewrite);
         });
@@ -56,7 +57,8 @@ public sealed class PdlParserTests
         Assert.True(result.IsRight);
         _ = result.IfRight(document =>
         {
-            var relationship = document.Policies[0].Relationships[0];
+            var policy = Assert.Single(document.Policies);
+            var relationship = Assert.Single(policy.Relationships);
             var union = Assert.IsType<UnionRewrite>(relationship.SubjectSetRewrite);
             Assert.Equal(2, union.Children.Count);
             _ = Assert.IsType<This>(union.Children[0]);
@@ -75,7 +77,8 @@ public sealed class PdlParserTests
         Assert.True(result.IsRight);
         _ = result.IfRight(document =>
         {
-            var relationship = document.Policies[0].Relationships[0];
+            var policy = Assert.Single(document.Policies);
+            var relationship = Assert.Single(policy.Relationships);
             var intersection = Assert.IsType<IntersectionRewrite>(relationship.SubjectSetRewrite);
             Assert.Equal(2, intersection.Children.Count);
             _ = Assert.IsType<This>(intersection.Children[0]);
@@ -94,7 +97,8 @@ public sealed class PdlParserTests
         Assert.True(result.IsRight);
         _ = result.IfRight(document =>
         {
-            var relationship = document.Policies[0].Relationships[0];
+            var policy = Assert.Single(document.Policies);
+            var relationship = Assert.Single(policy.Relationships);
             var tupleToSubject = Assert.IsType<TupleToSubjectSetRewrite>(relationship.SubjectSetRewrite);
             Assert.Equal("parent", tupleToSubject.TuplesetRelation.ToString());
             Assert.Equal("owner", tupleToSubject.ComputedSubjectSetRelation.ToString());
@@ -111,7 +115,8 @@ public sealed class PdlParserTests
         Assert.True(result.IsRight);
         _ = result.IfRight(document =>
         {
-            var relationship = document.Policies[0].Relationships[0];
+            var policy = Assert.Single(document.Policies);
+            var relationship = Assert.Single(policy.Relationships);
             Assert.Equal("viewer", relationship.Name.ToString());
 
             var exclusion = Assert.IsType<ExclusionRewrite>(relationship.SubjectSetRewrite);
@@ -152,8 +157,8 @@ public sealed class PdlParserTests
 
             var folderPolicy = document.Policies[1];
             Assert.Equal("folder", folderPolicy.Name.ToString());
-            _ = Assert.Single(folderPolicy.Relationships);
-            Assert.Equal("owner", folderPolicy.Relationships[0].Name.ToString());
+            var folderRelationship = Assert.Single(folderPolicy.Relationships);
+            Assert.Equal("owner", folderRelationship.Name.ToString());
         });
     }
 
@@ -174,7 +179,7 @@ public sealed class PdlParserTests
         Assert.True(result.IsRight);
         _ = result.IfRight(document =>
         {
-            var policy = document.Policies[0];
+            var policy = Assert.Single(document.Policies);
             Assert.Equal("doc", policy.Name.ToString());
             Assert.Equal(3, policy.Relationships.Count);
 
