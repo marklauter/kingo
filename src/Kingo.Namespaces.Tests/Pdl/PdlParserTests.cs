@@ -1,7 +1,7 @@
-using Kingo.Polcies.Pdl;
+using Kingo.Policies.Pdl;
 using LanguageExt;
 
-namespace Kingo.Polcies.Tests.Pdl;
+namespace Kingo.Policies.Tests.Pdl;
 
 public sealed class PdlParserTests
 {
