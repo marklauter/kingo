@@ -16,19 +16,25 @@ public static class PdlParser
     // <relationship-name> ::= <identifier>
     private static readonly TokenListParser<PdlToken, string> RelationshipName = Identifier;
 
-    private static readonly TokenListParser<PdlToken, Unit> OptionalNewlines =
-        Token.EqualTo(PdlToken.Newline).Many().Select(_ => unit);
-
-    private static readonly TokenListParser<PdlToken, Unit> RequiredNewline =
+    private static readonly TokenListParser<PdlToken, Unit> Newline =
         Token.EqualTo(PdlToken.Newline).Select(_ => unit);
 
     private static readonly TokenListParser<PdlToken, Unit> CommentLine =
         Token.EqualTo(PdlToken.Comment)
-            .Then(_ => RequiredNewline)
+            .Then(_ => Newline)
             .Select(_ => unit);
 
-    private static readonly TokenListParser<PdlToken, Unit> CommentLines =
-        CommentLine.Many().Select(_ => unit);
+    // A single line that is either a comment or empty.
+    private static readonly TokenListParser<PdlToken, Unit> SkippableLine =
+        CommentLine.Or(Newline);
+
+    // Zero or more skippable lines.
+    private static readonly TokenListParser<PdlToken, Unit> SkippableLines =
+        SkippableLine.Many().Select(_ => unit);
+
+    // One or more skippable lines, to be used as a delimiter.
+    private static readonly TokenListParser<PdlToken, Unit> Delimiter =
+        SkippableLine.AtLeastOnce().Select(_ => unit);
 
     // <policy-identifier> ::= 'pn:' <policy-name>
     private static readonly TokenListParser<PdlToken, string> PolicyIdentifierParser =
@@ -125,7 +131,7 @@ public static class PdlParser
     // <relationship-line> ::= <relationship> <newline> | <comment> <newline>
     private static readonly TokenListParser<PdlToken, Option<Relationship>> RelationshipLine =
         (from r in RelationshipParser.Select(Option<Relationship>.Some)
-         from nl in RequiredNewline
+         from nl in Newline
          select r)
         .Try()
         .Or(CommentLine.Value(Option<Relationship>.None));
@@ -139,20 +145,20 @@ public static class PdlParser
     // <policy> ::= <policy-identifier> <newline> <relationship-list>
     private static readonly TokenListParser<PdlToken, Policy> PolicyParser =
         PolicyIdentifierParser
-            .Then(name => RequiredNewline
+            .Then(name => Newline
                 .IgnoreThen(RelationshipList)
                 .Select(relationships => new Policy(PolicyName.From(name), relationships)));
 
     // <policy-list> ::= <policy> | <policy-list> <comment-lines> <policy>
     private static readonly TokenListParser<PdlToken, Seq<Policy>> PolicyList =
-        PolicyParser.ManyDelimitedBy(CommentLines)
+        PolicyParser.ManyDelimitedBy(Delimiter)
             .Select(policies => toSeq(policies));
 
     // <document> ::= <comment-lines> <policy-list>
     private static readonly TokenListParser<PdlToken, Document> DocumentParser =
-        CommentLines
+        SkippableLines
             .IgnoreThen(PolicyList)
-            .Then(policies => CommentLines.Select(_ => policies))
+            .Then(policies => SkippableLines.Select(_ => policies))
             .Select(policies => new Document(policies));
 
     public static Either<ParseError, Document> Parse(string input) =>
