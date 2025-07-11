@@ -1,6 +1,6 @@
 using LanguageExt;
-using LanguageExt.Common;
 using Superpower;
+using Superpower.Model;
 using Superpower.Parsers;
 using static LanguageExt.Prelude;
 using Unit = LanguageExt.Unit;
@@ -152,23 +152,22 @@ public static class PdlParser
             .Then(policies => CommentLines.Select(_ => policies))
             .Select(policies => new Document(policies));
 
-    public static Either<Error, Document> Parse(string input) =>
-        Try.lift(() =>
-            {
-                var tokensResult = PdlTokenizer.Create().TryTokenize(input);
-                var tokensEither = tokensResult.HasValue
-                    ? Right<Superpower.Model.TokenList<PdlToken>>(tokensResult.Value)
-                    : Left<Error>(Error.New($"Tokenization failed: {tokensResult}"));
+    public static Either<ParseError, Document> Parse(string input) =>
+        TryTokenize(input).Bind(TryParse);
 
-                return tokensEither.Bind(tokens =>
-                {
-                    var parseResult = DocumentParser.AtEnd().TryParse(tokens);
-                    return parseResult.HasValue
-                        ? Right<Document>(parseResult.Value)
-                        : Left<Error>(Error.New(parseResult.ToString()));
-                });
-            })
-            .Match(
-                Succ: result => result,
-                Fail: ex => Error.New($"Unexpected error during parsing: {ex.Message}"));
+    private static Either<ParseError, TokenList<PdlToken>> TryTokenize(string input)
+    {
+        var tokensResult = PdlTokenizer.Create().TryTokenize(input);
+        return tokensResult.HasValue
+            ? tokensResult.Value
+            : ParseError.New(ErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
+    }
+
+    private static Either<ParseError, Document> TryParse(TokenList<PdlToken> input)
+    {
+        var parseResult = DocumentParser.AtEnd().TryParse(input);
+        return parseResult.HasValue
+            ? parseResult.Value
+            : ParseError.New(ErrorCodes.ParseEerror, $"parse error: {parseResult}");
+    }
 }
