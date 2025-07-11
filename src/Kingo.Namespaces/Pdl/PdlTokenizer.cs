@@ -1,5 +1,7 @@
+using LanguageExt;
 using Superpower;
 using Superpower.Display;
+using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
@@ -51,7 +53,17 @@ internal enum PdlToken
 
 internal static class PdlTokenizer
 {
-    public static Tokenizer<PdlToken> Create() =>
+    private static readonly Tokenizer<PdlToken> Tokenizer = Create();
+
+    public static Either<ParseError, TokenList<PdlToken>> TryTokenize(string input)
+    {
+        var tokensResult = Tokenizer.TryTokenize(input);
+        return tokensResult.HasValue
+            ? tokensResult.Value
+            : ParseError.New(ErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
+    }
+
+    private static Tokenizer<PdlToken> Create() =>
         new TokenizerBuilder<PdlToken>()
             .Ignore(Span.WhiteSpace)
 
