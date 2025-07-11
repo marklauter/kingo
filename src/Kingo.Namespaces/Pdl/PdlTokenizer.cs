@@ -46,9 +46,6 @@ internal enum PdlToken
 
     [Token(Category = "delimiter", Example = ",")]
     Comma,
-
-    [Token(Category = "comment", Example = "# This is a comment")]
-    Comment,
 }
 
 internal static class PdlTokenizer
@@ -66,6 +63,7 @@ internal static class PdlTokenizer
     private static Tokenizer<PdlToken> Create() =>
         new TokenizerBuilder<PdlToken>()
             .Ignore(Span.WhiteSpace)
+            .Ignore(Comment.ShellStyle)
 
             .Match(Character.EqualTo('('), PdlToken.LeftParen)
             .Match(Character.EqualTo(')'), PdlToken.RightParen)
@@ -79,7 +77,6 @@ internal static class PdlTokenizer
             .Match(Span.EqualToIgnoreCase("computed").Try().Or(Span.EqualToIgnoreCase("cmp")), PdlToken.ComputedPrefix, true)
             .Match(Span.EqualToIgnoreCase("tuple").Try().Or(Span.EqualToIgnoreCase("tpl")), PdlToken.TuplePrefix, true)
             .Match(Span.EqualToIgnoreCase("direct").Try().Or(Span.EqualToIgnoreCase("dir")), PdlToken.Direct, true)
-            .Match(Comment.ShellStyle, PdlToken.Comment, true)
             .Match(Superpower.Parsers.Identifier.CStyle, PdlToken.Identifier, true)
 
             .Build();
