@@ -17,23 +17,21 @@ Policies are defined with a custom policy description language (PDL).
 
 PDL BNF
 ```bnf
-<document> ::= <comment-lines> <policy-list>
+<document> ::= <skippable-lines> <policy-list> <skippable-lines>
 
-<policy-list> ::= <policy>
-    | <policy-list> <comment-lines> <policy>
+<policy-list> ::= <policy> [ <skippable-lines> <policy> ]*
 
-<comment-lines> ::= 
-    | <comment-lines> <comment> <newline>
+<policy> ::= <policy-identifier> <skippable-lines> <relationship-list>
 
-<policy> ::= <policy-identifier> <newline> <relationship-list>
-
-<relationship-list> ::= <relationship-line>
-    | <relationship-list> <relationship-line>
-
-<relationship-line> ::= <relationship> <newline>
-    | <comment> <newline>
+<relationship-list> ::= <relationship> [ <skippable-lines> <relationship> ]*
 
 <relationship> ::= <relationship-identifier> [ '(' <rewrite-expression> ')' ]
+
+<skippable-lines> ::= [ <comment-line> | <empty-line> ]*
+
+<comment-line> ::= <comment> <newline>
+
+<empty-line> ::= <newline>
 
 // Operator Precedence: !, &, |
 <rewrite-expression>    ::= <union-expr>
