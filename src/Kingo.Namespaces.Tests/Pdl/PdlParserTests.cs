@@ -139,7 +139,8 @@ public sealed class PdlParserTests
                         ),
                         new ComputedSubjectSetRewrite(RelationName.From("banned"))
                     )
-                )
+                ),
+                new Relation(RelationName.From("banned"), DirectRewrite.Default)
             )
         );
 

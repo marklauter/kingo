@@ -71,6 +71,7 @@ rel banned
 policy folder
 rel owner 
 rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
+rel banned
 ```
 
 ## access control subsystem

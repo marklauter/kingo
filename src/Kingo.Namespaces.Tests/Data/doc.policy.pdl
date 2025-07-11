@@ -12,21 +12,22 @@
 policy file
 
 # empty relationship - implicit direct
-rel owner 
+rel owner
 
 # relationship with union rewrite
-rel editor (direct | cmp owner) 
+rel editor (direct | cmp owner)
 
 # relationship with union and exclusion rewrites
-rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned) 
+rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
 
 # relationship with intersection rewrite
-rel auditor (direct & cmp viewer) 
+rel auditor (direct & cmp viewer)
 
 # empty relationship - implicit direct
-rel banned 
+rel banned
 
 # second policy defined within same document
 policy folder
-rel owner 
+rel owner
 rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
+rel banned
