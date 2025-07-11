@@ -36,7 +36,7 @@ public sealed class PdlParserTests
         );
 
         _ = PdlParser.Parse(pdl).Match(
-            Right: policySet => Assert.Equal(expected, policySet),
+            Right: doc => Assert.Equal(expected, doc.PolicySet),
             Left: error => Assert.Fail(error.ToString())
         );
     }
@@ -74,7 +74,7 @@ public sealed class PdlParserTests
         );
 
         _ = PdlParser.Parse(pdl).Match(
-            Right: policySet => Assert.Equal(expected, policySet),
+            Right: doc => Assert.Equal(expected, doc.PolicySet),
             Left: error => Assert.Fail(error.ToString())
         );
     }
@@ -146,7 +146,7 @@ public sealed class PdlParserTests
         var expected = new PolicySet(Seq(filePolicy, folderPolicy));
 
         _ = PdlParser.Parse(pdl).Match(
-            Right: policySet => Assert.Equal(expected, policySet),
+            Right: doc => Assert.Equal(expected, doc.PolicySet),
             Left: error => Assert.Fail(error.ToString())
         );
     }
