@@ -9,6 +9,49 @@ public static class ErrorCodes
     public const int NotFoundError = 2;
     public const int TimeoutError = 3;
     public const int VersionConflictError = 4;
+    public const int SqliteError = 5;
+}
+
+public sealed record SqliteError(
+    string Message,
+    int Code,
+    Option<Error> Inner = default)
+    : Expected(Message, Code, Inner)
+{
+    // mimics Error.New
+    public static SqliteError New(int code, string message, Option<Error> inner = default) =>
+        new(message, code, inner);
+
+    public override ErrorException ToErrorException() => new SqliteErrorException(Message, Code);
+}
+
+public sealed class SqliteErrorException(
+    string message,
+    int code,
+    Option<ErrorException> inner = default)
+    : ExpectedException(message, code, inner)
+{
+}
+
+public sealed record DocumentReaderError(
+    string Message,
+    int Code,
+    Option<Error> Inner = default)
+    : Expected(Message, Code, Inner)
+{
+    // mimics Error.New
+    public static DocumentReaderError New(int code, string message, Option<Error> inner = default) =>
+        new(message, code, inner);
+
+    public override ErrorException ToErrorException() => new DocumentReaderException(Message, Code);
+}
+
+public sealed class DocumentReaderException(
+    string message,
+    int code,
+    Option<ErrorException> inner = default)
+    : ExpectedException(message, code, inner)
+{
 }
 
 public sealed record DocumentWriterError(

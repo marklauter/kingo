@@ -6,15 +6,30 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage;
 
-public sealed class DocumentReader<HK>(Index<HK> index)
+public interface IDocumentReader<HK>
     where HK : IEquatable<HK>, IComparable<HK>
+{
+    Option<Document<HK>> Find(HK hashKey);
+}
+
+public interface IDocumentReader1<HK, RK>
+    where HK : IEquatable<HK>, IComparable<HK>
+    where RK : IEquatable<RK>, IComparable<RK>
+{
+    Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range);
+    Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey);
+    Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate);
+}
+
+public sealed class DocumentReader<HK>(Index<HK> index)
+    : IDocumentReader<HK> where HK : IEquatable<HK>, IComparable<HK>
 {
     public Option<Document<HK>> Find(HK hashKey) =>
         index.Snapshot().Map.Find(hashKey);
 }
 
 public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
-    where HK : IEquatable<HK>, IComparable<HK>
+    : IDocumentReader1<HK, RK> where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
     public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
