@@ -29,7 +29,8 @@ public sealed class DocumentReader<HK>(Index<HK> index)
 }
 
 public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
-    : IDocumentReader1<HK, RK> where HK : IEquatable<HK>, IComparable<HK>
+    : IDocumentReader1<HK, RK>
+    where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
     public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
