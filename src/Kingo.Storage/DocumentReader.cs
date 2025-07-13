@@ -37,37 +37,37 @@ public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
         Find(hashKey).Bind(m => m.Find(rangeKey));
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
-    public Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range) =>
-        Find(hashKey)
-        .Map(m => range switch
-        {
-            Since<RK> since => FindRange(m, since),
-            Until<RK> until => FindRange(m, until),
-            Between<RK> span => FindRange(m, span),
-            Unbound u => m.Values,
-            _ => throw new NotSupportedException("unknown range type")
-        })
-        .IfNone(Iterable<Document<HK, RK>>.Empty);
-
-    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     public Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
         Find(hashKey)
         .Map(m => m.Filter(document => predicate(document)).Values)
         .IfNone(Iterable<Document<HK, RK>>.Empty);
 
+    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
+    public Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range) =>
+        Find(hashKey)
+        .Map(m => range switch
+        {
+            LowerBound<RK> lower => LowerBound(m, lower.Key),
+            UpperBound<RK> upper => UpperBound(m, upper.Key),
+            Between<RK> span => Between(m, span),
+            Unbound u => m.Values,
+            _ => throw new NotSupportedException("unknown range type")
+        })
+        .IfNone(Iterable<Document<HK, RK>>.Empty);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Since<RK> since) =>
-        map.Filter(document => document.RangeKey.CompareTo(since.FromKey) >= 0)
+    private static Iterable<Document<HK, RK>> LowerBound(Map<RK, Document<HK, RK>> map, RK key) =>
+        map.Filter(document => document.RangeKey.CompareTo(key) >= 0)
         .Values;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Until<RK> until) =>
-        map.Filter(document => document.RangeKey.CompareTo(until.ToKey) <= 0)
+    private static Iterable<Document<HK, RK>> UpperBound(Map<RK, Document<HK, RK>> map, RK key) =>
+        map.Filter(document => document.RangeKey.CompareTo(key) <= 0)
         .Values;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Iterable<Document<HK, RK>> FindRange(Map<RK, Document<HK, RK>> map, Between<RK> span) =>
-        map.FindRange(span.FromKey, span.ToKey);
+    private static Iterable<Document<HK, RK>> Between(Map<RK, Document<HK, RK>> map, Between<RK> span) =>
+        map.FindRange(span.LowerBound, span.UpperBound);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Map<HK, Map<RK, Document<HK, RK>>> Map() => index.Snapshot().Map;
