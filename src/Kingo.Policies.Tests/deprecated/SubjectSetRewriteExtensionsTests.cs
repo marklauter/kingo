@@ -103,7 +103,7 @@
 //    }
 
 //    [Fact]
-//    public void TransformRewrite_NestedUnionRewrite_TransformsRecursively()
+//    public void TransformRewrite_NestedUnionRewrite_TransformsRepeatUntilsively()
 //    {
 //        var nestedUnion = new Serializable.UnionRewrite(new List<Serializable.SubjectSetRewrite>
 //        {
@@ -126,7 +126,7 @@
 //    }
 
 //    [Fact]
-//    public void TransformRewrite_NestedIntersectionRewrite_TransformsRecursively()
+//    public void TransformRewrite_NestedIntersectionRewrite_TransformsRepeatUntilsively()
 //    {
 //        var nestedIntersection = new Serializable.IntersectionRewrite(new List<Serializable.SubjectSetRewrite>
 //        {
@@ -149,7 +149,7 @@
 //    }
 
 //    [Fact]
-//    public void TransformRewrite_NestedExclusionRewrite_TransformsRecursively()
+//    public void TransformRewrite_NestedExclusionRewrite_TransformsRepeatUntilsively()
 //    {
 //        var nestedInclude = new Serializable.ComputedSubjectSetRewrite(Relationship.From("nestedInclude"));
 //        var nestedExclude = new Serializable.This();

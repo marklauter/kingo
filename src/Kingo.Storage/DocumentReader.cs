@@ -12,7 +12,7 @@ public interface IDocumentReader<HK>
     Option<Document<HK>> Find(HK hashKey);
 }
 
-public interface IDocumentReader1<HK, RK>
+public interface IDocumentReader<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
@@ -29,7 +29,7 @@ public sealed class DocumentReader<HK>(Index<HK> index)
 }
 
 public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
-    : IDocumentReader1<HK, RK>
+    : IDocumentReader<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {

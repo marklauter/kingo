@@ -14,17 +14,17 @@ public sealed class Sequence<N>(
 
     public Either<DocumentWriterError, N> Next(Key name, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, N> Recur(CancellationToken ct) =>
+        Either<DocumentWriterError, N> RepeatUntil(CancellationToken ct) =>
             ct.IsCancellationRequested
             ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout updating sequence {name}")
             : Write(Read(name), ct)
             .Match(
                 Right: n => n,
                 Left: error => error.Code == ErrorCodes.VersionConflictError
-                    ? Recur(ct)
+                    ? RepeatUntil(ct)
                     : error);
 
-        return Recur(cancellationToken);
+        return RepeatUntil(cancellationToken);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

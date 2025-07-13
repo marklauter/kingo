@@ -11,13 +11,22 @@ public interface IDocumentWriter<HK>
     Either<DocumentWriterError, Unit> Update(Document<HK> document, CancellationToken cancellationToken);
 }
 
+public interface IDocumentWriter<HK, RK>
+    where HK : IEquatable<HK>, IComparable<HK>
+    where RK : IEquatable<RK>, IComparable<RK>
+{
+    Either<DocumentWriterError, Unit> Insert(Document<HK, RK> document, CancellationToken cancellationToken);
+    Either<DocumentWriterError, Unit> InsertOrUpdate(Document<HK, RK> document, CancellationToken cancellationToken);
+    Either<DocumentWriterError, Unit> Update(Document<HK, RK> document, CancellationToken cancellationToken);
+}
+
 public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly DocumentReader<HK> reader = new(index);
 
     public Either<DocumentWriterError, Unit> Insert(Document<HK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> Recur(Document<HK> doc, CancellationToken ct) =>
+        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}")
                 : Try
@@ -25,15 +34,15 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
                 .Match(
                     Succ: success => success
                         ? Prelude.unit
-                        : Recur(doc, ct),
+                        : RepeatUntil(doc, ct),
                     Fail: e => DocumentWriterError.New(ErrorCodes.DuplicateKeyError, $"duplicate key {doc.HashKey}", e));
 
-        return Recur(document, cancellationToken);
+        return RepeatUntil(document, cancellationToken);
     }
 
     public Either<DocumentWriterError, Unit> InsertOrUpdate(Document<HK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> Recur(Document<HK> doc, CancellationToken ct) =>
+        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}")
                 : reader
@@ -42,20 +51,20 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
                         Some: original => DocumentWriter<HK>.CheckVersion(original, doc)
                             .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
                                 ? Prelude.unit
-                                : Recur(doc, ct)),
+                                : RepeatUntil(doc, ct)),
                         None: () =>
                             Try
                             .lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                             .Match(
-                                Succ: success => success ? Prelude.unit : Recur(doc, ct),
-                                Fail: _ => Recur(doc, ct)));
+                                Succ: success => success ? Prelude.unit : RepeatUntil(doc, ct),
+                                Fail: _ => RepeatUntil(doc, ct)));
 
-        return Recur(document, cancellationToken);
+        return RepeatUntil(document, cancellationToken);
     }
 
     public Either<DocumentWriterError, Unit> Update(Document<HK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> Recur(Document<HK> doc, CancellationToken ct) =>
+        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}")
                 : reader
@@ -64,9 +73,9 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
                     .Bind(original => CheckVersion(original, doc))
                     .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
                         ? Prelude.unit
-                        : Recur(doc, ct));
+                        : RepeatUntil(doc, ct));
 
-        return Recur(document, cancellationToken);
+        return RepeatUntil(document, cancellationToken);
     }
 
     private static Either<DocumentWriterError, Unit> CheckVersion(Document<HK> original, Document<HK> replacement) =>
@@ -91,38 +100,29 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
         index.Exchange(snapshot, operation(snapshot.Map, document));
 }
 
-public interface IDocumentWriter1<HK, RK>
-    where HK : IEquatable<HK>, IComparable<HK>
-    where RK : IEquatable<RK>, IComparable<RK>
-{
-    Either<DocumentWriterError, Unit> Insert(Document<HK, RK> document, CancellationToken cancellationToken);
-    Either<DocumentWriterError, Unit> InsertOrUpdate(Document<HK, RK> document, CancellationToken cancellationToken);
-    Either<DocumentWriterError, Unit> Update(Document<HK, RK> document, CancellationToken cancellationToken);
-}
-
-public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWriter1<HK, RK> where HK : IEquatable<HK>, IComparable<HK>
+public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWriter<HK, RK> where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
     private readonly DocumentReader<HK, RK> reader = new(index);
 
     public Either<DocumentWriterError, Unit> Insert(Document<HK, RK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> Recur(Document<HK, RK> doc, CancellationToken ct) =>
+        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}/{doc.RangeKey}")
                 : Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                 .Match(
                     Succ: success => success
                         ? Prelude.unit
-                        : Recur(doc, ct),
+                        : RepeatUntil(doc, ct),
                     Fail: e => DocumentWriterError.New(ErrorCodes.DuplicateKeyError, $"duplicate key {doc.HashKey}/{doc.RangeKey}", e));
 
-        return Recur(document, cancellationToken);
+        return RepeatUntil(document, cancellationToken);
     }
 
     public Either<DocumentWriterError, Unit> InsertOrUpdate(Document<HK, RK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> Recur(Document<HK, RK> doc, CancellationToken ct) =>
+        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}/{doc.RangeKey}")
                 : reader
@@ -131,18 +131,18 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWrite
                         Some: original => DocumentWriter<HK, RK>.CheckVersion(original, doc)
                             .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
                                 ? Prelude.unit
-                                : Recur(doc, ct)),
+                                : RepeatUntil(doc, ct)),
                         None: () => Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                             .Match(
-                                Succ: success => success ? Prelude.unit : Recur(doc, ct),
-                                Fail: _ => Recur(doc, ct)));
+                                Succ: success => success ? Prelude.unit : RepeatUntil(doc, ct),
+                                Fail: _ => RepeatUntil(doc, ct)));
 
-        return Recur(document, cancellationToken);
+        return RepeatUntil(document, cancellationToken);
     }
 
     public Either<DocumentWriterError, Unit> Update(Document<HK, RK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> Recur(Document<HK, RK> doc, CancellationToken ct) =>
+        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}/{doc.RangeKey}")
                 : reader
@@ -151,9 +151,9 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWrite
                     .Bind(original => CheckVersion(original, doc))
                     .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
                         ? Prelude.unit
-                        : Recur(doc, ct));
+                        : RepeatUntil(doc, ct));
 
-        return Recur(document, cancellationToken);
+        return RepeatUntil(document, cancellationToken);
     }
 
     private static Either<DocumentWriterError, Unit> CheckVersion(Document<HK, RK> original, Document<HK, RK> replacement) =>
