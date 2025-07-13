@@ -54,7 +54,7 @@ public static class PdlSerializer
         var content = rewrite switch
         {
             DirectRewrite => "direct",
-            ComputedSubjectSetRewrite c => $"computed {c.Relationship}",
+            ComputedSubjectSetRewrite c => $"computed {c.Relation}",
             TupleToSubjectSetRewrite t => $"tuple ({t.TuplesetRelation}, {t.ComputedSubjectSetRelation})",
             UnionRewrite u => string.Join(" | ", u.Children.Map(child => Serialize(child, IsComplex(child)))),
             IntersectionRewrite i => string.Join(" & ", i.Children.Map(child => Serialize(child, IsComplex(child)))),
