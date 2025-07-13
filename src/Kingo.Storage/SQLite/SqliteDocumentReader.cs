@@ -6,7 +6,7 @@ using Microsoft.Data.Sqlite;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.SQLite;
+namespace Kingo.Storage.Sqlite;
 
 internal record DocumentHeader<HK>(long Id, HK HashKey, Revision Version)
     where HK : IEquatable<HK>, IComparable<HK>;
