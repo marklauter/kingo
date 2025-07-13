@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Kingo.Storage.Clocks;
 using Kingo.Storage.Keys;
 using LanguageExt;
 using Microsoft.Data.Sqlite;
@@ -7,9 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Sqlite;
-
-internal record DocumentHeader<HK>(long Id, HK HashKey, Revision Version)
-    where HK : IEquatable<HK>, IComparable<HK>;
 
 public static class SQLiteDocumentReader
 {
@@ -46,7 +42,7 @@ public sealed class SqliteDocumentReader<HK>(
 {
     private readonly record struct HkParam(HK HashKey);
     private readonly string hkQuery =
-        $"select a.haskey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.haskey = @HashKey";
+        $"select a.hashkey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<Document<HK>> Find(HK hashKey) =>
@@ -66,7 +62,7 @@ public sealed class SqliteDocumentReader<HK, RK>(
 {
     private readonly record struct HkRkParam(HK HashKey, RK RangeKey);
     private readonly string hkrkQuery =
-        $"select a.haskey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.haskey = @HashKey and a.rangekey = @RangeKey";
+        $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
@@ -74,7 +70,7 @@ public sealed class SqliteDocumentReader<HK, RK>(
 
     private readonly record struct HkParam(HK HashKey);
     private readonly string hkQuery =
-        $"select a.haskey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.haskey = @HashKey";
+        $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
