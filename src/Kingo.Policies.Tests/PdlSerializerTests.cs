@@ -1,4 +1,4 @@
-namespace Kingo.Policies.Tests.Pdl;
+namespace Kingo.Policies.Tests;
 
 public class PdlSerializerTests
 {

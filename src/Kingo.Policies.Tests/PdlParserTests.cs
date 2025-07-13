@@ -1,6 +1,6 @@
 using static LanguageExt.Prelude;
 
-namespace Kingo.Policies.Tests.Pdl;
+namespace Kingo.Policies.Tests;
 
 public sealed class PdlParserTests
 {
