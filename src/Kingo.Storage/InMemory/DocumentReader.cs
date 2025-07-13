@@ -1,25 +1,10 @@
-﻿using Kingo.Storage.Indexing;
+﻿using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage;
-
-public interface IDocumentReader<HK>
-    where HK : IEquatable<HK>, IComparable<HK>
-{
-    Option<Document<HK>> Find(HK hashKey);
-}
-
-public interface IDocumentReader<HK, RK>
-    where HK : IEquatable<HK>, IComparable<HK>
-    where RK : IEquatable<RK>, IComparable<RK>
-{
-    Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range);
-    Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey);
-    Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate);
-}
+namespace Kingo.Storage.InMemory;
 
 public sealed class DocumentReader<HK>(Index<HK> index)
     : IDocumentReader<HK> where HK : IEquatable<HK>, IComparable<HK>

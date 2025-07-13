@@ -1,4 +1,5 @@
-using Kingo.Storage.Indexing;
+using Kingo.Storage.InMemory;
+using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
@@ -9,7 +10,7 @@ public sealed class DocumentWriterHKTests
     private static Map<Key, object> TestTuple(string key) =>
         Document.ConsData(key, key);
 
-    private readonly Index<Key> index = Indexing.Index.Empty<Key>();
+    private readonly Index<Key> index = InMemory.Indexing.Index.Empty<Key>();
 
     private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
         (new(index), new(index));

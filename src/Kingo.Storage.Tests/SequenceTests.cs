@@ -1,12 +1,12 @@
 using Kingo.Storage.Clocks;
-using Kingo.Storage.Indexing;
+using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 
 namespace Kingo.Storage.Tests;
 
 public sealed class SequenceTests
 {
-    private readonly Index<Key> index = Indexing.Index.Empty<Key>();
+    private readonly Index<Key> index = InMemory.Indexing.Index.Empty<Key>();
 
     private Sequence<int> Sequence() =>
         new(new(index), new(index));

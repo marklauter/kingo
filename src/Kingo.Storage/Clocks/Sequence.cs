@@ -1,4 +1,5 @@
-﻿using Kingo.Storage.Keys;
+﻿using Kingo.Storage.InMemory;
+using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Numerics;
 using System.Runtime.CompilerServices;

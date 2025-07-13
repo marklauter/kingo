@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.Indexing;
+namespace Kingo.Storage.InMemory.Indexing;
 
 public static class Index
 {
