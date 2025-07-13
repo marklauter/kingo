@@ -10,6 +10,7 @@ public static class ErrorCodes
     public const int TimeoutError = 3;
     public const int VersionConflictError = 4;
     public const int SqliteError = 5;
+    public const int UnknownError = 6;
 }
 
 public sealed record SqliteError(
