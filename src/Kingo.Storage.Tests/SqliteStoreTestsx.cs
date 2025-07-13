@@ -1,6 +1,6 @@
 namespace Kingo.Storage.Tests;
 
-public sealed class SqliteStoreTests
+public sealed class SqliteStoreTestsx
 {
     [Fact]
     public void Test()
