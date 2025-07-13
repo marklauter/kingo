@@ -1,11 +1,7 @@
 ﻿using LanguageExt;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Policies;
-
-[SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "it's a stupid rule")]
-public interface PdlNode;
 
 public sealed record PdlDocument(
     string Pdl,
@@ -13,16 +9,14 @@ public sealed record PdlDocument(
 
 // <policy-set>
 public sealed record PolicySet(
-    Seq<Policy> Policies)
-    : PdlNode;
+    Seq<Policy> Policies);
 
 // <policy>
 public sealed record Policy(
     // <policy-identifier>
     PolicyName Name,
     // <relation-set>
-    Seq<Relation> Relations)
-    : PdlNode;
+    Seq<Relation> Relations);
 
 // <relation>
 public sealed record Relation(
@@ -30,15 +24,13 @@ public sealed record Relation(
     RelationName Name,
     // <rewrite>
     SubjectSetRewrite SubjectSetRewrite)
-    : PdlNode
 {
     public Relation(RelationName name)
         : this(name, DirectRewrite.Default) { }
 };
 
 // <rewrite>
-public abstract record SubjectSetRewrite
-    : PdlNode;
+public abstract record SubjectSetRewrite;
 
 // <direct>
 public sealed record DirectRewrite
@@ -49,7 +41,7 @@ public sealed record DirectRewrite
 
 // <computed-subjectset-rewrite>
 public sealed record ComputedSubjectSetRewrite(
-    RelationName Relationship)
+    RelationName Relation)
     : SubjectSetRewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
