@@ -29,7 +29,7 @@ public static class SQLiteDocumentReader
     private static Either<SqliteError, SqliteConnection> Open(SqliteConnection connection) =>
         Try.lift(connection.Open)
         .Match<Either<SqliteError, SqliteConnection>>(
-            Fail: e => SqliteError.New(ErrorCodes.SqliteError, "failed to connect", e),
+            Fail: e => SqliteError.New(StorageErrorCodes.SqliteError, "failed to connect", e),
             Succ: _ => connection);
 }
 
