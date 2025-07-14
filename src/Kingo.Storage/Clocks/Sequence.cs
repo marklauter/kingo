@@ -17,11 +17,11 @@ public sealed class Sequence<N>(
     {
         Either<DocumentWriterError, N> RepeatUntil(CancellationToken ct) =>
             ct.IsCancellationRequested
-            ? DocumentWriterError.New(ErrorCodes.TimeoutError, $"timeout updating sequence {name}")
+            ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout updating sequence {name}")
             : Write(Read(name), ct)
             .Match(
                 Right: n => n,
-                Left: error => error.Code == ErrorCodes.VersionConflictError
+                Left: error => error.Code == StorageErrorCodes.VersionConflictError
                     ? RepeatUntil(ct)
                     : error);
 
