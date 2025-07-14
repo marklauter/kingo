@@ -3,7 +3,7 @@ using Kingo.Storage.InMemory;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests;
+namespace Kingo.Storage.Tests.Clocks;
 
 public sealed class SequenceTests
 {

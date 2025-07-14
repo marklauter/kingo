@@ -1,4 +1,4 @@
-namespace Kingo.Storage.Tests;
+namespace Kingo.Storage.Tests.Sqlite;
 
 public sealed class SqliteStoreTests
 {

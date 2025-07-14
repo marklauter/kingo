@@ -2,7 +2,7 @@ using Kingo.Storage.Clocks;
 using System.Globalization;
 using System.Text.Json;
 
-namespace Kingo.Storage.Tests;
+namespace Kingo.Storage.Tests.Clocks;
 
 public sealed class RevisionTests
 {
@@ -14,7 +14,7 @@ public sealed class RevisionTests
     {
         const int value = 123;
         var clock = Revision.From(value);
-        Assert.Equal<Clocks.Revision>(value, clock);
+        Assert.Equal<Revision>(value, clock);
     }
 
     [Theory]
@@ -26,7 +26,7 @@ public sealed class RevisionTests
     public void From_String_ReturnsRevision(string? value, int expected)
     {
         var clock = Revision.From(value!);
-        Assert.Equal<Clocks.Revision>(expected, clock);
+        Assert.Equal<Revision>(expected, clock);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class RevisionTests
     {
         var clock = Revision.From(123);
         var ticked = clock.Tick();
-        Assert.Equal<Clocks.Revision>(124, ticked);
+        Assert.Equal<Revision>(124, ticked);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public sealed class RevisionTests
     public void ImplicitConversion_ToRevision_FromString_ReturnsRevision()
     {
         const string value = "123";
-        Clocks.Revision clock = value;
+        Revision clock = value;
         Assert.Equal(Revision.From(123), clock);
     }
 
@@ -132,7 +132,7 @@ public sealed class RevisionTests
     public void ImplicitConversion_ToRevision_FromULong_ReturnsRevision()
     {
         const int value = 123;
-        Clocks.Revision clock = value;
+        Revision clock = value;
         Assert.Equal(Revision.From(value), clock);
     }
 
@@ -148,7 +148,7 @@ public sealed class RevisionTests
     public void JsonDeserialization_DeserializesFromString()
     {
         var json = "\"123\"";
-        _ = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Clocks.Revision>(json));
+        _ = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Revision>(json));
     }
 
     [Fact]

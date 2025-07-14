@@ -11,7 +11,7 @@ public sealed class DocumentReaderHKRKTests
     private static readonly string SomeValue = "SomeValue";
     private static readonly Map<Key, object> Data = Document.ConsData(SomeKey, SomeValue);
 
-    private readonly Index<Key, Key> index = InMemory.Indexing.Index.Empty<Key, Key>();
+    private readonly Index<Key, Key> index = Storage.InMemory.Indexing.Index.Empty<Key, Key>();
 
     private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));

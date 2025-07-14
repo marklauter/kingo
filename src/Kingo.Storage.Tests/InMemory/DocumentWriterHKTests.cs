@@ -1,3 +1,4 @@
+using Kingo.Storage.Clocks;
 using Kingo.Storage.InMemory;
 using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
@@ -10,7 +11,7 @@ public sealed class DocumentWriterHKTests
     private static Map<Key, object> TestTuple(string key) =>
         Document.ConsData(key, key);
 
-    private readonly Index<Key> index = InMemory.Indexing.Index.Empty<Key>();
+    private readonly Index<Key> index = Storage.InMemory.Indexing.Index.Empty<Key>();
 
     private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
         (new(index), new(index));
@@ -124,7 +125,7 @@ public sealed class DocumentWriterHKTests
 
         var read = reader.Find(Key.From("h")).IfNone(Fail<Document<Key>>);
         Assert.True(read.Data.ContainsKey("foo"));
-        Assert.Equal(Clocks.Revision.Zero, read.Version);
+        Assert.Equal(Revision.Zero, read.Version);
     }
 
     [Fact]
