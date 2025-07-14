@@ -34,7 +34,7 @@ public sealed class DocumentWriterHKTests
         Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
         var result = writer.Insert(document, CancellationToken.None);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.DuplicateKeyError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.DuplicateKeyError, error.Code));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class DocumentWriterHKTests
         cts.Cancel();
         var result = writer.Insert(document, cts.Token);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.TimeoutError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class DocumentWriterHKTests
         var document = Document.Cons(Key.From("h"), TestTuple("foo"));
         var result = writer.Update(document, CancellationToken.None);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.NotFoundError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.NotFoundError, error.Code));
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public sealed class DocumentWriterHKTests
 
         var result = writer.Update(updated, CancellationToken.None);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.VersionConflictError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.VersionConflictError, error.Code));
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class DocumentWriterHKTests
 
         var result = writer.Update(read, cts.Token);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.TimeoutError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public sealed class DocumentWriterHKTests
 
         var result = writer.InsertOrUpdate(updated, CancellationToken.None);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.VersionConflictError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.VersionConflictError, error.Code));
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public sealed class DocumentWriterHKTests
         cts.Cancel();
         var result = writer.InsertOrUpdate(document, cts.Token);
         Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(ErrorCodes.TimeoutError, error.Code));
+        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
     }
 
     private static T Fail<T>()

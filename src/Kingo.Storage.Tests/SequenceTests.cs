@@ -43,7 +43,7 @@ public sealed class SequenceTests
 
         var result = sequence.Next(seqName, tokenSource.Token)
             .Match(
-                Left: error => Assert.Equal(ErrorCodes.TimeoutError, error.Code),
+                Left: error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code),
                 Right: _ => Assert.Fail("Expected an error but got a success value."));
     }
 }
