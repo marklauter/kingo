@@ -3,14 +3,14 @@ using LanguageExt.Common;
 
 namespace Kingo.Storage;
 
-public static class ErrorCodes
+public static class StorageErrorCodes
 {
+    public const int Error = 0;
     public const int DuplicateKeyError = 1;
     public const int NotFoundError = 2;
     public const int TimeoutError = 3;
     public const int VersionConflictError = 4;
     public const int SqliteError = 5;
-    public const int UnknownError = 6;
 }
 
 public sealed record SqliteError(
