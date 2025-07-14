@@ -2,7 +2,7 @@ using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests;
+namespace Kingo.Storage.Tests.InMemory;
 
 public sealed class DocumentIndexTests
 {
