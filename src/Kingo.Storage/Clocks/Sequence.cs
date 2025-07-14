@@ -1,5 +1,4 @@
-﻿using Kingo.Storage.InMemory;
-using Kingo.Storage.Keys;
+﻿using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -7,8 +6,8 @@ using System.Runtime.CompilerServices;
 namespace Kingo.Storage.Clocks;
 
 public sealed class Sequence<N>(
-    DocumentReader<Key> reader,
-    DocumentWriter<Key> writer)
+    IDocumentReader<Key> reader,
+    IDocumentWriter<Key> writer)
     where N : INumber<N>
 {
     private static readonly Key ValueKey = Key.From("v");

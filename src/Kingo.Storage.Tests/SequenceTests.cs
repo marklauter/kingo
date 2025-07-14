@@ -1,5 +1,5 @@
 using Kingo.Storage.Clocks;
-using Kingo.Storage.InMemory.Indexing;
+using Kingo.Storage.InMemory;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
@@ -7,10 +7,10 @@ namespace Kingo.Storage.Tests;
 
 public sealed class SequenceTests
 {
-    private readonly Index<Key> index = InMemory.Indexing.Index.Empty<Key>();
+    private readonly Storage.InMemory.Indexing.Index<Key> index = Storage.InMemory.Indexing.Index.Empty<Key>();
 
     private Sequence<int> Sequence() =>
-        new(new(index), new(index));
+        new(new DocumentReader<Key>(index), new DocumentWriter<Key>(index));
 
     private readonly Key seqName = Key.From("my_seq");
 
