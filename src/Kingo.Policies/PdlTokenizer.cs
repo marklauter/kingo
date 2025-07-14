@@ -50,11 +50,11 @@ internal enum PdlToken
 
 internal static class PdlTokenizer
 {
-    public static Either<ParseError, TokenList<PdlToken>> TryTokenize(string input)
+    public static Eff<TokenList<PdlToken>> Tokenize(string input)
     {
         var tokensResult = Tokenizer.TryTokenize(input);
         return tokensResult.HasValue
-            ? tokensResult.Value
+            ? Prelude.Pure(tokensResult.Value)
             : ParseError.New(ParseErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
     }
 

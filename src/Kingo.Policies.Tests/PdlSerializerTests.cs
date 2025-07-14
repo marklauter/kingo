@@ -1,3 +1,5 @@
+using LanguageExt;
+
 namespace Kingo.Policies.Tests;
 
 public class PdlSerializerTests
@@ -7,14 +9,13 @@ public class PdlSerializerTests
     {
         var originalPdl = File.ReadAllText("Data/doc.policy.pdl");
 
-        _ = PdlParser.Parse(originalPdl)
-            .Match(
-            Right: doc => _ = PdlParser.Parse(PdlSerializer.Serialize(doc.PolicySet))
+        _ = PdlParser.Parse(originalPdl).Run().Match(
+            Succ: doc => _ = PdlParser.Parse(PdlSerializer.Serialize(doc.PolicySet)).Run()
                 .Match(
-                    Right: reparsedDoc => Assert.Equal(doc.PolicySet, reparsedDoc.PolicySet),
-                    Left: error => Assert.Fail($"Reparse failed: {error}")
+                    Succ: reparsedDoc => Assert.Equal(doc.PolicySet, reparsedDoc.PolicySet),
+                    Fail: error => Assert.Fail($"Reparse failed: {error}")
                 ),
-            Left: error => Assert.Fail($"Initial parse failed: {error}")
+            Fail: error => Assert.Fail($"Initial parse failed: {error}")
         );
     }
 }

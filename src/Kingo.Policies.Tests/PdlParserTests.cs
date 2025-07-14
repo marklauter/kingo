@@ -1,3 +1,4 @@
+using LanguageExt;
 using static LanguageExt.Prelude;
 
 namespace Kingo.Policies.Tests;
@@ -14,9 +15,9 @@ public sealed class PdlParserTests
     [InlineData("policy file rel owner rel editor (dir | computed owner)")]
     [InlineData("policy file\nrel owner\nrel\neditor(dir | cmp owner)")]
     public void Parse_SimpleValidPdl_ReturnsDocument(string pdl) =>
-        PdlParser.Parse(pdl).Match(
-            Right: _ => { },
-            Left: error => Assert.Fail($"Parse failed: {error}")
+        PdlParser.Parse(pdl).Run().Match(
+            Succ: _ => { },
+            Fail: error => Assert.Fail($"Parse failed: {error}")
         );
 
     [Fact]
@@ -34,9 +35,9 @@ public sealed class PdlParserTests
             )
         );
 
-        _ = PdlParser.Parse(pdl).Match(
-            Right: doc => Assert.Equal(expected, doc.PolicySet),
-            Left: error => Assert.Fail(error.ToString())
+        _ = PdlParser.Parse(pdl).Run().Match(
+            Succ: doc => Assert.Equal(expected, doc.PolicySet),
+            Fail: error => Assert.Fail(error.ToString())
         );
     }
 
@@ -72,9 +73,9 @@ public sealed class PdlParserTests
             )
         );
 
-        _ = PdlParser.Parse(pdl).Match(
-            Right: doc => Assert.Equal(expected, doc.PolicySet),
-            Left: error => Assert.Fail(error.ToString())
+        _ = PdlParser.Parse(pdl).Run().Match(
+            Succ: doc => Assert.Equal(expected, doc.PolicySet),
+            Fail: error => Assert.Fail(error.ToString())
         );
     }
 
@@ -145,13 +146,13 @@ public sealed class PdlParserTests
 
         var expected = new PolicySet(Seq(filePolicy, folderPolicy));
 
-        _ = PdlParser.Parse(pdl).Match(
-            Right: doc =>
+        _ = PdlParser.Parse(pdl).Run().Match(
+            Succ: doc =>
             {
                 Assert.Equal(expected, doc.PolicySet);
                 Assert.Equal(pdl, doc.Pdl);
             },
-            Left: error => Assert.Fail(error.ToString())
+            Fail: error => Assert.Fail(error.ToString())
         );
     }
 }

@@ -35,17 +35,17 @@ namespace Kingo.Policies;
 /// </summary>
 public static class PdlParser
 {
-    public static Either<ParseError, PdlDocument> Parse(string pdl) =>
+    public static Eff<PdlDocument> Parse(string pdl) =>
         PdlTokenizer
-        .TryTokenize(pdl)
-        .Bind(TryParse)
+        .Tokenize(pdl)
+        .Bind(Parse)
         .Map(ps => new PdlDocument(pdl, ps));
 
-    private static Either<ParseError, PolicySet> TryParse(TokenList<PdlToken> input)
+    private static Eff<PolicySet> Parse(TokenList<PdlToken> input)
     {
         var parseResult = PolicySet.AtEnd().TryParse(input);
         return parseResult.HasValue
-            ? parseResult.Value
+            ? Prelude.Pure(parseResult.Value)
             : ParseError.New(ParseErrorCodes.ParseEerror, $"parse error: {parseResult}");
     }
 
