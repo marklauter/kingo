@@ -13,17 +13,16 @@ public sealed class Sequence<N>(
 {
     private static readonly Key ValueKey = Key.From("v");
 
-    public Either<DocumentWriterError, N> Next(Key name, CancellationToken cancellationToken)
+    public Eff<N> Next(Key name, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, N> RepeatUntil(CancellationToken ct) =>
+        Eff<N> RepeatUntil(CancellationToken ct) =>
             ct.IsCancellationRequested
             ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout updating sequence {name}")
             : Write(Read(name), ct)
-            .Match(
-                Right: n => n,
-                Left: error => error.Code == StorageErrorCodes.VersionConflictError
-                    ? RepeatUntil(ct)
-                    : error);
+            .Map(n => n)
+            .IfFailEff(error => error.Code == StorageErrorCodes.VersionConflictError
+                ? RepeatUntil(ct)
+                : error);
 
         return RepeatUntil(cancellationToken);
     }
@@ -39,7 +38,7 @@ public sealed class Sequence<N>(
             None: () => (Document.Cons(ToHashKey(name), Document.ConsData(ValueKey, N.One)), N.One));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Either<DocumentWriterError, N> Write((Document<Key> d, N n) dn, CancellationToken cancellationToken) =>
+    private Eff<N> Write((Document<Key> d, N n) dn, CancellationToken cancellationToken) =>
         writer.InsertOrUpdate(dn.d with { Data = Document.ConsData(ValueKey, dn.n) }, cancellationToken)
         .Map(_ => dn.n);
 }

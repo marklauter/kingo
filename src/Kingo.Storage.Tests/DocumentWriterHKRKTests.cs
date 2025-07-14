@@ -22,7 +22,7 @@ public sealed class DocumentWriterHKRKTests
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
         var result = writer.Insert(document, CancellationToken.None);
-        Assert.True(result.IsRight);
+        Assert.True(result.Run().IsSucc);
     }
 
     [Fact]
@@ -31,10 +31,10 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
-        var result = writer.Insert(document, CancellationToken.None);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.DuplicateKeyError, error.Code));
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
+        var result = writer.Insert(document, CancellationToken.None).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.DuplicateKeyError, error.Code));
     }
 
     [Fact]
@@ -45,9 +45,9 @@ public sealed class DocumentWriterHKRKTests
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        var result = writer.Insert(document, cts.Token);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        var result = writer.Insert(document, cts.Token).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
     }
 
     [Fact]
@@ -56,13 +56,13 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
 
         var read = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         var updated = read with { Data = TestTuple("bar") };
 
-        var result = writer.Update(updated, CancellationToken.None);
-        Assert.True(result.IsRight);
+        var result = writer.Update(updated, CancellationToken.None).Run();
+        Assert.True(result.IsSucc);
 
         var reread = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         Assert.True(reread.Data.ContainsKey("bar"));
@@ -75,9 +75,9 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        var result = writer.Update(document, CancellationToken.None);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.NotFoundError, error.Code));
+        var result = writer.Update(document, CancellationToken.None).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.NotFoundError, error.Code));
     }
 
     [Fact]
@@ -86,14 +86,14 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
 
         var read = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         var updated = read with { Version = read.Version.Tick(), Data = TestTuple("bar") };
 
-        var result = writer.Update(updated, CancellationToken.None);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.VersionConflictError, error.Code));
+        var result = writer.Update(updated, CancellationToken.None).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.VersionConflictError, error.Code));
     }
 
     [Fact]
@@ -102,15 +102,15 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
         var read = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var result = writer.Update(read, cts.Token);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        var result = writer.Update(read, cts.Token).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
     }
 
     [Fact]
@@ -119,8 +119,8 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        var result = writer.InsertOrUpdate(document, CancellationToken.None);
-        Assert.True(result.IsRight);
+        var result = writer.InsertOrUpdate(document, CancellationToken.None).Run();
+        Assert.True(result.IsSucc);
 
         var read = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         Assert.True(read.Data.ContainsKey("foo"));
@@ -133,13 +133,13 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
 
         var read = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         var updated = read with { Data = TestTuple("bar") };
 
-        var result = writer.InsertOrUpdate(updated, CancellationToken.None);
-        Assert.True(result.IsRight);
+        var result = writer.InsertOrUpdate(updated, CancellationToken.None).Run();
+        Assert.True(result.IsSucc);
 
         var reread = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         Assert.True(reread.Data.ContainsKey("bar"));
@@ -152,14 +152,14 @@ public sealed class DocumentWriterHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
 
         var read = reader.Find("h", "r").IfNone(Fail<Document<Key, Key>>);
         var updated = read with { Version = read.Version.Tick(), Data = TestTuple("bar") };
 
-        var result = writer.InsertOrUpdate(updated, CancellationToken.None);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.VersionConflictError, error.Code));
+        var result = writer.InsertOrUpdate(updated, CancellationToken.None).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.VersionConflictError, error.Code));
     }
 
     [Fact]
@@ -170,9 +170,9 @@ public sealed class DocumentWriterHKRKTests
         var document = Document.Cons(Key.From("h"), Key.From("r"), TestTuple("foo"));
         using var cts = new CancellationTokenSource();
         cts.Cancel();
-        var result = writer.InsertOrUpdate(document, cts.Token);
-        Assert.True(result.IsLeft);
-        _ = result.IfLeft(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        var result = writer.InsertOrUpdate(document, cts.Token).Run();
+        Assert.True(result.IsFail);
+        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
     }
 
     private static T Fail<T>()

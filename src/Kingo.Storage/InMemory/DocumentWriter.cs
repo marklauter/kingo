@@ -7,25 +7,25 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
 {
     private readonly DocumentReader<HK> reader = new(index);
 
-    public Either<DocumentWriterError, Unit> Insert(Document<HK> document, CancellationToken cancellationToken)
+    public Eff<Unit> Insert(Document<HK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
+        Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}")
                 : Try
                 .lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                 .Match(
                     Succ: success => success
-                        ? Prelude.unit
+                        ? Prelude.Pure(Prelude.unit)
                         : RepeatUntil(doc, ct),
                     Fail: e => DocumentWriterError.New(StorageErrorCodes.DuplicateKeyError, $"duplicate key {doc.HashKey}", e));
 
         return RepeatUntil(document, cancellationToken);
     }
 
-    public Either<DocumentWriterError, Unit> InsertOrUpdate(Document<HK> document, CancellationToken cancellationToken)
+    public Eff<Unit> InsertOrUpdate(Document<HK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
+        Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}")
                 : reader
@@ -33,37 +33,39 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
                     .Match(
                         Some: original => DocumentWriter<HK>.CheckVersion(original, doc)
                             .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
-                                ? Prelude.unit
+                                ? Prelude.Pure(Prelude.unit)
                                 : RepeatUntil(doc, ct)),
                         None: () =>
                             Try
                             .lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                             .Match(
-                                Succ: success => success ? Prelude.unit : RepeatUntil(doc, ct),
+                                Succ: success => success
+                                    ? Prelude.Pure(Prelude.unit)
+                                    : RepeatUntil(doc, ct),
                                 Fail: _ => RepeatUntil(doc, ct)));
 
         return RepeatUntil(document, cancellationToken);
     }
 
-    public Either<DocumentWriterError, Unit> Update(Document<HK> document, CancellationToken cancellationToken)
+    public Eff<Unit> Update(Document<HK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
+        Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}")
                 : reader
                     .Find(doc.HashKey)
-                    .ToEither(DocumentWriterError.New(StorageErrorCodes.NotFoundError, $"key not found {doc.HashKey}"))
+                    .ToEff(DocumentWriterError.New(StorageErrorCodes.NotFoundError, $"key not found {doc.HashKey}"))
                     .Bind(original => CheckVersion(original, doc))
                     .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
-                        ? Prelude.unit
+                        ? Prelude.Pure(Prelude.unit)
                         : RepeatUntil(doc, ct));
 
         return RepeatUntil(document, cancellationToken);
     }
 
-    private static Either<DocumentWriterError, Unit> CheckVersion(Document<HK> original, Document<HK> replacement) =>
+    private static Eff<Unit> CheckVersion(Document<HK> original, Document<HK> replacement) =>
         original.Version == replacement.Version
-            ? Prelude.unit
+            ? Prelude.Pure(Prelude.unit)
             : DocumentWriterError.New(StorageErrorCodes.VersionConflictError, $"version conflict {replacement.HashKey}, expected: {replacement.Version}, actual: {original.Version}");
 
     private static Snapshot<HK> InsertSnapshot(
@@ -88,24 +90,24 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWrite
 {
     private readonly DocumentReader<HK, RK> reader = new(index);
 
-    public Either<DocumentWriterError, Unit> Insert(Document<HK, RK> document, CancellationToken cancellationToken)
+    public Eff<Unit> Insert(Document<HK, RK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
+        Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}/{doc.RangeKey}")
                 : Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                 .Match(
                     Succ: success => success
-                        ? Prelude.unit
+                        ? Prelude.Pure(Prelude.unit)
                         : RepeatUntil(doc, ct),
                     Fail: e => DocumentWriterError.New(StorageErrorCodes.DuplicateKeyError, $"duplicate key {doc.HashKey}/{doc.RangeKey}", e));
 
         return RepeatUntil(document, cancellationToken);
     }
 
-    public Either<DocumentWriterError, Unit> InsertOrUpdate(Document<HK, RK> document, CancellationToken cancellationToken)
+    public Eff<Unit> InsertOrUpdate(Document<HK, RK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
+        Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}/{doc.RangeKey}")
                 : reader
@@ -113,35 +115,37 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWrite
                     .Match(
                         Some: original => DocumentWriter<HK, RK>.CheckVersion(original, doc)
                             .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
-                                ? Prelude.unit
+                                ? Prelude.Pure(Prelude.unit)
                                 : RepeatUntil(doc, ct)),
                         None: () => Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                             .Match(
-                                Succ: success => success ? Prelude.unit : RepeatUntil(doc, ct),
+                                Succ: success => success
+                                    ? Prelude.Pure(Prelude.unit)
+                                    : RepeatUntil(doc, ct),
                                 Fail: _ => RepeatUntil(doc, ct)));
 
         return RepeatUntil(document, cancellationToken);
     }
 
-    public Either<DocumentWriterError, Unit> Update(Document<HK, RK> document, CancellationToken cancellationToken)
+    public Eff<Unit> Update(Document<HK, RK> document, CancellationToken cancellationToken)
     {
-        Either<DocumentWriterError, Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
+        Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}/{doc.RangeKey}")
                 : reader
                     .Find(doc.HashKey, doc.RangeKey)
-                    .ToEither(DocumentWriterError.New(StorageErrorCodes.NotFoundError, $"key not found {doc.HashKey}/{doc.RangeKey}"))
+                    .ToEff(DocumentWriterError.New(StorageErrorCodes.NotFoundError, $"key not found {doc.HashKey}/{doc.RangeKey}"))
                     .Bind(original => CheckVersion(original, doc))
                     .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
-                        ? Prelude.unit
+                        ? Prelude.Pure(Prelude.unit)
                         : RepeatUntil(doc, ct));
 
         return RepeatUntil(document, cancellationToken);
     }
 
-    private static Either<DocumentWriterError, Unit> CheckVersion(Document<HK, RK> original, Document<HK, RK> replacement) =>
+    private static Eff<Unit> CheckVersion(Document<HK, RK> original, Document<HK, RK> replacement) =>
         original.Version == replacement.Version
-            ? Prelude.unit
+            ? Prelude.Pure(Prelude.unit)
             : DocumentWriterError.New(StorageErrorCodes.VersionConflictError, $"version conflict {replacement.HashKey}/{replacement.RangeKey}, expected: {replacement.Version}, actual: {original.Version}");
 
     private static Snapshot<HK, RK> InsertSnapshot(

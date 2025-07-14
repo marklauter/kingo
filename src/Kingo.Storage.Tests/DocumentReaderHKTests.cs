@@ -21,7 +21,7 @@ public sealed class DocumentReaderHKTests
     {
         var (reader, writer) = ReaderWriter();
         var document = Document.Cons(Key.From("h"), Data);
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
         var result = reader.Find(Key.From("h"));
         _ = result.Match(
             Some: doc => Assert.Equal(Data, doc.Data),

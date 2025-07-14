@@ -22,7 +22,7 @@ public sealed class DocumentReaderHKRKTests
         var (reader, writer) = ReaderWriter();
 
         var document = Document.Cons(Key.From("h"), Key.From("r"), Data);
-        Assert.True(writer.Insert(document, CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(document, CancellationToken.None).Run().IsSucc);
 
         var result = reader.Find("h", "r");
 
@@ -44,9 +44,9 @@ public sealed class DocumentReaderHKRKTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
 
         var docs = reader.Find(Key.From("h"), RangeKey.Unbound).ToArray();
 
@@ -61,9 +61,9 @@ public sealed class DocumentReaderHKRKTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
 
         var docs = reader.Find(Key.From("h"), RangeKey.Since(Key.From("b"))).ToArray();
 
@@ -77,9 +77,9 @@ public sealed class DocumentReaderHKRKTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
 
         var docs = reader.Find(Key.From("h"), RangeKey.Until(Key.From("b"))).ToArray();
 
@@ -93,10 +93,10 @@ public sealed class DocumentReaderHKRKTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("d"), Document.ConsData(Key.From("D"), "D")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("d"), Document.ConsData(Key.From("D"), "D")), CancellationToken.None).Run().IsSucc);
 
         var docs = reader.Find(Key.From("h"), RangeKey.Between(Key.From("b"), Key.From("c"))).ToArray();
 
@@ -110,9 +110,9 @@ public sealed class DocumentReaderHKRKTests
     {
         var (reader, writer) = ReaderWriter();
 
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).IsRight);
-        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).IsRight);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("a"), Document.ConsData(Key.From("A"), "A")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
+        Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
 
         var docs = reader.Where(Key.From("h"), d => !d.Data.ContainsKey("B")).ToArray();
 
