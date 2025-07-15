@@ -7,14 +7,13 @@ using System.Runtime.CompilerServices;
 namespace Kingo.Storage.InMemory;
 
 public sealed class DocumentReader<HK>(Index<HK> index)
-    : IDocumentReader<HK> where HK : IEquatable<HK>, IComparable<HK>
+    where HK : IEquatable<HK>, IComparable<HK>
 {
     public Option<Document<HK>> Find(HK hashKey) =>
         index.Snapshot().Map.Find(hashKey);
 }
 
 public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
-    : IDocumentReader<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {

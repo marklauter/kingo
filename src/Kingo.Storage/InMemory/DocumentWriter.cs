@@ -3,7 +3,8 @@ using LanguageExt;
 
 namespace Kingo.Storage.InMemory;
 
-public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> where HK : IEquatable<HK>, IComparable<HK>
+public sealed class DocumentWriter<HK>(Index<HK> index)
+    where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly DocumentReader<HK> reader = new(index);
 
@@ -23,6 +24,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
         return RepeatUntil(document, cancellationToken);
     }
 
+    public Eff<Unit> InsertOrUpdate(Document<HK> document) => throw new NotImplementedException();
     public Eff<Unit> InsertOrUpdate(Document<HK> document, CancellationToken cancellationToken)
     {
         Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
@@ -47,6 +49,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
         return RepeatUntil(document, cancellationToken);
     }
 
+    public Eff<Unit> Update(Document<HK> document) => throw new NotImplementedException();
     public Eff<Unit> Update(Document<HK> document, CancellationToken cancellationToken)
     {
         Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
@@ -85,7 +88,8 @@ public sealed class DocumentWriter<HK>(Index<HK> index) : IDocumentWriter<HK> wh
         index.Exchange(snapshot, operation(snapshot.Map, document));
 }
 
-public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index) : IDocumentWriter<HK, RK> where HK : IEquatable<HK>, IComparable<HK>
+public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index)
+    where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
     private readonly DocumentReader<HK, RK> reader = new(index);
