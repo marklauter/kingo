@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Kingo.Storage.Tests.Sqlite;
 
+// todo: some AI slop to resolve - duplicate tests, etc
 public sealed class SequenceTests
     : IDisposable
 {
@@ -89,21 +90,6 @@ public sealed class SequenceTests
     }
 
     [Fact]
-    public async Task NextAsync_HandlesHighConcurrency_WhenMultipleTasksAccess()
-    {
-        var sequence = CreateSequence(seqName);
-        var tasks = Enumerable.Range(0, 100)
-            .Select(_ => Task.Run(() => sequence.NextAsync(CancellationToken.None)))
-            .ToArray();
-
-        var results = await Task.WhenAll(tasks);
-        var distinctValues = results.Distinct().OrderBy(x => x).ToArray();
-
-        _ = distinctValues.Should().HaveCount(100);
-        _ = distinctValues.Should().BeEquivalentTo(Enumerable.Range(1, 100));
-    }
-
-    [Fact]
     public async Task NextAsync_WorksWithLongType_WhenCalled()
     {
         var sequence = new Sequence<long>(connection, seqName);
@@ -173,6 +159,7 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_MaintainsConsistency_UnderHighContention()
     {
+        // todo: this fails with high values
         var concurrencyLevel = 500;
 
         var tasks = Enumerable.Range(0, concurrencyLevel)
