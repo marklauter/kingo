@@ -137,4 +137,4 @@ FUT - work planned
 1. bit packing requires every tuple element to be integer addressable
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, and subjects to integer values
 1. the integer values can be packed into that 64-bit mentioned in item 1
-1. imagine the tuple lookup as a straight-up integer lookup in a btree or LSM - it's fast AF
+1. imagine the tuple lookup as a straight-up integer lookup in a btree or LSMtree - it's fast AF

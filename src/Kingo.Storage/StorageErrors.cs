@@ -76,3 +76,11 @@ public sealed class DocumentWriterException(
     : ExpectedException(message, code, inner)
 {
 }
+
+public sealed class SequenceException(
+    string message,
+    int code,
+    Option<ErrorException> inner = default)
+    : ExpectedException(message, code, inner)
+{
+}

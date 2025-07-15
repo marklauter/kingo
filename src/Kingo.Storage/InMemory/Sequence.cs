@@ -3,11 +3,11 @@ using LanguageExt;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.Clocks;
+namespace Kingo.Storage.InMemory;
 
 public sealed class Sequence<N>(
-    IDocumentReader<Key> reader,
-    IDocumentWriter<Key> writer)
+    DocumentReader<Key> reader,
+    DocumentWriter<Key> writer)
     where N : INumber<N>
 {
     private static readonly Key ValueKey = Key.From("v");

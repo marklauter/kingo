@@ -19,4 +19,20 @@ internal sealed class TransactionManager(SqliteConnection connection)
             throw;
         }
     }
+
+    public async Task<T> ExecuteAsync<T>(Func<IDbTransaction, Task<T>> operation, CancellationToken token)
+    {
+        await using var transaction = await connection.BeginTransactionAsync(token);
+        try
+        {
+            var result = await operation(transaction);
+            await transaction.CommitAsync(token);
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(token);
+            throw;
+        }
+    }
 }
