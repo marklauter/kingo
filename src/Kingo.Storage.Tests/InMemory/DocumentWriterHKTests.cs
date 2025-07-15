@@ -14,8 +14,8 @@ public sealed class DocumentWriterHKTests
 
     private readonly Index<Key> index = Storage.InMemory.Indexing.Index.Empty<Key>();
 
-    private (IDocumentReader<Key> reader, IDocumentWriter<Key> writer) ReaderWriter() =>
-        (new DocumentReader<Key>(index), new DocumentWriter<Key>(index));
+    private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
+        (new(index), new(index));
 
     [Fact]
     public void Insert_WhenKeyDoesNotExist_Succeeds()
