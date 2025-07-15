@@ -1,5 +1,6 @@
 ﻿using Kingo.Storage.InMemory.Indexing;
 using LanguageExt;
+using LanguageExt.Common;
 
 namespace Kingo.Storage.InMemory;
 
@@ -12,7 +13,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index)
     {
         Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}")
+                ? Errors.Cancelled
                 : Try
                 .lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                 .Match(
@@ -29,7 +30,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index)
     {
         Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}")
+                ? Errors.Cancelled
                 : reader
                     .Find(doc.HashKey)
                     .Match(
@@ -54,7 +55,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index)
     {
         Eff<Unit> RepeatUntil(Document<HK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}")
+                ? Errors.Cancelled
                 : reader
                     .Find(doc.HashKey)
                     .ToEff(DocumentWriterError.New(StorageErrorCodes.NotFoundError, $"key not found {doc.HashKey}"))
@@ -98,7 +99,7 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index)
     {
         Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting key {doc.HashKey}/{doc.RangeKey}")
+                ? Errors.Cancelled
                 : Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
                 .Match(
                     Succ: success => success
@@ -113,7 +114,7 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index)
     {
         Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while inserting/updating key {doc.HashKey}/{doc.RangeKey}")
+                ? Errors.Cancelled
                 : reader
                     .Find(doc.HashKey, doc.RangeKey)
                     .Match(
@@ -135,7 +136,7 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index)
     {
         Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
-                ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout while updating key {doc.HashKey}/{doc.RangeKey}")
+                ? Errors.Cancelled
                 : reader
                     .Find(doc.HashKey, doc.RangeKey)
                     .ToEff(DocumentWriterError.New(StorageErrorCodes.NotFoundError, $"key not found {doc.HashKey}/{doc.RangeKey}"))
