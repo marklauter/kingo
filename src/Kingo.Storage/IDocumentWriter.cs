@@ -3,7 +3,6 @@
 namespace Kingo.Storage;
 
 public interface IDocumentWriter<HK>
-    : IDisposable
     where HK : IEquatable<HK>, IComparable<HK>
 {
     Eff<Unit> Insert(Document<HK> document);
@@ -12,7 +11,6 @@ public interface IDocumentWriter<HK>
 }
 
 public interface IDocumentWriter<HK, RK>
-    : IDisposable
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {

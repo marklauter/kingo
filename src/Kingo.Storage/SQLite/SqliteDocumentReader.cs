@@ -104,7 +104,4 @@ public sealed class SqliteDocumentReader<HK, RK>(
 
     private Iterable<Document<HK, RK>> Find(HK hashKey) =>
         Prelude.Iterable(connection.Query<Document<HK, RK>>(hkQuery, new HkParam(hashKey)));
-
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP007:Don't dispose injected", Justification = "reader owns the connection")]
-    public void Dispose() => connection.Dispose();
 }

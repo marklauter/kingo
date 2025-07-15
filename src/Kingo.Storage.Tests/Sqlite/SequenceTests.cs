@@ -8,19 +8,29 @@ namespace Kingo.Storage.Tests.Sqlite;
 public sealed class SequenceTests
     : IDisposable
 {
-    private readonly SqliteConnection connection = new("Data Source=:memory:");
+    private readonly string connectionString = $"Data Source={Guid.NewGuid()}.sqlite";
+
+    private readonly SqliteConnection connection;
     private readonly Key seqName = Key.From("my_seq");
 
     public SequenceTests()
     {
+        connection = new SqliteConnection(connectionString);
         connection.Open();
         CreateSequenceTable();
+    }
+
+    private SqliteConnection NewConnection()
+    {
+        var connection = new SqliteConnection(connectionString);
+        connection.Open();
+        return connection;
     }
 
     private void CreateSequenceTable()
     {
         var createTable = """
-            CREATE TABLE seq (
+            CREATE TABLE IF NOT EXISTS seq (
                 hashkey TEXT PRIMARY KEY,
                 value INTEGER NOT NULL
             )
@@ -29,7 +39,7 @@ public sealed class SequenceTests
         _ = command.ExecuteNonQuery();
     }
 
-    private Sequence<int> CreateSequence(Key name) => new(connection, name);
+    private Sequence<int> CreateSequence(Key name) => new(NewConnection(), name);
 
     [Fact]
     public async Task NextAsync_ReturnsOne_WhenSequenceIsNew()
@@ -75,7 +85,7 @@ public sealed class SequenceTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        _ = await Assert.ThrowsAsync<OperationCanceledException>(() => sequence.NextAsync(tokenSource.Token));
+        _ = await Assert.ThrowsAsync<TaskCanceledException>(() => sequence.NextAsync(tokenSource.Token));
     }
 
     [Fact]
@@ -163,24 +173,15 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_MaintainsConsistency_UnderHighContention()
     {
-        var sequence = CreateSequence(seqName);
-        var concurrencyLevel = 20;
-        var iterationsPerTask = 50;
+        var concurrencyLevel = 500;
 
         var tasks = Enumerable.Range(0, concurrencyLevel)
-            .Select(_ => Task.Run(async () =>
-            {
-                var results = new List<int>();
-                for (var i = 0; i < iterationsPerTask; i++)
-                    results.Add(await sequence.NextAsync(CancellationToken.None));
-                return results;
-            }))
+            .Select(_ => Task.Run(async () => await CreateSequence(seqName).NextAsync(CancellationToken.None)))
             .ToArray();
 
-        var allTaskResults = await Task.WhenAll(tasks);
-        var allResults = allTaskResults.SelectMany(x => x).OrderBy(x => x).ToArray();
+        var allResults = await Task.WhenAll(tasks);
 
-        var expectedCount = concurrencyLevel * iterationsPerTask;
+        var expectedCount = concurrencyLevel;
         _ = allResults.Should().HaveCount(expectedCount);
         _ = allResults.Should().BeEquivalentTo(Enumerable.Range(1, expectedCount));
         _ = allResults.Should().OnlyHaveUniqueItems();

@@ -8,3 +8,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores", Justification = "unit test naming")]
 [assembly: SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "unit test naming")]
 [assembly: SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "empty is preferred")]
+[assembly: SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP004:Don't ignore created IDisposable", Justification = "<Pending>", Scope = "member", Target = "~M:Kingo.Storage.Tests.Sqlite.SequenceTests.CreateSequence(Kingo.Storage.Keys.Key)~Kingo.Storage.Sqlite.Sequence{System.Int32}")]

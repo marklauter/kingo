@@ -33,15 +33,12 @@ public static class SqliteDocumentWriter
 
         private static Eff<Unit> Lift(Func<CancellationToken, Task> asyncOperation) =>
             Prelude.liftIO(env => asyncOperation(env.Token));
-
-        public void Dispose() => writer.Dispose();
     }
 }
 
 internal sealed class SqliteDocumentWriter<HK>(
     SqliteConnection connection,
     Key table)
-    : IDisposable
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly TransactionManager txman = new(connection);
