@@ -8,24 +8,6 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Sqlite;
 
-public interface IDocumentWriter<HK>
-    : IDisposable
-    where HK : IEquatable<HK>, IComparable<HK>
-{
-    Eff<Unit> Insert(Document<HK> document);
-    Eff<Unit> InsertOrUpdate(Document<HK> document);
-    Eff<Unit> Update(Document<HK> document);
-}
-
-public interface IDocumentWriter<HK, RK>
-    where HK : IEquatable<HK>, IComparable<HK>
-    where RK : IEquatable<RK>, IComparable<RK>
-{
-    Task Insert(Document<HK, RK> document, CancellationToken token);
-    Task InsertOrUpdate(Document<HK, RK> document, CancellationToken token);
-    Task Update(Document<HK, RK> document, CancellationToken token);
-}
-
 public static class SqliteDocumentWriter
 {
     public static IDocumentWriter<HK> WithIO<HK>(
@@ -34,7 +16,8 @@ public static class SqliteDocumentWriter
         where HK : IEquatable<HK>, IComparable<HK> =>
         new SqliteDocumentWriterWithIO<HK>(connection, table);
 
-    private sealed class SqliteDocumentWriterWithIO<HK>(SqliteConnection connection, Key table) : IDocumentWriter<HK>, IDisposable
+    private sealed class SqliteDocumentWriterWithIO<HK>(SqliteConnection connection, Key table)
+        : IDocumentWriter<HK>
         where HK : IEquatable<HK>, IComparable<HK>
     {
         private readonly SqliteDocumentWriter<HK> writer = new(connection, table);
@@ -51,12 +34,11 @@ public static class SqliteDocumentWriter
         private static Eff<Unit> Lift(Func<CancellationToken, Task> asyncOperation) =>
             Prelude.liftIO(env => asyncOperation(env.Token));
 
-        public void Dispose() =>
-            writer.Dispose();
+        public void Dispose() => writer.Dispose();
     }
 }
 
-public sealed class SqliteDocumentWriter<HK>(
+internal sealed class SqliteDocumentWriter<HK>(
     SqliteConnection connection,
     Key table)
     : IDisposable
