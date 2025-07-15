@@ -36,8 +36,7 @@ public static class SQLiteDocumentReader
 public sealed class SqliteDocumentReader<HK>(
     SqliteConnection connection,
     Key table)
-    : IDisposable
-    , IDocumentReader<HK>
+    : IDocumentReader<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly record struct HkParam(HK HashKey);
@@ -55,8 +54,7 @@ public sealed class SqliteDocumentReader<HK>(
 public sealed class SqliteDocumentReader<HK, RK>(
     SqliteConnection connection,
     Key table)
-    : IDisposable
-    , IDocumentReader<HK, RK>
+    : IDocumentReader<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
