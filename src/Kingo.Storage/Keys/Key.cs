@@ -1,10 +1,22 @@
-﻿using Kingo.Json;
+﻿using Dapper;
+using Kingo.Json;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Kingo.Storage.Keys;
+
+internal sealed class KeyTypeHandler
+    : SqlMapper.TypeHandler<Key>
+{
+    public override void SetValue(IDbDataParameter parameter, Key value) =>
+        parameter.Value = value.ToString();
+
+    public override Key Parse(object value) =>
+        Key.From(value.ToString()!);
+}
 
 [JsonConverter(typeof(StringConvertible<Key>))]
 public readonly struct Key
@@ -14,6 +26,8 @@ public readonly struct Key
     , IEquatable<string>
     , IComparable<string>
 {
+    static Key() => SqlMapper.AddTypeHandler(new KeyTypeHandler());
+
     private readonly string value;
     private static readonly Regex Validation = RegExPatterns.Key();
 
