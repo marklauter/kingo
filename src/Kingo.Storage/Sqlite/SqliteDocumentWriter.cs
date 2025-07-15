@@ -3,7 +3,6 @@ using Kingo.Storage.Keys;
 using LanguageExt;
 using Microsoft.Data.Sqlite;
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Sqlite;
@@ -129,16 +128,12 @@ internal sealed class SqliteDocumentWriter<HK>(
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsVersionMismatch(Revision original, Revision replacement) =>
         original != replacement;
-
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP007:Don't dispose injected", Justification = "reader owns the connection")]
-    public void Dispose() => connection.Dispose();
 }
 
 //public sealed class SqliteDocumentWriter<HK, RK>(
 //    SqliteConnection connection,
 //    Key table)
-//    : IDisposable
-//    , IDocumentWriter<HK, RK>
+//    : IDocumentWriter<HK, RK>
 //    where HK : IEquatable<HK>, IComparable<HK>
 //    where RK : IEquatable<RK>, IComparable<RK>
 //{
@@ -230,7 +225,4 @@ internal sealed class SqliteDocumentWriter<HK>(
 //        original == replacement
 //            ? Prelude.unit
 //            : DocumentWriterError.New(StorageErrorCodes.VersionConflictError, $"version conflict {hashKey}/{rangeKey}, expected: {replacement}, actual: {original}");
-
-//    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP007:Don't dispose injected", Justification = "reader owns the connection")]
-//    public void Dispose() => connection.Dispose();
 //}

@@ -9,23 +9,24 @@ namespace Kingo.Storage.Sqlite;
 
 public static class SQLiteDocumentReader
 {
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP004:Don't ignore created IDisposable", Justification = "disposed by reader")]
     public static Either<SqliteError, SqliteDocumentReader<HK>> Cons<HK>(
         string connectionString,
         Key table)
         where HK : IEquatable<HK>, IComparable<HK> =>
+    // todo: really important - this will not work because it needs to dispose / close connections. the reader and writer are not disposable anymore
         Open(new SqliteConnection(connectionString))
         .Map(conn => new SqliteDocumentReader<HK>(conn, table));
 
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP004:Don't ignore created IDisposable", Justification = "disposed by reader")]
     public static Either<SqliteError, SqliteDocumentReader<HK>> Cons<HK, RK>(
         string connectionString,
         Key table)
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK> =>
+    // todo: really important - this will not work because it needs to dispose / close connections. the reader and writer are not disposable anymore
         Open(new SqliteConnection(connectionString))
         .Map(conn => new SqliteDocumentReader<HK>(conn, table));
 
+    // todo: really important - this will not work because it needs to dispose / close connections. the reader and writer are not disposable anymore
     private static Either<SqliteError, SqliteConnection> Open(SqliteConnection connection) =>
         Try.lift(connection.Open)
         .Match<Either<SqliteError, SqliteConnection>>(
