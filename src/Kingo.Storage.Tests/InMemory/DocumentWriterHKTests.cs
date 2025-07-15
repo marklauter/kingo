@@ -3,6 +3,7 @@ using Kingo.Storage.InMemory;
 using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
+using LanguageExt.Common;
 
 namespace Kingo.Storage.Tests.InMemory;
 
@@ -13,8 +14,8 @@ public sealed class DocumentWriterHKTests
 
     private readonly Index<Key> index = Storage.InMemory.Indexing.Index.Empty<Key>();
 
-    private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
-        (new(index), new(index));
+    private (IDocumentReader<Key> reader, IDocumentWriter<Key> writer) ReaderWriter() =>
+        (new DocumentReader<Key>(index), new DocumentWriter<Key>(index));
 
     [Fact]
     public void Insert_WhenKeyDoesNotExist_Succeeds()
@@ -48,7 +49,7 @@ public sealed class DocumentWriterHKTests
         cts.Cancel();
         var result = writer.Insert(document, cts.Token).Run();
         Assert.True(result.IsFail);
-        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        _ = result.IfFail(error => Assert.Equal(Errors.Cancelled, error));
     }
 
     [Fact]
@@ -111,7 +112,7 @@ public sealed class DocumentWriterHKTests
 
         var result = writer.Update(read, cts.Token).Run();
         Assert.True(result.IsFail);
-        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        _ = result.IfFail(error => Assert.Equal(Errors.Cancelled, error));
     }
 
     [Fact]
@@ -173,7 +174,7 @@ public sealed class DocumentWriterHKTests
         cts.Cancel();
         var result = writer.InsertOrUpdate(document, cts.Token).Run();
         Assert.True(result.IsFail);
-        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        _ = result.IfFail(error => Assert.Equal(Errors.Cancelled, error));
     }
 
     private static T Fail<T>()

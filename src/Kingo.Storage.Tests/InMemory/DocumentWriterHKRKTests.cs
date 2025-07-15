@@ -3,6 +3,7 @@ using Kingo.Storage.InMemory;
 using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
+using LanguageExt.Common;
 
 namespace Kingo.Storage.Tests.InMemory;
 
@@ -48,7 +49,7 @@ public sealed class DocumentWriterHKRKTests
         cts.Cancel();
         var result = writer.Insert(document, cts.Token).Run();
         Assert.True(result.IsFail);
-        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        _ = result.IfFail(error => Assert.Equal(Errors.Cancelled, error));
     }
 
     [Fact]
@@ -111,7 +112,7 @@ public sealed class DocumentWriterHKRKTests
 
         var result = writer.Update(read, cts.Token).Run();
         Assert.True(result.IsFail);
-        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        _ = result.IfFail(error => Assert.Equal(Errors.Cancelled, error));
     }
 
     [Fact]
@@ -173,7 +174,7 @@ public sealed class DocumentWriterHKRKTests
         cts.Cancel();
         var result = writer.InsertOrUpdate(document, cts.Token).Run();
         Assert.True(result.IsFail);
-        _ = result.IfFail(error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code));
+        _ = result.IfFail(error => Assert.Equal(Errors.Cancelled, error));
     }
 
     private static T Fail<T>()
