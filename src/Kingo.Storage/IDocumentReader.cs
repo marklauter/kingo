@@ -4,12 +4,14 @@ using LanguageExt;
 namespace Kingo.Storage;
 
 public interface IDocumentReader<HK>
+    : IDisposable
     where HK : IEquatable<HK>, IComparable<HK>
 {
     Option<Document<HK>> Find(HK hashKey);
 }
 
 public interface IDocumentReader<HK, RK>
+    : IDisposable
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
