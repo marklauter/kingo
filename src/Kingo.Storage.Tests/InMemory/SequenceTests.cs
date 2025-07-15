@@ -2,7 +2,7 @@ using Kingo.Storage.InMemory;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests.Clocks;
+namespace Kingo.Storage.Tests.InMemory;
 
 public sealed class SequenceTests
 {
@@ -45,5 +45,34 @@ public sealed class SequenceTests
             .Match(
                 Fail: error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code),
                 Succ: _ => Assert.Fail("Expected an error but got a success value."));
+    }
+
+    [Fact]
+    public async Task Next_HandlesHighConcurrency_WhenMultipleThreadsAccess()
+    {
+        var sequence = Sequence();
+        var tasks = Enumerable.Range(0, 100)
+            .Select(_ => Task.Run(() => sequence.Next(seqName, CancellationToken.None).Run()))
+            .ToArray();
+
+        var results = await Task.WhenAll(tasks);
+        var successfulValues = results
+            .Select(r => r.Match(
+                Succ: value => value,
+                Fail: _ => throw new InvalidOperationException("Sequence generation failed")))
+            .Distinct()
+            .ToArray();
+
+        Assert.Equal(100, successfulValues.Length);
+        Assert.Equal(Enumerable.Range(1, 100), successfulValues.OrderBy(x => x));
+    }
+
+    [Fact]
+    public void Next_WorksWithLongType_WhenCalled()
+    {
+        var sequence = new Sequence<long>(new DocumentReader<Key>(index), new DocumentWriter<Key>(index));
+
+        Assert.Equal(1L, sequence.Next(seqName, CancellationToken.None).Run());
+        Assert.Equal(2L, sequence.Next(seqName, CancellationToken.None).Run());
     }
 }
