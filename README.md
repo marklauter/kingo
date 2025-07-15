@@ -65,7 +65,7 @@ rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
 rel auditor (direct & cmp viewer) 
 
 # empty relationship - implicit direct
-rel banned 
+rel banned
 
 # second policy defined within same document
 policy folder
