@@ -31,11 +31,11 @@ public sealed class Sequence<N>(
 
     private readonly string read = $"select value from seq where hashkey = @HashKey";
     private async Task<(bool exists, N currentValue, N newValue)> ReadAsync(IDbTransaction transaction) =>
-        MapN(await connection.QuerySingleOrDefaultAsync<N>(read, readParam, transaction));
+        MapN((await connection.QuerySingleOrDefaultAsync<N>(read, readParam, transaction))!);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (bool exists, N currentValue, N newValue) MapN(N? n) =>
-        n is null ? (false, N.Zero, N.One) : (true, n, n + N.One);
+    private static (bool exists, N currentValue, N newValue) MapN(N n) =>
+        N.IsZero(n) ? (false, N.Zero, N.One) : (true, n, n + N.One);
 
     private async Task<(bool success, N n)> WriteAsync((bool exists, N currentValue, N newValue) n, IDbTransaction transaction) =>
         await InsertOrUpdate(n, transaction) == 1
