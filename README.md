@@ -123,6 +123,7 @@ FUT - work planned
 - 06 JUL 2025 - project reorg for better domain cohesion
 - 11 JUL 2025 - created policy definition language (PDL)
 - 14 JUL 2025 - refactor from Either<Error, Result> to Eff<Result>
+- 15 JUL 2025 - SqliteDocumentWriter<HK> complete
 - WIP - implement durable storage using SQLite to emulate DynamoDB structure
 - FUT - dictionary encoding refactor 
 
