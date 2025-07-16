@@ -160,7 +160,7 @@ public sealed class SequenceTests
     public async Task NextAsync_MaintainsConsistency_UnderHighContention()
     {
         // todo: this fails with high values
-        var concurrencyLevel = 500;
+        var concurrencyLevel = 5000;
 
         var tasks = Enumerable.Range(0, concurrencyLevel)
             .Select(_ => Task.Run(async () => await CreateSequence(seqName).NextAsync(CancellationToken.None)))
