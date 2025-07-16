@@ -124,6 +124,10 @@ FUT - work planned
 - 11 JUL 2025 - created policy definition language (PDL)
 - 14 JUL 2025 - refactor from Either<Error, Result> to Eff<Result>
 - 15 JUL 2025 - SqliteDocumentWriter<HK> complete
+- 15 JUL 2025 - added sqlite dbcontext, connection factory, async lock, migrations
+- 16 JUL 2025 - deprecated transaction manager
+- 16 JUL 2025 - testing showed problems in sequence
+- WIP - refactor distributed sequence with block leases for performance. this will be used in the dictionary encoder
 - WIP - implement durable storage using SQLite to emulate DynamoDB structure
 - FUT - dictionary encoding refactor 
 
