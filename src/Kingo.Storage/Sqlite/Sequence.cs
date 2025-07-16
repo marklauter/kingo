@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace Kingo.Storage.Sqlite;
 
 public sealed class Sequence(
-    SqliteDbContext dbcontext,
+    IDbContext dbcontext,
     Key name)
     : IDisposable
 {
