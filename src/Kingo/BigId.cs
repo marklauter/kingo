@@ -92,4 +92,3 @@ public readonly struct BigId
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator >=(BigId left, BigId right) => left.CompareTo(right) >= 0;
 }
-
