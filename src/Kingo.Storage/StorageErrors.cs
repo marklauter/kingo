@@ -12,6 +12,7 @@ public static class StorageErrorCodes
     public const int VersionConflictError = 4;
     public const int SqliteError = 5;
     public const int InsertCountMismatch = 6;
+    public const int RetryLimitExceeded = 7;
 }
 
 public sealed record SqliteError(
