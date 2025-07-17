@@ -33,10 +33,10 @@ public static class SqliteDocumentWriter
 
         public Eff<Unit> Update(Document<HK> document) =>
             Lift(token => writer.UpdateAsync(document, token));
-
-        private static Eff<Unit> Lift(Func<CancellationToken, Task> asyncOperation) =>
-            Prelude.liftIO(env => asyncOperation(env.Token));
     }
+
+    private static Eff<Unit> Lift(Func<CancellationToken, Task> asyncOperation) =>
+        Prelude.liftIO(env => asyncOperation(env.Token));
 }
 
 internal sealed class SqliteDocumentWriter<HK>(
