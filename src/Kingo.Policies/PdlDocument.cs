@@ -1,31 +1,33 @@
 ﻿using LanguageExt;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Policies;
 
 public sealed record PdlDocument(
     string Pdl,
-    PolicySet PolicySet);
+    NamespaceSet PolicySet);
 
 // <policy-set>
-public sealed record PolicySet(
-    Seq<Policy> Policies);
+public sealed record NamespaceSet(
+    Seq<Namespace> Policies);
 
-// <policy>
-public sealed record Policy(
+[SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "it's fine")]
+// <namespace>
+public sealed record Namespace(
     // <policy-identifier>
-    PolicyName Name,
+    NamespaceIdentifier Name,
     // <relation-set>
     Seq<Relation> Relations);
 
 // <relation>
 public sealed record Relation(
     // <identifier> from <relation-identifier>
-    RelationName Name,
+    RelationIdentifier Name,
     // <rewrite>
     SubjectSetRewrite SubjectSetRewrite)
 {
-    public Relation(RelationName name)
+    public Relation(RelationIdentifier name)
         : this(name, DirectRewrite.Default) { }
 };
 
@@ -41,22 +43,22 @@ public sealed record DirectRewrite
 
 // <computed-subjectset-rewrite>
 public sealed record ComputedSubjectSetRewrite(
-    RelationName Relation)
+    RelationIdentifier Relation)
     : SubjectSetRewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ComputedSubjectSetRewrite Cons(RelationName relationship) =>
+    public static ComputedSubjectSetRewrite Cons(RelationIdentifier relationship) =>
         new(relationship);
 }
 
 // <tuple-to-subjectset-rewrite>
 public sealed record TupleToSubjectSetRewrite(
-    RelationName TuplesetRelation,
-    RelationName ComputedSubjectSetRelation)
+    RelationIdentifier TuplesetRelation,
+    RelationIdentifier ComputedSubjectSetRelation)
     : SubjectSetRewrite
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TupleToSubjectSetRewrite Cons(RelationName tuplesetRelation, RelationName computedSubjectSetRelation) =>
+    public static TupleToSubjectSetRewrite Cons(RelationIdentifier tuplesetRelation, RelationIdentifier computedSubjectSetRelation) =>
         new(tuplesetRelation, computedSubjectSetRelation);
 }
 

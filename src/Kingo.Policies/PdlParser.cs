@@ -10,8 +10,8 @@ namespace Kingo.Policies;
 /// PDL BNF
 /// # operator precedence: !, &, | (exclude, intersect, union)
 /// # expressions
-/// <policy-set>    ::= <policy> [ <policy> ]*
-/// <policy>        ::= <policy-identifier> <relation-set>
+/// <policy-set>    ::= <namespace> [ <namespace> ]*
+/// <namespace>     ::= <namespace-identifier> <relation-set>
 /// <relation-set>  ::= <relation> [ <relation> ]*
 /// <relation>      ::= <relation-identifier> [ '(' <rewrite> ')' ]
 /// <rewrite>       ::= <intersection> [ '|' <intersection> ]*
@@ -23,11 +23,11 @@ namespace Kingo.Policies;
 ///                   | '(' <rewrite> ')'
 /// 
 /// # keywords (terms)
-/// <policy-identifier>             ::= 'policy' <identifier>
-/// <direct>                        ::= ('direct' | 'dir')
-/// <relation-identifier>           ::= ('relation' | 'rel')  <identifier>
-/// <computed-subjectset-rewrite>   ::= ('computed' | 'cmp') <identifier>
-/// <tuple-to-subjectset-rewrite>   ::= ('tuple' | 'tpl') (' <identifier> ',' <identifier> ')'
+/// <namespace-identifier>          ::= ('namespace' | '/n') <identifier>
+/// <direct>                        ::= ('direct' | '/d')
+/// <relation-identifier>           ::= ('relation' | '/r') <identifier>
+/// <computed-subjectset-rewrite>   ::= ('computed' | '/c') <identifier>
+/// <tuple-to-subjectset-rewrite>   ::= ('tuple' | '/t') (' <identifier> ',' <identifier> ')'
 /// <identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
 /// 
 /// <comment>       ::= '#' [^<newline>]*
@@ -41,7 +41,7 @@ public static class PdlParser
         .Bind(Parse)
         .Map(ps => new PdlDocument(pdl, ps));
 
-    private static Eff<PolicySet> Parse(TokenList<PdlToken> input)
+    private static Eff<NamespaceSet> Parse(TokenList<PdlToken> input)
     {
         var parseResult = PolicySet.AtEnd().TryParse(input);
         return parseResult.HasValue
@@ -76,17 +76,17 @@ public static class PdlParser
             from _ in Token.EqualTo(PdlToken.RelationshipPrefix)
             from name in Identifier
             from rewrite in Rewrite.Between(Token.EqualTo(PdlToken.LeftParen), Token.EqualTo(PdlToken.RightParen)).OptionalOrDefault(DirectRewrite.Default)
-            select new Relation(RelationName.From(name), rewrite);
+            select new Relation(RelationIdentifier.From(name), rewrite);
 
         Policy =
-            from _ in Token.EqualTo(PdlToken.PolicyPrefix)
+            from _ in Token.EqualTo(PdlToken.NamespacePrefix)
             from name in Identifier
             from relations in Relation.Many()
-            select new Policy(PolicyName.From(name), toSeq(relations));
+            select new Namespace(NamespaceIdentifier.From(name), toSeq(relations));
 
         PolicySet =
             from policies in Policy.Many()
-            select new PolicySet(toSeq(policies));
+            select new NamespaceSet(toSeq(policies));
     }
 
     private static readonly TokenListParser<PdlToken, string> Identifier =
@@ -98,7 +98,7 @@ public static class PdlParser
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser =
         from _ in Token.EqualTo(PdlToken.ComputedPrefix)
         from name in Identifier
-        select (SubjectSetRewrite)new ComputedSubjectSetRewrite(RelationName.From(name));
+        select (SubjectSetRewrite)new ComputedSubjectSetRewrite(RelationIdentifier.From(name));
 
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> TupleToSubjectSetRewriteParser =
         from _ in Token.EqualTo(PdlToken.TuplePrefix)
@@ -107,7 +107,7 @@ public static class PdlParser
         from comma in Token.EqualTo(PdlToken.Comma)
         from mapsTo in Identifier
         from rparen in Token.EqualTo(PdlToken.RightParen)
-        select (SubjectSetRewrite)new TupleToSubjectSetRewrite(RelationName.From(name), RelationName.From(mapsTo));
+        select (SubjectSetRewrite)new TupleToSubjectSetRewrite(RelationIdentifier.From(name), RelationIdentifier.From(mapsTo));
 
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> Term;
 
@@ -119,7 +119,7 @@ public static class PdlParser
 
     private static readonly TokenListParser<PdlToken, Relation> Relation;
 
-    private static readonly TokenListParser<PdlToken, Policy> Policy;
+    private static readonly TokenListParser<PdlToken, Namespace> Policy;
 
-    private static readonly TokenListParser<PdlToken, PolicySet> PolicySet;
+    private static readonly TokenListParser<PdlToken, NamespaceSet> PolicySet;
 }

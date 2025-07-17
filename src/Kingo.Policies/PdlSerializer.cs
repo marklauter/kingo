@@ -33,7 +33,7 @@ namespace Kingo.Policies;
 public static class PdlSerializer
 {
     [SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "it's fine")]
-    public static string Serialize(PolicySet policySet) =>
+    public static string Serialize(NamespaceSet policySet) =>
         new StringBuilder()
             .AppendLine("# pdl version: 1.0.0")
             .AppendLine($"# decompiled from AST: {DateTime.UtcNow:O}")
@@ -41,8 +41,8 @@ public static class PdlSerializer
             .AppendLine()
             .ToString();
 
-    private static string Serialize(Policy policy) =>
-        $"policy {policy.Name}\r\n{string.Join("\r\n", policy.Relations.Map(Serialize))}";
+    private static string Serialize(Namespace policy) =>
+        $"namespace {policy.Name}\r\n{string.Join("\r\n", policy.Relations.Map(Serialize))}";
 
     private static string Serialize(Relation relation) =>
         relation.SubjectSetRewrite is DirectRewrite

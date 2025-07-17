@@ -14,19 +14,19 @@ internal enum PdlToken
     [Token(Category = "identifier", Example = "myFile")]
     Identifier,
 
-    [Token(Category = "keyword", Example = "policy")]
-    PolicyPrefix,
+    [Token(Category = "keyword", Example = "namespace | /n")]
+    NamespacePrefix,
 
-    [Token(Category = "keyword", Example = "relation | rel")]
+    [Token(Category = "keyword", Example = "relation | /r")]
     RelationshipPrefix,
 
-    [Token(Category = "keyword", Example = "computed | cmp")]
+    [Token(Category = "keyword", Example = "computed | /c")]
     ComputedPrefix,
 
-    [Token(Category = "keyword", Example = "tuple | tpl")]
+    [Token(Category = "keyword", Example = "tuple | /t")]
     TuplePrefix,
 
-    [Token(Category = "keyword", Example = "direct | dir")]
+    [Token(Category = "keyword", Example = "direct | /d")]
     Direct,
 
     [Token(Category = "operator", Example = "|")]
@@ -70,11 +70,11 @@ internal static class PdlTokenizer
             .Match(Character.EqualTo('&'), PdlToken.Intersection)
             .Match(Character.EqualTo('!'), PdlToken.Exclusion)
 
-            .Match(Span.EqualToIgnoreCase("policy"), PdlToken.PolicyPrefix, true)
-            .Match(Span.EqualToIgnoreCase("relation").Try().Or(Span.EqualToIgnoreCase("rel")), PdlToken.RelationshipPrefix, true)
-            .Match(Span.EqualToIgnoreCase("computed").Try().Or(Span.EqualToIgnoreCase("cmp")), PdlToken.ComputedPrefix, true)
-            .Match(Span.EqualToIgnoreCase("tuple").Try().Or(Span.EqualToIgnoreCase("tpl")), PdlToken.TuplePrefix, true)
-            .Match(Span.EqualToIgnoreCase("direct").Try().Or(Span.EqualToIgnoreCase("dir")), PdlToken.Direct, true)
+            .Match(Span.EqualToIgnoreCase("namespace").Try().Or(Span.EqualToIgnoreCase("/n")), PdlToken.NamespacePrefix, true)
+            .Match(Span.EqualToIgnoreCase("relation").Try().Or(Span.EqualToIgnoreCase("/r")), PdlToken.RelationshipPrefix, true)
+            .Match(Span.EqualToIgnoreCase("computed").Try().Or(Span.EqualToIgnoreCase("/c")), PdlToken.ComputedPrefix, true)
+            .Match(Span.EqualToIgnoreCase("tuple").Try().Or(Span.EqualToIgnoreCase("/t")), PdlToken.TuplePrefix, true)
+            .Match(Span.EqualToIgnoreCase("direct").Try().Or(Span.EqualToIgnoreCase("/d")), PdlToken.Direct, true)
             .Match(Superpower.Parsers.Identifier.CStyle, PdlToken.Identifier, true)
 
             .Build();
