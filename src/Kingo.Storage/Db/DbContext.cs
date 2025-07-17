@@ -52,9 +52,14 @@ public sealed class DbContext(IConnectionFactory factory)
 
 static file class TxMan
 {
-    public static async Task ExecuteAsync(this DbConnection connection, Func<DbConnection, DbTransaction, Task> operation, CancellationToken token)
+    public static async Task ExecuteAsync(
+        this DbConnection connection,
+        Func<DbConnection, DbTransaction, Task> operation,
+        CancellationToken token)
     {
-        await using var transaction = await connection.BeginTransactionAsync(token);
+        await using var transaction = await connection
+            .BeginTransactionAsync(IsolationLevel.ReadCommitted, token);
+
         try
         {
             await operation(connection, transaction);
@@ -67,9 +72,14 @@ static file class TxMan
         }
     }
 
-    public static async Task<T> ExecuteAsync<T>(this DbConnection connection, Func<DbConnection, DbTransaction, Task<T>> operation, CancellationToken token)
+    public static async Task<T> ExecuteAsync<T>(
+        this DbConnection connection,
+        Func<DbConnection, DbTransaction, Task<T>> operation,
+        CancellationToken token)
     {
-        await using var transaction = await connection.BeginTransactionAsync(token);
+        await using var transaction = await connection
+            .BeginTransactionAsync(IsolationLevel.ReadCommitted, token);
+
         try
         {
             var result = await operation(connection, transaction);
