@@ -1,16 +1,16 @@
 namespace Kingo.Tests;
 
-public sealed class PolilcyNameTests
+public sealed class NamespaceTests
 {
     [Fact]
     public void From_Throws_IfValueIsNull() =>
-        Assert.Throws<ArgumentNullException>(() => PolicyName.From(null!));
+        Assert.Throws<ArgumentNullException>(() => NamespaceIdentifier.From(null!));
 
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
     public void From_Throws_IfValueIsWhitespace(string value) =>
-        Assert.Throws<ArgumentException>(() => PolicyName.From(value));
+        Assert.Throws<ArgumentException>(() => NamespaceIdentifier.From(value));
 
     [Theory]
     [InlineData("a-b")]
@@ -19,7 +19,7 @@ public sealed class PolilcyNameTests
     [InlineData("a.b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
-        var exception = Assert.Throws<ArgumentException>(nameof(value), () => PolicyName.From(value));
+        var exception = Assert.Throws<ArgumentException>(nameof(value), () => NamespaceIdentifier.From(value));
         Assert.StartsWith("value contains invalid characters", exception.Message);
         Assert.Contains(value, exception.Message);
     }
@@ -31,15 +31,15 @@ public sealed class PolilcyNameTests
     [InlineData("a0")]
     public void From_ReturnsPolicyIfValueIsValid(string value)
     {
-        var policy = PolicyName.From(value);
+        var policy = NamespaceIdentifier.From(value);
         Assert.Equal(value, policy.ToString());
     }
 
     [Fact]
     public void Equals_ReturnsTrue_IfValuesAreEqual()
     {
-        var policy1 = PolicyName.From("a");
-        var policy2 = PolicyName.From("a");
+        var policy1 = NamespaceIdentifier.From("a");
+        var policy2 = NamespaceIdentifier.From("a");
 
         Assert.True(policy1.Equals(policy2));
         Assert.True(policy1.Equals((object)policy2));
@@ -51,8 +51,8 @@ public sealed class PolilcyNameTests
     [Fact]
     public void Equals_ReturnsFalse_IfValuesAreNotEqual()
     {
-        var policy1 = PolicyName.From("a");
-        var policy2 = PolicyName.From("b");
+        var policy1 = NamespaceIdentifier.From("a");
+        var policy2 = NamespaceIdentifier.From("b");
 
         Assert.False(policy1.Equals(policy2));
         Assert.False(policy1.Equals((object)policy2));
@@ -64,8 +64,8 @@ public sealed class PolilcyNameTests
     [Fact]
     public void CompareTo_ReturnsCorrectValue()
     {
-        var policy1 = PolicyName.From("a");
-        var policy2 = PolicyName.From("b");
+        var policy1 = NamespaceIdentifier.From("a");
+        var policy2 = NamespaceIdentifier.From("b");
 
         Assert.True(policy1.CompareTo(policy2) < 0);
         Assert.True(policy1 < policy2);
@@ -78,8 +78,8 @@ public sealed class PolilcyNameTests
     [Fact]
     public void GetHashCode_ReturnsSameValue_ForEqualPolicies()
     {
-        var policy1 = PolicyName.From("a");
-        var policy2 = PolicyName.From("a");
+        var policy1 = NamespaceIdentifier.From("a");
+        var policy2 = NamespaceIdentifier.From("a");
         Assert.Equal(policy1.GetHashCode(), policy2.GetHashCode());
     }
 
@@ -87,7 +87,7 @@ public sealed class PolilcyNameTests
     public void ToString_ReturnsValue()
     {
         const string value = "a_b_c";
-        var policy = PolicyName.From(value);
+        var policy = NamespaceIdentifier.From(value);
         Assert.Equal(value, policy.ToString());
     }
 
@@ -95,7 +95,7 @@ public sealed class PolilcyNameTests
     public void ImplicitConversion_ToString_ReturnsValue()
     {
         const string value = "a_b_c";
-        var policy = PolicyName.From(value);
+        var policy = NamespaceIdentifier.From(value);
         string s = policy;
         Assert.Equal(value, s);
     }
@@ -104,11 +104,11 @@ public sealed class PolilcyNameTests
     public void ImplicitConversion_ToPolicy_ReturnsPolicy()
     {
         const string value = "a_b_c";
-        PolicyName policy = value;
+        NamespaceIdentifier policy = value;
         Assert.Equal(value, policy.ToString());
     }
 
     [Fact]
     public void Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => PolicyName.Empty());
+        Assert.Throws<ArgumentException>(() => NamespaceIdentifier.Empty());
 }
