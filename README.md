@@ -131,8 +131,11 @@ FUT - work planned
 - 15 JUL 2025 - added sqlite dbcontext, connection factory, async lock, migrations
 - 16 JUL 2025 - deprecated transaction manager
 - 16 JUL 2025 - testing showed problems in sequence
-- WIP - refactor distributed sequence with block leases for performance. this will be used in the dictionary encoder
-- WIP - implement durable storage using SQLite to emulate DynamoDB structure
+- 16 JUL 2025 - minor refactor of PDL
+- 16 JUL 2025 - gave up on distributed sequence for now. final attempt was to use twitter snowflake idea, but the value takes 64 bits. for now i'll use sqlite auto-inc PK. this rabbit hole set me back more than a day.
+- 16 JUL 2025 - sql document reader is now async. the tx manager is gone (or moved and hidden). the db context is mature. all the sql reader/writer classes now use db context.
+- abandoned - refactor distributed sequence with block leases for performance. this will be used in the dictionary encoder
+- 16 JUL 2025 - implemented durable storage using SQLite to emulate DynamoDB structure. now support hashkey-value and hashkey:rangekey-value storage. every record is split into two parts. header (composite key + revision) and a journal (composite key + revision + data). header key never changes. header revision is overwritten. journal is append only. journal is a history of changes. header maps to most recent data via the key + version.
 - FUT - dictionary encoding refactor 
 
 ## performance ideas
