@@ -6,7 +6,7 @@ using System.Data.Common;
 
 namespace Kingo.Storage.Db;
 
-public sealed class DbContext(IConnectionFactory factory)
+public sealed class DbContext(IDbConnectionFactory factory)
     : IDbContext
 {
     public async Task ExecuteAsync(Func<DbConnection, DbTransaction, Task> operation, CancellationToken token)

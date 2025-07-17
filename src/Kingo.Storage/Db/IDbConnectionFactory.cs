@@ -2,7 +2,7 @@
 
 namespace Kingo.Storage.Db;
 
-public interface IConnectionFactory
+public interface IDbConnectionFactory
 {
     Task<DbConnection> OpenAsync(CancellationToken token);
 }

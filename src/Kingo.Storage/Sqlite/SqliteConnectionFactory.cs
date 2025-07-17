@@ -6,7 +6,7 @@ namespace Kingo.Storage.Sqlite;
 
 public sealed class SqliteConnectionFactory(
     SqliteConnectionFactoryOptions options)
-    : IConnectionFactory
+    : IDbConnectionFactory
 {
     private readonly string connectionString = new SqliteConnectionStringBuilder(options.ConnectionString)
     {
