@@ -3,9 +3,8 @@ using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace Kingo.Storage.Sqlite;
+namespace Kingo.Storage.Json;
 
-// todo: need tests for this
 internal static class MapSerializer
 {
     public static string Serialize(this Map<Key, object> data) =>
