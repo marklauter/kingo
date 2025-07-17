@@ -6,14 +6,22 @@ namespace Kingo.Policies.Tests;
 public sealed class PdlParserTests
 {
     [Theory]
-    [InlineData("policy file rel owner")]
-    [InlineData("policy file\nrel owner")]
-    [InlineData("policy file\r\nrel owner")]
-    [InlineData("policy file rel owner rel editor (dir | cmp owner)")]
-    [InlineData("policy file rel owner rel editor (direct | cmp owner)")]
-    [InlineData("policy file rel owner rel editor (direct | computed owner)")]
-    [InlineData("policy file rel owner rel editor (dir | computed owner)")]
-    [InlineData("policy file\nrel owner\nrel\neditor(dir | cmp owner)")]
+    [InlineData("namespace file relation owner")]
+    [InlineData("namespace file\n relation owner")]
+    [InlineData("namespace file\r\nrelation owner")]
+    [InlineData("namespace file relation owner relation editor (direct | computed owner)")]
+    [InlineData("namespace file relation\nowner relation\neditor\n(direct\n| computed owner)\n")]
+    [InlineData("namespace file relation owner relation editor \n(\ndirect | \ncomputed owner\n)")]
+    [InlineData("namespace file relation owner relation editor (direct & computed owner)")]
+    [InlineData("namespace file\r\nrelation owner\r\nrelation\r\neditor(direct | computed owner)")]
+    [InlineData("/n file /r owner")]
+    [InlineData("/n file\n/r owner")]
+    [InlineData("/n file\r\n/r owner")]
+    [InlineData("/n file /r owner /r editor (/d | /c owner)")]
+    [InlineData("/n file /r\nowner /r\neditor\n(/d\n| /c owner)\n")]
+    [InlineData("/n file /r owner /r editor \n(\n/d | \n/c owner\n)")]
+    [InlineData("/n file /r owner /r editor (/d & /c owner)")]
+    [InlineData("/n file\r\n /r owner\r\n/r\neditor(/d | /c owner)")]
     public void Parse_SimpleValidPdl_ReturnsDocument(string pdl) =>
         PdlParser.Parse(pdl).Run().Match(
             Succ: _ => { },
@@ -23,13 +31,13 @@ public sealed class PdlParserTests
     [Fact]
     public void Parse_SinglePolicy_ReturnsCorrectAst()
     {
-        const string pdl = "policy file rel owner";
-        var expected = new PolicySet(
+        const string pdl = "namespace file relation owner";
+        var expected = new NamespaceSet(
             Seq(
-                new Policy(
-                    PolicyName.From("file"),
+                new Namespace(
+                    NamespaceIdentifier.From("file"),
                     Seq(
-                        new Relation(RelationName.From("owner"), DirectRewrite.Default)
+                        new Relation(RelationIdentifier.From("owner"), DirectRewrite.Default)
                     )
                 )
             )
@@ -44,28 +52,28 @@ public sealed class PdlParserTests
     [Fact]
     public void Parse_ComplexRewriteRule_ReturnsCorrectAst()
     {
-        const string pdl = "policy file rel viewer ((dir | cmp editor | tpl (parent, viewer)) ! cmp banned)";
+        const string pdl = "/n file /r viewer ((/d | /c editor | /t (parent, viewer)) ! /c banned)";
 
         var unionRewrite = new UnionRewrite(
             Seq<SubjectSetRewrite>(
                 DirectRewrite.Default,
-                new ComputedSubjectSetRewrite(RelationName.From("editor")),
-                new TupleToSubjectSetRewrite(RelationName.From("parent"), RelationName.From("viewer"))
+                new ComputedSubjectSetRewrite(RelationIdentifier.From("editor")),
+                new TupleToSubjectSetRewrite(RelationIdentifier.From("parent"), RelationIdentifier.From("viewer"))
             )
         );
 
         var exclusionRewrite = new ExclusionRewrite(
             unionRewrite,
-            new ComputedSubjectSetRewrite(RelationName.From("banned"))
+            new ComputedSubjectSetRewrite(RelationIdentifier.From("banned"))
         );
 
-        var expected = new PolicySet(
+        var expected = new NamespaceSet(
             Seq(
-                new Policy(
-                    PolicyName.From("file"),
+                new Namespace(
+                    NamespaceIdentifier.From("file"),
                     Seq(
                         new Relation(
-                            RelationName.From("viewer"),
+                            RelationIdentifier.From("viewer"),
                             exclusionRewrite
                         )
                     )
@@ -84,67 +92,67 @@ public sealed class PdlParserTests
     {
         var pdl = File.ReadAllText("Data/doc.policy.pdl");
 
-        var filePolicy = new Policy(
-            PolicyName.From("file"),
+        var filePolicy = new Namespace(
+            NamespaceIdentifier.From("file"),
             Seq(
-                new Relation(RelationName.From("owner"), DirectRewrite.Default),
+                new Relation(RelationIdentifier.From("owner"), DirectRewrite.Default),
                 new Relation(
-                    RelationName.From("editor"),
+                    RelationIdentifier.From("editor"),
                     new UnionRewrite(
                         Seq<SubjectSetRewrite>(
                             DirectRewrite.Default,
-                            new ComputedSubjectSetRewrite(RelationName.From("owner"))
+                            new ComputedSubjectSetRewrite(RelationIdentifier.From("owner"))
                         )
                     )
                 ),
                 new Relation(
-                    RelationName.From("viewer"),
+                    RelationIdentifier.From("viewer"),
                     new ExclusionRewrite(
                         new UnionRewrite(
                             Seq<SubjectSetRewrite>(
                                 DirectRewrite.Default,
-                                new ComputedSubjectSetRewrite(RelationName.From("editor")),
-                                new TupleToSubjectSetRewrite(RelationName.From("parent"), RelationName.From("viewer"))
+                                new ComputedSubjectSetRewrite(RelationIdentifier.From("editor")),
+                                new TupleToSubjectSetRewrite(RelationIdentifier.From("parent"), RelationIdentifier.From("viewer"))
                             )
                         ),
-                        new ComputedSubjectSetRewrite(RelationName.From("banned"))
+                        new ComputedSubjectSetRewrite(RelationIdentifier.From("banned"))
                     )
                 ),
                 new Relation(
-                    RelationName.From("auditor"),
+                    RelationIdentifier.From("auditor"),
                     new IntersectionRewrite(
                         Seq<SubjectSetRewrite>(
                             DirectRewrite.Default,
-                            new ComputedSubjectSetRewrite(RelationName.From("viewer"))
+                            new ComputedSubjectSetRewrite(RelationIdentifier.From("viewer"))
                         )
                     )
                 ),
-                new Relation(RelationName.From("banned"), DirectRewrite.Default)
+                new Relation(RelationIdentifier.From("banned"), DirectRewrite.Default)
             )
         );
 
-        var folderPolicy = new Policy(
-            PolicyName.From("folder"),
+        var folderPolicy = new Namespace(
+            NamespaceIdentifier.From("folder"),
             Seq(
-                new Relation(RelationName.From("owner"), DirectRewrite.Default),
+                new Relation(RelationIdentifier.From("owner"), DirectRewrite.Default),
                 new Relation(
-                    RelationName.From("viewer"),
+                    RelationIdentifier.From("viewer"),
                     new ExclusionRewrite(
                         new UnionRewrite(
                             Seq<SubjectSetRewrite>(
                                 DirectRewrite.Default,
-                                new ComputedSubjectSetRewrite(RelationName.From("editor")),
-                                new TupleToSubjectSetRewrite(RelationName.From("parent"), RelationName.From("viewer"))
+                                new ComputedSubjectSetRewrite(RelationIdentifier.From("editor")),
+                                new TupleToSubjectSetRewrite(RelationIdentifier.From("parent"), RelationIdentifier.From("viewer"))
                             )
                         ),
-                        new ComputedSubjectSetRewrite(RelationName.From("banned"))
+                        new ComputedSubjectSetRewrite(RelationIdentifier.From("banned"))
                     )
                 ),
-                new Relation(RelationName.From("banned"), DirectRewrite.Default)
+                new Relation(RelationIdentifier.From("banned"), DirectRewrite.Default)
             )
         );
 
-        var expected = new PolicySet(Seq(filePolicy, folderPolicy));
+        var expected = new NamespaceSet(Seq(filePolicy, folderPolicy));
 
         _ = PdlParser.Parse(pdl).Run().Match(
             Succ: doc =>

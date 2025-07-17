@@ -8,26 +8,30 @@
 #   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
 #   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
 
-# policy name
-policy file
+# namespace name
+namespace file
 
 # empty relationship - implicit direct
-rel owner
+relation owner
 
 # relationship with union rewrite
-rel editor (direct | cmp owner)
+relation editor (direct | computed owner)
 
 # relationship with union and exclusion rewrites
-rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
+relation viewer ((direct | computed editor | tuple (parent, viewer)) ! computed banned)
 
 # relationship with intersection rewrite
-rel auditor (direct & cmp viewer)
+relation auditor (direct & computed viewer)
 
 # empty relationship - implicit direct
-rel banned
+relation banned
 
-# second policy defined within same document
-policy folder
-rel owner
-rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
-rel banned
+# second ns defined within same document
+/n folder
+/r owner 
+/r viewer 
+    (
+        (/d | /c editor | /t (parent, viewer)) 
+        ! /c banned
+    )
+/r banned
