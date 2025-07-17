@@ -1,43 +1,65 @@
 ﻿using Dapper;
+using Kingo.Storage.Db;
 using Kingo.Storage.Keys;
 using LanguageExt;
-using Microsoft.Data.Sqlite;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Sqlite;
 
-public static class SQLiteDocumentReader
+public static class SqliteDocumentReader
 {
-    public static Either<SqliteError, SqliteDocumentReader<HK>> Cons<HK>(
-        string connectionString,
-        Key table)
-        where HK : IEquatable<HK>, IComparable<HK> =>
-    // todo: really important - this will not work because it needs to dispose / close connections. the reader and writer are not disposable anymore
-        Open(new SqliteConnection(connectionString))
-        .Map(conn => new SqliteDocumentReader<HK>(conn, table));
-
-    public static Either<SqliteError, SqliteDocumentReader<HK>> Cons<HK, RK>(
-        string connectionString,
+    public static IDocumentReader<HK> WithIO<HK>(
+        IDbContext context,
         Key table)
         where HK : IEquatable<HK>, IComparable<HK>
-        where RK : IEquatable<RK>, IComparable<RK> =>
-    // todo: really important - this will not work because it needs to dispose / close connections. the reader and writer are not disposable anymore
-        Open(new SqliteConnection(connectionString))
-        .Map(conn => new SqliteDocumentReader<HK>(conn, table));
+        => new SqliteDocumentReaderWithIO<HK>(context, table);
 
-    // todo: really important - this will not work because it needs to dispose / close connections. the reader and writer are not disposable anymore
-    private static Either<SqliteError, SqliteConnection> Open(SqliteConnection connection) =>
-        Try.lift(connection.Open)
-        .Match<Either<SqliteError, SqliteConnection>>(
-            Fail: e => SqliteError.New(StorageErrorCodes.SqliteError, "failed to connect", e),
-            Succ: _ => connection);
+    public static IDocumentReader<HK, RK> WithIO<HK, RK>(
+        IDbContext context,
+        Key table)
+        where HK : IEquatable<HK>, IComparable<HK>
+        where RK : IEquatable<RK>, IComparable<RK>
+        => new SqliteDocumentReaderWithIO<HK, RK>(context, table);
+
+    private sealed class SqliteDocumentReaderWithIO<HK>(
+        IDbContext context,
+        Key table)
+        : IDocumentReader<HK>
+        where HK : IEquatable<HK>, IComparable<HK>
+    {
+        private readonly SqliteDocumentReader<HK> reader = new(context, table);
+
+        public Eff<Option<Document<HK>>> Find(HK hashKey) =>
+            Lift(token => reader.FindAsync(hashKey, token));
+    }
+
+    private sealed class SqliteDocumentReaderWithIO<HK, RK>(
+        IDbContext context,
+        Key table)
+        : IDocumentReader<HK, RK>
+        where HK : IEquatable<HK>, IComparable<HK>
+        where RK : IEquatable<RK>, IComparable<RK>
+    {
+        private readonly SqliteDocumentReader<HK, RK> reader = new(context, table);
+
+        public Eff<Iterable<Document<HK, RK>>> Find(HK hashKey, RangeKey range) =>
+            Lift(token => reader.FindAsync(hashKey, range, token));
+
+        public Eff<Option<Document<HK, RK>>> Find(HK hashKey, RK rangeKey) =>
+            Lift(token => reader.FindAsync(hashKey, rangeKey, token));
+
+        public Eff<Iterable<Document<HK, RK>>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
+            Lift(token => reader.WhereAsync(hashKey, predicate, token));
+    }
+
+    private static Eff<T> Lift<T>(Func<CancellationToken, Task<T>> asyncOperation) =>
+        Prelude.liftIO(env => asyncOperation(env.Token));
 }
 
 public sealed class SqliteDocumentReader<HK>(
-    SqliteConnection connection,
+    IDbContext context,
     Key table)
-    : IDocumentReader<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly record struct HkParam(HK HashKey);
@@ -45,17 +67,16 @@ public sealed class SqliteDocumentReader<HK>(
         $"select a.hashkey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Option<Document<HK>> Find(HK hashKey) =>
-        connection.QuerySingle<Document<HK>>(hkQuery, new HkParam(hashKey));
-
-    [SuppressMessage("IDisposableAnalyzers.Correctness", "IDISP007:Don't dispose injected", Justification = "reader owns the connection")]
-    public void Dispose() => connection.Dispose();
+    public async Task<Option<Document<HK>>> FindAsync(HK hashKey, CancellationToken token) =>
+        await context.ExecuteAsync((db, tx) =>
+            db.QuerySingleOrDefaultAsync<Document<HK>>(hkQuery, new HkParam(hashKey), tx),
+            token);
 }
 
+// todo: wrap in IDocumentReader<HK, RK> implementation that lifts the tasks to Eff
 public sealed class SqliteDocumentReader<HK, RK>(
-    SqliteConnection connection,
+    IDbContext context,
     Key table)
-    : IDocumentReader<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
@@ -64,29 +85,34 @@ public sealed class SqliteDocumentReader<HK, RK>(
         $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
-        connection.QuerySingle<Document<HK, RK>>(hkrkQuery, new HkRkParam(hashKey, rangeKey));
+    public async Task<Option<Document<HK, RK>>> FindAsync(HK hashKey, RK rangeKey, CancellationToken token) =>
+        await context.ExecuteAsync((db, tx) =>
+            db.QuerySingleOrDefaultAsync<Document<HK, RK>>(hkrkQuery, new HkRkParam(hashKey, rangeKey), tx),
+            token);
 
     private readonly record struct HkParam(HK HashKey);
     private readonly string hkQuery =
         $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
-        Prelude.Iterable(Find(hashKey).Where(predicate));
+    public async Task<Iterable<Document<HK, RK>>> WhereAsync(
+        HK hashKey,
+        Func<Document<HK, RK>, bool> predicate,
+        CancellationToken token) =>
+        Prelude.Iterable((await FindAsync(hashKey, token)).Where(predicate));
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range) =>
-        Filter(Find(hashKey), range);
+    public async Task<Iterable<Document<HK, RK>>> FindAsync(HK hashKey, RangeKey range, CancellationToken token) =>
+        Prelude.Iterable(Filter(await FindAsync(hashKey, token), range));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Iterable<Document<HK, RK>> Filter(Iterable<Document<HK, RK>> documents, RangeKey range) =>
+    private static IEnumerable<Document<HK, RK>> Filter(IEnumerable<Document<HK, RK>> documents, RangeKey range) =>
         range switch
         {
-            LowerBound<RK> lower => documents.Filter(d => LowerBound(d, lower.Key)),
-            UpperBound<RK> upper => documents.Filter(d => UppperBound(d, upper.Key)),
-            Between<RK> span => documents.Filter(d => Between(d, span)),
+            LowerBound<RK> lower => documents.Where(d => LowerBound(d, lower.Key)),
+            UpperBound<RK> upper => documents.Where(d => UpperBound(d, upper.Key)),
+            Between<RK> span => documents.Where(d => Between(d, span)),
             Unbound u => documents,
             _ => throw new NotSupportedException("unknown range type")
         };
@@ -96,13 +122,16 @@ public sealed class SqliteDocumentReader<HK, RK>(
         document.RangeKey.CompareTo(key) >= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool UppperBound(Document<HK, RK> document, RK key) =>
+    private static bool UpperBound(Document<HK, RK> document, RK key) =>
         document.RangeKey.CompareTo(key) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool Between(Document<HK, RK> document, Between<RK> span) =>
-        LowerBound(document, span.LowerBound) && UppperBound(document, span.UpperBound);
+        LowerBound(document, span.LowerBound)
+        && UpperBound(document, span.UpperBound);
 
-    private Iterable<Document<HK, RK>> Find(HK hashKey) =>
-        Prelude.Iterable(connection.Query<Document<HK, RK>>(hkQuery, new HkParam(hashKey)));
+    private Task<IEnumerable<Document<HK, RK>>> FindAsync(HK hashKey, CancellationToken token) =>
+        context.ExecuteAsync((db, tx) =>
+            db.QueryAsync<Document<HK, RK>>(hkQuery, new HkParam(hashKey), tx),
+            token);
 }
