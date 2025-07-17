@@ -1,5 +1,5 @@
 ﻿namespace Kingo.Storage.Sqlite;
 
-public sealed record DbContextOptions(
+public sealed record SqliteConnectionFactoryOptions(
     string ConnectionString,
     bool EnableWAL);
