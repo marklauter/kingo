@@ -13,8 +13,8 @@ PDL BNF
 ```bnf
 # operator precedence: !, &, | (exclude, intersect, union)
 # expressions
-<policy-set>    ::= <policy> [ <policy> ]*
-<policy>        ::= <policy-identifier> <relation-set>
+<policy-set>    ::= <namespace> [ <namespace> ]*
+<namespace>     ::= <namespace-identifier> <relation-set>
 <relation-set>  ::= <relation> [ <relation> ]*
 <relation>      ::= <relation-identifier> [ '(' <rewrite> ')' ]
 <rewrite>       ::= <intersection> [ '|' <intersection> ]*
@@ -26,11 +26,11 @@ PDL BNF
                   | '(' <rewrite> ')'
 
 # keywords (terms)
-<policy-identifier>             ::= 'policy' <identifier>
-<direct>                        ::= ('direct' | 'dir')
-<relation-identifier>           ::= ('relation' | 'rel') <identifier>
-<computed-subjectset-rewrite>   ::= ('computed' | 'cmp') <identifier>
-<tuple-to-subjectset-rewrite>   ::= ('tuple' | 'tpl') (' <identifier> ',' <identifier> ')'
+<namespace-identifier>          ::= ('namespace' | '/n') <identifier>
+<direct>                        ::= ('direct' | '/d')
+<relation-identifier>           ::= ('relation' | '/r') <identifier>
+<computed-subjectset-rewrite>   ::= ('computed' | '/c') <identifier>
+<tuple-to-subjectset-rewrite>   ::= ('tuple' | '/t') (' <identifier> ',' <identifier> ')'
 <identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
 
 <comment>       ::= '#' [^<newline>]*
@@ -49,29 +49,33 @@ PDL sample:
 #   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
 #   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
 
-# policy name
-policy file
+# namespace
+namespace file
 
 # empty relationship - implicit direct
-rel owner 
+relation owner 
 
 # relationship with union rewrite
-rel editor (direct | cmp owner) 
+relation editor (direct | computed owner) 
 
 # relationship with union and exclusion rewrites
-rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned) 
+relation viewer ((direct | computed editor | tuple (parent, viewer)) ! computed banned) 
 
 # relationship with intersection rewrite
-rel auditor (direct & cmp viewer) 
+relation auditor (direct & computed viewer) 
 
 # empty relationship - implicit direct
-rel banned
+relation banned
 
 # second policy defined within same document
-policy folder
-rel owner 
-rel viewer ((direct | cmp editor | tpl (parent, viewer)) ! cmp banned)
-rel banned
+/n folder
+/r owner 
+/r viewer 
+    (
+        (/d | /c editor | /t (parent, viewer)) 
+        ! /c banned
+    )
+/r banned
 ```
 
 ## access control subsystem
