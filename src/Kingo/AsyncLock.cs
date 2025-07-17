@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.Sqlite;
+namespace Kingo;
 
 public sealed class AsyncLock
     : IDisposable
@@ -30,9 +30,7 @@ public sealed class AsyncLock
     public void Dispose()
     {
         if (disposed)
-        {
             return;
-        }
 
         latch.Dispose();
 
