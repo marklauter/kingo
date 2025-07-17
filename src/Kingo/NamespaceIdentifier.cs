@@ -7,12 +7,12 @@ using System.Text.RegularExpressions;
 
 namespace Kingo;
 
-[JsonConverter(typeof(StringConvertible<PolicyName>))]
+[JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "this is for C# wizards only")]
-public readonly struct PolicyName
-    : IStringConvertible<PolicyName>
-    , IEquatable<PolicyName>
-    , IComparable<PolicyName>
+public readonly struct NamespaceIdentifier
+    : IStringConvertible<NamespaceIdentifier>
+    , IEquatable<NamespaceIdentifier>
+    , IComparable<NamespaceIdentifier>
     , IEquatable<string>
     , IComparable<string>
 {
@@ -20,14 +20,14 @@ public readonly struct PolicyName
     private static readonly Regex Validation = RegExPatterns.Identifier();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PolicyName Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
+    public static NamespaceIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static PolicyName From(string s) => new(s);
+    public static NamespaceIdentifier From(string s) => new(s);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private PolicyName(string value) => this.value = ValidValue(value);
+    private NamespaceIdentifier(string value) => this.value = ValidValue(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string ValidValue(string value)
@@ -45,13 +45,13 @@ public readonly struct PolicyName
     public override string ToString() => value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(PolicyName other) => string.Equals(value, other.value, StringComparison.Ordinal);
+    public bool Equals(NamespaceIdentifier other) => string.Equals(value, other.value, StringComparison.Ordinal);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is PolicyName @namespace && Equals(@namespace);
+    public override bool Equals(object? obj) => obj is NamespaceIdentifier @namespace && Equals(@namespace);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(PolicyName other) => string.CompareOrdinal(value, other.value);
+    public int CompareTo(NamespaceIdentifier other) => string.CompareOrdinal(value, other.value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(string? other) => other is not null && string.Equals(value, other, StringComparison.Ordinal);
@@ -61,27 +61,27 @@ public readonly struct PolicyName
     public int CompareTo(string? other) => value.CompareTo(other);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(PolicyName @namespace) => @namespace.value;
+    public static implicit operator string(NamespaceIdentifier @namespace) => @namespace.value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator PolicyName(string value) => new(value);
+    public static implicit operator NamespaceIdentifier(string value) => new(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(PolicyName left, PolicyName right) => left.Equals(right);
+    public static bool operator ==(NamespaceIdentifier left, NamespaceIdentifier right) => left.Equals(right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(PolicyName left, PolicyName right) => !(left == right);
+    public static bool operator !=(NamespaceIdentifier left, NamespaceIdentifier right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <(PolicyName left, PolicyName right) => left.CompareTo(right) < 0;
+    public static bool operator <(NamespaceIdentifier left, NamespaceIdentifier right) => left.CompareTo(right) < 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator <=(PolicyName left, PolicyName right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(NamespaceIdentifier left, NamespaceIdentifier right) => left.CompareTo(right) <= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >(PolicyName left, PolicyName right) => left.CompareTo(right) > 0;
+    public static bool operator >(NamespaceIdentifier left, NamespaceIdentifier right) => left.CompareTo(right) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator >=(PolicyName left, PolicyName right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(NamespaceIdentifier left, NamespaceIdentifier right) => left.CompareTo(right) >= 0;
 }
 
