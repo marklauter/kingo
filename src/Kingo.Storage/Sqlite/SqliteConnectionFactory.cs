@@ -10,6 +10,7 @@ public sealed class SqliteConnectionFactory(
 {
     private readonly string connectionString = new SqliteConnectionStringBuilder(options.ConnectionString)
     {
+        // todo: some of these these should be configurable
         Pooling = true,
         Mode = SqliteOpenMode.ReadWriteCreate,
         ForeignKeys = true,
@@ -17,6 +18,8 @@ public sealed class SqliteConnectionFactory(
     .ToString();
 
     private bool enableWAL = options.EnableWAL;
+
+    public void ClearAllPools() => SqliteConnection.ClearAllPools();
 
     public async Task<DbConnection> OpenAsync(CancellationToken token)
     {

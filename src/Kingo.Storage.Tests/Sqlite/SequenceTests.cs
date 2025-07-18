@@ -7,28 +7,56 @@ using LanguageExt;
 namespace Kingo.Storage.Tests.Sqlite;
 
 public sealed class SequenceTests
+    : IAsyncLifetime
 {
-    private readonly DbContext context = new(
-        new SqliteConnectionFactory(new("Data Source=:memory:", false)));
-    private readonly Migrations migrations = Migrations.Cons().Add(
-       "create-table-seq",
+    public SequenceTests() =>
+        context = new(
+            new SqliteConnectionFactory(
+                new($"Data Source={dbName}", false)));
+
+    private readonly string dbName = $"{Guid.NewGuid()}.sqlite";
+
+    public async Task InitializeAsync() =>
+        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
+
+    public Task DisposeAsync()
+    {
+        context.ClearAllPools();
+        if (File.Exists(dbName))
+            File.Delete(dbName);
+
+        return Task.CompletedTask;
+    }
+
+    private readonly DbContext context;
+
+    private readonly Migrations migrations = Migrations.Cons()
+        .Add(
+        "create-table-seq_32",
         """
-            CREATE TABLE seq (
+            CREATE TABLE seq_32 (
                 key TEXT PRIMARY KEY,
                 value INTEGER NOT NULL
+            )
+        """)
+        .Add(
+        "create-table-seq_64",
+        """
+            CREATE TABLE seq_64 (
+                key TEXT PRIMARY KEY,
+                value BIGINT NOT NULL
             )
         """);
 
     private readonly Key seqName = Key.From("my_seq");
 
-    private Sequence<int> CreateSequence(Key name) => new(context, name);
+    private Sequence<int> CreateIntSequence(Key name) => new(context, "seq_32", name);
+    private Sequence<long> CreateLongSequence(Key name) => new(context, "seq_64", name);
 
     [Fact]
     public async Task NextAsync_ReturnsOne_WhenSequenceIsNew()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
-
-        var sequence = CreateSequence(seqName);
+        var sequence = CreateIntSequence(seqName);
 
         var result = await sequence.NextAsync(CancellationToken.None);
 
@@ -38,9 +66,8 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_ReturnsConsecutiveNumbers_WhenCalledMultipleTimes()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence = CreateSequence(seqName);
+        var sequence = CreateIntSequence(seqName);
 
         _ = (await sequence.NextAsync(CancellationToken.None)).Should().Be(1);
         _ = (await sequence.NextAsync(CancellationToken.None)).Should().Be(2);
@@ -50,10 +77,9 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_ReturnsIndependentSequences_WhenUsingDifferentNames()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence1 = CreateSequence(Key.From("seq1"));
-        var sequence2 = CreateSequence(Key.From("seq2"));
+        var sequence1 = CreateIntSequence(Key.From("seq1"));
+        var sequence2 = CreateIntSequence(Key.From("seq2"));
 
         var seq1_first = await sequence1.NextAsync(CancellationToken.None);
         var seq2_first = await sequence2.NextAsync(CancellationToken.None);
@@ -69,9 +95,8 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_ThrowsOperationCanceledException_WhenTokenIsCanceled()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence = CreateSequence(seqName);
+        var sequence = CreateIntSequence(seqName);
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
@@ -81,9 +106,8 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_HandlesHighConcurrency_WhenMultipleTasksAccess()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence = CreateSequence(seqName);
+        var sequence = CreateIntSequence(seqName);
         var tasks = Enumerable.Range(0, 100)
             .Select(_ => Task.Run(() => sequence.NextAsync(CancellationToken.None)))
             .ToArray();
@@ -98,9 +122,8 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_WorksWithLongType_WhenCalled()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence = new Sequence<long>(context, seqName);
+        var sequence = CreateLongSequence(seqName);
 
         var first = await sequence.NextAsync(CancellationToken.None);
         var second = await sequence.NextAsync(CancellationToken.None);
@@ -110,29 +133,14 @@ public sealed class SequenceTests
     }
 
     [Fact]
-    public async Task NextAsync_WorksWithDecimalType_WhenCalled()
-    {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
-
-        var sequence = new Sequence<decimal>(context, seqName);
-
-        var first = await sequence.NextAsync(CancellationToken.None);
-        var second = await sequence.NextAsync(CancellationToken.None);
-
-        _ = first.Should().Be(1M);
-        _ = second.Should().Be(2M);
-    }
-
-    [Fact]
     public async Task NextAsync_PersistsState_WhenSequenceIsRecreated()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence1 = CreateSequence(seqName);
+        var sequence1 = CreateIntSequence(seqName);
         _ = await sequence1.NextAsync(CancellationToken.None);
         _ = await sequence1.NextAsync(CancellationToken.None);
 
-        var sequence2 = CreateSequence(seqName);
+        var sequence2 = CreateIntSequence(seqName);
         var result = await sequence2.NextAsync(CancellationToken.None);
 
         _ = result.Should().Be(3);
@@ -141,10 +149,9 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_HandlesConcurrentAccess_WithMultipleSequenceInstances()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence1 = CreateSequence(seqName);
-        var sequence2 = CreateSequence(seqName);
+        var sequence1 = CreateIntSequence(seqName);
+        var sequence2 = CreateIntSequence(seqName);
 
         var task1 = Task.Run(async () =>
         {
@@ -173,9 +180,8 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_MaintainsConsistency_UnderHighContention()
     {
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
 
-        var sequence = CreateSequence(seqName);
+        var sequence = CreateIntSequence(seqName);
         var concurrencyLevel = 20;
         var iterationsPerTask = 50;
 

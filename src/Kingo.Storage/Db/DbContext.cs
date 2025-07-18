@@ -9,6 +9,8 @@ namespace Kingo.Storage.Db;
 public sealed class DbContext(IDbConnectionFactory factory)
     : IDbContext
 {
+    public void ClearAllPools() => factory.ClearAllPools();
+
     public async Task ExecuteAsync(Func<DbConnection, DbTransaction, Task> operation, CancellationToken token)
     {
         using var connection = await factory.OpenAsync(token);
@@ -21,15 +23,29 @@ public sealed class DbContext(IDbConnectionFactory factory)
         return await connection.ExecuteAsync(operation, token);
     }
 
+    private const string MigrationsTableDdl = """
+            CREATE TABLE IF NOT EXISTS migrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                date TEXT NOT NULL
+            );
+        
+            CREATE INDEX IF NOT EXISTS idx_migrations_name ON migrations (name);
+            """;
+
     public async Task ApplyMigrationsAsync(Migrations migrations, CancellationToken token)
     {
-        // todo: check migrations table (migration name, date)
-        // read all migrations from DB, then subtract them from the incoming migration set
-        // todo: write completed migrations to migrations table (name, date)
         using var connection = await factory.OpenAsync(token);
-        foreach (var (Key, Value) in migrations.Scripts)
-            await connection.ExecuteAsync(async (c, t) => await MigrationOperationAsync(c, t, Key, Value),
-            token);
+        _ = await connection.ExecuteAsync((db, tx) =>
+                db.ExecuteAsync(MigrationsTableDdl, null, tx),
+                token);
+
+        await connection.ExecuteAsync(async (db, tx) =>
+        {
+            foreach (var (Key, Value) in migrations.Scripts)
+                await MigrationOperationAsync(db, tx, Key, Value);
+        },
+        token);
     }
 
     private static readonly string InsertMigration = "insert into migrations (name, date) values (@Name, @Date)";
@@ -37,16 +53,16 @@ public sealed class DbContext(IDbConnectionFactory factory)
     private readonly record struct MigrationParam(string Name, string Date);
     private readonly record struct MigrationExistsParam(string Name);
     private static async Task MigrationOperationAsync(
-        IDbConnection connection,
-        IDbTransaction transaction,
+        IDbConnection db,
+        IDbTransaction tx,
         string name,
         string script)
     {
-        if (await connection.QuerySingleAsync<bool>(MigrationExists, new MigrationExistsParam(name), transaction))
+        if (await db.QuerySingleAsync<bool>(MigrationExists, new MigrationExistsParam(name), tx))
             return;
 
-        _ = await connection.ExecuteAsync(script, null, transaction);
-        _ = await connection.ExecuteAsync(InsertMigration, new MigrationParam(name, DateTime.UtcNow.ToString("o")), transaction);
+        _ = await db.ExecuteAsync(script, null, tx);
+        _ = await db.ExecuteAsync(InsertMigration, new MigrationParam(name, DateTime.UtcNow.ToString("o")), tx);
     }
 }
 
