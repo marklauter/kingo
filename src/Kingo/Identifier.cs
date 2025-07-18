@@ -1,5 +1,4 @@
-﻿using Kingo.Facts;
-using Kingo.Json;
+﻿using Kingo.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;

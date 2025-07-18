@@ -1,4 +1,4 @@
-namespace Kingo.Tests;
+namespace Kingo.Policies.Tests;
 
 public sealed class ResourceTests
 {

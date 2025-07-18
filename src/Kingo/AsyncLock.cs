@@ -8,24 +8,24 @@ public sealed class AsyncLock
     private bool disposed;
     private readonly SemaphoreSlim latch = new(1, 1);
 
-    public sealed class Token
+    public sealed class LockToken
         : IDisposable
     {
         private readonly SemaphoreSlim latch;
 
-        internal Token(SemaphoreSlim latch) => this.latch = latch;
+        internal LockToken(SemaphoreSlim latch) => this.latch = latch;
 
         public void Dispose() => _ = latch.Release();
     }
 
-    public async Task<Token> LockAsync(CancellationToken cancellationToken)
+    public async Task<LockToken> AcquireAsync(CancellationToken cancellationToken)
     {
         await ThrowIfDisposed().latch.WaitAsync(cancellationToken);
-        return new Token(latch);
+        return new LockToken(latch);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Task<Token> LockAsync() => LockAsync(CancellationToken.None);
+    public Task<LockToken> AcquireAsync() => AcquireAsync(CancellationToken.None);
 
     public void Dispose()
     {

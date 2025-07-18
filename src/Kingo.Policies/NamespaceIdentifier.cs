@@ -1,11 +1,10 @@
-﻿using Kingo.Facts;
-using Kingo.Json;
+﻿using Kingo.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Kingo;
+namespace Kingo.Policies;
 
 [JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "this is for C# wizards only")]

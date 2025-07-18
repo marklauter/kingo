@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Kingo;
+namespace Kingo.Policies;
 
 internal partial class RegExPatterns
 {
@@ -12,4 +12,8 @@ internal partial class RegExPatterns
 
     [GeneratedRegex(@"^[A-Za-z0-9_]+$", PatternOptions)]
     public static partial Regex Identifier();
+
+    // allows dots for the ...
+    [GeneratedRegex(@"^[A-Za-z0-9_.]+$", PatternOptions)]
+    public static partial Regex Relationship();
 }

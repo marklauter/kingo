@@ -1,7 +1,7 @@
 ﻿using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo;
+namespace Kingo.Policies;
 
 public sealed record Subject(BigId Id, HashMap<Identifier, string> Claims)
 {

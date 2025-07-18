@@ -1,4 +1,4 @@
-﻿namespace Kingo;
+﻿namespace Kingo.Policies;
 
 // it's like a resource indicator, but scheme is omitted because we know the context
 // <policy-name>:<resource-id>
