@@ -86,8 +86,37 @@ relation banned
 - todo: describe ACL subjectset rewrite recursion 
 
 ## storage system
-- current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
-- future: an event-based store like an account ledger. inspired by Datomic. state of an entity is determined by folding over its events. periodic snapshots for performance.
+### deprecated
+in-memory key-value store with partition key and range key, similar to AWS DocumentDB
+### current
+simulated key-value store backed by sqlite
+
+each document record is split between two tables. the first table is the header which is composed of a hashkey and version. 
+the second table is the journal which is composed of a hashkey, version, and data (dumped as json). the header is mutable and the journal is append only. this means you can maintain an audit for almost zero compute cost. there is no special history table, no need for CDC, and you can read the lastest version without a rollup or slow max calculation on the version.
+
+```ddl
+header tbl
+PK (text hashkey, number version)
+FK (version -> journal:version)
+
+journal tbl
+PK (text hashkey, number version)
+text data
+```
+
+when a document is updated, a new entry is written to journal, and the header version is updated. to read a document you provide the hashkey and the tables are joined like this:
+```sql
+select
+  a.hashkey,
+  a.version,
+  b.data
+from header a
+join journal b on b.hashkey = a.hashkey and b.version = a.version
+where a.hashkey = @HK
+```
+ 
+### future
+event-based store like an account ledger. inspired by Datomic. state of an entity is determined by folding over its events. periodic snapshots for performance.
 
 example: 
 ```
