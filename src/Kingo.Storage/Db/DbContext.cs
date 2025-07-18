@@ -21,14 +21,14 @@ public sealed class DbContext(IDbConnectionFactory factory)
         return await connection.ExecuteAsync(operation, token);
     }
 
-    public async Task PerformMigrationsAsync(Migrations migrations, CancellationToken token)
+    public async Task ApplyMigrationsAsync(Migrations migrations, CancellationToken token)
     {
         // todo: check migrations table (migration name, date)
         // read all migrations from DB, then subtract them from the incoming migration set
         // todo: write completed migrations to migrations table (name, date)
         using var connection = await factory.OpenAsync(token);
-        foreach (var migration in migrations.SqlScripts)
-            await connection.ExecuteAsync(async (c, t) => await MigrationOperationAsync(c, t, migration.Key, migration.Value),
+        foreach (var (Key, Value) in migrations.Scripts)
+            await connection.ExecuteAsync(async (c, t) => await MigrationOperationAsync(c, t, Key, Value),
             token);
     }
 
