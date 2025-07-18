@@ -3,7 +3,7 @@ using Kingo.Storage.Json;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests.Sqlite;
+namespace Kingo.Storage.Tests.Json;
 
 public sealed class MapSerializerTests
 {
@@ -68,3 +68,4 @@ public sealed class MapSerializerTests
         }
     }
 }
+
