@@ -6,133 +6,88 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
-## namespace specs / subjectset rewrite rules
-json-based namespace, relation, and rewrite definitions
+## policy specs / subjectset rewrite rules
+policy definition language (PDL) for building relationships and rewrite definitions
 
-working sample:
-```json
-{
-  "Name": "doc",
-  "Relationships": [
-    {
-      "Name": "owner"
-    },
-    {
-      "Name": "editor",
-      "SubjectSetRewrite": {
-        "Type": "UnionRewrite",
-        "Children": [
-          {
-            "Type": "This"
-          },
-          {
-            "Type": "ComputedSubjectSetRewrite",
-            "Relationship": "owner"
-          }
-        ]
-      }
-    },
-    {
-      "Name": "viewer",
-      "SubjectSetRewrite": {
-        "Type": "UnionRewrite",
-        "Children": [
-          {
-            "Type": "This"
-          },
-          {
-            "Type": "ComputedSubjectSetRewrite",
-            "Relationship": "editor"
-          },
-          {
-            "Type": "TupleToSubjectSetRewrite",
-            "TuplesetRelation": "parent",
-            "ComputedSubjectSetRelation": "viewer"
-          }
-        ]
-      }
-    }
-  ]
-}
+PDL BNF
+```bnf
+# operator precedence: !, &, | (exclude, intersect, union)
+# expressions
+<policy-set>    ::= <namespace> [ <namespace> ]*
+<namespace>     ::= <namespace-identifier> <relation-set>
+<relation-set>  ::= <relation> [ <relation> ]*
+<relation>      ::= <relation-identifier> [ '(' <rewrite> ')' ]
+<rewrite>       ::= <intersection> [ '|' <intersection> ]*
+<intersection>  ::= <exclusion> [ '&' <exclusion> ]*
+<exclusion>     ::= <term> [ '!' <term> ]
+<term>          ::= <direct>
+                  | <computed-subjectset-rewrite>
+                  | <tuple-to-subjectset-rewrite>
+                  | '(' <rewrite> ')'
+
+# keywords (terms)
+<namespace-identifier>          ::= ('namespace' | '/n') <identifier>
+<direct>                        ::= ('direct' | '/d')
+<relation-identifier>           ::= ('relation' | '/r') <identifier>
+<computed-subjectset-rewrite>   ::= ('computed' | '/c') <identifier>
+<tuple-to-subjectset-rewrite>   ::= ('tuple' | '/t') (' <identifier> ',' <identifier> ')'
+<identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+<comment>       ::= '#' [^<newline>]*
+<newline>       ::= '\n' | '\r\n'
 ```
 
-custom language (work in progress):
-BNF
-```xml
-<document> ::= <comment-lines> <namespace>
-
-<comment-lines> ::= 
-    | <comment-lines> <comment> <newline>
-
-<namespace> ::= <identifier> <newline> <relationship-list>
-
-<relationship-list> ::= <relationship-line>
-    | <relationship-list> <relationship-line>
-
-<relationship-line> ::= <relationship> <newline>
-    | <comment> <newline>
-
-<relationship> ::= <identifier>
-    | <identifier> '(' <rewrite-rule> ')'
-
-<rewrite-rule> ::= 'this'
-    | 'cp:' <identifier>
-    | 'tp:(' <identifier> ',' <identifier> ')'
-    | <rewrite-rule> '|' <rewrite-rule>
-    | <rewrite-rule> '&' <rewrite-rule>
-    | <rewrite-rule> '!' <rewrite-rule>
-    | '(' <rewrite-rule> ')'
-
-<comment> ::= '#' <text-line>
-
-<newline> ::= '\n'
-<text-line> ::= [^\n]*
-<identifier> ::= [a-zA-Z_][a-zA-Z0-9_]*
-```
-
-sample format:
-```csharp
+PDL sample:
+```pdl
 # comments are prefixed with #
-# <namespace>
-# <relationship>(<rewrite-rule>)
 # rewrite set operators:
-# | = union operator
-# & = intersection operator
-# ! = exclusion operator
-# rewrite rules:
-# directly assigned subjects = this
-# ComputedSubjectSetRewrite = cp:<relationship>
-# TupleToSubjectSetRewrite = tp:(<tupleset-relationship>,<computed-subjectset-relationship>)
+#   ! = exclusion operator
+#   & = intersection operator
+#   | = union operator
+# rewrite:
+#   directly assigned subjects = direct | dir
+#   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
+#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
 
-# namespace name
-file
+# namespace
+namespace file
 
-# empty relationship - implicit this
-owner 
+# empty relationship - implicit direct
+relation owner 
 
 # relationship with union rewrite
-editor (this | cp:owner) 
+relation editor (direct | computed owner) 
 
 # relationship with union and exclusion rewrites
-viewer ((this | cp:editor | tp:(parent,viewer)) ! cp:banned) 
+relation viewer ((direct | computed editor | tuple (parent, viewer)) ! computed banned) 
 
 # relationship with intersection rewrite
-auditor (this & cp:viewer) 
+relation auditor (direct & computed viewer) 
 
-# empty relationship - implicit this
-banned 
+# empty relationship - implicit direct
+relation banned
+
+# second policy defined within same document
+/n folder
+/r owner 
+/r viewer 
+    (
+        (/d | /c editor | /t (parent, viewer)) 
+        ! /c banned
+    )
+/r banned
 ```
 
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
 - todo: describe ACL tuples 
-- todo: describe ACL tuple binary packing (for now, see `performance ideas`)
+- todo: describe ACL tuple binary packing (for now see `performance ideas`)
 - todo: describe ACL tuple storage and retrieval
 - todo: describe ACL subjectset rewrite recursion 
 
 ## storage system
 - current: in-memory key-value store with partition key and range key, similar to AWS DocumentDB
-- future: an event-based store like an account ledger. inspired by Datomic. entity state is determined by folding over its events. periodic snapshots for performance.
+- future: an event-based store like an account ledger. inspired by Datomic. state of an entity is determined by folding over its events. periodic snapshots for performance.
 
 example: 
 ```
@@ -169,19 +124,29 @@ FUT - work planned
 - 03 JUL 2025 - began dictionary encoding refactor
 - 04 JUL 2025 - began document store refactor - FP: it's turtles all the way down
 - 05 JUL 2025 - finished document store refactor
-- WIP - project reorg for better domain cohesion
-- WIP - namespace specification language
-- WIP - dictionary encoding refactor
-- FUT: Implement durable storage using SQLite to emulate DynamoDB structure
+- 06 JUL 2025 - project reorg for better domain cohesion
+- 11 JUL 2025 - created policy definition language (PDL)
+- 14 JUL 2025 - refactor from Either<Error, Result> to Eff<Result>
+- 15 JUL 2025 - SqliteDocumentWriter<HK> complete
+- 15 JUL 2025 - added sqlite dbcontext, connection factory, async lock, migrations
+- 16 JUL 2025 - deprecated transaction manager
+- 16 JUL 2025 - testing showed problems in sequence
+- 16 JUL 2025 - minor refactor of PDL
+- 16 JUL 2025 - gave up on distributed sequence for now. final attempt was to use twitter snowflake idea, but the value takes 64 bits. for now i'll use sqlite auto-inc PK. this rabbit hole set me back more than a day.
+- 16 JUL 2025 - sql document reader is now async. the tx manager is gone (or moved and hidden). the db context is mature. all the sql reader/writer classes now use db context.
+- 16 JUL 2025 - abandoned the refactor to distributed sequence with block leases for performance - it was not required
+- 16 JUL 2025 - implemented durable storage using SQLite to emulate DynamoDB structure. now support hashkey-value and hashkey:rangekey-value storage. every record is split into two parts. header (composite key + revision) and a journal (composite key + revision + data). header key never changes. header revision is overwritten. journal is append only. journal is a history of changes. header maps to most recent data via the key + version.
+- 17 JUL 2025 - woke up understanding distributed sequence and recovered the deleted classes and tests. all tests pass. structure will work with dynamodb.
+- WIP - dictionary encoding refactor 
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
-1. something like 64 bits for namespace, resource, and relation, as a partition key, and a uint for range key
+1. something like 64 bits for namespace, resource, and relation, as a partition key and a uint for range key
 1. 16 bits for namespace (65k slots)
 1. 14 bits for relation (16k slots per namespace)
 1. 34 bits for resource (17 billion slots per namespace)
 1. 32 bits for users (4 billion)
 1. bit packing requires every tuple element to be integer addressable
 1. Zanzibar uses a dictionary encoding strategy to map namespaces, relationships, and subjects to integer values
-1. the integer values can be packed into the 64-bit mentioned in item 1
-1. imagine the tuple lookup as a straight-up integer lookup in a btree or LSM - it's fast AF
+1. the integer values can be packed into that 64-bit mentioned in item 1
+1. imagine the tuple lookup as a straight-up integer lookup in a btree or LSMtree - it's fast AF
