@@ -15,8 +15,8 @@ public sealed class KeyEncoder(DocumentReader<BigId> reader)
     private static readonly Key RelationshipKey = Key.From("relationship");
 
     // packing sizes
-    private const int NamespaceBits = 16;
-    private const int RelationBits = 14;
+    private const int NamespaceBits = 15;
+    private const int RelationBits = 15;
     private const int ResourceBits = 34;
     // compile-time check to ensure bit allocations sum to 64
     // if it turns red check the packing sizes above ^
@@ -52,7 +52,7 @@ public sealed class KeyEncoder(DocumentReader<BigId> reader)
         Relationship relationship,
         CancellationToken ct) =>
         Prelude.Right<Error, Func<ulong, ulong, ulong, (ulong, ulong, ulong)>>(static (ns, res, rel) => (ns, res, rel))
-        .Apply(GetOrCreateId(NamespaceKey, Key.From(resource.Namespace), ct))
+        .Apply(GetOrCreateId(NamespaceKey, Key.From(resource.Policy), ct))
         .Apply(GetOrCreateId(ResourceKey, Key.From(resource.Name), ct))
         .Apply(GetOrCreateId(RelationshipKey, Key.From(relationship), ct));
 

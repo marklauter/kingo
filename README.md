@@ -137,7 +137,7 @@ FUT - work planned
 - 16 JUL 2025 - abandoned the refactor to distributed sequence with block leases for performance - it was not required
 - 16 JUL 2025 - implemented durable storage using SQLite to emulate DynamoDB structure. now support hashkey-value and hashkey:rangekey-value storage. every record is split into two parts. header (composite key + revision) and a journal (composite key + revision + data). header key never changes. header revision is overwritten. journal is append only. journal is a history of changes. header maps to most recent data via the key + version.
 - 17 JUL 2025 - woke up understanding distributed sequence and recovered the deleted classes and tests. all tests pass. structure will work with dynamodb.
-- FUT - dictionary encoding refactor 
+- WIP - dictionary encoding refactor 
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
