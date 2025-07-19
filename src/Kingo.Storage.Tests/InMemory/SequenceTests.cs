@@ -59,7 +59,7 @@ public sealed class SequenceTests
         var successfulValues = results
             .Select(r => r.Match(
                 Succ: value => value,
-                Fail: _ => throw new InvalidOperationException("Sequence generation failed")))
+                Fail: e => throw new InvalidOperationException($"Sequence generation failed {e.Message}")))
             .Distinct()
             .ToArray();
 

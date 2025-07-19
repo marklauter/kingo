@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace Kingo.Storage.Clocks;
+namespace Kingo.Storage;
 
 [JsonConverter(typeof(IntConvertible<Revision>))]
 public readonly struct Revision

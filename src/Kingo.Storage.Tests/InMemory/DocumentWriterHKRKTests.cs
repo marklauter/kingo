@@ -1,4 +1,3 @@
-using Kingo.Storage.Clocks;
 using Kingo.Storage.InMemory;
 using Kingo.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;

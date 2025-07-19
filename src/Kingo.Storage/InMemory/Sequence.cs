@@ -1,5 +1,6 @@
 ﻿using Kingo.Storage.Keys;
 using LanguageExt;
+using LanguageExt.Common;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -16,7 +17,7 @@ public sealed class Sequence<N>(
     {
         Eff<N> RepeatUntil(CancellationToken ct) =>
             ct.IsCancellationRequested
-            ? DocumentWriterError.New(StorageErrorCodes.TimeoutError, $"timeout updating sequence {name}")
+            ? Errors.TimedOut
             : Write(Read(name), ct)
             .Map(n => n)
             .IfFailEff(error => error.Code == StorageErrorCodes.VersionConflictError

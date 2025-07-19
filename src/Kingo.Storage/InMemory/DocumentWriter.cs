@@ -15,7 +15,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index)
             ct.IsCancellationRequested
                 ? Errors.Cancelled
                 : Try
-                .lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
+                .lift(() => TryExchange(index.Snapshot(), doc with { Version = Revision.Zero }, InsertSnapshot))
                 .Match(
                     Succ: success => success
                         ? Prelude.Pure(Prelude.unit)
@@ -40,7 +40,7 @@ public sealed class DocumentWriter<HK>(Index<HK> index)
                                 : RepeatUntil(doc, ct)),
                         None: () =>
                             Try
-                            .lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
+                            .lift(() => TryExchange(index.Snapshot(), doc with { Version = Revision.Zero }, InsertSnapshot))
                             .Match(
                                 Succ: success => success
                                     ? Prelude.Pure(Prelude.unit)
@@ -100,7 +100,7 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index)
         Eff<Unit> RepeatUntil(Document<HK, RK> doc, CancellationToken ct) =>
             ct.IsCancellationRequested
                 ? Errors.Cancelled
-                : Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
+                : Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Revision.Zero }, InsertSnapshot))
                 .Match(
                     Succ: success => success
                         ? Prelude.Pure(Prelude.unit)
@@ -122,7 +122,7 @@ public sealed class DocumentWriter<HK, RK>(Index<HK, RK> index)
                             .Bind(_ => TryExchange(index.Snapshot(), doc with { Version = doc.Version.Tick() }, UpdateSnapshot)
                                 ? Prelude.Pure(Prelude.unit)
                                 : RepeatUntil(doc, ct)),
-                        None: () => Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Clocks.Revision.Zero }, InsertSnapshot))
+                        None: () => Try.lift(() => TryExchange(index.Snapshot(), doc with { Version = Revision.Zero }, InsertSnapshot))
                             .Match(
                                 Succ: success => success
                                     ? Prelude.Pure(Prelude.unit)
