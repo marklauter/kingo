@@ -180,9 +180,9 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_MaintainsConsistency_UnderHighContention()
     {
-
+        // this will achieve between 40 and 60 concurrent threads before crashing on the rocks of Sqlite, which is fine
         var sequence = CreateIntSequence(seqName);
-        var concurrencyLevel = 20;
+        var concurrencyLevel = 50;
         var iterationsPerTask = 50;
 
         var tasks = Enumerable.Range(0, concurrencyLevel)
