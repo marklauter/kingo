@@ -34,7 +34,7 @@ public sealed class SqliteDocumentReaderHKRKTests
         return Task.CompletedTask;
     }
 
-    private readonly Migrations migrations = Migrations.Cons()
+    private readonly Migrations migrations = Migrations.Empty()
         .Add(
             "create-table-test_header",
             """

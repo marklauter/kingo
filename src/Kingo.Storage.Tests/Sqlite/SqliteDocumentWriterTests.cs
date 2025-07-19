@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Kingo.Storage.Db;
 using Kingo.Storage.Keys;
 using Kingo.Storage.Sqlite;
 using LanguageExt;
@@ -7,43 +6,19 @@ using LanguageExt;
 namespace Kingo.Storage.Tests.Sqlite;
 
 public sealed class SqliteDocumentWriterTests
-    : IAsyncLifetime
+    : SqliteTests
 {
-    public SqliteDocumentWriterTests() =>
-        context = new(
-            new SqliteConnectionFactory(
-                new($"Data Source={dbName}", false)));
-
-    private readonly string dbName = $"{Guid.NewGuid()}.sqlite";
-    private readonly DbContext context;
-    private readonly Key tableName = Key.From("test");
-
-    private static readonly Key SomeKey = Key.From("SomeKey");
-    private static readonly string SomeValue = "SomeValue";
-    private static readonly Map<Key, object> TestData = Document.ConsData(SomeKey, SomeValue);
-
-    public async Task InitializeAsync() =>
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
-
-    public Task DisposeAsync()
+    public SqliteDocumentWriterTests()
     {
-        context.ClearAllPools();
-        if (File.Exists(dbName))
-            File.Delete(dbName);
-
-        return Task.CompletedTask;
-    }
-
-    private readonly Migrations migrations = Migrations.Cons()
-        .Add(
+        AddMigration(
             "create-table-test_header",
             """
             CREATE TABLE test_header (
                 hashkey TEXT PRIMARY KEY,
                 version INTEGER NOT NULL
             )
-            """)
-        .Add(
+            """);
+        AddMigration(
             "create-table-test_journal",
             """
             CREATE TABLE test_journal (
@@ -52,9 +27,16 @@ public sealed class SqliteDocumentWriterTests
                 data TEXT NOT NULL
             )
             """);
+    }
 
-    private SqliteDocumentWriter<Key> CreateWriter() => new(context, tableName);
-    private SqliteDocumentReader<Key> CreateReader() => new(context, tableName);
+    private readonly Key tableName = Key.From("test");
+
+    private static readonly Key SomeKey = Key.From("SomeKey");
+    private static readonly string SomeValue = "SomeValue";
+    private static readonly Map<Key, object> TestData = Document.ConsData(SomeKey, SomeValue);
+
+    private SqliteDocumentWriter<Key> CreateWriter() => new(Context, tableName);
+    private SqliteDocumentReader<Key> CreateReader() => new(Context, tableName);
 
     [Fact]
     public async Task InsertAsync_WhenKeyDoesNotExist_Succeeds()
