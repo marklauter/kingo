@@ -118,7 +118,7 @@ public sealed class SqliteDocumentWriterTests
 
         var reread = (await reader.FindAsync(Key.From("h"), CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
         _ = reread.Data.ContainsKey(Key.From("NewKey")).Should().BeTrue();
-        reread.Version.Should().BeGreaterThan(read.Version);
+        _ = reread.Version.CompareTo(read.Version).Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public sealed class SqliteDocumentWriterTests
 
         var reread = (await reader.FindAsync(Key.From("h"), CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
         _ = reread.Data.ContainsKey(Key.From("UpdatedKey")).Should().BeTrue();
-        reread.Version.Should().BeGreaterThan(read.Version);
+        _ = reread.Version.CompareTo(read.Version).Should().BeGreaterThan(0);
     }
 
     [Fact]
@@ -280,6 +280,6 @@ public sealed class SqliteDocumentWriterTests
 
         // Final document should have a version greater than zero
         var final = (await reader.FindAsync(hashKey, CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
-        final.Version.Should().BeGreaterThan(Revision.Zero);
+        _ = final.Version.CompareTo(Revision.Zero).Should().BeGreaterThan(0);
     }
 }
