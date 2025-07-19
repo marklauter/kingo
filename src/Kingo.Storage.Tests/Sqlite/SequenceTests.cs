@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Kingo.Storage.Db;
 using Kingo.Storage.Keys;
 using Kingo.Storage.Sqlite;
 using LanguageExt;
@@ -7,51 +6,36 @@ using LanguageExt;
 namespace Kingo.Storage.Tests.Sqlite;
 
 public sealed class SequenceTests
-    : IAsyncLifetime
+    : SqliteTests
 {
-    public SequenceTests() =>
-        context = new(
-            new SqliteConnectionFactory(
-                new($"Data Source={dbName}", false)));
-
-    private readonly string dbName = $"{Guid.NewGuid()}.sqlite";
-
-    public async Task InitializeAsync() =>
-        await context.ApplyMigrationsAsync(migrations, CancellationToken.None);
-
-    public Task DisposeAsync()
+    public SequenceTests()
     {
-        context.ClearAllPools();
-        if (File.Exists(dbName))
-            File.Delete(dbName);
+        AddMigration(
+            "create-table-seq_32",
+            """
+                CREATE TABLE seq_32 (
+                    key TEXT PRIMARY KEY,
+                    value INTEGER NOT NULL
+                )
+            """);
 
-        return Task.CompletedTask;
+        AddMigration(
+            "create-table-seq_64",
+            """
+                CREATE TABLE seq_64 (
+                    key TEXT PRIMARY KEY,
+                    value BIGINT NOT NULL
+                )
+            """);
     }
-
-    private readonly DbContext context;
-
-    private readonly Migrations migrations = Migrations.Cons()
-        .Add(
-        "create-table-seq_32",
-        """
-            CREATE TABLE seq_32 (
-                key TEXT PRIMARY KEY,
-                value INTEGER NOT NULL
-            )
-        """)
-        .Add(
-        "create-table-seq_64",
-        """
-            CREATE TABLE seq_64 (
-                key TEXT PRIMARY KEY,
-                value BIGINT NOT NULL
-            )
-        """);
 
     private readonly Key seqName = Key.From("my_seq");
 
-    private Sequence<int> CreateIntSequence(Key name) => new(context, "seq_32", name);
-    private Sequence<long> CreateLongSequence(Key name) => new(context, "seq_64", name);
+    private Sequence<int> CreateIntSequence(Key name) =>
+        new(Context, "seq_32", name);
+
+    private Sequence<long> CreateLongSequence(Key name) =>
+        new(Context, "seq_64", name);
 
     [Fact]
     public async Task NextAsync_ReturnsOne_WhenSequenceIsNew()
