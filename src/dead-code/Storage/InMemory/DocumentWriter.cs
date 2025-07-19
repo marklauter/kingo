@@ -1,8 +1,9 @@
-﻿using Kingo.Storage.InMemory.Indexing;
+﻿using dead_code.Storage.InMemory.Indexing;
+using Kingo.Storage;
 using LanguageExt;
 using LanguageExt.Common;
 
-namespace Kingo.Storage.InMemory;
+namespace dead_code.Storage.InMemory;
 
 public sealed class DocumentWriter<HK>(Index<HK> index)
     where HK : IEquatable<HK>, IComparable<HK>

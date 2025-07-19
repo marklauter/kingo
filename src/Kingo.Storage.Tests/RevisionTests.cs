@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 
-namespace Kingo.Storage.Tests.Clocks;
+namespace Kingo.Storage.Tests;
 
 public sealed class RevisionTests
 {

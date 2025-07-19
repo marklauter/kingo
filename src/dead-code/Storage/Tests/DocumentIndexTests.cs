@@ -1,15 +1,16 @@
-using Kingo.Storage.InMemory.Indexing;
+using dead_code.Storage.InMemory.Indexing;
+using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests.InMemory;
+namespace dead_code.Storage.Tests;
 
 public sealed class DocumentIndexTests
 {
     [Fact]
-    public void Empty_ReturnsNewDocumentIndexOfHK()
+    public void EmptyReturnsNewDocumentIndexOfHK()
     {
-        var index = Storage.InMemory.Indexing.Index.Empty<Key>();
+        var index = InMemory.Indexing.Index.Empty<Key>();
         Assert.NotNull(index);
         _ = Assert.IsType<Index<Key>>(index);
         var snapshot = index.Snapshot();
@@ -18,9 +19,9 @@ public sealed class DocumentIndexTests
     }
 
     [Fact]
-    public void Empty_ReturnsNewDocumentIndexOfHKRK()
+    public void EmptyReturnsNewDocumentIndexOfHKRK()
     {
-        var index = Storage.InMemory.Indexing.Index.Empty<Key, Key>();
+        var index = InMemory.Indexing.Index.Empty<Key, Key>();
         Assert.NotNull(index);
         _ = Assert.IsType<Index<Key, Key>>(index);
         var snapshot = index.Snapshot();
@@ -29,9 +30,9 @@ public sealed class DocumentIndexTests
     }
 
     [Fact]
-    public void Exchange_ReplacesSnapshot_ForDocumentIndexOfHK()
+    public void ExchangeReplacesSnapshotForDocumentIndexOfHK()
     {
-        var index = Storage.InMemory.Indexing.Index.Empty<Key>();
+        var index = InMemory.Indexing.Index.Empty<Key>();
         var original = index.Snapshot();
         var doc = Document.Cons(Key.From("h"), Map<Key, object>.Empty);
         var map = Map.create((Key.From("h"), doc));
@@ -42,9 +43,9 @@ public sealed class DocumentIndexTests
     }
 
     [Fact]
-    public void Exchange_ReplacesSnapshot_ForDocumentIndexOfHKRK()
+    public void ExchangeReplacesSnapshotForDocumentIndexOfHKRK()
     {
-        var index = Storage.InMemory.Indexing.Index.Empty<Key, Key>();
+        var index = InMemory.Indexing.Index.Empty<Key, Key>();
         var original = index.Snapshot();
         var doc = Document.Cons(Key.From("h"), Key.From("r"), Map<Key, object>.Empty);
         var innerMap = Map.create((Key.From("r"), doc));
@@ -56,9 +57,9 @@ public sealed class DocumentIndexTests
     }
 
     [Fact]
-    public void Exchange_ReturnsFalse_IfSnapshotDoesNotMatch_ForDocumentIndexOfHK()
+    public void ExchangeReturnsFalseIfSnapshotDoesNotMatchForDocumentIndexOfHK()
     {
-        var index = Storage.InMemory.Indexing.Index.Empty<Key>();
+        var index = InMemory.Indexing.Index.Empty<Key>();
         var original = index.Snapshot();
         var other = Snapshot.Cons(Map<Key, Document<Key>>.Empty);
         var replacement = Snapshot.Cons(Map<Key, Document<Key>>.Empty);
@@ -68,9 +69,9 @@ public sealed class DocumentIndexTests
     }
 
     [Fact]
-    public void Exchange_ReturnsFalse_IfSnapshotDoesNotMatch_ForDocumentIndexOfHKRK()
+    public void ExchangeReturnsFalseIfSnapshotDoesNotMatchForDocumentIndexOfHKRK()
     {
-        var index = Storage.InMemory.Indexing.Index.Empty<Key, Key>();
+        var index = InMemory.Indexing.Index.Empty<Key, Key>();
         var original = index.Snapshot();
         var other = Snapshot.Cons(Map<Key, Map<Key, Document<Key, Key>>>.Empty);
         var replacement = Snapshot.Cons(Map<Key, Map<Key, Document<Key, Key>>>.Empty);

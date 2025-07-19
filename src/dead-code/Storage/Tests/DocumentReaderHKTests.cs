@@ -1,9 +1,10 @@
-using Kingo.Storage.InMemory;
-using Kingo.Storage.InMemory.Indexing;
+using dead_code.Storage.InMemory;
+using dead_code.Storage.InMemory.Indexing;
+using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests.InMemory;
+namespace dead_code.Storage.Tests;
 
 public sealed class DocumentReaderHKTests
 {
@@ -11,7 +12,7 @@ public sealed class DocumentReaderHKTests
     private static readonly string SomeValue = "SomeValue";
     private static readonly Map<Key, object> Data = Document.ConsData(SomeKey, SomeValue);
 
-    private readonly Index<Key> index = Storage.InMemory.Indexing.Index.Empty<Key>();
+    private readonly Index<Key> index = InMemory.Indexing.Index.Empty<Key>();
 
     private (DocumentReader<Key> reader, DocumentWriter<Key> writer) ReaderWriter() =>
         (new(index), new(index));

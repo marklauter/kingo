@@ -1,10 +1,10 @@
-﻿using Kingo.Storage.InMemory.Indexing;
+﻿using dead_code.Storage.InMemory.Indexing;
+using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.InMemory;
+namespace dead_code.Storage.InMemory;
 
 public sealed class DocumentReader<HK>(Index<HK> index)
     where HK : IEquatable<HK>, IComparable<HK>
@@ -20,13 +20,11 @@ public sealed class DocumentReader<HK, RK>(Index<HK, RK> index)
     public Option<Document<HK, RK>> Find(HK hashKey, RK rangeKey) =>
         Find(hashKey).Bind(m => m.Find(rangeKey));
 
-    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     public Iterable<Document<HK, RK>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate) =>
         Find(hashKey)
         .Map(m => m.Filter(document => predicate(document)).Values)
         .IfNone(Iterable<Document<HK, RK>>.Empty);
 
-    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     public Iterable<Document<HK, RK>> Find(HK hashKey, RangeKey range) =>
         Find(hashKey)
         .Map(m => range switch

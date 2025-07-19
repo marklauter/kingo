@@ -1,10 +1,11 @@
-﻿using Kingo.Storage.Keys;
+﻿using Kingo.Storage;
+using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.InMemory;
+namespace dead_code.Storage.InMemory;
 
 public sealed class Sequence<N>(
     DocumentReader<Key> reader,

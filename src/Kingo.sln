@@ -48,6 +48,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policies", "Kingo.Pol
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kingo.Policies.Tests", "Kingo.Policies.Tests\Kingo.Policies.Tests.csproj", "{43258A7B-50B6-3602-B4C2-F513B165D637}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DeadCode", "DeadCode", "{E49C73C6-4B0F-4270-8E83-FBFF72340827}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dead-code", "dead-code\dead-code.csproj", "{F8BED8D1-E6F6-46CA-B1C7-FEAD82E6E6D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,6 +110,10 @@ Global
 		{43258A7B-50B6-3602-B4C2-F513B165D637}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43258A7B-50B6-3602-B4C2-F513B165D637}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43258A7B-50B6-3602-B4C2-F513B165D637}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8BED8D1-E6F6-46CA-B1C7-FEAD82E6E6D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8BED8D1-E6F6-46CA-B1C7-FEAD82E6E6D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8BED8D1-E6F6-46CA-B1C7-FEAD82E6E6D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8BED8D1-E6F6-46CA-B1C7-FEAD82E6E6D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,6 +130,7 @@ Global
 		{AC19CFEC-0509-45F9-B0C0-BE065E2E2ABA} = {072412FF-1DB9-4185-81F8-1966EC6E9CDA}
 		{62373C13-1650-AF3E-3885-1D43FE6ADBCD} = {828073E2-6512-482A-B9F8-45A4CCB3CA23}
 		{43258A7B-50B6-3602-B4C2-F513B165D637} = {828073E2-6512-482A-B9F8-45A4CCB3CA23}
+		{F8BED8D1-E6F6-46CA-B1C7-FEAD82E6E6D5} = {E49C73C6-4B0F-4270-8E83-FBFF72340827}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {630027D9-49A4-4FE1-9D3E-33E715D00499}

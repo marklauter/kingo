@@ -1,7 +1,8 @@
-﻿using LanguageExt;
+﻿using Kingo.Storage;
+using LanguageExt;
 using System.Runtime.CompilerServices;
 
-namespace Kingo.Storage.InMemory.Indexing;
+namespace dead_code.Storage.InMemory.Indexing;
 
 public static class Snapshot
 {

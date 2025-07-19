@@ -1,17 +1,18 @@
-using Kingo.Storage.InMemory;
-using Kingo.Storage.InMemory.Indexing;
+using dead_code.Storage.InMemory;
+using dead_code.Storage.InMemory.Indexing;
+using Kingo.Storage;
 using Kingo.Storage.Keys;
 using LanguageExt;
 using LanguageExt.Common;
 
-namespace Kingo.Storage.Tests.InMemory;
+namespace dead_code.Storage.Tests;
 
 public sealed class DocumentWriterHKRKTests
 {
     private static Map<Key, object> TestTuple(string key) =>
         Document.ConsData(key, key);
 
-    private readonly Index<Key, Key> index = Storage.InMemory.Indexing.Index.Empty<Key, Key>();
+    private readonly Index<Key, Key> index = InMemory.Indexing.Index.Empty<Key, Key>();
 
     private (DocumentReader<Key, Key> reader, DocumentWriter<Key, Key> writer) ReaderWriter() =>
         (new(index), new(index));

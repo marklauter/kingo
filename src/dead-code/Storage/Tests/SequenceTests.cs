@@ -1,15 +1,17 @@
-using Kingo.Storage.InMemory;
+using dead_code.Storage.InMemory;
+using dead_code.Storage.InMemory.Indexing;
 using Kingo.Storage.Keys;
 using LanguageExt;
+using LanguageExt.Common;
 
-namespace Kingo.Storage.Tests.InMemory;
+namespace dead_code.Storage.Tests;
 
 public sealed class SequenceTests
 {
-    private readonly Storage.InMemory.Indexing.Index<Key> index = Storage.InMemory.Indexing.Index.Empty<Key>();
+    private readonly Index<Key> index = InMemory.Indexing.Index.Empty<Key>();
 
     private Sequence<int> Sequence() =>
-        new(new DocumentReader<Key>(index), new DocumentWriter<Key>(index));
+        new(new(index), new(index));
 
     private readonly Key seqName = Key.From("my_seq");
 
@@ -43,7 +45,7 @@ public sealed class SequenceTests
 
         var result = sequence.Next(seqName, tokenSource.Token).Run()
             .Match(
-                Fail: error => Assert.Equal(StorageErrorCodes.TimeoutError, error.Code),
+                Fail: error => Assert.Equal(Errors.TimedOutCode, error.Code),
                 Succ: _ => Assert.Fail("Expected an error but got a success value."));
     }
 
@@ -52,7 +54,7 @@ public sealed class SequenceTests
     {
         var sequence = Sequence();
         var tasks = Enumerable.Range(0, 100)
-            .Select(_ => Task.Run(() => sequence.Next(seqName, CancellationToken.None).Run()))
+            .Select(_ => Task.Run(() => sequence.Next(seqName, CancellationToken.None).Run(EnvIO.New(token: CancellationToken.None))))
             .ToArray();
 
         var results = await Task.WhenAll(tasks);

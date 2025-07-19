@@ -47,7 +47,7 @@ public record Document<HK>(
     }
 }
 
-public record Document<HK, RK>(
+public sealed record Document<HK, RK>(
     HK HashKey,
     RK RangeKey,
     Revision Version,
