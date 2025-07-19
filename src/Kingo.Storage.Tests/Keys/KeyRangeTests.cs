@@ -11,7 +11,7 @@ public sealed class KeyRangeTests
     public void LowerBound_ReturnsLowerBoundInstance()
     {
         var key = Key.From("a");
-        var since = RangeKey.Since<Key>(key);
+        var since = RangeKey.Lower<Key>(key);
         _ = Assert.IsType<LowerBound<Key>>(since);
         Assert.Equal(key, since.Key);
     }
@@ -20,7 +20,7 @@ public sealed class KeyRangeTests
     public void UpperBound_ReturnsUpperBoundInstance()
     {
         var key = Key.From("a");
-        var until = RangeKey.Until<Key>(key);
+        var until = RangeKey.Upper<Key>(key);
         _ = Assert.IsType<UpperBound<Key>>(until);
         Assert.Equal(key, until.Key);
     }
