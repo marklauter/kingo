@@ -3,7 +3,7 @@ using LanguageExt;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
-namespace Kingo.Storage.Json;
+namespace Kingo.Storage;
 
 internal static class MapSerializer
 {
