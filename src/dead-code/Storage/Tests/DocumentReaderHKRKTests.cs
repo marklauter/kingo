@@ -66,7 +66,7 @@ public sealed class DocumentReaderHKRKTests
         Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
         Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
 
-        var docs = reader.Find(Key.From("h"), RangeKey.Since(Key.From("b"))).ToArray();
+        var docs = reader.Find(Key.From("h"), RangeKey.Lower(Key.From("b"))).ToArray();
 
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Data.ContainsKey("B"));
@@ -82,7 +82,7 @@ public sealed class DocumentReaderHKRKTests
         Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("b"), Document.ConsData(Key.From("B"), "B")), CancellationToken.None).Run().IsSucc);
         Assert.True(writer.Insert(Document.Cons(Key.From("h"), Key.From("c"), Document.ConsData(Key.From("C"), "C")), CancellationToken.None).Run().IsSucc);
 
-        var docs = reader.Find(Key.From("h"), RangeKey.Until(Key.From("b"))).ToArray();
+        var docs = reader.Find(Key.From("h"), RangeKey.Upper(Key.From("b"))).ToArray();
 
         Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Data.ContainsKey("A"));
