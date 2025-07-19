@@ -1,5 +1,4 @@
 using Dapper;
-using FluentAssertions;
 using Kingo.Storage.Db;
 using Kingo.Storage.Keys;
 using Kingo.Storage.Sqlite;
@@ -70,12 +69,12 @@ public sealed class SqliteDocumentReaderHKRKTests
         {
             var id = await db.ExecuteScalarAsync<long>(
                 "INSERT INTO test_journal (hashkey, rangekey, version, data) VALUES (@HashKey, @RangeKey, @Version, @Data); SELECT last_insert_rowid();",
-                new { HashKey = hashKey, RangeKey = rangeKey, Version = version, Data = data.Serialize() },
+                new { HashKey = hashKey.ToString(), RangeKey = rangeKey.ToString(), Version = version.ToString(), Data = data.Serialize() },
                 tx);
 
             _ = await db.ExecuteAsync(
                 "INSERT INTO test_header (hashkey, rangekey, version) VALUES (@HashKey, @RangeKey, @Version);",
-                new { HashKey = hashKey, RangeKey = rangeKey, Version = version },
+                new { HashKey = hashKey.ToString(), RangeKey = rangeKey.ToString(), Version = version.ToString() },
                 tx);
         }, CancellationToken.None);
     }
@@ -91,10 +90,12 @@ public sealed class SqliteDocumentReaderHKRKTests
 
         var result = await reader.FindAsync(hashKey, rangeKey, CancellationToken.None);
 
-        _ = result.Should().BeSome().Which.HashKey.Should().Be(hashKey);
-        _ = result.Should().BeSome().Which.RangeKey.Should().Be(rangeKey);
-        _ = result.Should().BeSome().Which.Data.ContainsKey(SomeKey).Should().BeTrue();
-        _ = result.Should().BeSome().Which.Version.Should().Be(Revision.Zero);
+        Assert.True(result.IsSome);
+        var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
+        Assert.Equal(hashKey, doc.HashKey);
+        Assert.Equal(rangeKey, doc.RangeKey);
+        Assert.True(doc.Data.ContainsKey(SomeKey));
+        Assert.Equal(Revision.Zero, doc.Version);
     }
 
     [Fact]
@@ -104,7 +105,7 @@ public sealed class SqliteDocumentReaderHKRKTests
 
         var result = await reader.FindAsync(Key.From("nonexistent"), Key.From("r"), CancellationToken.None);
 
-        _ = result.Should().BeNone();
+        Assert.True(result.IsNone);
     }
 
     [Fact]
@@ -132,7 +133,7 @@ public sealed class SqliteDocumentReaderHKRKTests
         var result = await reader.FindAsync(hashKey, RangeKey.Unbound, CancellationToken.None);
 
         var docs = result.ToArray();
-        _ = docs.Should().HaveCount(3);
+        Assert.Equal(3, docs.Length);
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "A");
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "B");
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "C");
@@ -152,7 +153,7 @@ public sealed class SqliteDocumentReaderHKRKTests
         var result = await reader.FindAsync(hashKey, RangeKey.Lower(Key.From("c")), CancellationToken.None);
 
         var docs = result.ToArray();
-        _ = docs.Should().HaveCount(2);
+        Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "C");
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "D");
         Assert.DoesNotContain(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "A");
@@ -173,7 +174,7 @@ public sealed class SqliteDocumentReaderHKRKTests
         var result = await reader.FindAsync(hashKey, RangeKey.Upper(Key.From("b")), CancellationToken.None);
 
         var docs = result.ToArray();
-        _ = docs.Should().HaveCount(2);
+        Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "A");
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "B");
         Assert.DoesNotContain(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "C");
@@ -195,7 +196,7 @@ public sealed class SqliteDocumentReaderHKRKTests
         var result = await reader.FindAsync(hashKey, RangeKey.Between(Key.From("b"), Key.From("d")), CancellationToken.None);
 
         var docs = result.ToArray();
-        _ = docs.Should().HaveCount(3);
+        Assert.Equal(3, docs.Length);
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "B");
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "C");
         Assert.Contains(docs, d => d.Field<string>(Key.From("Field")).IfNone("") == "D");
@@ -214,7 +215,7 @@ public sealed class SqliteDocumentReaderHKRKTests
 
         var result = await reader.FindAsync(hashKey, RangeKey.Lower(Key.From("z")), CancellationToken.None);
 
-        _ = result.Should().BeEmpty();
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -224,7 +225,7 @@ public sealed class SqliteDocumentReaderHKRKTests
 
         var result = await reader.FindAsync(Key.From("nonexistent"), RangeKey.Unbound, CancellationToken.None);
 
-        _ = result.Should().BeEmpty();
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -240,7 +241,7 @@ public sealed class SqliteDocumentReaderHKRKTests
         var result = await reader.WhereAsync(hashKey, doc => doc.Field<int>(Key.From("Value")).IfNone(0) > 15, CancellationToken.None);
 
         var docs = result.ToArray();
-        _ = docs.Should().HaveCount(2);
+        Assert.Equal(2, docs.Length);
         Assert.Contains(docs, d => d.Field<int>(Key.From("Value")).IfNone(0) == 20);
         Assert.Contains(docs, d => d.Field<int>(Key.From("Value")).IfNone(0) == 30);
         Assert.DoesNotContain(docs, d => d.Field<int>(Key.From("Value")).IfNone(0) == 10);
@@ -257,7 +258,7 @@ public sealed class SqliteDocumentReaderHKRKTests
 
         var result = await reader.WhereAsync(hashKey, doc => doc.Field<int>(Key.From("Value")).IfNone(0) > 100, CancellationToken.None);
 
-        _ = result.Should().BeEmpty();
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -267,7 +268,7 @@ public sealed class SqliteDocumentReaderHKRKTests
 
         var result = await reader.WhereAsync(Key.From("nonexistent"), _ => true, CancellationToken.None);
 
-        _ = result.Should().BeEmpty();
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -298,8 +299,8 @@ public sealed class SqliteDocumentReaderHKRKTests
         var h1Docs = h1Results.ToArray();
         var h2Docs = h2Results.ToArray();
 
-        _ = h1Docs.Should().HaveCount(2);
-        _ = h2Docs.Should().HaveCount(2);
+        Assert.Equal(2, h1Docs.Length);
+        Assert.Equal(2, h2Docs.Length);
 
         foreach (var doc in h1Docs)
             Assert.Equal(Key.From("h1"), doc.HashKey);

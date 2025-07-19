@@ -2,7 +2,7 @@ using FluentAssertions;
 using Kingo.Storage.Keys;
 using LanguageExt;
 
-namespace Kingo.Storage.Tests.Json;
+namespace Kingo.Storage.Tests;
 
 public sealed class MapSerializerTests
 {

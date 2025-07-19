@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Kingo.Storage.Db;
 using Kingo.Storage.Keys;
 using Kingo.Storage.Sqlite;
@@ -66,11 +67,11 @@ public sealed class SqliteDocumentWriterTests
         var reader = CreateReader();
         var result = await reader.FindAsync(Key.From("h"), CancellationToken.None);
 
-        Assert.True(result.IsSome);
+        _ = result.IsSome.Should().BeTrue();
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
-        Assert.Equal(Key.From("h"), doc.HashKey);
-        Assert.Equal(Revision.Zero, doc.Version);
-        Assert.True(doc.Data.ContainsKey(SomeKey));
+        _ = doc.HashKey.Should().Be(Key.From("h"));
+        _ = doc.Version.Should().Be(Revision.Zero);
+        _ = doc.Data.ContainsKey(SomeKey).Should().BeTrue();
     }
 
     [Fact]
@@ -84,8 +85,8 @@ public sealed class SqliteDocumentWriterTests
         var exception = await Assert.ThrowsAsync<DocumentWriterException>(() =>
             writer.InsertAsync(document, CancellationToken.None));
 
-        Assert.Equal(StorageErrorCodes.DuplicateKeyError, exception.Code);
-        Assert.Contains("duplicate key h", exception.Message);
+        _ = exception.Code.Should().Be(StorageErrorCodes.DuplicateKeyError);
+        _ = exception.Message.Should().Contain("duplicate key h");
     }
 
     [Fact]
@@ -116,8 +117,8 @@ public sealed class SqliteDocumentWriterTests
         await writer.UpdateAsync(updated, CancellationToken.None);
 
         var reread = (await reader.FindAsync(Key.From("h"), CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
-        Assert.True(reread.Data.ContainsKey(Key.From("NewKey")));
-        Assert.True(reread.Version > read.Version);
+        _ = reread.Data.ContainsKey(Key.From("NewKey")).Should().BeTrue();
+        reread.Version.Should().BeGreaterThan(read.Version);
     }
 
     [Fact]
@@ -129,8 +130,8 @@ public sealed class SqliteDocumentWriterTests
         var exception = await Assert.ThrowsAsync<DocumentWriterException>(() =>
             writer.UpdateAsync(document, CancellationToken.None));
 
-        Assert.Equal(StorageErrorCodes.NotFoundError, exception.Code);
-        Assert.Contains("key not found h", exception.Message);
+        _ = exception.Code.Should().Be(StorageErrorCodes.NotFoundError);
+        _ = exception.Message.Should().Contain("key not found h");
     }
 
     [Fact]
@@ -148,8 +149,8 @@ public sealed class SqliteDocumentWriterTests
         var exception = await Assert.ThrowsAsync<DocumentWriterException>(() =>
             writer.UpdateAsync(updated, CancellationToken.None));
 
-        Assert.Equal(StorageErrorCodes.VersionConflictError, exception.Code);
-        Assert.Contains("version conflict", exception.Message);
+        _ = exception.Code.Should().Be(StorageErrorCodes.VersionConflictError);
+        _ = exception.Message.Should().Contain("version conflict");
     }
 
     [Fact]
@@ -179,10 +180,10 @@ public sealed class SqliteDocumentWriterTests
         await writer.InsertOrUpdateAsync(document, CancellationToken.None);
 
         var result = await reader.FindAsync(Key.From("h"), CancellationToken.None);
-        Assert.True(result.IsSome);
+        _ = result.IsSome.Should().BeTrue();
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
-        Assert.True(doc.Data.ContainsKey(SomeKey));
-        Assert.Equal(Revision.Zero, doc.Version);
+        _ = doc.Data.ContainsKey(SomeKey).Should().BeTrue();
+        _ = doc.Version.Should().Be(Revision.Zero);
     }
 
     [Fact]
@@ -200,8 +201,8 @@ public sealed class SqliteDocumentWriterTests
         await writer.InsertOrUpdateAsync(updated, CancellationToken.None);
 
         var reread = (await reader.FindAsync(Key.From("h"), CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
-        Assert.True(reread.Data.ContainsKey(Key.From("UpdatedKey")));
-        Assert.True(reread.Version > read.Version);
+        _ = reread.Data.ContainsKey(Key.From("UpdatedKey")).Should().BeTrue();
+        reread.Version.Should().BeGreaterThan(read.Version);
     }
 
     [Fact]
@@ -219,8 +220,8 @@ public sealed class SqliteDocumentWriterTests
         var exception = await Assert.ThrowsAsync<DocumentWriterException>(() =>
             writer.InsertOrUpdateAsync(updated, CancellationToken.None));
 
-        Assert.Equal(StorageErrorCodes.VersionConflictError, exception.Code);
-        Assert.Contains("version conflict", exception.Message);
+        _ = exception.Code.Should().Be(StorageErrorCodes.VersionConflictError);
+        _ = exception.Message.Should().Contain("version conflict");
     }
 
     [Fact]
@@ -279,6 +280,6 @@ public sealed class SqliteDocumentWriterTests
 
         // Final document should have a version greater than zero
         var final = (await reader.FindAsync(hashKey, CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
-        Assert.True(final.Version > Revision.Zero);
+        final.Version.Should().BeGreaterThan(Revision.Zero);
     }
 }
