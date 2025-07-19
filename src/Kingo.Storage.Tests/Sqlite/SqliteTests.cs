@@ -16,7 +16,9 @@ public class SqliteTests
     public SqliteTests() =>
         Context = new(
             new SqliteConnectionFactory(
-                new($"Data Source={dbName}", false)));
+                new(
+                    $"Data Source={dbName}",
+                    true)));
 
     public async Task InitializeAsync() =>
         await Context.ApplyMigrationsAsync(migrations, CancellationToken.None);
