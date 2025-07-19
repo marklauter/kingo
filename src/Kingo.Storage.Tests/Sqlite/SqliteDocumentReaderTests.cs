@@ -67,9 +67,11 @@ public sealed class SqliteDocumentReaderTests
 
         var result = await reader.FindAsync(Key.From("h"), CancellationToken.None);
 
-        _ = result.Should().BeSome().Which.HashKey.Should().Be(Key.From("h"));
-        _ = result.Should().BeSome().Which.Data.ContainsKey(SomeKey).Should().BeTrue();
-        _ = result.Should().BeSome().Which.Version.Should().Be(Revision.Zero);
+        Assert.True(result.IsSome);
+        var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
+        Assert.Equal(Key.From("h"), doc.HashKey);
+        Assert.True(doc.Data.ContainsKey(SomeKey));
+        Assert.Equal(Revision.Zero, doc.Version);
     }
 
     [Fact]
@@ -79,7 +81,7 @@ public sealed class SqliteDocumentReaderTests
 
         var result = await reader.FindAsync(Key.From("nonexistent"), CancellationToken.None);
 
-        _ = result.Should().BeNone();
+        Assert.True(result.IsNone);
     }
 
     [Fact]
@@ -114,7 +116,7 @@ public sealed class SqliteDocumentReaderTests
         Assert.True(result.IsSome);
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
         Assert.True(doc.Version > Revision.Zero);
-        _ = doc.Data.ContainsKey(Key.From("UpdatedKey")).Should().BeTrue();
+        Assert.True(doc.Data.ContainsKey(Key.From("UpdatedKey")));
     }
 
     [Fact]
@@ -140,9 +142,9 @@ public sealed class SqliteDocumentReaderTests
         Assert.True(result.IsSome);
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
         Assert.Equal(Revision.From(3), doc.Version);
-        _ = doc.Data.ContainsKey(Key.From("Key3")).Should().BeTrue();
-        _ = doc.Data.ContainsKey(Key.From("Key1")).Should().BeFalse();
-        _ = doc.Data.ContainsKey(Key.From("Key2")).Should().BeFalse();
+        Assert.True(doc.Data.ContainsKey(Key.From("Key3")));
+        Assert.False(doc.Data.ContainsKey(Key.From("Key1")));
+        Assert.False(doc.Data.ContainsKey(Key.From("Key2")));
     }
 
     [Fact]
@@ -193,9 +195,9 @@ public sealed class SqliteDocumentReaderTests
         Assert.True(result.IsSome);
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
 
-        _ = doc.Field<string>(Key.From("StringField")).Should().BeSome("test");
-        _ = doc.Field<int>(Key.From("IntField")).Should().BeSome(42);
-        _ = doc.Field<bool>(Key.From("BoolField")).Should().BeSome(true);
+        Assert.Equal("test", doc.Field<string>(Key.From("StringField")).IfNone(""));
+        Assert.Equal(42, doc.Field<int>(Key.From("IntField")).IfNone(0));
+        Assert.True(doc.Field<bool>(Key.From("BoolField")).IfNone(false));
     }
 
     [Fact]
@@ -219,7 +221,7 @@ public sealed class SqliteDocumentReaderTests
             Assert.True(result.IsSome);
             var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
             Assert.Equal(Key.From("concurrent"), doc.HashKey);
-            _ = doc.Data.ContainsKey(SomeKey).Should().BeTrue();
+            Assert.True(doc.Data.ContainsKey(SomeKey));
         }
     }
 }
