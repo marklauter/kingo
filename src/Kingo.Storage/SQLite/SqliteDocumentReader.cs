@@ -57,7 +57,7 @@ public static class SqliteDocumentReader
         Prelude.liftIO(env => asyncOperation(env.Token));
 }
 
-public sealed class SqliteDocumentReader<HK>(
+internal sealed class SqliteDocumentReader<HK>(
     IDbContext context,
     Key table)
     where HK : IEquatable<HK>, IComparable<HK>
@@ -73,8 +73,7 @@ public sealed class SqliteDocumentReader<HK>(
             token);
 }
 
-// todo: wrap in IDocumentReader<HK, RK> implementation that lifts the tasks to Eff
-public sealed class SqliteDocumentReader<HK, RK>(
+internal sealed class SqliteDocumentReader<HK, RK>(
     IDbContext context,
     Key table)
     where HK : IEquatable<HK>, IComparable<HK>
