@@ -7,39 +7,47 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Sqlite;
 
-public static class SqliteDocumentWriter
+//public static class SqliteDocumentWriter
+//{
+//    public static IDocumentWriter<HK> WithIO<HK>(
+//        IDbContext context,
+//        Key table)
+//        where HK : IEquatable<HK>, IComparable<HK> =>
+//        new SqliteDocumentWriterWithIO<HK>(context, table);
+
+//    private sealed class SqliteDocumentWriterWithIO<HK>(
+//        IDbContext context,
+//        Key table)
+//        : IDocumentWriter<HK>
+//        where HK : IEquatable<HK>, IComparable<HK>
+//    {
+//        private readonly SqliteDocumentWriter<HK> writer = new(context, table);
+
+//        public Eff<Unit> Insert(Document<HK> document) =>
+//            Lift(token => writer.InsertAsync(document, token));
+
+//        public Eff<Unit> InsertOrUpdate(Document<HK> document) =>
+//            Lift(token => writer.InsertOrUpdateAsync(document, token));
+
+//        public Eff<Unit> Update(Document<HK> document) =>
+//            Lift(token => writer.UpdateAsync(document, token));
+//    }
+
+//    private static Eff<Unit> Lift(Func<CancellationToken, Task> asyncOperation) =>
+//        Prelude.liftIO(env => asyncOperation(env.Token));
+//}
+
+static file class Names<D>
+    where D : IDocument
 {
-    public static IDocumentWriter<HK> WithIO<HK>(
-        IDbContext context,
-        Key table)
-        where HK : IEquatable<HK>, IComparable<HK> =>
-        new SqliteDocumentWriterWithIO<HK>(context, table);
-
-    private sealed class SqliteDocumentWriterWithIO<HK>(
-        IDbContext context,
-        Key table)
-        : IDocumentWriter<HK>
-        where HK : IEquatable<HK>, IComparable<HK>
-    {
-        private readonly SqliteDocumentWriter<HK> writer = new(context, table);
-
-        public Eff<Unit> Insert(Document<HK> document) =>
-            Lift(token => writer.InsertAsync(document, token));
-
-        public Eff<Unit> InsertOrUpdate(Document<HK> document) =>
-            Lift(token => writer.InsertOrUpdateAsync(document, token));
-
-        public Eff<Unit> Update(Document<HK> document) =>
-            Lift(token => writer.UpdateAsync(document, token));
-    }
-
-    private static Eff<Unit> Lift(Func<CancellationToken, Task> asyncOperation) =>
-        Prelude.liftIO(env => asyncOperation(env.Token));
+    public static string Columns { get; } = string.Join(',', TypeCache<D>.PropertyNames.Select(n => n.ToLowerInvariant()));
+    public static string Values { get; } = string.Join(',', TypeCache<D>.PropertyNames.Select(n => $"@{n}"));
 }
 
-internal sealed class SqliteDocumentWriter<HK>(
+internal sealed class SqliteDocumentWriter<D, HK>(
     IDbContext context,
     Key table)
+    where D : IDocument<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private sealed class Journal(Key table)
@@ -49,7 +57,7 @@ internal sealed class SqliteDocumentWriter<HK>(
             public InsertParam(Document<HK> document) : this(document.HashKey, document.Version, document.Data.Serialize()) { }
         }
 
-        private readonly string insert = $"insert into {table}_journal (hashkey, version, data) values (@HashKey, @Version, @Data);";
+        private readonly string insert = $"insert into {table}_journal (hashkey, version, {Names<D>.Columns}) values (@HashKey, @Version, {Names<D>.Values});";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Task<int> InsertAsync(Document<HK> document, DbConnection db, DbTransaction tx) =>
