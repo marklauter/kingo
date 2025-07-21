@@ -23,11 +23,9 @@ public readonly struct Revision
             parameter.Value = revision.value;
 
         public override Revision Parse(object value) =>
-            value is not long
+            value is not long l
                 ? throw new InvalidDataException($"expected long. value was {value.GetType().Name}")
-                : value is null or DBNull
-                    ? throw new InvalidDataException("null revision not allowed")
-                    : From(Convert.ToInt32(value!, CultureInfo.InvariantCulture));
+                : From(Convert.ToInt32(l, CultureInfo.InvariantCulture));
     }
 
     static Revision() => SqlMapper.AddTypeHandler(new RevisionTypeHandler());

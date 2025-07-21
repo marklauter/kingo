@@ -23,7 +23,9 @@ public readonly struct Key
             parameter.Value = key.value;
 
         public override Key Parse(object value) =>
-            From((string)value!);
+        value is not string s
+            ? throw new InvalidDataException($"expected string. value was {value.GetType().Name}")
+            : From(s);
     }
 
     static Key() => SqlMapper.AddTypeHandler(new KeyTypeHandler());
