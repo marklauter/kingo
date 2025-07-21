@@ -8,16 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace Kingo.Storage.Keys;
 
-internal sealed class KeyTypeHandler
-    : SqlMapper.TypeHandler<Key>
-{
-    public override void SetValue(IDbDataParameter parameter, Key value) =>
-        parameter.Value = value.ToString();
-
-    public override Key Parse(object value) =>
-        Key.From(value.ToString()!);
-}
-
 [JsonConverter(typeof(StringConvertible<Key>))]
 public readonly struct Key
     : IStringConvertible<Key>
@@ -26,6 +16,16 @@ public readonly struct Key
     , IEquatable<string>
     , IComparable<string>
 {
+    internal sealed class KeyTypeHandler
+        : SqlMapper.TypeHandler<Key>
+    {
+        public override void SetValue(IDbDataParameter parameter, Key value) =>
+            parameter.Value = value.ToString();
+
+        public override Key Parse(object value) =>
+            Key.From(value.ToString()!);
+    }
+
     static Key() => SqlMapper.AddTypeHandler(new KeyTypeHandler());
 
     private readonly string value;
