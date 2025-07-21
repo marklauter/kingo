@@ -133,32 +133,20 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_HandlesConcurrentAccess_WithMultipleSequenceInstances()
     {
-
         var sequence1 = CreateIntSequence(seqName);
         var sequence2 = CreateIntSequence(seqName);
 
-        var task1 = Task.Run(async () =>
+        var t = new List<Task<int>>();
+        for (var i = 0; i < 50; i++)
         {
-            var results = new List<int>();
-            for (var i = 0; i < 50; i++)
-                results.Add(await sequence1.NextAsync(CancellationToken.None));
-            return results;
-        });
+            t.Add(sequence1.NextAsync(CancellationToken.None));
+            t.Add(sequence2.NextAsync(CancellationToken.None));
+        }
 
-        var task2 = Task.Run(async () =>
-        {
-            var results = new List<int>();
-            for (var i = 0; i < 50; i++)
-                results.Add(await sequence2.NextAsync(CancellationToken.None));
-            return results;
-        });
+        var r = await Task.WhenAll(t);
 
-        var results1 = await task1;
-        var results2 = await task2;
-        var allResults = results1.Concat(results2).OrderBy(x => x).ToArray();
-
-        _ = allResults.Should().HaveCount(100);
-        _ = allResults.Should().BeEquivalentTo(Enumerable.Range(1, 100));
+        _ = r.Should().HaveCount(100);
+        _ = r.Should().BeEquivalentTo(Enumerable.Range(1, 100));
     }
 
     [Fact]
