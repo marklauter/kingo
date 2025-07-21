@@ -3,17 +3,19 @@ using LanguageExt;
 
 namespace Kingo.Storage;
 
-public interface IDocumentReader<HK>
+public interface IDocumentReader<D, HK>
+    where D : IDocument<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
-    Eff<Option<Document<HK>>> Find(HK hashKey);
+    Eff<Option<D>> Find(HK hashKey);
 }
 
-public interface IDocumentReader<HK, RK>
+public interface IDocumentReader<D, HK, RK>
+    where D : IDocument<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
-    Eff<Iterable<Document<HK, RK>>> Find(HK hashKey, RangeKey range);
-    Eff<Option<Document<HK, RK>>> Find(HK hashKey, RK rangeKey);
-    Eff<Iterable<Document<HK, RK>>> Where(HK hashKey, Func<Document<HK, RK>, bool> predicate);
+    Eff<Iterable<D>> Find(HK hashKey, RangeKey range);
+    Eff<Option<D>> Find(HK hashKey, RK rangeKey);
+    Eff<Iterable<D>> Where(HK hashKey, Func<D, bool> predicate);
 }
