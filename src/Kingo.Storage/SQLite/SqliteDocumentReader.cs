@@ -64,7 +64,7 @@ internal sealed class SqliteDocumentReader<HK>(
 {
     private readonly record struct HkParam(HK HashKey);
     private readonly string hkQuery =
-        $"select a.hashkey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey";
+        $"select a.hashkey, a.version, b.data from {table}_header a join {table}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Option<Document<HK>>> FindAsync(HK hashKey, CancellationToken token) =>
@@ -81,7 +81,7 @@ internal sealed class SqliteDocumentReader<HK, RK>(
 {
     private readonly record struct HkRkParam(HK HashKey, RK RangeKey);
     private readonly string hkrkQuery =
-        $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
+        $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Option<Document<HK, RK>>> FindAsync(HK hashKey, RK rangeKey, CancellationToken token) =>
@@ -91,7 +91,7 @@ internal sealed class SqliteDocumentReader<HK, RK>(
 
     private readonly record struct HkParam(HK HashKey);
     private readonly string hkQuery =
-        $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.id = a.id and b.version = a.version where a.hashkey = @HashKey";
+        $"select a.hashkey, a.rangekey, a.version, b.data from {table}_header a join {table}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Iterable<Document<HK, RK>>> WhereAsync(

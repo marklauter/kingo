@@ -1,4 +1,6 @@
-﻿using Kingo.Json;
+﻿using Dapper;
+using Kingo.Json;
+using System.Data;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -14,6 +16,22 @@ public readonly struct Revision
     , IEquatable<int>
     , IComparable<int>
 {
+    internal sealed class RevisionTypeHandler
+        : SqlMapper.TypeHandler<Revision>
+    {
+        public override void SetValue(IDbDataParameter parameter, Revision revision) =>
+            parameter.Value = revision.value;
+
+        public override Revision Parse(object value) =>
+            value is not long
+                ? throw new InvalidDataException($"expected long. value was {value.GetType().Name}")
+                : value is null or DBNull
+                    ? throw new InvalidDataException("null revision not allowed")
+                    : From(Convert.ToInt32(value!, CultureInfo.InvariantCulture));
+    }
+
+    static Revision() => SqlMapper.AddTypeHandler(new RevisionTypeHandler());
+
     private readonly int value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -19,11 +19,11 @@ public readonly struct Key
     internal sealed class KeyTypeHandler
         : SqlMapper.TypeHandler<Key>
     {
-        public override void SetValue(IDbDataParameter parameter, Key value) =>
-            parameter.Value = value.ToString();
+        public override void SetValue(IDbDataParameter parameter, Key key) =>
+            parameter.Value = key.value;
 
         public override Key Parse(object value) =>
-            Key.From(value.ToString()!);
+            From((string)value!);
     }
 
     static Key() => SqlMapper.AddTypeHandler(new KeyTypeHandler());

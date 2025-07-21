@@ -45,6 +45,14 @@ public record Document<HK>(
         : this(hashKey, Revision.Zero, data)
     {
     }
+
+    public Document(
+        HK hashKey,
+        Revision version,
+        string data)
+    : this(hashKey, version, MapSerializer.Deserialize(data))
+    {
+    }
 }
 
 public sealed record Document<HK, RK>(

@@ -8,20 +8,22 @@ namespace Kingo.Storage.Tests.Sqlite;
 public sealed class SqliteDocumentWriterTests
     : SqliteTests
 {
+    private readonly Key tableName = Key.From("test");
+
     public SqliteDocumentWriterTests()
     {
         AddMigration(
             "create-table-test_header",
-            """
-            CREATE TABLE test_header (
+            $"""
+            CREATE TABLE {tableName}_header (
                 hashkey TEXT PRIMARY KEY,
                 version INTEGER NOT NULL
             )
             """);
         AddMigration(
             "create-table-test_journal",
-            """
-            CREATE TABLE test_journal (
+            $"""
+            CREATE TABLE {tableName}_journal (
                 hashkey TEXT NOT NULL,
                 version INTEGER NOT NULL,
                 data TEXT NOT NULL
@@ -29,38 +31,45 @@ public sealed class SqliteDocumentWriterTests
             """);
     }
 
-    private readonly Key tableName = Key.From("test");
-
-    private static readonly Key SomeKey = Key.From("SomeKey");
-    private static readonly string SomeValue = "SomeValue";
-    private static readonly Map<Key, object> TestData = Document.ConsData(SomeKey, SomeValue);
+    private static readonly Key DataKey = Key.From("SomeKey");
+    private static readonly string DataValue = "SomeValue";
+    private static readonly Map<Key, object> Data = Document.ConsData(DataKey, DataValue);
 
     private SqliteDocumentWriter<Key> CreateWriter() => new(Context, tableName);
     private SqliteDocumentReader<Key> CreateReader() => new(Context, tableName);
 
     [Fact]
-    public async Task InsertAsync_WhenKeyDoesNotExist_Succeeds()
+    public void CreateWriter_ReturnsWriter() =>
+        Assert.NotNull(CreateWriter());
+
+    [Fact]
+    public void CreateWriter_ReturnsReader() =>
+        Assert.NotNull(CreateReader());
+
+    [Fact]
+    public async Task WhenKeyDoesNotExist_InsertAsync_Succeeds()
     {
         var writer = CreateWriter();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var reader = CreateReader();
+
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
-        var reader = CreateReader();
         var result = await reader.FindAsync(Key.From("h"), CancellationToken.None);
 
         _ = result.IsSome.Should().BeTrue();
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
         _ = doc.HashKey.Should().Be(Key.From("h"));
         _ = doc.Version.Should().Be(Revision.Zero);
-        _ = doc.Data.ContainsKey(SomeKey).Should().BeTrue();
+        _ = doc.Data.ContainsKey(DataKey).Should().BeTrue();
     }
 
     [Fact]
     public async Task InsertAsync_WhenKeyExists_ThrowsDocumentWriterException()
     {
         var writer = CreateWriter();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
@@ -75,7 +84,7 @@ public sealed class SqliteDocumentWriterTests
     public async Task InsertAsync_WithCancelledToken_ThrowsOperationCanceledException()
     {
         var writer = CreateWriter();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -89,7 +98,7 @@ public sealed class SqliteDocumentWriterTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
@@ -107,7 +116,7 @@ public sealed class SqliteDocumentWriterTests
     public async Task UpdateAsync_WhenKeyDoesNotExist_ThrowsDocumentWriterException()
     {
         var writer = CreateWriter();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         var exception = await Assert.ThrowsAsync<DocumentWriterException>(() =>
             writer.UpdateAsync(document, CancellationToken.None));
@@ -121,7 +130,7 @@ public sealed class SqliteDocumentWriterTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
@@ -140,7 +149,7 @@ public sealed class SqliteDocumentWriterTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
         var read = (await reader.FindAsync(Key.From("h"), CancellationToken.None)).IfNone(() => throw new InvalidOperationException("Document not found"));
@@ -157,14 +166,14 @@ public sealed class SqliteDocumentWriterTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertOrUpdateAsync(document, CancellationToken.None);
 
         var result = await reader.FindAsync(Key.From("h"), CancellationToken.None);
         _ = result.IsSome.Should().BeTrue();
         var doc = result.IfNone(() => throw new InvalidOperationException("Document not found"));
-        _ = doc.Data.ContainsKey(SomeKey).Should().BeTrue();
+        _ = doc.Data.ContainsKey(DataKey).Should().BeTrue();
         _ = doc.Version.Should().Be(Revision.Zero);
     }
 
@@ -173,7 +182,7 @@ public sealed class SqliteDocumentWriterTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
@@ -192,7 +201,7 @@ public sealed class SqliteDocumentWriterTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
@@ -210,7 +219,7 @@ public sealed class SqliteDocumentWriterTests
     public async Task InsertOrUpdateAsync_WithCancelledToken_ThrowsOperationCanceledException()
     {
         var writer = CreateWriter();
-        var document = Document.Cons(Key.From("h"), TestData);
+        var document = Document.Cons(Key.From("h"), Data);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
@@ -227,7 +236,7 @@ public sealed class SqliteDocumentWriterTests
         var hashKey = Key.From("concurrent");
 
         // Insert initial document
-        var document = Document.Cons(hashKey, TestData);
+        var document = Document.Cons(hashKey, Data);
         await writer.InsertAsync(document, CancellationToken.None);
 
         // Run concurrent updates
