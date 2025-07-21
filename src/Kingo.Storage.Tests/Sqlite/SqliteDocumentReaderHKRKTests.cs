@@ -109,7 +109,7 @@ public sealed class SqliteDocumentReaderHKRKTests
     }
 
     [Fact]
-    public async Task FindAsync_WithRangeKey_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task FindAsync_WithRangeKey_WithCancelledToken_ThrowsTaskCanceledException()
     {
         var reader = CreateReader();
 
@@ -272,7 +272,7 @@ public sealed class SqliteDocumentReaderHKRKTests
     }
 
     [Fact]
-    public async Task WhereAsync_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task WhereAsync_WithCancelledToken_ThrowsTaskCanceledException()
     {
         var reader = CreateReader();
 

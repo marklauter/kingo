@@ -77,7 +77,7 @@ public sealed class SequenceTests
     }
 
     [Fact]
-    public async Task NextAsync_ThrowsOperationCanceledException_WhenTokenIsCanceled()
+    public async Task NextAsync_ThrowsTaskCanceledException_WhenTokenIsCanceled()
     {
 
         var sequence = CreateIntSequence(seqName);

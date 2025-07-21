@@ -85,7 +85,7 @@ public sealed class SqliteDocumentReaderTests
     }
 
     [Fact]
-    public async Task FindAsync_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task FindAsync_WithCancelledToken_ThrowsTaskCanceledException()
     {
         var reader = CreateReader();
 

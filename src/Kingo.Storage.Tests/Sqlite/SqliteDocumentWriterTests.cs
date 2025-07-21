@@ -66,22 +66,22 @@ public sealed class SqliteDocumentWriterTests
     }
 
     [Fact]
-    public async Task InsertAsync_WhenKeyExists_ThrowsDocumentWriterException()
+    public async Task WhenKeyExists_InsertAsync_ThrowsDocumentWriterException()
     {
         var writer = CreateWriter();
         var document = Document.Cons(Key.From("h"), Data);
 
         await writer.InsertAsync(document, CancellationToken.None);
 
-        var exception = await Assert.ThrowsAsync<DocumentWriterException>(() =>
-            writer.InsertAsync(document, CancellationToken.None));
+        var exception = await Assert.ThrowsAsync<DocumentWriterException>(
+            () => writer.InsertAsync(document, CancellationToken.None));
 
         _ = exception.Code.Should().Be(StorageErrorCodes.DuplicateKeyError);
         _ = exception.Message.Should().Contain("duplicate key h");
     }
 
     [Fact]
-    public async Task InsertAsync_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task InsertAsync_WithCancelledToken_ThrowsTaskCanceledException()
     {
         var writer = CreateWriter();
         var document = Document.Cons(Key.From("h"), Data);
@@ -89,7 +89,7 @@ public sealed class SqliteDocumentWriterTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _ = await Assert.ThrowsAsync<OperationCanceledException>(() =>
+        _ = await Assert.ThrowsAsync<TaskCanceledException>(() =>
             writer.InsertAsync(document, cts.Token));
     }
 
@@ -145,7 +145,7 @@ public sealed class SqliteDocumentWriterTests
     }
 
     [Fact]
-    public async Task UpdateAsync_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task UpdateAsync_WithCancelledToken_ThrowsTaskCanceledException()
     {
         var writer = CreateWriter();
         var reader = CreateReader();
@@ -157,7 +157,7 @@ public sealed class SqliteDocumentWriterTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _ = await Assert.ThrowsAsync<OperationCanceledException>(() =>
+        _ = await Assert.ThrowsAsync<TaskCanceledException>(() =>
             writer.UpdateAsync(read, cts.Token));
     }
 
@@ -216,7 +216,7 @@ public sealed class SqliteDocumentWriterTests
     }
 
     [Fact]
-    public async Task InsertOrUpdateAsync_WithCancelledToken_ThrowsOperationCanceledException()
+    public async Task InsertOrUpdateAsync_WithCancelledToken_ThrowsTaskCanceledException()
     {
         var writer = CreateWriter();
         var document = Document.Cons(Key.From("h"), Data);
@@ -224,7 +224,7 @@ public sealed class SqliteDocumentWriterTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        _ = await Assert.ThrowsAsync<OperationCanceledException>(() =>
+        _ = await Assert.ThrowsAsync<TaskCanceledException>(() =>
             writer.InsertOrUpdateAsync(document, cts.Token));
     }
 
