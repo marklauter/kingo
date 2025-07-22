@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Kingo.Storage.Db;
-using Kingo.Storage.Keys;
 using LanguageExt;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -10,20 +9,18 @@ namespace Kingo.Storage.Sqlite;
 public static class SqliteDocumentWriter
 {
     public static IDocumentWriter<D, HK> WithIO<D, HK>(
-        IDbContext context,
-        Key table)
+        IDbContext context)
         where D : Document<HK>
         where HK : IEquatable<HK>, IComparable<HK> =>
-        new SqliteDocumentWriterWithIO<D, HK>(context, table);
+        new SqliteDocumentWriterWithIO<D, HK>(context);
 
     private sealed class SqliteDocumentWriterWithIO<D, HK>(
-        IDbContext context,
-        Key table)
+        IDbContext context)
         : IDocumentWriter<D, HK>
         where D : Document<HK>
         where HK : IEquatable<HK>, IComparable<HK>
     {
-        private readonly SqliteDocumentWriter<D, HK> writer = new(context, table);
+        private readonly SqliteDocumentWriter<D, HK> writer = new(context);
 
         public Eff<Unit> Insert(D document) =>
             Lift(token => writer.InsertAsync(document, token));
@@ -42,58 +39,54 @@ public static class SqliteDocumentWriter
 static file class Names<D>
     where D : Document
 {
-    public static string Columns { get; } = string.Join(',', TypeCache<D>.PropertyNames.Select(n => n.ToLowerInvariant()));
-    public static string Values { get; } = string.Join(',', TypeCache<D>.PropertyNames.Select(n => $"@{n}"));
+    public static string Columns { get; } = string.Join(',', DocumentTypeCache<D>.PropertyNames.Select(n => n.ToLowerInvariant()));
+    public static string Values { get; } = string.Join(',', DocumentTypeCache<D>.PropertyNames.Select(n => $"@{n}"));
 }
 
 internal sealed class SqliteDocumentWriter<D, HK>(
-    IDbContext context,
-    Key table)
+    IDbContext context)
     where D : Document<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
-    private sealed class Journal(Key table)
+    private static class Journal
     {
-        private readonly string insert = $"insert into {table}_journal (hashkey, version, {Names<D>.Columns}) values (@HashKey, @Version, {Names<D>.Values});";
+        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.TypeName}_journal (hashkey, version, {Names<D>.Columns}) values (@HashKey, @Version, {Names<D>.Values});";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(insert, document, tx);
+        public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(InsertStatement, document, tx);
     }
 
-    private sealed class Header(Key table)
+    private static class Header
     {
-        private readonly string insert = $"insert into {table}_header (hashkey, version) values (@HashKey, @Version);";
-        private readonly string update = $"update {table}_header set version = @Version where hashkey = @HashKey;";
-        private readonly string exists = $"select exists(select 1 from {table}_header where hashkey = @HashKey);";
-        private readonly string revision = $"select version from {table}_header where hashkey = @HashKey;";
+        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.TypeName}_header (hashkey, version) values (@HashKey, @Version);";
+        private static readonly string UpdateStatement = $"update {DocumentTypeCache<D>.TypeName}_header set version = @Version where hashkey = @HashKey;";
+        private static readonly string ExistsStatement = $"select exists(select 1 from {DocumentTypeCache<D>.TypeName}_header where hashkey = @HashKey);";
+        private static readonly string RevisionStatement = $"select version from {DocumentTypeCache<D>.TypeName}_header where hashkey = @HashKey;";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(insert, document, tx);
+        public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(InsertStatement, document, tx);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Task<int> UpdateAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(update, document, tx);
+        public static Task<int> UpdateAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(UpdateStatement, document, tx);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<bool> ExistsAsync(D document, DbConnection db, DbTransaction tx) =>
-            await db.QuerySingleAsync<bool>(exists, document.HashKey, tx);
+        public static Task<bool> ExistsAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.QuerySingleAsync<bool>(ExistsStatement, document.HashKey, tx);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async Task<Revision?> ReadRevisionAsync(D document, DbConnection db, DbTransaction tx) =>
-            await db.QuerySingleOrDefaultAsync<Revision?>(revision, document, tx);
+        public static Task<Revision?> ReadRevisionAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.QuerySingleOrDefaultAsync<Revision?>(RevisionStatement, document, tx);
     }
-
-    private readonly Journal journal = new(table);
-    private readonly Header header = new(table);
 
     public Task InsertAsync(D document, CancellationToken token) =>
         context.ExecuteAsync((db, tx) => InsertIfNotExistsAsync(document, db, tx), token);
 
-    private async Task InsertIfNotExistsAsync(D document, DbConnection db, DbTransaction tx)
+    private static async Task InsertIfNotExistsAsync(D document, DbConnection db, DbTransaction tx)
     {
-        if (await header.ExistsAsync(document, db, tx))
+        if (await Header.ExistsAsync(document, db, tx))
         {
             throw new DocumentWriterException(
                 $"duplicate key {document.HashKey}",
@@ -103,13 +96,13 @@ internal sealed class SqliteDocumentWriter<D, HK>(
         await InsertAsync(document, db, tx);
     }
 
-    private async Task InsertAsync(D document, DbConnection db, DbTransaction tx)
+    private static async Task InsertAsync(D document, DbConnection db, DbTransaction tx)
     {
         document = document with { Version = Revision.Zero };
 
         if ((await Task.WhenAll(
-                journal.InsertAsync(document, db, tx),
-                header.InsertAsync(document, db, tx))).Sum() != 2)
+                Journal.InsertAsync(document, db, tx),
+                Header.InsertAsync(document, db, tx))).Sum() != 2)
             throw new DocumentWriterException(
                 $"expected two records modified for document insert with key {document.HashKey}",
                 StorageErrorCodes.InsertCountMismatch);
@@ -118,9 +111,9 @@ internal sealed class SqliteDocumentWriter<D, HK>(
     public Task UpdateAsync(D document, CancellationToken token) =>
         context.ExecuteAsync((db, tx) => UpdateIfExistsAsync(document, db, tx), token);
 
-    private async Task UpdateIfExistsAsync(D document, DbConnection db, DbTransaction tx)
+    private static async Task UpdateIfExistsAsync(D document, DbConnection db, DbTransaction tx)
     {
-        var originalVersion = await header.ReadRevisionAsync(document, db, tx);
+        var originalVersion = await Header.ReadRevisionAsync(document, db, tx);
         if (!originalVersion.HasValue)
             throw new DocumentWriterException(
                 $"key not found {document.HashKey}",
@@ -134,13 +127,13 @@ internal sealed class SqliteDocumentWriter<D, HK>(
         await UpdateAsync(document, db, tx);
     }
 
-    private async Task UpdateAsync(D document, DbConnection db, DbTransaction tx)
+    private static async Task UpdateAsync(D document, DbConnection db, DbTransaction tx)
     {
         document = document with { Version = document.Version.Tick() };
 
         if ((await Task.WhenAll(
-                journal.InsertAsync(document, db, tx),
-                header.UpdateAsync(document, db, tx))).Sum() != 2)
+                Journal.InsertAsync(document, db, tx),
+                Header.UpdateAsync(document, db, tx))).Sum() != 2)
             throw new DocumentWriterException(
                 $"expected two records modified for document update with key {document.HashKey}",
                 StorageErrorCodes.InsertCountMismatch);
@@ -149,9 +142,9 @@ internal sealed class SqliteDocumentWriter<D, HK>(
     public Task InsertOrUpdateAsync(D document, CancellationToken token) =>
         context.ExecuteAsync((db, tx) => InsertOrUpdateAsync(document, db, tx), token);
 
-    private async Task InsertOrUpdateAsync(D document, DbConnection db, DbTransaction tx)
+    private static async Task InsertOrUpdateAsync(D document, DbConnection db, DbTransaction tx)
     {
-        var originalVersion = await header.ReadRevisionAsync(document, db, tx);
+        var originalVersion = await Header.ReadRevisionAsync(document, db, tx);
         if (!originalVersion.HasValue)
         {
             await InsertAsync(document, db, tx);

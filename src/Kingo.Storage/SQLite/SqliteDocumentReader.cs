@@ -10,42 +10,38 @@ namespace Kingo.Storage.Sqlite;
 public static class SqliteDocumentReader
 {
     public static IDocumentReader<D, HK> WithIO<D, HK>(
-        IDbContext context,
-        Key table)
+        IDbContext context)
         where D : Document<HK>
         where HK : IEquatable<HK>, IComparable<HK>
-        => new SqliteDocumentReaderWithIO<D, HK>(context, table);
+        => new SqliteDocumentReaderWithIO<D, HK>(context);
 
     public static IDocumentReader<D, HK, RK> WithIO<D, HK, RK>(
-        IDbContext context,
-        Key table)
+        IDbContext context)
         where D : Document<HK, RK>
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK>
-        => new SqliteDocumentReaderWithIO<D, HK, RK>(context, table);
+        => new SqliteDocumentReaderWithIO<D, HK, RK>(context);
 
     private sealed class SqliteDocumentReaderWithIO<D, HK>(
-        IDbContext context,
-        Key table)
+        IDbContext context)
         : IDocumentReader<D, HK>
         where D : Document<HK>
         where HK : IEquatable<HK>, IComparable<HK>
     {
-        private readonly SqliteDocumentReader<D, HK> reader = new(context, table);
+        private readonly SqliteDocumentReader<D, HK> reader = new(context);
 
         public Eff<Option<D>> Find(HK hashKey) =>
             Lift(token => reader.FindAsync(hashKey, token));
     }
 
     private sealed class SqliteDocumentReaderWithIO<D, HK, RK>(
-        IDbContext context,
-        Key table)
+        IDbContext context)
         : IDocumentReader<D, HK, RK>
         where D : Document<HK, RK>
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK>
     {
-        private readonly SqliteDocumentReader<D, HK, RK> reader = new(context, table);
+        private readonly SqliteDocumentReader<D, HK, RK> reader = new(context);
 
         public Eff<Iterable<D>> Find(HK hashKey, RangeKey range) =>
             Lift(token => reader.FindAsync(hashKey, range, token));
@@ -62,42 +58,40 @@ public static class SqliteDocumentReader
 }
 
 internal sealed class SqliteDocumentReader<D, HK>(
-    IDbContext context,
-    Key table)
+    IDbContext context)
     where D : Document<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly record struct HkParam(HK HashKey);
-    private readonly string hkQuery =
-        $"select b.* from {table}_header a join {table}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
+    private static readonly string FindStatement =
+        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Option<D>> FindAsync(HK hashKey, CancellationToken token) =>
         await context.ExecuteAsync((db, tx) =>
-            db.QuerySingleOrDefaultAsync<D>(hkQuery, new HkParam(hashKey), tx),
+            db.QuerySingleOrDefaultAsync<D>(FindStatement, new HkParam(hashKey), tx),
             token);
 }
 
 internal sealed class SqliteDocumentReader<D, HK, RK>(
-    IDbContext context,
-    Key table)
+    IDbContext context)
     where D : Document<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
     private readonly record struct HkRkParam(HK HashKey, RK RangeKey);
-    private readonly string hkrkQuery =
-        $"select b.* from {table}_header a join {table}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
+    private static readonly string HkRkQuery =
+        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Option<D>> FindAsync(HK hashKey, RK rangeKey, CancellationToken token) =>
         await context.ExecuteAsync((db, tx) =>
-            db.QuerySingleOrDefaultAsync<D>(hkrkQuery, new HkRkParam(hashKey, rangeKey), tx),
+            db.QuerySingleOrDefaultAsync<D>(HkRkQuery, new HkRkParam(hashKey, rangeKey), tx),
             token);
 
     private readonly record struct HkParam(HK HashKey);
-    private readonly string hkQuery =
-        $"select b.* from {table}_header a join {table}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
+    private static readonly string HkQuery =
+        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Iterable<D>> WhereAsync(
@@ -137,6 +131,6 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
 
     private Task<IEnumerable<D>> FindAsync(HK hashKey, CancellationToken token) =>
         context.ExecuteAsync((db, tx) =>
-            db.QueryAsync<D>(hkQuery, new HkParam(hashKey), tx),
+            db.QueryAsync<D>(HkQuery, new HkParam(hashKey), tx),
             token);
 }
