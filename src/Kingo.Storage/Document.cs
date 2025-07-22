@@ -42,14 +42,10 @@ internal static class DocumentTypeCache<D>
     [SuppressMessage("Design", "CA1000:Do not declare static members on generic types", Justification = "this is fine")]
     public static string TypeName { get; } = typeof(D).Name;
 
-    private static readonly HashSet<string> ExcludedNames = ["HashKey", "RangeKey", "Version"];
-
-    // todo: probably going to require a data attribute for the properties to weed out default record implementation stuff. we'll see
     public static string[] PropertyNames { get; } = [.. typeof(D)
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
         .Where(pi => pi.CanRead)
         .Where(pi=> !pi.IsDefined(typeof(NotMappedAttribute), true))
         .Where(pi => pi.GetIndexParameters().Length == 0)
-        .Where(pi => !ExcludedNames.Contains(pi.Name))
         .Select(pi => pi.Name)];
 }
