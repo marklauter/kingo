@@ -91,8 +91,10 @@ in-memory key-value store with partition key and range key, similar to AWS Docum
 ### current
 simulated key-value store backed by sqlite
 
-each document record is split between two tables. the first table is the header which is composed of a hashkey and version. 
-the second table is the journal which is composed of a hashkey, version, and data (dumped as json). the header is mutable and the journal is append only. this means you can maintain an audit for almost zero compute cost. there is no special history table, no need for CDC, and you can read the lastest version without a rollup or slow max calculation on the version.
+each document record is split between two tables. the first table is the header which is composed of a hashkey, optional rangekey, and version. 
+the second table is the journal which is composed of a hashkey, optional rangekey, version, and other data columns.
+the header is mutable and the journal is append only. this means you can maintain an audit for almost zero compute cost. 
+there is no special history table, no need for CDC, and you can read the lastest version without a rollup or slow max calculation on the version.
 
 ```ddl
 header tbl
@@ -101,18 +103,22 @@ FK (version -> journal:version)
 
 journal tbl
 PK (text hashkey, number version)
-text data
+[data columns]
 ```
 
 when a document is updated, a new entry is written to journal, and the header version is updated. to read a document you provide the hashkey and the tables are joined like this:
 ```sql
 select
-  a.hashkey,
-  a.version,
-  b.data
+  b.*
 from header a
 join journal b on b.hashkey = a.hashkey and b.version = a.version
 where a.hashkey = @HK
+```
+
+sample document in C#
+```csharp
+public sealed AddressDocument(string Street, string City, string State, string Zip, Revision Version)
+    : Document<string, string>(Street, City, Version);
 ```
  
 ### future
@@ -144,7 +150,7 @@ FUT - work planned
 - 24 JUN 2025 - began work on the simulated key-value store
 - 25 JUN 2025 - finished simulated key-value store (DocumentStore)
 - 26 JUN 2025 - refactoring primitive types and facts for better domain cohesion
-- 27 JUN 2025 - added JSON-based namespace specs and subjectset rewrite configuration 
+- 27 JUN 2025 - added JSON-based namespace specs and subjectset rewrite configuration (now deprecated)
 - 30 JUN 2025 - refactored AclStore logic to rewrite rules
 - 01 JUL 2025 - refactored AclStore to use DocumentStore
 - 02 JUL 2025 - prepped dependencies and document namespaces for refactoring the namespace tree to use the document store
