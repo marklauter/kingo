@@ -166,7 +166,7 @@ internal sealed class SqliteDocumentWriter<D, HK>(
         original != replacement;
 }
 
-//public sealed class SqliteDocumentWriter<HK, RK>(
+//internal sealed class SqliteDocumentWriter<HK, RK>(
 //    SqliteConnection connection,
 //    Key table)
 //    : IDocumentWriter<HK, RK>
