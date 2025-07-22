@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Kingo.Storage;
@@ -47,6 +48,7 @@ internal static class DocumentTypeCache<D>
     public static string[] PropertyNames { get; } = [.. typeof(D)
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
         .Where(pi => pi.CanRead)
+        .Where(pi=> !pi.IsDefined(typeof(NotMappedAttribute), true))
         .Where(pi => pi.GetIndexParameters().Length == 0)
         .Where(pi => !ExcludedNames.Contains(pi.Name))
         .Select(pi => pi.Name)];
