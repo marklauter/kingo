@@ -12,14 +12,14 @@ public static class SqliteDocumentReader
     public static IDocumentReader<D, HK> WithIO<D, HK>(
         IDbContext context,
         Key table)
-        where D : IDocument<HK>
+        where D : Document<HK>
         where HK : IEquatable<HK>, IComparable<HK>
         => new SqliteDocumentReaderWithIO<D, HK>(context, table);
 
     public static IDocumentReader<D, HK, RK> WithIO<D, HK, RK>(
         IDbContext context,
         Key table)
-        where D : IDocument<HK, RK>
+        where D : Document<HK, RK>
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK>
         => new SqliteDocumentReaderWithIO<D, HK, RK>(context, table);
@@ -28,7 +28,7 @@ public static class SqliteDocumentReader
         IDbContext context,
         Key table)
         : IDocumentReader<D, HK>
-        where D : IDocument<HK>
+        where D : Document<HK>
         where HK : IEquatable<HK>, IComparable<HK>
     {
         private readonly SqliteDocumentReader<D, HK> reader = new(context, table);
@@ -41,7 +41,7 @@ public static class SqliteDocumentReader
         IDbContext context,
         Key table)
         : IDocumentReader<D, HK, RK>
-        where D : IDocument<HK, RK>
+        where D : Document<HK, RK>
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK>
     {
@@ -64,7 +64,7 @@ public static class SqliteDocumentReader
 internal sealed class SqliteDocumentReader<D, HK>(
     IDbContext context,
     Key table)
-    where D : IDocument<HK>
+    where D : Document<HK>
     where HK : IEquatable<HK>, IComparable<HK>
 {
     private readonly record struct HkParam(HK HashKey);
@@ -81,7 +81,7 @@ internal sealed class SqliteDocumentReader<D, HK>(
 internal sealed class SqliteDocumentReader<D, HK, RK>(
     IDbContext context,
     Key table)
-    where D : IDocument<HK, RK>
+    where D : Document<HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {

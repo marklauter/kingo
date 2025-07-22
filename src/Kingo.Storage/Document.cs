@@ -1,21 +1,33 @@
 ﻿namespace Kingo.Storage;
 
-public interface IDocument
+public abstract record Document(
+    Revision Version)
 {
-    Revision Version { get; }
-}
+    public Document()
+        : this(Revision.Zero)
+    { }
+};
 
-public interface IDocument<HK>
-    : IDocument
+public abstract record Document<HK>(
+    HK HashKey,
+    Revision Version)
+    : Document(Version)
     where HK : IEquatable<HK>, IComparable<HK>
 {
-    HK? HashKey { get; }
+    public Document(HK hashKey)
+        : this(hashKey, Revision.Zero)
+    { }
 }
 
-public interface IDocument<HK, RK>
-    : IDocument<HK>
+public abstract record Document<HK, RK>(
+    HK HashKey,
+    RK RangeKey,
+    Revision Version)
+    : Document<HK>(HashKey, Version)
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
-    RK RangeKey { get; }
+    public Document(HK hashKey, RK rangeKey)
+        : this(hashKey, rangeKey, Revision.Zero)
+    { }
 }
