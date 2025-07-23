@@ -24,7 +24,7 @@ public sealed class SequenceTests
             """
                 CREATE TABLE seq_64 (
                     key TEXT PRIMARY KEY,
-                    value BIGINT NOT NULL
+                    value INTEGER NOT NULL
                 )
             """);
     }
@@ -90,7 +90,6 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_HandlesHighConcurrency_WhenMultipleTasksAccess()
     {
-
         var sequence = CreateIntSequence(seqName);
         var tasks = Enumerable.Range(0, 100)
             .Select(_ => Task.Run(() => sequence.NextAsync(CancellationToken.None)))
