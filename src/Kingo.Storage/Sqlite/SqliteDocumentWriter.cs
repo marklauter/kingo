@@ -161,17 +161,15 @@ internal sealed class SqliteDocumentWriter<D, HK>(
     {
         var currentVersion = document.Version;
         var newVersion = document.Version.Tick();
-        if (await Header.UpdateAsync(document.HashKey, currentVersion, newVersion, db, tx) != 1)
-        {
-            throw new DocumentWriterException(
-                $"version conflict {document.HashKey}, expected: {document.Version}, actual: unknown",
-                StorageErrorCodes.VersionConflictError);
-        }
-
         if (await Journal.InsertAsync(document with { Version = newVersion }, db, tx) != 1)
             throw new DocumentWriterException(
                 $"journal insert failed for with key {document.HashKey}, version {newVersion}",
                 StorageErrorCodes.InsertCountMismatch);
+
+        if (await Header.UpdateAsync(document.HashKey, currentVersion, newVersion, db, tx) != 1)
+            throw new DocumentWriterException(
+                $"version conflict {document.HashKey}, expected: {document.Version}, actual: unknown",
+                StorageErrorCodes.VersionConflictError);
     }
 
     public Task InsertOrUpdateAsync(D document, CancellationToken token) =>
@@ -291,17 +289,15 @@ internal sealed class SqliteDocumentWriter<D, HK, RK>(
     {
         var currentVersion = document.Version;
         var newVersion = document.Version.Tick();
-        if (await Header.UpdateAsync(document.HashKey, document.RangeKey, currentVersion, newVersion, db, tx) != 1)
-        {
-            throw new DocumentWriterException(
-                $"version conflict {document.HashKey}:{document.RangeKey}, expected: {document.Version}, actual: unknown",
-                StorageErrorCodes.VersionConflictError);
-        }
-
         if (await Journal.InsertAsync(document with { Version = newVersion }, db, tx) != 1)
             throw new DocumentWriterException(
                 $"journal insert failed for with key {document.HashKey}:{document.RangeKey}, version {newVersion}",
                 StorageErrorCodes.InsertCountMismatch);
+
+        if (await Header.UpdateAsync(document.HashKey, document.RangeKey, currentVersion, newVersion, db, tx) != 1)
+            throw new DocumentWriterException(
+                $"version conflict {document.HashKey}:{document.RangeKey}, expected: {document.Version}, actual: unknown",
+                StorageErrorCodes.VersionConflictError);
     }
 
     public Task InsertOrUpdateAsync(D document, CancellationToken token) =>
