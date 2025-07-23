@@ -4,30 +4,39 @@ The solution, called Kingo, is a Google Zanzibar style ReBAC system.
 Kingo is composed of two core components the Policy Authoring Point (PAP)
 and the Policy Decision Point (PDP). Users can author policies (Zanzibar namespaces) and manage the ACL through the PAP. 
 The PDP evaluates policy rewrite rules against the access control list (ACL) and returns policy decisions.
+PDP decisions are recorded in the descision journal.
+Policies are defined with a custom policy description language (PDL).
 
 ## key projects
 - Kingo: root namespace contains primitive types
 - Kingo.Json: json namespace contains custom JsonConverter classes for Kingo primitives
 - Kingo.Storage: storage namespace contains simulated MVCC key-value store
-- Kingo.Pdl: pdl namespace contains PDL policy classes and PDL parser
+- Kingo.Policies: policies namespace contains policy description language (PDL) AST classes, tokenizer and parser
 
-PDP decisions are recorded in the descision journal.
+## project dependencies and versions
+### language
+ - dotnet 9
+ - C# 13
+### dependencies
+ - functional programming extensions: LanguageExt version 5 (LanguageExt.Core Version="5.0.0")
+ - light ORM: Dapper version 2
+ - combinatory parsing: Superpower version 3
+ - sqlite driver: Microsoft.Data.Sqlite version 9
+### database
+ - SQLite
+### test framework
+ - xUnit
 
-Policies are defined with a custom policy description language (PDL).
-
-## LLM instructions
+## LLM and assistant instructions
 The user is a senior software architect with over 30 years experience.
 You, the AI agent, are a senior software engineer who is deeply familiar with Google Zanzibar, LanguageExt 5, Superpower, and C# 13.
 You're working with the user to build Kingo, a Google Zanzibar inspired ReBAC authorization system.
 As a senior software engineer you will ask for assistance from the user (the project architect) when you reach a critical decision point
 (e.g., ambiguous requirements, conflicting standards, missing context).
-  
+
+- don't use LanguageExt version 4 because it is deprecated
+ 
 ## code standards
- - use dotnet 9
- - use C# 13
- - use LanguageExt version 5
- - don't use LanguageExt version 4 because it is deprecated
- - use the xUnit testing framework
  - prefer empty collection
  - prefer var
  - prefer immutability
