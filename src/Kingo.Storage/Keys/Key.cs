@@ -31,7 +31,7 @@ public readonly struct Key
     static Key() => SqlMapper.AddTypeHandler(new KeyTypeHandler());
 
     private readonly string value;
-    private static readonly Regex Validation = RegExPatterns.Key();
+    private static readonly Regex Validation = KeyRegExPatterns.Key();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Key Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
@@ -97,4 +97,16 @@ public readonly struct Key
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator >=(Key left, Key right) => left.CompareTo(right) >= 0;
+}
+
+internal partial class KeyRegExPatterns
+{
+    private const RegexOptions PatternOptions =
+        RegexOptions.ExplicitCapture |
+        RegexOptions.Compiled |
+        RegexOptions.Singleline |
+        RegexOptions.CultureInvariant;
+
+    [GeneratedRegex(@"^[A-Za-z0-9_/-]+$", PatternOptions)]
+    public static partial Regex Key();
 }
