@@ -5,7 +5,7 @@ using LanguageExt;
 
 namespace Kingo.Storage.Tests.Sqlite;
 
-public sealed class SqliteDocumentHKReaderTests
+public sealed class SqliteDocumentReaderDHKTests
     : IAsyncLifetime
 {
     private sealed record Color(Key HashKey, Revision Version, string Name, int R, int G, int B)
@@ -26,7 +26,7 @@ public sealed class SqliteDocumentHKReaderTests
     private readonly string dbName = $"{Guid.NewGuid()}.sqlite";
     private readonly DbContext context;
 
-    public SqliteDocumentHKReaderTests() =>
+    public SqliteDocumentReaderDHKTests() =>
         context = new(
             new SqliteConnectionFactory(
                 new($"Data Source={dbName}", false)));
