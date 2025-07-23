@@ -81,17 +81,13 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
 {
     private readonly record struct HkRkParam(HK HashKey, RK RangeKey);
     private static readonly string HkRkQuery =
-        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
+        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and a.rangekey = b.rangekey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Option<D>> FindAsync(HK hashKey, RK rangeKey, CancellationToken token) =>
         await context.ExecuteAsync((db, tx) =>
             db.QuerySingleOrDefaultAsync<D>(HkRkQuery, new HkRkParam(hashKey, rangeKey), tx),
             token);
-
-    private readonly record struct HkParam(HK HashKey);
-    private static readonly string HkQuery =
-        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Iterable<D>> WhereAsync(
@@ -104,6 +100,15 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Iterable<D>> FindAsync(HK hashKey, RangeKey range, CancellationToken token) =>
         Prelude.Iterable(Filter(await FindAsync(hashKey, token), range));
+
+    private readonly record struct HkParam(HK HashKey);
+    private static readonly string HkQuery =
+        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
+
+    private Task<IEnumerable<D>> FindAsync(HK hashKey, CancellationToken token) =>
+        context.ExecuteAsync((db, tx) =>
+            db.QueryAsync<D>(HkQuery, new HkParam(hashKey), tx),
+            token);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static IEnumerable<D> Filter(IEnumerable<D> documents, RangeKey range) =>
@@ -128,9 +133,4 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
     private static bool Between(D document, Between<RK> span) =>
         LowerBound(document, span.LowerBound)
         && UpperBound(document, span.UpperBound);
-
-    private Task<IEnumerable<D>> FindAsync(HK hashKey, CancellationToken token) =>
-        context.ExecuteAsync((db, tx) =>
-            db.QueryAsync<D>(HkQuery, new HkParam(hashKey), tx),
-            token);
 }
