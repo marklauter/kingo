@@ -351,7 +351,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         var result = await reader.WhereAsync(hashKey, doc => doc.R > 100, CancellationToken.None);
 
         var docs = result.ToArray();
-        Assert.Single(docs);
+        _ = Assert.Single(docs);
         Assert.Contains(docs, d => d.Name == "Red");
     }
 
