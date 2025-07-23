@@ -37,7 +37,7 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
 
     private readonly record struct HkParam(HK HashKey);
     private static readonly string HkQuery =
-        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
+        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.rangekey = a.rangekey and b.version = a.version where a.hashkey = @HashKey";
 
     private Task<IEnumerable<D>> FindAsync(HK hashKey, CancellationToken token) =>
         context.ExecuteAsync((db, tx) =>
