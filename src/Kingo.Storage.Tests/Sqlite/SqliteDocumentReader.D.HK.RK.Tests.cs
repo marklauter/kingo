@@ -225,4 +225,169 @@ public sealed class SqliteDocumentReaderDHKRKTests
 
         Assert.Equal(limit, count);
     }
+
+    #region FindAsync with RangeKey
+
+    [Fact]
+    public async Task FindAsync_WithRangeKeyFilter_UnboundRange_ReturnsAll()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "a"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
+        await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
+
+        var result = await reader.FindAsync(hashKey, RangeKey.Unbound, CancellationToken.None);
+
+        var docs = result.ToArray();
+        Assert.Equal(3, docs.Length);
+        Assert.Contains(docs, d => d.Name == "Red");
+        Assert.Contains(docs, d => d.Name == "Green");
+        Assert.Contains(docs, d => d.Name == "Blue");
+    }
+
+    [Fact]
+    public async Task FindAsync_WithRangeKeyFilter_LowerBound_ReturnsCorrectRange()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "a"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
+        await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
+        await writer.InsertAsync(Color.White(hashKey, "d"), CancellationToken.None);
+
+        var result = await reader.FindAsync(hashKey, RangeKey.Lower(Key.From("c")), CancellationToken.None);
+
+        var docs = result.ToArray();
+        Assert.Equal(2, docs.Length);
+        Assert.Contains(docs, d => d.Name == "Blue");
+        Assert.Contains(docs, d => d.Name == "White");
+    }
+
+    [Fact]
+    public async Task FindAsync_WithRangeKeyFilter_UpperBound_ReturnsCorrectRange()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "a"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
+        await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
+        await writer.InsertAsync(Color.White(hashKey, "d"), CancellationToken.None);
+
+        var result = await reader.FindAsync(hashKey, RangeKey.Upper(Key.From("b")), CancellationToken.None);
+
+        var docs = result.ToArray();
+        Assert.Equal(2, docs.Length);
+        Assert.Contains(docs, d => d.Name == "Red");
+        Assert.Contains(docs, d => d.Name == "Green");
+    }
+
+    [Fact]
+    public async Task FindAsync_WithRangeKeyFilter_Between_ReturnsCorrectRange()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "a"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
+        await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
+        await writer.InsertAsync(Color.White(hashKey, "d"), CancellationToken.None);
+        await writer.InsertAsync(Color.Black(hashKey, "e"), CancellationToken.None);
+
+        var result = await reader.FindAsync(hashKey, RangeKey.Between(Key.From("b"), Key.From("d")), CancellationToken.None);
+
+        var docs = result.ToArray();
+        Assert.Equal(3, docs.Length);
+        Assert.Contains(docs, d => d.Name == "Green");
+        Assert.Contains(docs, d => d.Name == "Blue");
+        Assert.Contains(docs, d => d.Name == "White");
+    }
+
+    [Fact]
+    public async Task FindAsync_WithRangeKeyFilter_EmptyResult_WhenNoDocumentsMatchRange()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "a"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
+
+        var result = await reader.FindAsync(hashKey, RangeKey.Lower(Key.From("z")), CancellationToken.None);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task FindAsync_WithRangeKeyFilter_WhenHashKeyDoesNotExist_ReturnsEmpty()
+    {
+        var reader = CreateReader();
+        var result = await reader.FindAsync(Key.From("nonexistent"), RangeKey.Unbound, CancellationToken.None);
+        Assert.Empty(result);
+    }
+
+    #endregion
+
+    #region WhereAsync
+
+    [Fact]
+    public async Task WhereAsync_WithPredicate_ReturnsFilteredResults()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "r1"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "r2"), CancellationToken.None);
+        await writer.InsertAsync(Color.Blue(hashKey, "r3"), CancellationToken.None);
+
+        var result = await reader.WhereAsync(hashKey, doc => doc.R > 100, CancellationToken.None);
+
+        var docs = result.ToArray();
+        Assert.Single(docs);
+        Assert.Contains(docs, d => d.Name == "Red");
+    }
+
+    [Fact]
+    public async Task WhereAsync_WithPredicateThatMatchesNone_ReturnsEmpty()
+    {
+        var writer = CreateWriter();
+        var reader = CreateReader();
+        var hashKey = Key.From("h");
+
+        await writer.InsertAsync(Color.Red(hashKey, "r1"), CancellationToken.None);
+        await writer.InsertAsync(Color.Green(hashKey, "r2"), CancellationToken.None);
+
+        var result = await reader.WhereAsync(hashKey, doc => doc.B > 100, CancellationToken.None);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task WhereAsync_WhenHashKeyDoesNotExist_ReturnsEmpty()
+    {
+        var reader = CreateReader();
+        var result = await reader.WhereAsync(Key.From("nonexistent"), _ => true, CancellationToken.None);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task WhereAsync_WithCancelledToken_ThrowsTaskCanceledException()
+    {
+        var reader = CreateReader();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        _ = await Assert.ThrowsAsync<TaskCanceledException>(() =>
+            reader.WhereAsync(Key.From("h"), _ => true, cts.Token));
+    }
+
+    #endregion
 }
