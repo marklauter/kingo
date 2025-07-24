@@ -7,6 +7,7 @@ using System.Text;
 
 namespace Kingo.Storage.Sqlite;
 
+// todo: add rangekey support and the extra methods from the HK.RK class. this will eliminate the need for HK.RK class
 internal sealed class SqliteDocumentReader<D>(IDbContext context)
 {
     private readonly record struct HkParam<HK>(HK HashKey);
@@ -34,21 +35,5 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
     public async Task<Option<D>> FindAsync<HK>(HK hashKey, CancellationToken token) =>
         await context.ExecuteAsync((db, tx) =>
             db.QuerySingleOrDefaultAsync<D>(FindStatement, new HkParam<HK>(hashKey), tx),
-            token);
-}
-
-internal sealed class SqliteDocumentReader<D, HK>(
-    IDbContext context)
-    where D : Document<HK>
-    where HK : IEquatable<HK>, IComparable<HK>
-{
-    private readonly record struct HkParam(HK HashKey);
-    private static readonly string FindStatement =
-        $"select b.* from {DocumentTypeCache<D>.Name}_header a join {DocumentTypeCache<D>.Name}_journal b on b.hashkey = a.hashkey and b.version = a.version where a.hashkey = @HashKey";
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<Option<D>> FindAsync(HK hashKey, CancellationToken token) =>
-        await context.ExecuteAsync((db, tx) =>
-            db.QuerySingleOrDefaultAsync<D>(FindStatement, new HkParam(hashKey), tx),
             token);
 }
