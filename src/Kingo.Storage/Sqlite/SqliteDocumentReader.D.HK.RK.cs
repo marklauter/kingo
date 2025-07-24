@@ -15,7 +15,7 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
 {
     private readonly record struct HkRkParam(HK HashKey, RK RangeKey);
     private static readonly string HkRkQuery =
-        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and a.rangekey = b.rangekey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
+        $"select b.* from {DocumentTypeCache<D>.Name}_header a join {DocumentTypeCache<D>.Name}_journal b on b.hashkey = a.hashkey and a.rangekey = b.rangekey and b.version = a.version where a.hashkey = @HashKey and a.rangekey = @RangeKey";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Option<D>> FindAsync(HK hashKey, RK rangeKey, CancellationToken token) =>
@@ -37,7 +37,7 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
 
     private readonly record struct HkParam(HK HashKey);
     private static readonly string HkQuery =
-        $"select b.* from {DocumentTypeCache<D>.TypeName}_header a join {DocumentTypeCache<D>.TypeName}_journal b on b.hashkey = a.hashkey and b.rangekey = a.rangekey and b.version = a.version where a.hashkey = @HashKey";
+        $"select b.* from {DocumentTypeCache<D>.Name}_header a join {DocumentTypeCache<D>.Name}_journal b on b.hashkey = a.hashkey and b.rangekey = a.rangekey and b.version = a.version where a.hashkey = @HashKey";
 
     private Task<IEnumerable<D>> FindAsync(HK hashKey, CancellationToken token) =>
         context.ExecuteAsync((db, tx) =>

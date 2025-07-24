@@ -34,7 +34,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         .Add(
             "create-table-test_journal",
             $"""
-            CREATE TABLE IF NOT EXISTS {DocumentTypeCache<Color>.TypeName}_journal (
+            CREATE TABLE IF NOT EXISTS {DocumentTypeCache<Color>.Name}_journal (
                 hashkey TEXT NOT NULL,
                 rangekey TEXT NOT NULL,
                 version INT NOT NULL,
@@ -48,12 +48,12 @@ public sealed class SqliteDocumentReaderDHKRKTests
         .Add(
             "create-table-test_header",
             $"""
-            CREATE TABLE IF NOT EXISTS {DocumentTypeCache<Color>.TypeName}_header (
+            CREATE TABLE IF NOT EXISTS {DocumentTypeCache<Color>.Name}_header (
                 hashkey TEXT NOT NULL,
                 rangekey TEXT NOT NULL,
                 version INT NOT NULL,
                 PRIMARY KEY (hashkey, rangekey, version),
-                FOREIGN KEY (hashkey, rangekey, version) REFERENCES {DocumentTypeCache<Color>.TypeName}_journal (hashkey, rangekey, version)
+                FOREIGN KEY (hashkey, rangekey, version) REFERENCES {DocumentTypeCache<Color>.Name}_journal (hashkey, rangekey, version)
             )
             """);
 

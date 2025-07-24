@@ -1,32 +1,37 @@
 using Kingo.Storage.Db;
-using Kingo.Storage.Keys;
 using Kingo.Storage.Sqlite;
 using LanguageExt;
 
 namespace Kingo.Storage.Tests.Sqlite;
 
-public sealed class SqliteDocumentReaderDHKTests
+public sealed class SqliteDocumentReaderDTests
     : IAsyncLifetime
 {
-    private sealed record Color(Key HashKey, Revision Version, string Name, int R, int G, int B)
-        : Document<Key>(HashKey, Version)
+    private sealed record Color(
+        [property: HashKey]
+        string Name,
+        [property: Version]
+        Revision Version,
+        int R,
+        int G,
+        int B)
     {
         // required for dapper and microsoft.data.sqlite
-        private Color(Key hashKey, Revision version, string name, long r, long g, long b)
-            : this(hashKey, version, name, Convert.ToInt32(r), Convert.ToInt32(g), Convert.ToInt32(b)) { }
+        private Color(string name, Revision version, long r, long g, long b)
+            : this(name, version, Convert.ToInt32(r), Convert.ToInt32(g), Convert.ToInt32(b)) { }
 
-        public static Color Red(Key hashKey) => new(hashKey, Revision.Zero, "Red", 255, 0, 0);
-        public static Color Green(Key hashKey) => new(hashKey, Revision.Zero, "Green", 0, 255, 0);
-        public static Color Blue(Key hashKey) => new(hashKey, Revision.Zero, "Blue", 0, 0, 255);
-        public static Color White(Key hashKey) => new(hashKey, Revision.Zero, "White", 255, 255, 255);
-        public static Color Black(Key hashKey) => new(hashKey, Revision.Zero, "Black", 0, 0, 0);
-        public static Color Gray(Key hashKey) => new(hashKey, Revision.Zero, "White", 127, 127, 127);
+        public static Color Red() => new("Red", Revision.Zero, 255, 0, 0);
+        public static Color Green() => new("Green", Revision.Zero, 0, 255, 0);
+        public static Color Blue() => new("Blue", Revision.Zero, 0, 255, 255);
+        public static Color White() => new("White", Revision.Zero, 255, 255, 255);
+        public static Color Black() => new("Black", Revision.Zero, 0, 0, 0);
+        public static Color Gray() => new("White", Revision.Zero, 127, 127, 127);
     }
 
     private readonly string dbName = $"{Guid.NewGuid()}.sqlite";
     private readonly DbContext context;
 
-    public SqliteDocumentReaderDHKTests() =>
+    public SqliteDocumentReaderDTests() =>
         context = new(
             new SqliteConnectionFactory(
                 new($"Data Source={dbName}", false)));
@@ -68,16 +73,16 @@ public sealed class SqliteDocumentReaderDHKTests
         return Task.CompletedTask;
     }
 
-    private SqliteDocumentWriter<Color, Key> CreateWriter() => new(context);
-    private SqliteDocumentReader<Color, Key> CreateReader() => new(context);
+    private SqliteDocumentWriter<Color> CreateWriter() => new(context);
+    private SqliteDocumentReader<Color> CreateReader() => new(context);
 
     [Fact]
     public async Task FindAsync_WhenDocumentExists_ReturnsSome()
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var key = Key.From("cancel-button");
-        var color = Color.Red(key);
+        var key = Color.Red().Name;
+        var color = Color.Red();
 
         await writer.InsertAsync(color, CancellationToken.None);
 
@@ -85,7 +90,7 @@ public sealed class SqliteDocumentReaderDHKTests
 
         Assert.True(result.IsSome);
         color = result.IfNone(() => throw new KeyNotFoundException("Document not found"));
-        Assert.Equal(key, color.HashKey);
+        Assert.Equal(key, color.Name);
         Assert.Equal("Red", color.Name);
         Assert.Equal(255, color.R);
         Assert.Equal(Revision.Zero, color.Version);
@@ -110,8 +115,8 @@ public sealed class SqliteDocumentReaderDHKTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var key = Key.From("cancel-button");
-        var color = Color.Red(key);
+        var key = Color.Red().Name;
+        var color = Color.Red();
 
         await writer.InsertAsync(color, CancellationToken.None);
 
@@ -126,7 +131,7 @@ public sealed class SqliteDocumentReaderDHKTests
             .IfNone(() => throw new InvalidOperationException("Document not found"));
 
         Assert.Equal(Revision.Zero.Tick(), color.Version);
-        Assert.Equal(key, color.HashKey);
+        Assert.Equal(key, color.Name);
         Assert.Equal("Purple", color.Name);
         Assert.Equal(255, color.R);
         Assert.Equal(255, color.B);
@@ -138,8 +143,8 @@ public sealed class SqliteDocumentReaderDHKTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var key = Key.From("cancel-button");
-        var color = Color.Red(key);
+        var key = Color.Red().Name;
+        var color = Color.Red();
 
         await writer.InsertAsync(color, CancellationToken.None);
 
@@ -168,20 +173,20 @@ public sealed class SqliteDocumentReaderDHKTests
         var writer = CreateWriter();
         var reader = CreateReader();
 
-        var cancelButtonKey = Key.From("cancel-button");
-        var okayButtonKey = Key.From("ok-button");
-        var disabledButtonKey = Key.From("disabled-button");
+        var redKey = Color.Red().Name;
+        var greenKey = Color.Green().Name;
+        var grayKey = Color.Gray().Name;
 
         var colors = new[]
         {
-            Color.Red(cancelButtonKey),
-            Color.Green(okayButtonKey),
-            Color.Gray(disabledButtonKey),
+            Color.Red(),
+            Color.Green(),
+            Color.Gray(),
         };
 
         await Task.WhenAll(colors.Select(c => writer.InsertAsync(c, CancellationToken.None)));
 
-        var colorOptions = await Task.WhenAll(colors.Select(c => reader.FindAsync(c.HashKey, CancellationToken.None)));
+        var colorOptions = await Task.WhenAll(colors.Select(c => reader.FindAsync(c.Name, CancellationToken.None)));
         foreach (var op in colorOptions)
         {
             Assert.True(op.IsSome);
@@ -193,8 +198,8 @@ public sealed class SqliteDocumentReaderDHKTests
     {
         var writer = CreateWriter();
         var reader = CreateReader();
-        var key = Key.From("cancel-button");
-        var color = Color.Red(key);
+        var key = Color.Red().Name;
+        var color = Color.Red();
 
         await writer.InsertAsync(color, CancellationToken.None);
 
@@ -206,7 +211,7 @@ public sealed class SqliteDocumentReaderDHKTests
         {
             Assert.True(op.IsSome);
             color = op.IfNone(() => throw new InvalidOperationException("Document not found"));
-            Assert.Equal(key, color.HashKey);
+            Assert.Equal(key, color.Name);
             Assert.Equal("Red", color.Name);
             Assert.Equal(255, color.R);
             Assert.Equal(Revision.Zero, color.Version);

@@ -14,7 +14,7 @@ internal sealed class SqliteDocumentWriter<D, HK, RK>(
 {
     private static class Journal
     {
-        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.TypeName}_journal ({FieldNames<D>.Columns}) values ({FieldNames<D>.Values})";
+        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.Name}_journal ({FieldNames<D>.Columns}) values ({FieldNames<D>.Values})";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
@@ -23,10 +23,10 @@ internal sealed class SqliteDocumentWriter<D, HK, RK>(
 
     private static class Header
     {
-        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.TypeName}_header (hashkey, rangekey, version) values (@HashKey, @RangeKey, @Version)";
-        private static readonly string UpdateStatement = $"update {DocumentTypeCache<D>.TypeName}_header set version = @NewVersion where hashkey = @HashKey and rangekey = @RangeKey and version = @CurrentVersion";
-        private static readonly string ExistsStatement = $"select exists(select 1 from {DocumentTypeCache<D>.TypeName}_header where hashkey = @HashKey and rangekey = @RangeKey)";
-        private static readonly string RevisionStatement = $"select version from {DocumentTypeCache<D>.TypeName}_header where hashkey = @HashKey and rangekey = @RangeKey";
+        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.Name}_header (hashkey, rangekey, version) values (@HashKey, @RangeKey, @Version)";
+        private static readonly string UpdateStatement = $"update {DocumentTypeCache<D>.Name}_header set version = @NewVersion where hashkey = @HashKey and rangekey = @RangeKey and version = @CurrentVersion";
+        private static readonly string ExistsStatement = $"select exists(select 1 from {DocumentTypeCache<D>.Name}_header where hashkey = @HashKey and rangekey = @RangeKey)";
+        private static readonly string RevisionStatement = $"select version from {DocumentTypeCache<D>.Name}_header where hashkey = @HashKey and rangekey = @RangeKey";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>

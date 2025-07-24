@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using LanguageExt;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
@@ -36,16 +37,42 @@ public abstract record Document<HK, RK>(
     { }
 }
 
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class NameAttribute(string name) : Attribute
+{
+    public string Name { get; } = name;
+}
+
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class HashKeyAttribute : Attribute;
+
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class RangeKeyAttribute : Attribute;
+
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class VersionAttribute : Attribute;
+
 internal static class DocumentTypeCache<D>
-    where D : Document
 {
     [SuppressMessage("Design", "CA1000:Do not declare static members on generic types", Justification = "this is fine")]
-    public static string TypeName { get; } = typeof(D).Name;
+    public static string Name { get; } =
+        typeof(D).GetCustomAttribute<NameAttribute>(true)?.Name
+        ?? typeof(D).Name;
 
-    public static string[] PropertyNames { get; } = [.. typeof(D)
+    public static PropertyInfo[] MappedProperties { get; } = [.. typeof(D)
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)
         .Where(pi => pi.CanRead)
-        .Where(pi=> !pi.IsDefined(typeof(NotMappedAttribute), true))
-        .Where(pi => pi.GetIndexParameters().Length == 0)
-        .Select(pi => pi.Name)];
+        .Where(pi => !pi.IsDefined(typeof(NotMappedAttribute), true))
+        .Where(pi => pi.GetIndexParameters().Length == 0)];
+
+    public static string[] PropertyNames { get; } = [.. MappedProperties.Select(pi => pi.Name)];
+
+    public static PropertyInfo HashKeyProperty { get; } =
+        MappedProperties.Single(pi => pi.IsDefined(typeof(HashKeyAttribute), true));
+
+    public static Option<PropertyInfo> RangeKeyProperty { get; } =
+        MappedProperties.SingleOrDefault(pi => pi.IsDefined(typeof(RangeKeyAttribute), true));
+
+    public static Option<PropertyInfo> VersionProperty { get; } =
+        MappedProperties.SingleOrDefault(pi => pi.IsDefined(typeof(VersionAttribute), true));
 }
