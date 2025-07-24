@@ -1,5 +1,11 @@
 # kingo
-relationship-based access control (ReBAC) inspired by Google Zanzibar
+Kingo is a Google Zanzibar inspired ReBAC system.
+It is composed of two core services the Policy Authoring Point (PAP)
+and the Policy Decision Point (PDP). Users can author policy documents, which are composed of namespace sets, and manage ACLs through the PAP.
+Policies are defined with a custom policy description language (PDL: pronounced puddle).
+The PDP evaluates ACLs and rewrite rules to produce policy decisions.
+PDP decisions are recorded in the descision journal.
+
 
 ## inspiration and references
 - [Google Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
@@ -7,7 +13,7 @@ relationship-based access control (ReBAC) inspired by Google Zanzibar
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
 ## policy specs / subjectset rewrite rules
-policy definition language (PDL) for building relationships and rewrite definitions
+policy description language (PDL) for building namespaces, relationships, and rewrite expressions
 
 PDL BNF
 ```bnf
@@ -115,10 +121,26 @@ join journal b on b.hashkey = a.hashkey and b.version = a.version
 where a.hashkey = @HK
 ```
 
-sample document in C#
+so a header-journal pair might look like this after a few updates
+```text
+address_header
+--------
+hashkey                         revision 
+presidential-residence                 4
+
+address_journal
+--------
+hashkey                         revision    years           street                  city            state
+presidential-residence                 1    1789            3 Cherry St             New York City   NY  
+presidential-residence                 2    1790            39–41 Broadway          New York City   NY  
+presidential-residence                 3    1790–1800       190 High St             Philadelphia    PA  
+presidential-residence                 4    1800–Present    1600 Pennsylvania Ave,  Washington      DC  
+```
+
+sample document in C# (future, attribute tagged hashkey and rangekey)
 ```csharp
-public sealed AddressDocument(string Street, string City, string State, string Zip, Revision Version)
-    : Document<string, string>(Street, City, Version);
+public sealed AddressDocument(Key HashKey, Key RangeKey, Revision Version, string Street, string City, string State, string Zip)
+    : Document<string, string>(HashKey, RangeKey, Version);
 ```
  
 ### future
@@ -172,6 +194,12 @@ FUT - work planned
 - 16 JUL 2025 - abandoned the refactor to distributed sequence with block leases for performance - it was not required
 - 16 JUL 2025 - implemented durable storage using SQLite to emulate DynamoDB structure. now support hashkey-value and hashkey:rangekey-value storage. every record is split into two parts. header (composite key + revision) and a journal (composite key + revision + data). header key never changes. header revision is overwritten. journal is append only. journal is a history of changes. header maps to most recent data via the key + version.
 - 17 JUL 2025 - woke up understanding distributed sequence and recovered the deleted classes and tests. all tests pass. structure will work with dynamodb.
+- 18 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
+- 19 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
+- 20 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
+- 21 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
+- 22 JUL 2025 - rewriting storage unit tests
+- 23 JUL 2025 - rewriting storage unit tests
 - WIP - dictionary encoding refactor 
 
 ## performance ideas
