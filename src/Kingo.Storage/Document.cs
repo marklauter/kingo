@@ -5,38 +5,6 @@ using System.Reflection;
 
 namespace Kingo.Storage;
 
-public abstract record Document(
-    Revision Version)
-{
-    public Document()
-        : this(Revision.Zero)
-    { }
-};
-
-public abstract record Document<HK>(
-    HK HashKey,
-    Revision Version)
-    : Document(Version)
-    where HK : IEquatable<HK>, IComparable<HK>
-{
-    public Document(HK hashKey)
-        : this(hashKey, Revision.Zero)
-    { }
-}
-
-public abstract record Document<HK, RK>(
-    HK HashKey,
-    RK RangeKey,
-    Revision Version)
-    : Document<HK>(HashKey, Version)
-    where HK : IEquatable<HK>, IComparable<HK>
-    where RK : IEquatable<RK>, IComparable<RK>
-{
-    public Document(HK hashKey, RK rangeKey)
-        : this(hashKey, rangeKey, Revision.Zero)
-    { }
-}
-
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class NameAttribute(string name) : Attribute
 {
@@ -75,4 +43,15 @@ internal static class DocumentTypeCache<D>
 
     public static Option<PropertyInfo> VersionProperty { get; } =
         MappedProperties.SingleOrDefault(pi => pi.IsDefined(typeof(VersionAttribute), true));
+
+    static DocumentTypeCache() =>
+        _ = VersionProperty.Match(
+            Some: pi =>
+                pi.PropertyType
+                    .GetInterfaces()
+                    .FirstOrDefault(i => i.Name.StartsWith("INumber", StringComparison.OrdinalIgnoreCase))
+                    is null
+                        ? throw new InvalidOperationException("version must be a number")
+                        : Prelude.unit,
+            None: () => Prelude.unit);
 }
