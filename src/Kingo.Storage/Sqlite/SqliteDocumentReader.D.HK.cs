@@ -7,8 +7,7 @@ using System.Text;
 
 namespace Kingo.Storage.Sqlite;
 
-internal sealed class SqliteDocumentReader<D>(
-    IDbContext context)
+internal sealed class SqliteDocumentReader<D>(IDbContext context)
 {
     private readonly record struct HkParam<HK>(HK HashKey);
     private static readonly string FindStatement;
@@ -17,7 +16,8 @@ internal sealed class SqliteDocumentReader<D>(
     {
         var tablePrefix = DocumentTypeCache<D>.Name;
         var hashKey = DocumentTypeCache<D>.HashKeyProperty.Name;
-        var builder = new StringBuilder($"select b.* from {tablePrefix}_header a")
+        var builder = new StringBuilder()
+            .AppendLine(CultureInfo.InvariantCulture, $"select b.* from {tablePrefix}_header a")
             .AppendLine(CultureInfo.InvariantCulture, $"join {tablePrefix}_journal b")
             .AppendLine(CultureInfo.InvariantCulture, $"on b.{hashKey} = a.{hashKey}");
         FindStatement = DocumentTypeCache<D>.VersionProperty
