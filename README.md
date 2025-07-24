@@ -6,11 +6,45 @@ Policies are defined with a custom policy description language (PDL: pronounced 
 The PDP evaluates ACLs and rewrite rules to produce policy decisions.
 PDP decisions are recorded in the descision journal.
 
-
 ## inspiration and references
 - [Google Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
+
+## roadmap (AI draft)
+- **Core Architecture**
+  - [ ] Complete dictionary encoding refactor for namespaces, relations, and subjects
+  - [x] Finalize MVCC key-value store implementation using SQLite (header/journal split)
+  - [ ] Ensure durable audit history and efficient tuple lookup
+- **Policy Engine**
+  - [X] Finalize Policy Definition Language (PDL) parser and AST
+  - [X] Implement full support for subjectset rewrite rules (union, intersection, exclusion)
+  - [ ] Document PDL syntax and provide more usage examples
+- **Access Control Subsystem**
+  - [ ] Refactor and test ACL tuple binary packing for performance
+  - [ ] Refactor ACL tuple storage and retrieval logic
+  - [ ] Refactor recursive subjectset rewrite evaluation (is-member traversal)
+  - [ ] Add integration tests for access control logic
+- **Storage System**
+  - [ ] Refactor and optimize document storage to work seamlessly with Dapper and SQLite
+  - [X] Add support for range keys and composite keys in document storage
+  - [ ] Document storage API and usage patterns
+- **Performance & Scalability**
+  - [ ] Benchmark tuple lookup and storage operations
+  - [ ] Optimize dictionary encoding and bit-packing strategies
+  - [ ] Plan for future event-based store and periodic snapshotting
+- **Documentation & Examples**
+  - [ ] Expand README with quick start, API usage, and architecture overview
+  - [ ] Add contribution guidelines and coding standards
+  - [ ] Document known limitations and future plans
+- **Testing & Quality**
+  - [X] Rewrite and expand storage unit tests
+  - [ ] Add policy engine and access control tests
+  - [ ] Set up CI for automated testing
+- **Future Enhancements**
+  - [ ] Implement event-based store (ledger model) for entity state
+  - [X] Add support for distributed sequence generation
+  - [ ] Explore integration with external identity providers or policy sources
 
 ## policy specs / subjectset rewrite rules
 policy description language (PDL) for building namespaces, relationships, and rewrite expressions
