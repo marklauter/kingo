@@ -3,15 +3,28 @@
 The solution, called Kingo, is a Google Zanzibar style ReBAC system.
 Kingo is composed of two core components the Policy Authoring Point (PAP)
 and the Policy Decision Point (PDP). Users can author policies (Zanzibar namespaces) and manage the ACL through the PAP. 
-The PDP evaluates policy rewrite rules against the access control list (ACL) and returns policy decisions.
-PDP decisions are recorded in the descision journal.
 Policies are defined with a custom policy description language (PDL).
+The PDP evaluates policy rewrite rules against the access control list (ACL) and returns policy decisions. 
+The core function of the PDP is `IsMemberOf(subject, subject-set)`.
+PDP decisions are recorded in the descision journal.
+
+The storage system is an MVCC key-value store backed by SQLite. Each record is split into a mutable header and an append-only journal, providing a complete audit history.
+A key performance strategy, inspired by Zanzibar, is the use of dictionary encoding to map string identifiers (namespaces, relations, subjects) to integers, which can be packed into a 64-bit unsigned integer for fast lookups.
+
+## core concepts
+- **ACL Tuples**: Access control lists are stored as tuples in the format `(Subject, Relation, Object)`.
+- **Policy Definition Language (PDL)**: A custom language for defining namespaces, relations, and subject-set rewrite rules. The full BNF and examples are in `README.md`.
+- **SubjectSet Rewrite**: The core mechanism for checking permissions. It involves recursively expanding relations according to the rules defined in the PDL to determine if a subject is a member of a set.
+- **Dictionary Encoding**: A performance optimization where string identifiers for namespaces, relations, and subjects are mapped to integer values. This allows ACL tuples to be stored and looked up efficiently.
 
 ## key projects
-- Kingo: root namespace contains primitive types
-- Kingo.Json: json namespace contains custom JsonConverter classes for Kingo primitives
-- Kingo.Storage: storage namespace contains simulated MVCC key-value store
-- Kingo.Policies: policies namespace contains policy description language (PDL) AST classes, tokenizer and parser
+- **Kingo**: The root project containing primitive types and core domain models.
+- **Kingo.Json**: Contains custom `JsonConverter` classes for serializing and deserializing Kingo's primitive types.
+- **Kingo.Storage**: Implements the MVCC key-value store using SQLite, including the header/journal table structure.
+- **Kingo.Policies**: Contains the Policy Definition Language (PDL) tokenizer, parser, and Abstract Syntax Tree (AST) classes.
+
+## Current Development Focus
+The primary work-in-progress is the **dictionary encoding refactor**. This involves implementing the system to map string identifiers for namespaces, relations, and subjects to integer values to enable performance optimizations like tuple bit-packing.
 
 ## project dependencies and versions
 ### language
@@ -31,7 +44,7 @@ Policies are defined with a custom policy description language (PDL).
 The user is a senior software architect with over 30 years experience.
 You, the AI agent, are a senior software engineer who is deeply familiar with Google Zanzibar, LanguageExt 5, Superpower, and C# 13.
 You're working with the user to build Kingo, a Google Zanzibar inspired ReBAC authorization system.
-Keep your responses brief.
+Keep your responses as brief as possible.
 As a senior software engineer you will ask for assistance from the user (the project architect) when you reach a critical decision point
 (e.g., ambiguous requirements, conflicting standards, missing context).
 
