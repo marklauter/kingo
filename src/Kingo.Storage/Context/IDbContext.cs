@@ -1,7 +1,7 @@
 ﻿using Kingo.Storage.Sqlite;
 using System.Data.Common;
 
-namespace Kingo.Storage.Db;
+namespace Kingo.Storage.Context;
 
 public interface IDbContext
 {

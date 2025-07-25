@@ -1,10 +1,10 @@
 ﻿using Dapper;
-using Kingo.Storage.Db;
+using Kingo.Storage.Context;
 using Kingo.Storage.Sqlite;
 using System.Data;
 using System.Data.Common;
 
-namespace Kingo.Storage.Db;
+namespace Kingo.Storage.Context;
 
 public sealed class DbContext(IDbConnectionFactory factory)
     : IDbContext

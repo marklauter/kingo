@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace Kingo.Storage.Db;
+namespace Kingo.Storage.Context;
 
 public interface IDbConnectionFactory
 {

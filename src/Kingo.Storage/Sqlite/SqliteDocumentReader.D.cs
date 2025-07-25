@@ -1,14 +1,11 @@
 ﻿using Dapper;
-using Kingo.Storage.Db;
-using Kingo.Storage.Keys;
+using Kingo.Storage.Context;
 using LanguageExt;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Kingo.Storage.Sqlite;
-
-public record Query<D, HK>(HK HashKey, Option<RangeKeyCondition> RangeKeyCondition, Option<Func<D, bool>> Filter);
 
 internal sealed class SqliteDocumentReader<D>(IDbContext context)
 {

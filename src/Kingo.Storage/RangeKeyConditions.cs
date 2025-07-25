@@ -1,4 +1,4 @@
-﻿namespace Kingo.Storage.Keys;
+﻿namespace Kingo.Storage;
 
 public abstract record RangeKeyCondition
 {

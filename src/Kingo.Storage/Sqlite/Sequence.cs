@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Kingo.Storage.Context;
 using Kingo.Storage.Db;
 using Kingo.Storage.Keys;
 using System.Data.Common;
