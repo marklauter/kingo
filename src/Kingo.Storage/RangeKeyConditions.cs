@@ -2,40 +2,33 @@
 
 public abstract record RangeKeyCondition
 {
-    public static RangeKeyCondition IsEqualTo<RK>(RK key) where RK : IEquatable<RK>, IComparable<RK> => new EqualsCondition<RK>(key);
-    public static RangeKeyCondition IsGreaterThan<RK>(RK key) where RK : IEquatable<RK>, IComparable<RK> => new GreaterThanCondition<RK>(key);
-    public static RangeKeyCondition IsGreaterThanOrEqualTo<RK>(RK key) where RK : IEquatable<RK>, IComparable<RK> => new GreaterThanOrEqualCondition<RK>(key);
-    public static RangeKeyCondition IsLessThan<RK>(RK key) where RK : IEquatable<RK>, IComparable<RK> => new LessThanCondition<RK>(key);
-    public static RangeKeyCondition IsLessThanOrEqualTo<RK>(RK key) where RK : IEquatable<RK>, IComparable<RK> => new LessThanOrEqualCondition<RK>(key);
-    public static RangeKeyCondition IsBetweenExclusive<RK>(RK lowerBound, RK upperBound) where RK : IEquatable<RK>, IComparable<RK> => new BetweenExlusiveCondition<RK>(lowerBound, upperBound);
-    public static RangeKeyCondition IsBetweenInclusive<RK>(RK lowerBound, RK upperBound) where RK : IEquatable<RK>, IComparable<RK> => new BetweenInclusiveCondition<RK>(lowerBound, upperBound);
+    public static RangeKeyCondition IsEqualTo(object key) => new EqualsCondition(key);
+    public static RangeKeyCondition IsGreaterThan(object key) => new GreaterThanCondition(key);
+    public static RangeKeyCondition IsGreaterThanOrEqualTo(object key) => new GreaterThanOrEqualCondition(key);
+    public static RangeKeyCondition IsLessThan(object key) => new LessThanCondition(key);
+    public static RangeKeyCondition IsLessThanOrEqualTo(object key) => new LessThanOrEqualCondition(key);
+    public static RangeKeyCondition IsBetweenExclusive(object lowerBound, object upperBound) => new BetweenExlusiveCondition(lowerBound, upperBound);
+    public static RangeKeyCondition IsBetweenInclusive(object lowerBound, object upperBound) => new BetweenInclusiveCondition(lowerBound, upperBound);
 }
 
-public sealed record EqualsCondition<RK>(RK Key)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record EqualsCondition(object Key)
+    : RangeKeyCondition;
 
-public sealed record GreaterThanCondition<RK>(RK Key)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record GreaterThanCondition(object Key)
+    : RangeKeyCondition;
 
-public sealed record GreaterThanOrEqualCondition<RK>(RK Key)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record GreaterThanOrEqualCondition(object Key)
+    : RangeKeyCondition;
 
-public sealed record LessThanCondition<RK>(RK Key)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record LessThanCondition(object Key)
+    : RangeKeyCondition;
 
-public sealed record LessThanOrEqualCondition<RK>(RK Key)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record LessThanOrEqualCondition(object Key)
+    : RangeKeyCondition;
 
-public sealed record BetweenExlusiveCondition<RK>(RK LowerBound, RK UpperBound)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record BetweenExlusiveCondition(object LowerBound, object UpperBound)
+    : RangeKeyCondition;
 
-public sealed record BetweenInclusiveCondition<RK>(RK LowerBound, RK UpperBound)
-    : RangeKeyCondition
-    where RK : IEquatable<RK>, IComparable<RK>;
+public sealed record BetweenInclusiveCondition(object LowerBound, object UpperBound)
+    : RangeKeyCondition;
 
