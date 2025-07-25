@@ -2,19 +2,12 @@
 
 namespace Kingo.Storage;
 
-public interface IDocumentReader<D, HK>
-    where D : Document<HK>
-    where HK : IEquatable<HK>, IComparable<HK>
+public interface IDocumentReader<D>
 {
-    Eff<Option<D>> Find(HK hashKey);
+    Eff<Option<D>> Find<HK>(HK hashKey, Option<object> rangeKey)
+        where HK : IEquatable<HK>, IComparable<HK>;
+
+    Eff<Seq<D>> Query<HK>(Query<D, HK> query)
+        where HK : IEquatable<HK>, IComparable<HK>;
 }
 
-public interface IDocumentReader<D, HK, RK>
-    where D : Document<HK, RK>
-    where HK : IEquatable<HK>, IComparable<HK>
-    where RK : IEquatable<RK>, IComparable<RK>
-{
-    Eff<Iterable<D>> Find(HK hashKey, RangeKeyCondition range);
-    Eff<Option<D>> Find(HK hashKey, RK rangeKey);
-    Eff<Iterable<D>> Where(HK hashKey, Func<D, bool> predicate);
-}
