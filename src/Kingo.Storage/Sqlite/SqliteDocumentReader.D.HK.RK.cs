@@ -32,7 +32,7 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "prefer Empty here")]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<Iterable<D>> FindAsync(HK hashKey, RangeKey range, CancellationToken token) =>
+    public async Task<Iterable<D>> FindAsync(HK hashKey, RangeKeyCondition range, CancellationToken token) =>
         Prelude.Iterable(Filter(await FindAsync(hashKey, token), range));
 
     private readonly record struct HkParam(HK HashKey);
@@ -45,11 +45,11 @@ internal sealed class SqliteDocumentReader<D, HK, RK>(
             token);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static IEnumerable<D> Filter(IEnumerable<D> documents, RangeKey range) =>
+    private static IEnumerable<D> Filter(IEnumerable<D> documents, RangeKeyCondition range) =>
         range switch
         {
             LowerBound<RK> lower => documents.Where(d => LowerBound(d, lower.Key)),
-            UpperBound<RK> upper => documents.Where(d => UpperBound(d, upper.Key)),
+            Conditions<RK> upper => documents.Where(d => UpperBound(d, upper.Key)),
             Between<RK> span => documents.Where(d => Between(d, span)),
             Unbound u => documents,
             _ => throw new NotSupportedException("unknown range type")

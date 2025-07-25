@@ -40,7 +40,7 @@ public static class SqliteDocumentReader
     {
         private readonly SqliteDocumentReader<D, HK, RK> reader = new(context);
 
-        public Eff<Iterable<D>> Find(HK hashKey, RangeKey range) =>
+        public Eff<Iterable<D>> Find(HK hashKey, RangeKeyCondition range) =>
             Lift(token => reader.FindAsync(hashKey, range, token));
 
         public Eff<Option<D>> Find(HK hashKey, RK rangeKey) =>

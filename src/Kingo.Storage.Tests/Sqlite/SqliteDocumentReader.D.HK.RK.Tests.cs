@@ -239,7 +239,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
         await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
 
-        var result = await reader.FindAsync(hashKey, RangeKey.Unbound, CancellationToken.None);
+        var result = await reader.FindAsync(hashKey, RangeKeyCondition.Unbound, CancellationToken.None);
 
         var docs = result.ToArray();
         Assert.Equal(3, docs.Length);
@@ -260,7 +260,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
         await writer.InsertAsync(Color.White(hashKey, "d"), CancellationToken.None);
 
-        var result = await reader.FindAsync(hashKey, RangeKey.Lower(Key.From("c")), CancellationToken.None);
+        var result = await reader.FindAsync(hashKey, RangeKeyCondition.Lower(Key.From("c")), CancellationToken.None);
 
         var docs = result.ToArray();
         Assert.Equal(2, docs.Length);
@@ -280,7 +280,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         await writer.InsertAsync(Color.Blue(hashKey, "c"), CancellationToken.None);
         await writer.InsertAsync(Color.White(hashKey, "d"), CancellationToken.None);
 
-        var result = await reader.FindAsync(hashKey, RangeKey.Upper(Key.From("b")), CancellationToken.None);
+        var result = await reader.FindAsync(hashKey, RangeKeyCondition.Upper(Key.From("b")), CancellationToken.None);
 
         var docs = result.ToArray();
         Assert.Equal(2, docs.Length);
@@ -301,7 +301,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         await writer.InsertAsync(Color.White(hashKey, "d"), CancellationToken.None);
         await writer.InsertAsync(Color.Black(hashKey, "e"), CancellationToken.None);
 
-        var result = await reader.FindAsync(hashKey, RangeKey.Between(Key.From("b"), Key.From("d")), CancellationToken.None);
+        var result = await reader.FindAsync(hashKey, RangeKeyCondition.Between(Key.From("b"), Key.From("d")), CancellationToken.None);
 
         var docs = result.ToArray();
         Assert.Equal(3, docs.Length);
@@ -320,7 +320,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
         await writer.InsertAsync(Color.Red(hashKey, "a"), CancellationToken.None);
         await writer.InsertAsync(Color.Green(hashKey, "b"), CancellationToken.None);
 
-        var result = await reader.FindAsync(hashKey, RangeKey.Lower(Key.From("z")), CancellationToken.None);
+        var result = await reader.FindAsync(hashKey, RangeKeyCondition.Lower(Key.From("z")), CancellationToken.None);
 
         Assert.Empty(result);
     }
@@ -329,7 +329,7 @@ public sealed class SqliteDocumentReaderDHKRKTests
     public async Task FindAsync_WithRangeKeyFilter_WhenHashKeyDoesNotExist_ReturnsEmpty()
     {
         var reader = CreateReader();
-        var result = await reader.FindAsync(Key.From("nonexistent"), RangeKey.Unbound, CancellationToken.None);
+        var result = await reader.FindAsync(Key.From("nonexistent"), RangeKeyCondition.Unbound, CancellationToken.None);
         Assert.Empty(result);
     }
 

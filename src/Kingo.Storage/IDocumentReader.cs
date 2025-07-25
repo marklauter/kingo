@@ -15,7 +15,7 @@ public interface IDocumentReader<D, HK, RK>
     where HK : IEquatable<HK>, IComparable<HK>
     where RK : IEquatable<RK>, IComparable<RK>
 {
-    Eff<Iterable<D>> Find(HK hashKey, RangeKey range);
+    Eff<Iterable<D>> Find(HK hashKey, RangeKeyCondition range);
     Eff<Option<D>> Find(HK hashKey, RK rangeKey);
     Eff<Iterable<D>> Where(HK hashKey, Func<D, bool> predicate);
 }
