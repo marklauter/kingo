@@ -234,6 +234,9 @@ FUT - work planned
 - 21 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
 - 22 JUL 2025 - rewriting storage unit tests
 - 23 JUL 2025 - rewriting storage unit tests
+- 24 JUL 2025 - power outage due to storms
+- 25 JUL 2025 - refactored the sqlite document readers into a single reader. replaced generic document classes with property and class attributes. added key-value store style query class.
+- WIP - refactoring sqlite document writers to use the updated document structure 
 - WIP - dictionary encoding refactor 
 
 ## performance ideas
