@@ -1,10 +1,10 @@
 # kingo
-Kingo is a Google Zanzibar inspired ReBAC system.
-It is composed of two core services the Policy Authoring Point (PAP)
+Kingo is a Google Zanzibar-inspired ReBAC system.
+It is composed of two core services: the Policy Authoring Point (PAP)
 and the Policy Decision Point (PDP). Users can author policy documents, which are composed of namespace sets, and manage ACLs through the PAP.
 Policies are defined with a custom policy description language (PDL: pronounced puddle).
 The PDP evaluates ACLs and rewrite rules to produce policy decisions.
-PDP decisions are recorded in the descision journal.
+PDP decisions are recorded in the decision journal.
 
 ## inspiration and references
 - [Google Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-authorization-system/)
@@ -121,7 +121,7 @@ relation banned
 ## access control subsystem
 `is-member(subject, subject-set) => rewrite-expression-tree.traverse() => true | false`
 - todo: describe ACL tuples 
-- todo: describe ACL tuple binary packing (for now see `performance ideas`)
+- todo: describe ACL tuple binary packing (for now, see `performance ideas`)
 - todo: describe ACL tuple storage and retrieval
 - todo: describe ACL subjectset rewrite recursion 
 
@@ -129,7 +129,7 @@ relation banned
 ### deprecated
 in-memory key-value store with partition key and range key, similar to AWS DocumentDB
 ### current
-simulated key-value store backed by sqlite
+simulated key-value store backed by SQLite
 
 each document record is split between two tables. the first table is the header which is composed of a hashkey, optional rangekey, and version. 
 the second table is the journal which is composed of a hashkey, optional rangekey, version, and other data columns.
@@ -223,20 +223,20 @@ FUT - work planned
 - 16 JUL 2025 - deprecated transaction manager
 - 16 JUL 2025 - testing showed problems in sequence
 - 16 JUL 2025 - minor refactor of PDL
-- 16 JUL 2025 - gave up on distributed sequence for now. final attempt was to use twitter snowflake idea, but the value takes 64 bits. for now i'll use sqlite auto-inc PK. this rabbit hole set me back more than a day.
+- 16 JUL 2025 - gave up on distributed sequence for now. final attempt was to use twitter snowflake idea, but the value takes 64 bits. for now, i'll use SQLite auto-inc PK. this rabbit hole set me back more than a day.
 - 16 JUL 2025 - sql document reader is now async. the tx manager is gone (or moved and hidden). the db context is mature. all the sql reader/writer classes now use db context.
 - 16 JUL 2025 - abandoned the refactor to distributed sequence with block leases for performance - it was not required
 - 16 JUL 2025 - implemented durable storage using SQLite to emulate DynamoDB structure. now support hashkey-value and hashkey:rangekey-value storage. every record is split into two parts. header (composite key + revision) and a journal (composite key + revision + data). header key never changes. header revision is overwritten. journal is append only. journal is a history of changes. header maps to most recent data via the key + version.
-- 17 JUL 2025 - woke up understanding distributed sequence and recovered the deleted classes and tests. all tests pass. structure will work with dynamodb.
-- 18 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
-- 19 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
-- 20 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
-- 21 JUL 2025 - refactoring documents and storage to work with Sqlite and Dapper
+- 17 JUL 2025 - woke up understanding distributed sequence and recovered the deleted classes and tests. all tests pass. structure will work with DynamoDB.
+- 18 JUL 2025 - refactoring documents and storage to work with SQLite and Dapper
+- 19 JUL 2025 - refactoring documents and storage to work with SQLite and Dapper
+- 20 JUL 2025 - refactoring documents and storage to work with SQLite and Dapper
+- 21 JUL 2025 - refactoring documents and storage to work with SQLite and Dapper
 - 22 JUL 2025 - rewriting storage unit tests
 - 23 JUL 2025 - rewriting storage unit tests
 - 24 JUL 2025 - power outage due to storms
-- 25 JUL 2025 - refactored the sqlite document readers into a single reader. replaced generic document classes with property and class attributes. added key-value store style query class.
-- WIP - refactoring sqlite document writers to use the updated document structure 
+- 25 JUL 2025 - refactored the SQLite document readers into a single reader. replaced generic document classes with property and class attributes. added key-value store style query class.
+- WIP - refactoring SQLite document writers to use the updated document structure 
 - WIP - dictionary encoding refactor 
 
 ## performance ideas
