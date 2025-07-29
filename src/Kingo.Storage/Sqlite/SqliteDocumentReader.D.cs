@@ -26,6 +26,7 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
                 new Query<D, HK>(hashKey, rangeKey.Map(RangeKeyCondition.IsEqualTo)),
                 token)).Head;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Seq<D>> QueryAsync<HK>(
         Query<D, HK> query,
         CancellationToken token)
@@ -62,9 +63,25 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
                 ["HashKey"] = query.HashKey
             });
 
+    private static (string Sql, Dictionary<string, object> Parameters) AppendRangeKeyClause<HK>(
+        StringBuilder builder,
+        Query<D, HK> query,
+        Dictionary<string, object> parameters)
+        where HK : IEquatable<HK>, IComparable<HK> =>
+        (query.RangeKeyCondition
+            .Match(
+                Some: condition =>
+                {
+                    var pi = RangeKeyProperty.IfNone(() => throw new InvalidOperationException("document does not define a range key"));
+                    return builder.AppendLine(BuildRangeKeyClause(pi.Name, condition, parameters));
+                },
+                None: builder)
+            .ToString(),
+            parameters);
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static StringBuilder AppendSelectClause(StringBuilder builder) =>
-        builder.AppendLine(CultureInfo.InvariantCulture, $"select b.* from {TablePrefix}_header a");
+    private static StringBuilder AppendWhereClause(StringBuilder builder) =>
+        builder.AppendLine(CultureInfo.InvariantCulture, $"where a.{HashKeyName} = @HashKey");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static StringBuilder AppendJoinClause(StringBuilder builder)
@@ -77,25 +94,10 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static StringBuilder AppendWhereClause(StringBuilder builder) =>
-        builder.AppendLine(CultureInfo.InvariantCulture, $"where a.{HashKeyName} = @HashKey");
+    private static StringBuilder AppendSelectClause(StringBuilder builder) =>
+        builder.AppendLine(CultureInfo.InvariantCulture, $"select b.* from {TablePrefix}_header a");
 
-    private static (string Sql, Dictionary<string, object> Parameters) AppendRangeKeyClause<HK>(
-        StringBuilder builder,
-        Query<D, HK> query,
-        Dictionary<string, object> parameters)
-    where HK : IEquatable<HK>, IComparable<HK> =>
-        (query.RangeKeyCondition
-            .Match(
-                Some: condition =>
-                {
-                    var pi = RangeKeyProperty.IfNone(() => throw new InvalidOperationException("document does not define a range key"));
-                    return builder.AppendLine(BuildRangeKeyClause(pi.Name, condition, parameters));
-                },
-                None: builder)
-            .ToString(),
-            parameters);
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string BuildRangeKeyClause(
         string name,
         RangeKeyCondition condition,
