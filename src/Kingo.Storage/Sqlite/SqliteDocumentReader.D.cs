@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using Kingo.Storage.Context;
 using LanguageExt;
-using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -40,7 +39,7 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
         where HK : IEquatable<HK>, IComparable<HK> =>
         Prelude.Seq(FilterDocuments(
             query,
-            await ReadDocumentsAsync(BuildQuery(query), token)));
+            await ReadDocumentsAsync(SqlContext<D>.Build(query), token)));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Task<IEnumerable<D>> ReadDocumentsAsync(
@@ -51,13 +50,74 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
             token);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static IEnumerable<D> FilterDocuments<HK>(Query<D, HK> query, IEnumerable<D> documents)
+    private static IEnumerable<D> FilterDocuments<HK>(
+        Query<D, HK> query,
+        IEnumerable<D> documents)
         where HK : IEquatable<HK>, IComparable<HK> =>
         query.Filter.Match(
             Some: documents.Where,
             None: () => documents);
+}
 
-    private static (string Sql, Dictionary<string, object> Parameters) BuildQuery<HK>(Query<D, HK> query)
+static file class SqlContext<D>
+{
+    private static readonly string TablePrefix = DocumentTypeCache<D>.Name;
+    private static readonly string HashKeyName = DocumentTypeCache<D>.HashKeyProperty.Name;
+    private static readonly Option<PropertyInfo> RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
+    private static readonly bool HasVersion = DocumentTypeCache<D>.VersionProperty.IsSome;
+    private static readonly string SelectClause;
+    private static readonly string WhereClause;
+    private static readonly string JoinClause;
+    private static readonly string BetweenClause;
+    private static readonly string GTLTClause;
+    private static readonly string OperatorClausePrefix;
+    private static readonly string OperatorClauseSuffix;
+
+    static SqlContext()
+    {
+        SelectClause = HasVersion
+        ? $"select b.* from {TablePrefix}_header a"
+        : $"select * from {TablePrefix}";
+
+        WhereClause = HasVersion
+        ? $"where a.{HashKeyName} = @HashKey"
+        : $"where {HashKeyName} = @HashKey";
+
+        var versionName = DocumentTypeCache<D>.VersionProperty
+            .Match(
+                Some: pi => pi.Name,
+                None: () => string.Empty);
+
+        JoinClause = HasVersion
+        ? $"join {TablePrefix}_journal b on b.{HashKeyName} = a.{HashKeyName} and b.{versionName} = a.{versionName}"
+        : string.Empty;
+
+        var rangeKeyName = DocumentTypeCache<D>.RangeKeyProperty
+            .Match(
+                Some: pi => pi.Name,
+                None: () => string.Empty);
+
+        BetweenClause = rangeKeyName != string.Empty
+            ? HasVersion
+                ? $"and a.{rangeKeyName} between @RangeKeyStart and @RangeKeyEnd"
+                : $"and {rangeKeyName} between @RangeKeyStart and @RangeKeyEnd"
+            : string.Empty;
+        GTLTClause = rangeKeyName != string.Empty
+            ? HasVersion
+                ? $"and @RangeKeyStart < a.{rangeKeyName} and a.{rangeKeyName} < @RangeKeyEnd"
+                : $"and @RangeKeyStart < {rangeKeyName} and {rangeKeyName} < @RangeKeyEnd"
+            : string.Empty;
+        OperatorClausePrefix = rangeKeyName != string.Empty
+            ? HasVersion
+                ? $"and a.{rangeKeyName}"
+                : $"and {rangeKeyName}"
+            : string.Empty;
+        OperatorClauseSuffix = rangeKeyName != string.Empty
+            ? "@RangeKey"
+            : string.Empty;
+    }
+
+    public static (string Sql, Dictionary<string, object> Parameters) Build<HK>(Query<D, HK> query)
         where HK : IEquatable<HK>, IComparable<HK> =>
         AppendRangeKeyClause(
             AppendWhereClause(
@@ -80,7 +140,7 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
                 Some: condition =>
                 {
                     var pi = RangeKeyProperty.IfNone(() => throw new InvalidOperationException("document does not define a range key"));
-                    return builder.AppendLine(BuildRangeKeyClause(pi.Name, condition, parameters));
+                    return builder.AppendLine(BuildRangeKeyClause(condition, parameters));
                 },
                 None: builder)
             .ToString(),
@@ -88,36 +148,26 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static StringBuilder AppendWhereClause(StringBuilder builder) =>
-        builder.AppendLine(CultureInfo.InvariantCulture, $"where a.{HashKeyName} = @HashKey");
+        builder.AppendLine(WhereClause);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static StringBuilder AppendJoinClause(StringBuilder builder)
-    {
-        _ = builder.AppendLine(CultureInfo.InvariantCulture, $"join {TablePrefix}_journal b on b.{HashKeyName} = a.{HashKeyName}");
-        return VersionProperty.Match(
-            Some: pi =>
-                builder.AppendLine(CultureInfo.InvariantCulture, $"and b.{pi.Name} = a.{pi.Name}"),
-            None: () => builder);
-    }
+    private static StringBuilder AppendJoinClause(StringBuilder builder) =>
+        HasVersion
+        ? builder.AppendLine(JoinClause)
+        : builder;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static StringBuilder AppendSelectClause(StringBuilder builder) =>
-        builder.AppendLine(CultureInfo.InvariantCulture, $"select b.* from {TablePrefix}_header a");
+        builder.AppendLine(SelectClause);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string BuildRangeKeyClause(
-        string name,
         RangeKeyCondition condition,
         Dictionary<string, object> parameters)
     {
-        var (op, values) = ToOpNValues(condition);
-        AppendParameters(parameters, values);
-        return op switch
-        {
-            "BET" => $"and a.{name} between @RangeKeyStart and @RangeKeyEnd",
-            "GTLT" => $"and @RangeKeyStart < a.{name} and a.{name} < @RangeKeyEnd",
-            _ => $"and a.{name} {op} @RangeKey"
-        };
+        var (clause, args) = ToOperatorClauseAndArgs(condition);
+        AppendParameters(parameters, args);
+        return clause;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -137,17 +187,21 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static (string op, object[] values) ToOpNValues(
+    private static (string clause, object[] args) ToOperatorClauseAndArgs(
         RangeKeyCondition condition) =>
         condition switch
         {
-            EqualsCondition c => ("=", [c.Key]),
-            GreaterThanCondition c => (">", [c.Key]),
-            GreaterThanOrEqualCondition c => (">=", [c.Key]),
-            LessThanCondition c => ("<", [c.Key]),
-            LessThanOrEqualCondition c => ("<=", [c.Key]),
-            BetweenInclusiveCondition c => ("BET", [c.LowerBound, c.UpperBound]),
-            BetweenExlusiveCondition c => ("GTLT", [c.LowerBound, c.UpperBound]),
+            EqualsCondition c => (OperatorClause("="), [c.Key]),
+            GreaterThanCondition c => (OperatorClause(">"), [c.Key]),
+            GreaterThanOrEqualCondition c => (OperatorClause(">="), [c.Key]),
+            LessThanCondition c => (OperatorClause("<"), [c.Key]),
+            LessThanOrEqualCondition c => (OperatorClause("<="), [c.Key]),
+            BetweenInclusiveCondition c => (BetweenClause, [c.LowerBound, c.UpperBound]),
+            BetweenExlusiveCondition c => (GTLTClause, [c.LowerBound, c.UpperBound]),
             _ => throw new NotSupportedException("Unsupported range key condition.")
         };
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string OperatorClause(string op) =>
+        $"{OperatorClausePrefix} {op} {OperatorClauseSuffix}";
 }
