@@ -17,14 +17,21 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
 
     public async Task<Option<D>> FindAsync<HK>(
         HK hashKey,
-        Option<object> rangeKey,
         CancellationToken token)
         where HK : IEquatable<HK>, IComparable<HK> =>
-        RangeKeyProperty.IsSome && rangeKey.IsNone
-            ? throw new InvalidOperationException($"Document {typeof(D).Name} defines a range key, but no range key predicate was provided.")
-            : (await QueryAsync(
-                new Query<D, HK>(hashKey, rangeKey.Map(RangeKeyCondition.IsEqualTo)),
-                token)).Head;
+        (await QueryAsync(
+            new Query<D, HK>(hashKey, Prelude.None),
+            token)).Head;
+
+    public async Task<Option<D>> FindAsync<HK, RK>(
+        HK hashKey,
+        RK rangeKey,
+        CancellationToken token)
+        where HK : IEquatable<HK>, IComparable<HK>
+        where RK : IEquatable<RK>, IComparable<RK> =>
+        (await QueryAsync(
+            new Query<D, HK>(hashKey, RangeKeyCondition.IsEqualTo(rangeKey)),
+            token)).Head;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<Seq<D>> QueryAsync<HK>(
