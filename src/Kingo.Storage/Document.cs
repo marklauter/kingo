@@ -1,6 +1,7 @@
 ﻿using LanguageExt;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Reflection;
 
 namespace Kingo.Storage;
@@ -47,11 +48,8 @@ internal static class DocumentTypeCache<D>
     static DocumentTypeCache() =>
         _ = VersionProperty.Match(
             Some: pi =>
-                pi.PropertyType
-                    .GetInterfaces()
-                    .FirstOrDefault(i => i.Name.StartsWith("INumber", StringComparison.OrdinalIgnoreCase))
-                    is null
-                        ? throw new InvalidOperationException("version must be a number")
-                        : Prelude.unit,
+            typeof(INumber<>).MakeGenericType(pi.PropertyType).IsAssignableFrom(pi.PropertyType)
+                ? Prelude.unit
+                : throw new InvalidOperationException($"Version property '{pi.Name}' of type '{pi.PropertyType.Name}' must implement INumber<{pi.PropertyType.Name}>"),
             None: () => Prelude.unit);
 }
