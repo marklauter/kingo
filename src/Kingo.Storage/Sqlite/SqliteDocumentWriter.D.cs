@@ -42,8 +42,8 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             _ = rangeKeyProperty.IfSome(pi =>
             {
                 var rangeKeyColumn = pi.Name;
-                var s = $"and {rangeKeyColumn} = @{pi.Name}";
-                _ = whereClause.AppendLine(s);
+                var s = $" and {rangeKeyColumn} = @{pi.Name}";
+                _ = whereClause.Append(s);
             });
 
             var keyProperties = new System.Collections.Generic.HashSet<string> { DocumentTypeCache<D>.HashKeyProperty.Name };
