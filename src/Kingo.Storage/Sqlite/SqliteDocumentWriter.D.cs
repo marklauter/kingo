@@ -305,15 +305,33 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static object IncrementVersion(object version, Type versionType)
     {
+        // Handle common numeric types directly
+        if (versionType == typeof(int))
+            return (int)version + 1;
+        if (versionType == typeof(long))
+            return (long)version + 1L;
+        if (versionType == typeof(uint))
+            return (uint)version + 1U;
+        if (versionType == typeof(ulong))
+            return (ulong)version + 1UL;
+
+        // Try reflection approach for other INumber<T> types
         var incrementMethod = versionType.GetMethod("op_Increment");
         if (incrementMethod is not null)
             return incrementMethod.Invoke(null, [version])!;
 
+        // Fallback to addition using dynamic
         var oneValue = Convert.ChangeType(1, versionType, CultureInfo.InvariantCulture);
-        var addMethod = typeof(INumber<>).MakeGenericType(versionType)
-            .GetMethod("op_Addition", [versionType, versionType]);
-        return addMethod?.Invoke(null, [version, oneValue]) ??
-               throw new InvalidOperationException($"Cannot increment version of type {versionType}");
+        try
+        {
+            dynamic dynamicVersion = version;
+            dynamic dynamicOne = oneValue;
+            return dynamicVersion + dynamicOne;
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Cannot increment version of type {versionType}");
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
