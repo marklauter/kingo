@@ -36,13 +36,14 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             var hashKeyProperty = DocumentTypeCache<D>.HashKeyProperty;
             var rangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
 
-            var hashKeyColumn = hashKeyProperty.Name.ToLowerInvariant();
+            var hashKeyColumn = hashKeyProperty.Name;
             var whereClause = new StringBuilder($"where {hashKeyColumn} = @{hashKeyProperty.Name}");
 
             _ = rangeKeyProperty.IfSome(pi =>
             {
-                var rangeKeyColumn = pi.Name.ToLowerInvariant();
-                _ = whereClause.Append($" and {rangeKeyColumn} = @{pi.Name}");
+                var rangeKeyColumn = pi.Name;
+                var s = $"and {rangeKeyColumn} = @{pi.Name}";
+                _ = whereClause.AppendLine(s);
             });
 
             var keyProperties = new System.Collections.Generic.HashSet<string> { DocumentTypeCache<D>.HashKeyProperty.Name };
@@ -50,7 +51,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 
             var updateColumns = DocumentTypeCache<D>.MappedProperties
                 .Where(pi => !keyProperties.Contains(pi.Name))
-                .Select(pi => $"{pi.Name.ToLowerInvariant()} = @{pi.Name}");
+                .Select(pi => $"{pi.Name} = @{pi.Name}");
 
             UpdateStatement = $"update {table} set {string.Join(", ", updateColumns)} {whereClause}";
             DeleteStatement = $"delete from {table} {whereClause}";
@@ -89,8 +90,8 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             var rangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
             var versionProperty = DocumentTypeCache<D>.VersionProperty.IfNone(() => throw new InvalidOperationException("Version property required for header operations"));
 
-            var hashKeyColumn = hashKeyProperty.Name.ToLowerInvariant();
-            var versionColumn = versionProperty.Name.ToLowerInvariant();
+            var hashKeyColumn = hashKeyProperty.Name;
+            var versionColumn = versionProperty.Name;
 
             var insertCols = new StringBuilder($"{hashKeyColumn}, {versionColumn}");
             var insertVals = new StringBuilder($"@{hashKeyProperty.Name}, @{versionProperty.Name}");
@@ -98,10 +99,11 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 
             _ = rangeKeyProperty.IfSome(pi =>
             {
-                var rangeKeyColumn = pi.Name.ToLowerInvariant();
+                var rangeKeyColumn = pi.Name;
                 _ = insertCols.Insert(hashKeyColumn.Length + 2, $"{rangeKeyColumn}, ");
                 _ = insertVals.Insert($"@{hashKeyProperty.Name}".Length + 2, $"@{pi.Name}, ");
-                _ = whereClause.Append($" and {rangeKeyColumn} = @{pi.Name}");
+                var s = $" and {rangeKeyColumn} = @{pi.Name}";
+                _ = whereClause.Append(s);
             });
 
             InsertStatement = $"insert into {table} ({insertCols}) values ({insertVals})";
@@ -200,10 +202,8 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
                     var originalVersionTask = (Task)readRevisionMethod.Invoke(null, [document, db, tx])!;
                     await originalVersionTask;
 
-                    var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask);
-
-                    if (originalVersion == null)
-                        throw new DocumentWriterException(
+                    var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask)
+                        ?? throw new DocumentWriterException(
                             $"key not found {BuildKeyString(document)}",
                             StorageErrorCodes.NotFoundError);
 
@@ -285,7 +285,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
                     var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask);
                     var currentVersion = versionProperty.GetValue(document)!;
 
-                    if (originalVersion != null && !currentVersion.Equals(originalVersion))
+                    if (originalVersion is not null && !currentVersion.Equals(originalVersion))
                         throw new DocumentWriterException(
                             $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: {originalVersion}",
                             StorageErrorCodes.VersionConflictError);
@@ -306,10 +306,10 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
     private static object IncrementVersion(object version, Type versionType)
     {
         var incrementMethod = versionType.GetMethod("op_Increment");
-        if (incrementMethod != null)
+        if (incrementMethod is not null)
             return incrementMethod.Invoke(null, [version])!;
 
-        var oneValue = Convert.ChangeType(1, versionType);
+        var oneValue = Convert.ChangeType(1, versionType, CultureInfo.InvariantCulture);
         var addMethod = typeof(INumber<>).MakeGenericType(versionType)
             .GetMethod("op_Addition", [versionType, versionType]);
         return addMethod?.Invoke(null, [version, oneValue]) ??
@@ -321,7 +321,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         DocumentTypeCache<D>.VersionProperty.Match(
             Some: versionProperty =>
             {
-                var zeroValue = Convert.ChangeType(0, versionProperty.PropertyType);
+                var zeroValue = Convert.ChangeType(0, versionProperty.PropertyType, CultureInfo.InvariantCulture);
                 return SetVersion(document, zeroValue);
             },
             None: () => document);
@@ -334,7 +334,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         var constructor = typeof(D).GetConstructors()
             .FirstOrDefault(c => c.GetParameters().Length > 0);
 
-        if (constructor != null)
+        if (constructor is not null)
         {
             var paramValues = constructor.GetParameters()
                 .Select(p => string.Equals(p.Name, versionProperty.Name, StringComparison.OrdinalIgnoreCase)
@@ -345,7 +345,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             return (D)Activator.CreateInstance(typeof(D), paramValues)!;
         }
 
-        var newDocument = (D)Activator.CreateInstance(typeof(D))!;
+        var newDocument = Activator.CreateInstance<D>();
         foreach (var prop in DocumentTypeCache<D>.MappedProperties)
         {
             if (prop.CanWrite)
@@ -364,7 +364,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
     private static string BuildKeyString(D document)
     {
         var hashKeyValue = DocumentTypeCache<D>.HashKeyProperty.GetValue(document);
-        var builder = new StringBuilder().Append(CultureInfo.InvariantCulture, $"{hashKeyValue}");
+        var builder = new StringBuilder().Append(hashKeyValue);
 
         return DocumentTypeCache<D>.RangeKeyProperty.Match(
             Some: pi => builder.Append(CultureInfo.InvariantCulture, $":{pi.GetValue(document)}"),

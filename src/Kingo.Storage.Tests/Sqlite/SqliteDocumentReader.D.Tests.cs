@@ -11,21 +11,21 @@ public sealed class SqliteDocumentReaderDTests
         [property: HashKey]
         string Name,
         [property: Version]
-        Revision Version,
+        int Version,
         int R,
         int G,
         int B)
     {
         // required for dapper and microsoft.data.sqlite
-        private Color(string name, Revision version, long r, long g, long b)
+        private Color(string name, int version, long r, long g, long b)
             : this(name, version, Convert.ToInt32(r), Convert.ToInt32(g), Convert.ToInt32(b)) { }
 
-        public static Color Red() => new("Red", Revision.Zero, 255, 0, 0);
-        public static Color Green() => new("Green", Revision.Zero, 0, 255, 0);
-        public static Color Blue() => new("Blue", Revision.Zero, 0, 255, 255);
-        public static Color White() => new("White", Revision.Zero, 255, 255, 255);
-        public static Color Black() => new("Black", Revision.Zero, 0, 0, 0);
-        public static Color Gray() => new("White", Revision.Zero, 127, 127, 127);
+        public static Color Red() => new("Red", 0, 255, 0, 0);
+        public static Color Green() => new("Green", 0, 0, 255, 0);
+        public static Color Blue() => new("Blue", 0, 0, 255, 255);
+        public static Color White() => new("White", 0, 255, 255, 255);
+        public static Color Black() => new("Black", 0, 0, 0, 0);
+        public static Color Gray() => new("White", 0, 127, 127, 127);
     }
 
     private readonly string dbName = $"{Guid.NewGuid()}.sqlite";
@@ -41,23 +41,22 @@ public sealed class SqliteDocumentReaderDTests
             "create-table-test_journal",
             $"""
             CREATE TABLE IF NOT EXISTS {DocumentTypeCache<Color>.Name}_journal (
-                hashkey TEXT NOT NULL,
-                version INT NOT NULL,
                 name TEXT NOT NULL,
+                version INT NOT NULL,
                 r INT NOT NULL,
                 g INT NOT NULL,
                 b INT NOT NULL,
-                PRIMARY KEY (hashkey, version)
+                PRIMARY KEY (name, version)
             )
             """)
         .Add(
             "create-table-test_header",
             $"""
             CREATE TABLE IF NOT EXISTS {DocumentTypeCache<Color>.Name}_header (
-                hashkey TEXT NOT NULL,
+                name TEXT NOT NULL,
                 version INT NOT NULL,
-                PRIMARY KEY (hashkey, version),
-                FOREIGN KEY (hashkey, version) REFERENCES {DocumentTypeCache<Color>.Name}_journal (hashkey, version)
+                PRIMARY KEY (name, version),
+                FOREIGN KEY (name, version) REFERENCES {DocumentTypeCache<Color>.Name}_journal (name, version)
             )
             """);
 
@@ -93,7 +92,7 @@ public sealed class SqliteDocumentReaderDTests
         Assert.Equal(key, color.Name);
         Assert.Equal("Red", color.Name);
         Assert.Equal(255, color.R);
-        Assert.Equal(Revision.Zero, color.Version);
+        Assert.Equal(0, color.Version);
     }
 
     [Fact]
@@ -130,7 +129,7 @@ public sealed class SqliteDocumentReaderDTests
         color = (await reader.FindAsync(key, CancellationToken.None))
             .IfNone(() => throw new InvalidOperationException("Document not found"));
 
-        Assert.Equal(Revision.Zero.Tick(), color.Version);
+        Assert.Equal(1, color.Version);
         Assert.Equal(key, color.Name);
         Assert.Equal("Purple", color.Name);
         Assert.Equal(255, color.R);
@@ -160,7 +159,7 @@ public sealed class SqliteDocumentReaderDTests
         color = (await reader.FindAsync(key, CancellationToken.None))
             .IfNone(() => throw new InvalidOperationException("Document not found"));
 
-        Assert.Equal(Revision.From(3), color.Version);
+        Assert.Equal(3, color.Version);
         Assert.Equal("Purplish-3", color.Name);
         Assert.Equal(255, color.R);
         Assert.Equal(255, color.B);
@@ -214,7 +213,7 @@ public sealed class SqliteDocumentReaderDTests
             Assert.Equal(key, color.Name);
             Assert.Equal("Red", color.Name);
             Assert.Equal(255, color.R);
-            Assert.Equal(Revision.Zero, color.Version);
+            Assert.Equal(0, color.Version);
             return op.IsSome;
         });
 
