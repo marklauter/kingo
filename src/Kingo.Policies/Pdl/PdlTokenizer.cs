@@ -1,3 +1,4 @@
+using Kingo.Policies.Puddle;
 using LanguageExt;
 using Superpower;
 using Superpower.Display;
@@ -5,7 +6,7 @@ using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
-namespace Kingo.Policies;
+namespace Kingo.Policies.Pdl;
 
 internal enum PdlToken
 {
@@ -26,8 +27,8 @@ internal enum PdlToken
     [Token(Category = "keyword", Example = "tuple | /t")]
     TuplePrefix,
 
-    [Token(Category = "keyword", Example = "direct | /d")]
-    Direct,
+    [Token(Category = "keyword", Example = "this")]
+    This,
 
     [Token(Category = "operator", Example = "|")]
     Union,
@@ -74,7 +75,7 @@ internal static class PdlTokenizer
             .Match(Span.EqualToIgnoreCase("relation").Try().Or(Span.EqualToIgnoreCase("/r")), PdlToken.RelationshipPrefix, true)
             .Match(Span.EqualToIgnoreCase("computed").Try().Or(Span.EqualToIgnoreCase("/c")), PdlToken.ComputedPrefix, true)
             .Match(Span.EqualToIgnoreCase("tuple").Try().Or(Span.EqualToIgnoreCase("/t")), PdlToken.TuplePrefix, true)
-            .Match(Span.EqualToIgnoreCase("direct").Try().Or(Span.EqualToIgnoreCase("/d")), PdlToken.Direct, true)
+            .Match(Span.EqualToIgnoreCase("this"), PdlToken.This, true)
             .Match(Superpower.Parsers.Identifier.CStyle, PdlToken.Identifier, true)
 
             .Build();

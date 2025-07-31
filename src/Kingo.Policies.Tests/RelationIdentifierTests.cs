@@ -1,6 +1,6 @@
 namespace Kingo.Policies.Tests;
 
-public sealed class RelationTests
+public sealed class RelationIdentifierTests
 {
     [Fact]
     public void From_Throws_IfValueIsNull() =>

@@ -60,14 +60,14 @@ PDL BNF
 <rewrite>       ::= <intersection> [ '|' <intersection> ]*
 <intersection>  ::= <exclusion> [ '&' <exclusion> ]*
 <exclusion>     ::= <term> [ '!' <term> ]
-<term>          ::= <direct>
+<term>          ::= <this>
                   | <computed-subjectset-rewrite>
                   | <tuple-to-subjectset-rewrite>
                   | '(' <rewrite> ')'
 
 # keywords (terms)
 <namespace-identifier>          ::= ('namespace' | '/n') <identifier>
-<direct>                        ::= ('direct' | '/d')
+<this>                          ::= ('this')
 <relation-identifier>           ::= ('relation' | '/r') <identifier>
 <computed-subjectset-rewrite>   ::= ('computed' | '/c') <identifier>
 <tuple-to-subjectset-rewrite>   ::= ('tuple' | '/t') (' <identifier> ',' <identifier> ')'
@@ -85,26 +85,26 @@ PDL sample:
 #   & = intersection operator
 #   | = union operator
 # rewrite:
-#   directly assigned subjects = direct | dir
-#   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
-#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
+#   directly assigned subjects = this
+#   ComputedSubjectSetRewrite = computed <identifier> | /c <identifier>
+#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | /t (<identifier>, <identifier>)
 
 # namespace
 namespace file
 
-# empty relationship - implicit direct
+# empty relationship - implicit this
 relation owner 
 
 # relationship with union rewrite
-relation editor (direct | computed owner) 
+relation editor (this | computed owner) 
 
 # relationship with union and exclusion rewrites
-relation viewer ((direct | computed editor | tuple (parent, viewer)) ! computed banned) 
+relation viewer ((this | computed editor | tuple (parent, viewer)) ! computed banned) 
 
 # relationship with intersection rewrite
-relation auditor (direct & computed viewer) 
+relation auditor (this & computed viewer) 
 
-# empty relationship - implicit direct
+# empty relationship - implicit this
 relation banned
 
 # second policy defined within same document
@@ -112,7 +112,7 @@ relation banned
 /r owner 
 /r viewer 
     (
-        (/d | /t (parent, viewer)) 
+        (this | /t (parent, viewer)) 
         ! /c banned
     )
 /r banned

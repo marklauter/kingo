@@ -15,7 +15,7 @@ public readonly struct RelationIdentifier
     , IComparable<string>
 {
     private readonly string value;
-    private static readonly Regex Validation = RegExPatterns.Relationship();
+    private static readonly Regex Validation = RegExPatterns.RelationIdentifier();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RelationIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");

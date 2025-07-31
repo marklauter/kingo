@@ -1,0 +1,10 @@
+﻿file:
+  - owner
+  - editor: this | owner
+  - viewer: (this | editor | (parent, viewer)) ! banned
+  - auditor: this & viewer
+  - banned
+folder:
+  - owner
+  - viewer: (this | (parent, viewer)) ! banned
+  - banned

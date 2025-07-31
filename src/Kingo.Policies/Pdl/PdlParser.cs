@@ -1,10 +1,11 @@
+using Kingo.Policies.Pdl;
 using LanguageExt;
 using Superpower;
 using Superpower.Model;
 using Superpower.Parsers;
 using static LanguageExt.Prelude;
 
-namespace Kingo.Policies;
+namespace Kingo.Policies.Puddle;
 
 /// <summary>
 /// PDL BNF
@@ -93,7 +94,7 @@ public static class PdlParser
         Token.EqualTo(PdlToken.Identifier).Select(token => token.ToStringValue());
 
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> DirectTerm =
-        Token.EqualTo(PdlToken.Direct).Select(_ => (SubjectSetRewrite)DirectRewrite.Default);
+        Token.EqualTo(PdlToken.This).Select(_ => (SubjectSetRewrite)DirectRewrite.Default);
 
     private static readonly TokenListParser<PdlToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser =
         from _ in Token.EqualTo(PdlToken.ComputedPrefix)

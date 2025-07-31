@@ -11,9 +11,9 @@ internal partial class RegExPatterns
         RegexOptions.CultureInvariant;
 
     [GeneratedRegex(@"^[A-Za-z0-9_]+$", PatternOptions)]
-    public static partial Regex Identifier();
+    public static partial Regex NamespaceIdentifier();
 
     // allows dots for the ...
     [GeneratedRegex(@"^[A-Za-z0-9_.]+$", PatternOptions)]
-    public static partial Regex Relationship();
+    public static partial Regex RelationIdentifier();
 }

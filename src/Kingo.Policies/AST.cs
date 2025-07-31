@@ -97,4 +97,3 @@ public sealed record ExclusionRewrite(
     public static ExclusionRewrite Cons(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
         new(include, exclude);
 }
-

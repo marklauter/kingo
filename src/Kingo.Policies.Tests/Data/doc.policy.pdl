@@ -11,19 +11,19 @@
 # namespace name
 namespace file
 
-# empty relationship - implicit direct
+# empty relationship - implicit this
 relation owner
 
 # relationship with union rewrite
-relation editor (direct | computed owner)
+relation editor (this | computed owner)
 
 # relationship with union and exclusion rewrites
-relation viewer ((direct | computed editor | tuple (parent, viewer)) ! computed banned)
+relation viewer ((this | computed editor | tuple (parent, viewer)) ! computed banned)
 
 # relationship with intersection rewrite
-relation auditor (direct & computed viewer)
+relation auditor (this & computed viewer)
 
-# empty relationship - implicit direct
+# empty relationship - implicit this
 relation banned
 
 # second ns defined within same document
@@ -31,7 +31,7 @@ relation banned
 /r owner 
 /r viewer 
     (
-        (/d | /c editor | /t (parent, viewer)) 
+        (this | /c editor | /t (parent, viewer)) 
         ! /c banned
     )
 /r banned

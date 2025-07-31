@@ -16,7 +16,7 @@ public readonly struct NamespaceIdentifier
     , IComparable<string>
 {
     private readonly string value;
-    private static readonly Regex Validation = RegExPatterns.Identifier();
+    private static readonly Regex Validation = RegExPatterns.NamespaceIdentifier();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NamespaceIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
