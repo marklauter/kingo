@@ -1,11 +1,10 @@
-using Kingo.Policies.Pdl;
 using LanguageExt;
 using Superpower;
 using Superpower.Model;
 using Superpower.Parsers;
 using static LanguageExt.Prelude;
 
-namespace Kingo.Policies.Puddle;
+namespace Kingo.Policies.Pdl;
 
 /// <summary>
 /// PDL BNF

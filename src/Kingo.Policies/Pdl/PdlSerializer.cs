@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace Kingo.Policies.Puddle;
+namespace Kingo.Policies.Pdl;
 
 /// <summary>
 /// PDL BNF

@@ -1,7 +1,7 @@
 using LanguageExt;
 using LanguageExt.Common;
 
-namespace Kingo.Policies.Puddle;
+namespace Kingo.Policies.Pdl;
 
 public static class ParseErrorCodes
 {
