@@ -15,7 +15,7 @@ internal static class RewriteExpressionParser
     private static Eff<SubjectSetRewrite> Parse(TokenList<RewriteExpressionToken> input)
     {
         var parseResult = RewriteExpression.AtEnd().TryParse(input);
-        // do not check parseResult.Value is not null because for the love of God, HasValue already does that
+        // do not check parseResult.Value is not null because HasValue already does that
         return parseResult.HasValue
             ? Prelude.Pure(parseResult.Value)
             : ParseError.New(ParseErrorCodes.ParseEerror, $"parse error: {parseResult}");
