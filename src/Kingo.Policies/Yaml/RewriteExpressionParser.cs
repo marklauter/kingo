@@ -9,8 +9,8 @@ internal static class RewriteExpressionParser
 {
     public static Eff<SubjectSetRewrite> Parse(string pdl) =>
         RewriteExpressionTokenizer
-        .Tokenize(pdl)
-        .Bind(Parse);
+            .Tokenize(pdl)
+            .Bind(Parse);
 
     private static Eff<SubjectSetRewrite> Parse(TokenList<RewriteExpressionToken> input)
     {
@@ -28,6 +28,7 @@ internal static class RewriteExpressionParser
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Term;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Exclusion;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Intersection;
+    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Union;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> RewriteExpression;
 
     static RewriteExpressionParser()
@@ -49,25 +50,39 @@ internal static class RewriteExpressionParser
             from rparen in Token.EqualTo(RewriteExpressionToken.RightParen)
             select (SubjectSetRewrite)new TupleToSubjectSetRewrite(RelationIdentifier.From(name), RelationIdentifier.From(mapsTo));
 
-        Term =
+        var nonParenthesizedTerm =
             DirectTerm
-                .Or(Superpower.Parse.Try(TupleToSubjectSetRewriteParser))
-                .Or(ComputedSubjectSetRewriteParser)
-                .Or(Superpower.Parse.Ref(() => RewriteExpression!).Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen)));
+                .Or(TupleToSubjectSetRewriteParser)
+                .Or(ComputedSubjectSetRewriteParser);
 
+        Term =
+            Superpower.Parse.Ref(() => RewriteExpression!)
+                .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))
+                .Or(nonParenthesizedTerm);
+
+        // <exclusion> ::= <term> [ '!' <term> ]*
         Exclusion =
-            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Exclusion), Term, (op, left, right) => new ExclusionRewrite(left, right));
+            from include in Term
+            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(Term).Many()
+            select exclude.Length == 0
+                ? include
+                : exclude.Aggregate(include, (acc, ex) => new ExclusionRewrite(acc, ex));
 
+        // <intersection> ::= <exclusion> [ '&' <exclusion> ]*
         Intersection =
             Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Intersection), Exclusion, (op, left, right) =>
                 left is IntersectionRewrite intersection
                     ? new IntersectionRewrite(intersection.Children.Add(right))
                     : new IntersectionRewrite([left, right]));
 
-        RewriteExpression =
+        // <union> ::= <intersection> [ '|' <intersection> ]*
+        Union =
             Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Union), Intersection, (op, left, right) =>
                 left is UnionRewrite union
                     ? new UnionRewrite(union.Children.Add(right))
                     : new UnionRewrite([left, right]));
+
+        // <rewrite> ::= <union>
+        RewriteExpression = Union;
     }
 }
