@@ -8,18 +8,11 @@ public static class YamlPolicyParser
 {
     public static PdlDocument? Parse(string yaml)
     {
-        try
-        {
-            var deserializer = new DeserializerBuilder().Build();
-            var yamlData = deserializer.Deserialize<Dictionary<string, List<object>>>(yaml);
+        var deserializer = new DeserializerBuilder().Build();
+        var yamlData = deserializer.Deserialize<Dictionary<string, List<object>>>(yaml);
 
-            var policySet = TransformYamlToPolicySet(yamlData);
-            return policySet != null ? new PdlDocument(yaml, policySet) : null;
-        }
-        catch
-        {
-            return null;
-        }
+        var policySet = TransformYamlToPolicySet(yamlData);
+        return policySet != null ? new PdlDocument(yaml, policySet) : null;
     }
 
     private static NamespaceSet? TransformYamlToPolicySet(Dictionary<string, List<object>> yamlData)
