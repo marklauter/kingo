@@ -6,7 +6,7 @@ namespace Kingo.Tests;
 
 public sealed class RecordMapping
 {
-    private record R(
+    private sealed record R(
         [Required]
         string Name,
         [property: NotMapped]
