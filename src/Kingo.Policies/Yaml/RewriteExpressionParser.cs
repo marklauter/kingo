@@ -69,7 +69,7 @@ internal static class RewriteExpressionParser
         // <rewrite> ::= <exclusion> [ ('&' | '|') <exclusion> ]*
         RewriteExpression =
             from first in Exclusion
-            from rest in (Token.EqualTo(RewriteExpressionToken.Intersection).Or(Token.EqualTo(RewriteExpressionToken.Union)))
+            from rest in Token.EqualTo(RewriteExpressionToken.Intersection).Or(Token.EqualTo(RewriteExpressionToken.Union))
                 .Then(op => Exclusion.Select(right => (op, right)))
                 .Many()
             select rest.Length == 0

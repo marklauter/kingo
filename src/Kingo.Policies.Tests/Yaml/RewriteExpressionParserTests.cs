@@ -140,7 +140,8 @@ public class RewriteExpressionParserTests
         Assert.True(result.IsSucc);
         var rewrite = result.IfFail(ex => throw ex);
 
-        // Should be nested left-associative: (users ! banned) ! deleted
+        // Parser implements left-associative exclusion: (users ! banned) ! deleted
+        // This matches mathematical convention for set difference
         var outerExclusion = Assert.IsType<ExclusionRewrite>(rewrite);
         var innerExclusion = Assert.IsType<ExclusionRewrite>(outerExclusion.Include);
         var users = Assert.IsType<ComputedSubjectSetRewrite>(innerExclusion.Include);
@@ -150,17 +151,6 @@ public class RewriteExpressionParserTests
         Assert.Equal("users", users.Relation.ToString());
         Assert.Equal("banned", banned.Relation.ToString());
         Assert.Equal("deleted", deleted.Relation.ToString());
-    }
-
-    [Theory]
-    [InlineData("(this)")]
-    [InlineData("this # this is a comment")]
-    public void Parse_ValidExpressions_WithVariations_ParsesCorrectly(string input)
-    {
-        var result = RewriteExpressionParser.Parse(input).Run();
-        Assert.True(result.IsSucc);
-        var rewrite = result.IfFail(ex => throw ex);
-        _ = Assert.IsType<DirectRewrite>(rewrite);
     }
 
     [Theory]
@@ -178,14 +168,16 @@ public class RewriteExpressionParserTests
     }
 
     [Theory]
-    [InlineData("this |\nowner", typeof(UnionRewrite))]
-    [InlineData("this |\r\nowner", typeof(UnionRewrite))]
-    [InlineData("this &\nviewer", typeof(IntersectionRewrite))]
+    [InlineData("(this)", typeof(DirectRewrite))]                      // Parentheses
+    [InlineData("this # this is a comment", typeof(DirectRewrite))]    // Comments
+    [InlineData("this |\nowner", typeof(UnionRewrite))]                // Unix line endings
+    [InlineData("this |\r\nowner", typeof(UnionRewrite))]              // Windows line endings
+    [InlineData("this &\nviewer", typeof(IntersectionRewrite))]        // Multi-line intersection
     [InlineData(@"(this |
     editor | # user editors
     (parent, viewer)) ! # exclude
-banned", typeof(ExclusionRewrite))]
-    public void Parse_MultiLineExpressions_ParsesCorrectly(string input, Type expectedRootType)
+banned", typeof(ExclusionRewrite))]                                    // Complex multi-line with comments
+    public void Parse_VariousExpressionFormats_ParsesCorrectly(string input, Type expectedRootType)
     {
         var result = RewriteExpressionParser.Parse(input).Run();
         Assert.True(result.IsSucc);
