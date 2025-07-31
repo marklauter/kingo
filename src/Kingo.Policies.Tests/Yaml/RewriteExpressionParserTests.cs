@@ -5,17 +5,20 @@ namespace Kingo.Policies.Tests.Yaml;
 
 public class RewriteExpressionParserTests
 {
-    [Fact]
-    public void Parse_DirectTerm_ReturnsDirectRewrite()
+    [Theory]
+    [InlineData("this", typeof(DirectRewrite))]
+    [InlineData("THIS", typeof(DirectRewrite))] 
+    [InlineData("owner", typeof(ComputedSubjectSetRewrite))]
+    public void Parse_SingleTerms_ReturnsCorrectRewriteType(string input, Type expectedType)
     {
-        var result = RewriteExpressionParser.Parse("this").Run();
+        var result = RewriteExpressionParser.Parse(input).Run();
         Assert.True(result.IsSucc);
         var rewrite = result.IfFail(ex => throw ex);
-        _ = Assert.IsType<DirectRewrite>(rewrite);
+        Assert.IsType(expectedType, rewrite);
     }
 
     [Fact]
-    public void Parse_ComputedSubjectSet_ReturnsComputedSubjectSetRewrite()
+    public void Parse_ComputedSubjectSet_ReturnsCorrectRelation()
     {
         var result = RewriteExpressionParser.Parse("owner").Run();
         Assert.True(result.IsSucc);
@@ -24,41 +27,42 @@ public class RewriteExpressionParserTests
         Assert.Equal("owner", computed.Relation.ToString());
     }
 
-    [Fact]
-    public void Parse_TupleToSubjectSet_ReturnsTupleToSubjectSetRewrite()
+    [Theory]
+    [InlineData("(parent, viewer)", "parent", "viewer")]
+    [InlineData("(parent,\nviewer)", "parent", "viewer")]
+    public void Parse_TupleToSubjectSet_ReturnsCorrectTuple(string input, string expectedFirst, string expectedSecond)
     {
-        var result = RewriteExpressionParser.Parse("(parent, viewer)").Run();
+        var result = RewriteExpressionParser.Parse(input).Run();
         Assert.True(result.IsSucc);
         var rewrite = result.IfFail(ex => throw ex);
         var tuple = Assert.IsType<TupleToSubjectSetRewrite>(rewrite);
-        Assert.Equal("parent", tuple.TuplesetRelation.ToString());
-        Assert.Equal("viewer", tuple.ComputedSubjectSetRelation.ToString());
+        Assert.Equal(expectedFirst, tuple.TuplesetRelation.ToString());
+        Assert.Equal(expectedSecond, tuple.ComputedSubjectSetRelation.ToString());
     }
 
-    [Fact]
-    public void Parse_Union_ReturnsUnionRewrite()
+    [Theory]
+    [InlineData("this | owner", typeof(UnionRewrite), typeof(DirectRewrite), typeof(ComputedSubjectSetRewrite))]
+    [InlineData("this & viewer", typeof(IntersectionRewrite), typeof(DirectRewrite), typeof(ComputedSubjectSetRewrite))]
+    public void Parse_BinaryOperators_ReturnsCorrectStructure(string input, Type expectedRootType, Type expectedLeftType, Type expectedRightType)
     {
-        var result = RewriteExpressionParser.Parse("this | owner").Run();
+        var result = RewriteExpressionParser.Parse(input).Run();
         Assert.True(result.IsSucc);
         var rewrite = result.IfFail(ex => throw ex);
-        var union = Assert.IsType<UnionRewrite>(rewrite);
-        Assert.Equal(2, union.Children.Count);
-        _ = Assert.IsType<DirectRewrite>(union.Children[0]);
-        var computed = Assert.IsType<ComputedSubjectSetRewrite>(union.Children[1]);
-        Assert.Equal("owner", computed.Relation.ToString());
-    }
-
-    [Fact]
-    public void Parse_Intersection_ReturnsIntersectionRewrite()
-    {
-        var result = RewriteExpressionParser.Parse("this & viewer").Run();
-        Assert.True(result.IsSucc);
-        var rewrite = result.IfFail(ex => throw ex);
-        var intersection = Assert.IsType<IntersectionRewrite>(rewrite);
-        Assert.Equal(2, intersection.Children.Count);
-        _ = Assert.IsType<DirectRewrite>(intersection.Children[0]);
-        var computed = Assert.IsType<ComputedSubjectSetRewrite>(intersection.Children[1]);
-        Assert.Equal("viewer", computed.Relation.ToString());
+        
+        if (expectedRootType == typeof(UnionRewrite))
+        {
+            var union = Assert.IsType<UnionRewrite>(rewrite);
+            Assert.Equal(2, union.Children.Count);
+            Assert.IsType(expectedLeftType, union.Children[0]);
+            Assert.IsType(expectedRightType, union.Children[1]);
+        }
+        else if (expectedRootType == typeof(IntersectionRewrite))
+        {
+            var intersection = Assert.IsType<IntersectionRewrite>(rewrite);
+            Assert.Equal(2, intersection.Children.Count);
+            Assert.IsType(expectedLeftType, intersection.Children[0]);
+            Assert.IsType(expectedRightType, intersection.Children[1]);
+        }
     }
 
     [Fact]
@@ -142,12 +146,43 @@ public class RewriteExpressionParserTests
         Assert.Equal("deleted", deleted.Relation.ToString());
     }
 
-    [Fact]
-    public void Parse_SimpleParentheses_ReturnsCorrectAst()
+    [Theory]
+    [InlineData("(this)")]
+    [InlineData("this # this is a comment")]
+    public void Parse_ValidExpressions_WithVariations_ParsesCorrectly(string input)
     {
-        var result = RewriteExpressionParser.Parse("(this)").Run();
-        Assert.True(result.IsSucc, "Parsing should succeed");
+        var result = RewriteExpressionParser.Parse(input).Run();
+        Assert.True(result.IsSucc);
         var rewrite = result.IfFail(ex => throw ex);
         _ = Assert.IsType<DirectRewrite>(rewrite);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("(parent viewer)")]          // Missing comma
+    [InlineData("(parent, viewer")]          // Missing right paren
+    [InlineData("this |")]                   // Trailing operator
+    [InlineData("| this")]                   // Leading operator
+    [InlineData("this | & owner")]           // Consecutive operators
+    public void Parse_InvalidExpressions_ReturnsError(string input)
+    {
+        var result = RewriteExpressionParser.Parse(input).Run();
+        Assert.True(result.IsFail);
+    }
+
+    [Theory]
+    [InlineData("this |\nowner &\nviewer", typeof(UnionRewrite))]
+    [InlineData("this |\r\nowner", typeof(UnionRewrite))]
+    [InlineData(@"(this |
+    editor | # user editors
+    (parent, viewer)) ! # exclude
+banned", typeof(ExclusionRewrite))]
+    public void Parse_MultiLineExpressions_ParsesCorrectly(string input, Type expectedRootType)
+    {
+        var result = RewriteExpressionParser.Parse(input).Run();
+        Assert.True(result.IsSucc);
+        var rewrite = result.IfFail(ex => throw ex);
+        Assert.IsType(expectedRootType, rewrite);
     }
 }
