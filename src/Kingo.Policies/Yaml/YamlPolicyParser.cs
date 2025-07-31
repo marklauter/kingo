@@ -6,51 +6,62 @@ namespace Kingo.Policies.Yaml;
 
 public static class YamlPolicyParser
 {
-    public static PdlDocument? Parse(string yaml)
+    public static Eff<PdlDocument> Parse(string yaml)
     {
-        var deserializer = new DeserializerBuilder().Build();
-        var yamlData = deserializer.Deserialize<Dictionary<string, List<object>>>(yaml);
-
-        var policySet = TransformYamlToPolicySet(yamlData);
-        return policySet != null ? new PdlDocument(yaml, policySet) : null;
+        var policySet = TransformYamlToPolicySet(Deserialize(yaml));
+        return policySet != null
+            ? Pure(new PdlDocument(yaml, policySet))
+            : ParseError.New(ParseErrorCodes.ParseEerror, "Failed to parse YAML");
     }
 
-    private static NamespaceSet? TransformYamlToPolicySet(Dictionary<string, List<object>> yamlData)
+    private static Dictionary<string, List<object>> Deserialize(string yaml) =>
+        new DeserializerBuilder()
+        .Build()
+        .Deserialize<Dictionary<string, List<object>>>(yaml);
+
+    private static NamespaceSet TransformYamlToPolicySet(Dictionary<string, List<object>> yamlData)
     {
-        var namespaces = new List<Namespace>();
+        var namespaces = yamlData
+            .Select(kvp => TransformNamespace(kvp.Key, kvp.Value))
+            .Where(ns => ns is not null)
+            .Select(ns => ns!);
 
-        foreach (var (namespaceName, relations) in yamlData)
-        {
-            var relationList = new List<Relation>();
+        return new NamespaceSet(Seq(namespaces));
+    }
 
-            foreach (var relationObj in relations)
-            {
-                switch (relationObj)
-                {
-                    case string relationName:
-                        relationList.Add(new Relation(
-                            RelationIdentifier.From(relationName),
-                            DirectRewrite.Default));
-                        break;
+    private static Namespace? TransformNamespace(string namespaceName, List<object> relations)
+    {
+        var relationResults = relations
+            .Select(TransformRelation)
+            .ToArray();
 
-                    case Dictionary<object, object> relationDict:
-                        var (name, expression) = relationDict.First();
-                        var rewriteResult = RewriteExpressionParser.Parse(expression.ToString()!).Run();
-                        if (rewriteResult.IsFail)
-                            return null;
-
-                        relationList.Add(new Relation(
-                            RelationIdentifier.From(name.ToString()!),
-                            rewriteResult.ThrowIfFail()));
-                        break;
-                }
-            }
-
-            namespaces.Add(new Namespace(
+        return relationResults.Any(r => r == null)
+            ? null
+            : new Namespace(
                 NamespaceIdentifier.From(namespaceName),
-                toSeq(relationList)));
-        }
+                toSeq(relationResults.Where(r => r is not null).Select(r => r!)));
+    }
 
-        return new NamespaceSet(toSeq(namespaces));
+    private static Relation? TransformRelation(object relationObj) =>
+        relationObj switch
+        {
+            string relationName => CreateSimpleRelation(relationName),
+            Dictionary<object, object> relationDict => CreateComplexRelation(relationDict),
+            _ => throw new NotSupportedException("unexpected relation")
+        };
+
+    private static Relation CreateSimpleRelation(string relationName) =>
+        new(RelationIdentifier.From(relationName), DirectRewrite.Default);
+
+    private static Relation? CreateComplexRelation(Dictionary<object, object> relationDict)
+    {
+        var (name, expression) = relationDict.First();
+        var rewriteResult = RewriteExpressionParser.Parse(expression.ToString()!).Run();
+
+        return rewriteResult.IsSucc
+            ? new Relation(
+                RelationIdentifier.From(name.ToString()!),
+                rewriteResult.ThrowIfFail())
+            : null;
     }
 }
