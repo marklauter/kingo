@@ -51,14 +51,14 @@ internal static class RewriteExpressionParser
             select (SubjectSetRewrite)new TupleToSubjectSetRewrite(RelationIdentifier.From(name), RelationIdentifier.From(mapsTo));
 
         var nonParenthesizedTerm =
-            DirectTerm
-                .Or(TupleToSubjectSetRewriteParser)
+            TupleToSubjectSetRewriteParser.Try()
+                .Or(DirectTerm.Try())
                 .Or(ComputedSubjectSetRewriteParser);
 
         Term =
-            Superpower.Parse.Ref(() => RewriteExpression!)
-                .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))
-                .Or(nonParenthesizedTerm);
+            nonParenthesizedTerm
+                .Or(Superpower.Parse.Ref(() => RewriteExpression!
+                    .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))));
 
         // <exclusion> ::= <term> [ '!' <term> ]*
         Exclusion =
