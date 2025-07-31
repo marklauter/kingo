@@ -28,7 +28,9 @@ policy description language (PDL) for building namespaces, relationships, and re
 
 PDL BNF
 ```bnf
-# operator precedence: !, &, | (exclude, intersect, union)
+# operator precedence: ! (exclude), &|= (intersect/union same level)
+# associative operators: & (intersection), | (union) - same precedence
+# non-associative operator: ! (exclusion) - highest precedence
 # expressions
 <policy-set>    ::= <namespace-map>
 <namespace-map> ::= <namespace> [ <namespace> ]*
@@ -36,9 +38,8 @@ PDL BNF
 <relation-seq>  ::= - <relation>
 <relation>      ::= <relation-identifier>
                   | <relation-identifier>: <rewrite>
-<rewrite>       ::= <union>
-<union>         ::= <intersection> [ '|' <intersection> ]*
-<intersection>  ::= <exclusion> [ '&' <exclusion> ]*
+
+<rewrite>       ::= <exclusion> [ ('&' | '|') <exclusion> ]*
 <exclusion>     ::= <term> [ '!' <term> ]*
 <term>          ::= 'this'
                   | <computed-subjectset>
