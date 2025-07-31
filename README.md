@@ -112,7 +112,7 @@ relation banned
 /r owner 
 /r viewer 
     (
-        (/d | /c editor | /t (parent, viewer)) 
+        (/d | /t (parent, viewer)) 
         ! /c banned
     )
 /r banned
