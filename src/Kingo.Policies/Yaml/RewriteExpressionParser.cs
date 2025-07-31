@@ -1,4 +1,3 @@
-using Kingo.Policies.Pdl;
 using LanguageExt;
 using Superpower;
 using Superpower.Model;
@@ -16,6 +15,7 @@ internal static class RewriteExpressionParser
     private static Eff<SubjectSetRewrite> Parse(TokenList<RewriteExpressionToken> input)
     {
         var parseResult = RewriteExpression.AtEnd().TryParse(input);
+        // do not check parseResult.Value is not null because for the love of God, HasValue already does that
         return parseResult.HasValue
             ? Prelude.Pure(parseResult.Value)
             : ParseError.New(ParseErrorCodes.ParseEerror, $"parse error: {parseResult}");
@@ -51,9 +51,9 @@ internal static class RewriteExpressionParser
 
         Term =
             DirectTerm
-                .Or(ComputedSubjectSetRewriteParser)
                 .Or(Superpower.Parse.Try(TupleToSubjectSetRewriteParser))
-                .Or(Superpower.Parse.Ref(() => RewriteExpression).Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen)));
+                .Or(ComputedSubjectSetRewriteParser)
+                .Or(Superpower.Parse.Ref(() => RewriteExpression!).Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen)));
 
         Exclusion =
             Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Exclusion), Term, (op, left, right) => new ExclusionRewrite(left, right));

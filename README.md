@@ -53,25 +53,26 @@ PDL BNF
 ```bnf
 # operator precedence: !, &, | (exclude, intersect, union)
 # expressions
-<policy-set>    ::= <namespace> [ <namespace> ]*
-<namespace>     ::= <namespace-identifier> <relation-set>
-<relation-set>  ::= <relation> [ <relation> ]*
-<relation>      ::= <relation-identifier> [ '(' <rewrite> ')' ]
-<rewrite>       ::= <intersection> [ '|' <intersection> ]*
+<policy-set>    ::= <namespace-map>
+<namespace-map> ::= <namespace> [ <namespace> ]*
+<namespace>     ::= <identifier>: <relation-seq>
+<relation-seq>  ::= - <relation>
+<relation>      ::= <relation-identifier>
+                  | <relation-identifier>: <rewrite>
+<rewrite>       ::= <union>
+<union>         ::= <intersection> [ '|' <intersection> ]*
 <intersection>  ::= <exclusion> [ '&' <exclusion> ]*
 <exclusion>     ::= <term> [ '!' <term> ]
-<term>          ::= <this>
-                  | <computed-subjectset-rewrite>
-                  | <tuple-to-subjectset-rewrite>
+<term>          ::= 'this'
+                  | <computed-subjectset>
+                  | <tuple-to-subjectset>
                   | '(' <rewrite> ')'
 
-# keywords (terms)
-<namespace-identifier>          ::= ('namespace' | '/n') <identifier>
-<this>                          ::= ('this')
-<relation-identifier>           ::= ('relation' | '/r') <identifier>
-<computed-subjectset-rewrite>   ::= ('computed' | '/c') <identifier>
-<tuple-to-subjectset-rewrite>   ::= ('tuple' | '/t') (' <identifier> ',' <identifier> ')'
-<identifier>                    ::= [a-zA-Z_][a-zA-Z0-9_]*
+# terms
+<computed-subjectset>   ::= <identifier>
+<tuple-to-subjectset>   ::= '(' <identifier> ',' <identifier> ')'
+<relation-identifier>   ::= <identifier>
+<identifier>            ::= [a-zA-Z_][a-zA-Z0-9_]*
 
 <comment>       ::= '#' [^<newline>]*
 <newline>       ::= '\n' | '\r\n'
@@ -84,38 +85,25 @@ PDL sample:
 #   ! = exclusion operator
 #   & = intersection operator
 #   | = union operator
-# rewrite:
-#   directly assigned subjects = this
-#   ComputedSubjectSetRewrite = computed <identifier> | /c <identifier>
-#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | /t (<identifier>, <identifier>)
 
 # namespace
-namespace file
-
+file:
 # empty relationship - implicit this
-relation owner 
-
+  - owner
 # relationship with union rewrite
-relation editor (this | computed owner) 
-
-# relationship with union and exclusion rewrites
-relation viewer ((this | computed editor | tuple (parent, viewer)) ! computed banned) 
-
+  - editor: this | owner
+# relationship with union, tupleset, and exclusion rewrites
+  - viewer: (this | editor | (parent, viewer)) ! banned
 # relationship with intersection rewrite
-relation auditor (this & computed viewer) 
-
+  - auditor: this & viewer
 # empty relationship - implicit this
-relation banned
+  - banned
 
 # second policy defined within same document
-/n folder
-/r owner 
-/r viewer 
-    (
-        (this | /t (parent, viewer)) 
-        ! /c banned
-    )
-/r banned
+folder:
+  - owner
+  - viewer: (this | (parent, viewer)) ! banned
+  - banned
 ```
 
 ## access control subsystem

@@ -4,9 +4,9 @@
 #   & = intersection operator
 #   ! = exclusion operator
 # rewrite rules:
-#   directly assigned subjects = direct | dir
-#   ComputedSubjectSetRewrite = computed <identifier> | cmp <identifier>
-#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | tpl (<identifier>, <identifier>)
+#   directly assigned subjects = this
+#   ComputedSubjectSetRewrite = computed <identifier> | /c <identifier>
+#   TupleToSubjectSetRewrite = tuple (<identifier>, <identifier>) | /t (<identifier>, <identifier>)
 
 # namespace name
 namespace file
@@ -31,7 +31,7 @@ relation banned
 /r owner 
 /r viewer 
     (
-        (this | /c editor | /t (parent, viewer)) 
+        (this | /t (parent, viewer)) 
         ! /c banned
     )
 /r banned
