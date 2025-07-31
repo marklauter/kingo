@@ -27,8 +27,6 @@ internal static class RewriteExpressionParser
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> TupleToSubjectSetRewriteParser;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Term;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Exclusion;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Intersection;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Union;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> RewriteExpression;
 
     static RewriteExpressionParser()
@@ -60,29 +58,29 @@ internal static class RewriteExpressionParser
                 .Or(Superpower.Parse.Ref(() => RewriteExpression!
                     .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))));
 
-        // <intersection> ::= <term> [ '&' <term> ]*
-        Intersection =
-            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Intersection), Term, (op, left, right) =>
-                left is IntersectionRewrite intersection
-                    ? new IntersectionRewrite(intersection.Children.Add(right))
-                    : new IntersectionRewrite([left, right]));
-
-        // <exclusion> ::= <intersection> [ '!' <intersection> ]*
+        // <exclusion> ::= <term> [ '!' <term> ]*
         Exclusion =
-            from include in Intersection
-            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(Intersection).Many()
+            from include in Term
+            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(Term).Many()
             select exclude.Length == 0
                 ? include
                 : exclude.Aggregate(include, (acc, ex) => new ExclusionRewrite(acc, ex));
 
-        // <union> ::= <exclusion> [ '|' <exclusion> ]*
-        Union =
-            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Union), Exclusion, (op, left, right) =>
-                left is UnionRewrite union
-                    ? new UnionRewrite(union.Children.Add(right))
-                    : new UnionRewrite([left, right]));
-
-        // <rewrite> ::= <union>
-        RewriteExpression = Union;
+        // <rewrite> ::= <exclusion> [ ('&' | '|') <exclusion> ]*
+        RewriteExpression =
+            from first in Exclusion
+            from rest in (Token.EqualTo(RewriteExpressionToken.Intersection).Or(Token.EqualTo(RewriteExpressionToken.Union)))
+                .Then(op => Exclusion.Select(right => (op, right)))
+                .Many()
+            select rest.Length == 0
+                ? first
+                : rest.Aggregate(first, (left, item) =>
+                    item.op.Kind == RewriteExpressionToken.Union
+                        ? left is UnionRewrite union
+                            ? new UnionRewrite(union.Children.Add(item.right))
+                            : new UnionRewrite([left, item.right])
+                        : left is IntersectionRewrite intersection
+                            ? new IntersectionRewrite(intersection.Children.Add(item.right))
+                            : new IntersectionRewrite([left, item.right]));
     }
 }

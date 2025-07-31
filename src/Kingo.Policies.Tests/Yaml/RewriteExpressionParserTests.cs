@@ -106,24 +106,30 @@ public class RewriteExpressionParserTests
         Assert.True(result.IsSucc);
         var rewrite = result.IfFail(ex => throw ex);
 
-        var union = Assert.IsType<UnionRewrite>(rewrite);
-        Assert.Equal(2, union.Children.Count);
+        // Based on BNF: ! (highest), &| (same level, left-associative)
+        // "a & b | c & d ! e" should parse as: ((a & b) | c) & (d ! e)
+        var rootIntersection = Assert.IsType<IntersectionRewrite>(rewrite);
+        Assert.Equal(2, rootIntersection.Children.Count);
 
-        var firstIntersection = Assert.IsType<IntersectionRewrite>(union.Children[0]);
+        // Left side: ((a & b) | c)
+        var leftUnion = Assert.IsType<UnionRewrite>(rootIntersection.Children[0]);
+        Assert.Equal(2, leftUnion.Children.Count);
+        
+        var firstIntersection = Assert.IsType<IntersectionRewrite>(leftUnion.Children[0]);
         Assert.Equal(2, firstIntersection.Children.Count);
         var a = Assert.IsType<ComputedSubjectSetRewrite>(firstIntersection.Children[0]);
         Assert.Equal("a", a.Relation.ToString());
         var b = Assert.IsType<ComputedSubjectSetRewrite>(firstIntersection.Children[1]);
         Assert.Equal("b", b.Relation.ToString());
-
-        var exclusion = Assert.IsType<ExclusionRewrite>(union.Children[1]);
-        var secondIntersection = Assert.IsType<IntersectionRewrite>(exclusion.Include);
-        Assert.Equal(2, secondIntersection.Children.Count);
-        var c = Assert.IsType<ComputedSubjectSetRewrite>(secondIntersection.Children[0]);
+        
+        var c = Assert.IsType<ComputedSubjectSetRewrite>(leftUnion.Children[1]);
         Assert.Equal("c", c.Relation.ToString());
-        var d = Assert.IsType<ComputedSubjectSetRewrite>(secondIntersection.Children[1]);
+
+        // Right side: (d ! e)
+        var rightExclusion = Assert.IsType<ExclusionRewrite>(rootIntersection.Children[1]);
+        var d = Assert.IsType<ComputedSubjectSetRewrite>(rightExclusion.Include);
         Assert.Equal("d", d.Relation.ToString());
-        var e = Assert.IsType<ComputedSubjectSetRewrite>(exclusion.Exclude);
+        var e = Assert.IsType<ComputedSubjectSetRewrite>(rightExclusion.Exclude);
         Assert.Equal("e", e.Relation.ToString());
     }
 
@@ -172,8 +178,9 @@ public class RewriteExpressionParserTests
     }
 
     [Theory]
-    [InlineData("this |\nowner &\nviewer", typeof(UnionRewrite))]
+    [InlineData("this |\nowner", typeof(UnionRewrite))]
     [InlineData("this |\r\nowner", typeof(UnionRewrite))]
+    [InlineData("this &\nviewer", typeof(IntersectionRewrite))]
     [InlineData(@"(this |
     editor | # user editors
     (parent, viewer)) ! # exclude
