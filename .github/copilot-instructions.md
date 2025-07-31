@@ -23,6 +23,66 @@ A key performance strategy, inspired by Zanzibar, is the use of dictionary encod
 - **Kingo.Storage**: Implements the MVCC key-value store using SQLite, including the header/journal table structure.
 - **Kingo.Policies**: Contains the Policy Definition Language (PDL) tokenizer, parser, and Abstract Syntax Tree (AST) classes.
 
+## policy specs / subjectset rewrite rules
+policy description language (PDL) for building namespaces, relationships, and rewrite expressions
+
+PDL BNF
+```bnf
+# operator precedence: !, &, | (exclude, intersect, union)
+# expressions
+<policy-set>    ::= <namespace-map>
+<namespace-map> ::= <namespace> [ <namespace> ]*
+<namespace>     ::= <identifier>: <relation-seq>
+<relation-seq>  ::= - <relation>
+<relation>      ::= <relation-identifier>
+                  | <relation-identifier>: <rewrite>
+<rewrite>       ::= <union>
+<union>         ::= <intersection> [ '|' <intersection> ]*
+<intersection>  ::= <exclusion> [ '&' <exclusion> ]*
+<exclusion>     ::= <term> [ '!' <term> ]
+<term>          ::= 'this'
+                  | <computed-subjectset>
+                  | <tuple-to-subjectset>
+                  | '(' <rewrite> ')'
+
+# terms
+<computed-subjectset>   ::= <identifier>
+<tuple-to-subjectset>   ::= '(' <identifier> ',' <identifier> ')'
+<relation-identifier>   ::= <identifier>
+<identifier>            ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+<comment>       ::= '#' [^<newline>]*
+<newline>       ::= '\n' | '\r\n'
+```
+
+PDL sample:
+```pdl
+# comments are prefixed with #
+# rewrite set operators:
+#   ! = exclusion operator
+#   & = intersection operator
+#   | = union operator
+
+# namespace
+file:
+# empty relationship - implicit this
+  - owner
+# relationship with union rewrite
+  - editor: this | owner
+# relationship with union, tupleset, and exclusion rewrites
+  - viewer: (this | editor | (parent, viewer)) ! banned
+# relationship with intersection rewrite
+  - auditor: this & viewer
+# empty relationship - implicit this
+  - banned
+
+# second policy defined within same document
+folder:
+  - owner
+  - viewer: (this | (parent, viewer)) ! banned
+  - banned
+```
+
 ## Current Development Focus
 The primary work-in-progress is the **dictionary encoding refactor**. This involves implementing the system to map string identifiers for namespaces, relations, and subjects to integer values to enable performance optimizations like tuple bit-packing.
 
