@@ -1,3 +1,4 @@
+using LanguageExt;
 using YamlDotNet.Serialization;
 using static LanguageExt.Prelude;
 
@@ -41,13 +42,13 @@ public static class YamlPolicyParser
 
                     case Dictionary<object, object> relationDict:
                         var (name, expression) = relationDict.First();
-                        var rewrite = RewriteExpressionParser.ParseRewriteExpression(expression.ToString()!);
-                        if (rewrite == null)
+                        var rewriteResult = RewriteExpressionParser.Parse(expression.ToString()!).Run();
+                        if (rewriteResult.IsFail)
                             return null;
 
                         relationList.Add(new Relation(
                             RelationIdentifier.From(name.ToString()!),
-                            rewrite));
+                            rewriteResult.ThrowIfFail()));
                         break;
                 }
             }
