@@ -43,7 +43,7 @@ internal static class RewriteExpressionTokenizer
         var tokensResult = Tokenizer.TryTokenize(input);
         return tokensResult.HasValue
             ? Prelude.Pure(tokensResult.Value)
-            : ParseError.New(ParseErrorCodes.ParseEerror, $"tokenization error: {tokensResult}");
+            : ParseError.New(ParseErrorCodes.ParseEerror, $"tokenization error: {tokensResult.ErrorMessage} at {tokensResult.Location} : {tokensResult.ErrorPosition}");
     }
 
     private static readonly Tokenizer<RewriteExpressionToken> Tokenizer =
