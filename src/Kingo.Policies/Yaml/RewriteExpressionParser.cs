@@ -20,66 +20,47 @@ internal static class RewriteExpressionParser
             : ParseError.New(ParseErrorCodes.ParseEerror, $"parse error: {parseResult}");
     }
 
-    private static readonly TokenListParser<RewriteExpressionToken, string> Identifier;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> DirectTerm;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> ComputedSubjectSetRewriteParser;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> TupleToSubjectSetRewriteParser;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Term;
-    private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> Exclusion;
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> RewriteExpression;
 
     static RewriteExpressionParser()
     {
-        Identifier =
-            Token.EqualTo(RewriteExpressionToken.Identifier).Select(token => token.ToStringValue());
+        var identifier = Token.EqualTo(RewriteExpressionToken.Identifier).Select(token => token.ToStringValue());
 
-        DirectTerm =
-            Token.EqualTo(RewriteExpressionToken.This).Select(_ => (SubjectSetRewrite)DirectRewrite.Default);
+        var directTerm = Token.EqualTo(RewriteExpressionToken.This).Select(_ => (SubjectSetRewrite)DirectRewrite.Default);
 
-        ComputedSubjectSetRewriteParser =
-            Identifier.Select(name => (SubjectSetRewrite)new ComputedSubjectSetRewrite(RelationIdentifier.From(name)));
+        var computedSubjectSet = identifier.Select(name => (SubjectSetRewrite)new ComputedSubjectSetRewrite(RelationIdentifier.From(name)));
 
-        TupleToSubjectSetRewriteParser =
+        var tupleToSubjectSet =
             from lparen in Token.EqualTo(RewriteExpressionToken.LeftParen)
-            from name in Identifier
+            from name in identifier
             from comma in Token.EqualTo(RewriteExpressionToken.Comma)
-            from mapsTo in Identifier
+            from mapsTo in identifier
             from rparen in Token.EqualTo(RewriteExpressionToken.RightParen)
             select (SubjectSetRewrite)new TupleToSubjectSetRewrite(RelationIdentifier.From(name), RelationIdentifier.From(mapsTo));
 
-        var nonParenthesizedTerm =
-            TupleToSubjectSetRewriteParser.Try()
-                .Or(DirectTerm.Try())
-                .Or(ComputedSubjectSetRewriteParser);
+        var term = tupleToSubjectSet.Try().Or(directTerm.Try()).Or(computedSubjectSet)
+            .Or(Superpower.Parse.Ref(() => RewriteExpression!
+                .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))));
 
-        Term =
-            nonParenthesizedTerm
-                .Or(Superpower.Parse.Ref(() => RewriteExpression!
-                    .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))));
+        var exclusion =
+            from include in term
+            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(term).Many()
+            select exclude.Aggregate(include, (acc, ex) => new ExclusionRewrite(acc, ex));
 
-        // <exclusion> ::= <term> [ '!' <term> ]*
-        Exclusion =
-            from include in Term
-            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(Term).Many()
-            select exclude.Length == 0
-                ? include
-                : exclude.Aggregate(include, (acc, ex) => new ExclusionRewrite(acc, ex));
-
-        // <rewrite> ::= <exclusion> [ ('&' | '|') <exclusion> ]*
         RewriteExpression =
-            from first in Exclusion
+            from first in exclusion
             from rest in Token.EqualTo(RewriteExpressionToken.Intersection).Or(Token.EqualTo(RewriteExpressionToken.Union))
-                .Then(op => Exclusion.Select(right => (op, right)))
+                .Then(op => exclusion.Select(right => (op, right)))
                 .Many()
-            select rest.Length == 0
-                ? first
-                : rest.Aggregate(first, (left, item) =>
-                    item.op.Kind == RewriteExpressionToken.Union
-                        ? left is UnionRewrite union
-                            ? new UnionRewrite(union.Children.Add(item.right))
-                            : new UnionRewrite([left, item.right])
-                        : left is IntersectionRewrite intersection
-                            ? new IntersectionRewrite(intersection.Children.Add(item.right))
-                            : new IntersectionRewrite([left, item.right]));
+            select rest.Aggregate(first, (left, item) => CreateBinaryRewrite(left, item.op.Kind, item.right));
     }
+
+    private static SubjectSetRewrite CreateBinaryRewrite(SubjectSetRewrite left, RewriteExpressionToken op, SubjectSetRewrite right) =>
+        op == RewriteExpressionToken.Union
+            ? left is UnionRewrite union
+                ? new UnionRewrite(union.Children.Add(right))
+                : new UnionRewrite([left, right])
+            : left is IntersectionRewrite intersection
+                ? new IntersectionRewrite(intersection.Children.Add(right))
+                : new IntersectionRewrite([left, right]);
 }
