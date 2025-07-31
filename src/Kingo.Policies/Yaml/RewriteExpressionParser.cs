@@ -60,24 +60,24 @@ internal static class RewriteExpressionParser
                 .Or(Superpower.Parse.Ref(() => RewriteExpression!
                     .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen))));
 
-        // <exclusion> ::= <term> [ '!' <term> ]*
-        Exclusion =
-            from include in Term
-            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(Term).Many()
-            select exclude.Length == 0
-                ? include
-                : exclude.Aggregate(include, (acc, ex) => new ExclusionRewrite(acc, ex));
-
-        // <intersection> ::= <exclusion> [ '&' <exclusion> ]*
+        // <intersection> ::= <term> [ '&' <term> ]*
         Intersection =
-            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Intersection), Exclusion, (op, left, right) =>
+            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Intersection), Term, (op, left, right) =>
                 left is IntersectionRewrite intersection
                     ? new IntersectionRewrite(intersection.Children.Add(right))
                     : new IntersectionRewrite([left, right]));
 
-        // <union> ::= <intersection> [ '|' <intersection> ]*
+        // <exclusion> ::= <intersection> [ '!' <intersection> ]*
+        Exclusion =
+            from include in Intersection
+            from exclude in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(Intersection).Many()
+            select exclude.Length == 0
+                ? include
+                : exclude.Aggregate(include, (acc, ex) => new ExclusionRewrite(acc, ex));
+
+        // <union> ::= <exclusion> [ '|' <exclusion> ]*
         Union =
-            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Union), Intersection, (op, left, right) =>
+            Superpower.Parse.Chain(Token.EqualTo(RewriteExpressionToken.Union), Exclusion, (op, left, right) =>
                 left is UnionRewrite union
                     ? new UnionRewrite(union.Children.Add(right))
                     : new UnionRewrite([left, right]));
