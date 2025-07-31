@@ -39,7 +39,7 @@ PDL BNF
 <rewrite>       ::= <union>
 <union>         ::= <intersection> [ '|' <intersection> ]*
 <intersection>  ::= <exclusion> [ '&' <exclusion> ]*
-<exclusion>     ::= <term> [ '!' <term> ]
+<exclusion>     ::= <term> [ '!' <term> ]*
 <term>          ::= 'this'
                   | <computed-subjectset>
                   | <tuple-to-subjectset>
