@@ -5,39 +5,30 @@ using System.Runtime.CompilerServices;
 namespace Kingo.Policies;
 
 public sealed record PdlDocument(
-    string Pdl,
+    string Yaml,
     Seq<Namespace> Namespaces);
 
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "it's fine")]
-// <namespace>
 public sealed record Namespace(
-    // <policy-identifier>
     NamespaceIdentifier Name,
-    // <relation-set>
     Seq<Relation> Relations);
 
-// <relation>
 public sealed record Relation(
-    // <identifier> from <relation-identifier>
     RelationIdentifier Name,
-    // <rewrite>
     SubjectSetRewrite SubjectSetRewrite)
 {
     public Relation(RelationIdentifier name)
-        : this(name, DirectRewrite.Default) { }
+        : this(name, ThisRewrite.Default) { }
 };
 
-// <rewrite>
 public abstract record SubjectSetRewrite;
 
-// <direct>
-public sealed record DirectRewrite
+public sealed record ThisRewrite
     : SubjectSetRewrite
 {
-    public static DirectRewrite Default { get; } = new();
+    public static ThisRewrite Default { get; } = new();
 }
 
-// <computed-subjectset-rewrite>
 public sealed record ComputedSubjectSetRewrite(
     RelationIdentifier Relation)
     : SubjectSetRewrite
@@ -47,7 +38,6 @@ public sealed record ComputedSubjectSetRewrite(
         new(relationship);
 }
 
-// <tuple-to-subjectset-rewrite>
 public sealed record TupleToSubjectSetRewrite(
     RelationIdentifier TuplesetRelation,
     RelationIdentifier ComputedSubjectSetRelation)

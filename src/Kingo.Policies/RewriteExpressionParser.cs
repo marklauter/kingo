@@ -3,7 +3,7 @@ using Superpower;
 using Superpower.Model;
 using Superpower.Parsers;
 
-namespace Kingo.Policies.Yaml;
+namespace Kingo.Policies;
 
 internal static class RewriteExpressionParser
 {
@@ -17,7 +17,7 @@ internal static class RewriteExpressionParser
         var parseResult = RewriteExpression.AtEnd().TryParse(input);
         return parseResult.HasValue
             ? Prelude.Pure(parseResult.Value)
-            : ParseError.New(ParseErrorCodes.ParseEerror, $"parse error: {parseResult}");
+            : PdlParseError.New(PdlParseErrorCodes.SyntaxError, $"parse error: {parseResult}");
     }
 
     private static readonly TokenListParser<RewriteExpressionToken, SubjectSetRewrite> RewriteExpression;
@@ -26,7 +26,7 @@ internal static class RewriteExpressionParser
     {
         var identifier = Token.EqualTo(RewriteExpressionToken.Identifier).Select(token => token.ToStringValue());
 
-        var directTerm = Token.EqualTo(RewriteExpressionToken.This).Select(_ => (SubjectSetRewrite)DirectRewrite.Default);
+        var directTerm = Token.EqualTo(RewriteExpressionToken.This).Select(_ => (SubjectSetRewrite)ThisRewrite.Default);
 
         var computedSubjectSet = identifier.Select(name => (SubjectSetRewrite)new ComputedSubjectSetRewrite(RelationIdentifier.From(name)));
 

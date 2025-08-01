@@ -3,9 +3,9 @@ using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Policies.Yaml;
+namespace Kingo.Policies;
 
-public static class YamlPolicyParser2
+public static class PdlParser
 {
     public static Eff<PdlDocument> Parse(string yaml) =>
         Prelude.liftIO(() => Task.Run(() => ParsePdl(yaml)));
@@ -29,9 +29,7 @@ sealed file class RelationTypeConverter
     {
         // Handles the simple case: "- owner"
         if (parser.TryConsume<Scalar>(out var scalar))
-        {
             return new Relation(RelationIdentifier.From(scalar.Value));
-        }
 
         // Handles the complex case: "- editor: this | owner"
         if (parser.TryConsume<MappingStart>(out _))

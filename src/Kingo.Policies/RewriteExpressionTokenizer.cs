@@ -5,13 +5,13 @@ using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
-namespace Kingo.Policies.Yaml;
+namespace Kingo.Policies;
 
 internal enum RewriteExpressionToken
 {
     None,
 
-    [Token(Category = "identifier", Example = "myFile")]
+    [Token(Category = "identifier", Example = "myRelation")]
     Identifier,
 
     [Token(Category = "keyword", Example = "this")]
@@ -43,7 +43,7 @@ internal static class RewriteExpressionTokenizer
         var tokensResult = Tokenizer.TryTokenize(input);
         return tokensResult.HasValue
             ? Prelude.Pure(tokensResult.Value)
-            : ParseError.New(ParseErrorCodes.ParseEerror, $"tokenization error: {tokensResult.ErrorMessage} at {tokensResult.Location} : {tokensResult.ErrorPosition}");
+            : PdlParseError.New(PdlParseErrorCodes.SyntaxError, $"tokenization error: {tokensResult}");
     }
 
     private static readonly Tokenizer<RewriteExpressionToken> Tokenizer =
