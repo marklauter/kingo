@@ -229,6 +229,7 @@ FUT - work planned
 - 30 JUL 2025 - extracted expression parser from original PDL document parser
 - 31 JUL 2025 - replaced custom PDL language with yaml formatted structure
 - 01 AUG 2025 - all yaml-based PDL parser tests pass
+- FUT - PDL AST to YAML serializer
 - WIP - refactoring SQLite document writers to use the updated document structure 
 - WIP - dictionary encoding refactor 
 
