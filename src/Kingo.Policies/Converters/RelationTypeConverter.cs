@@ -61,7 +61,20 @@ internal sealed class RelationTypeConverter
             TupleToSubjectSetRewrite tuple => $"({tuple.TuplesetRelation}, {tuple.ComputedSubjectSetRelation})",
             UnionRewrite union => string.Join(" | ", union.Children.Select(SerializeSubjectSetRewrite)),
             IntersectionRewrite intersection => string.Join(" & ", intersection.Children.Select(SerializeSubjectSetRewrite)),
-            ExclusionRewrite exclusion => $"{SerializeSubjectSetRewrite(exclusion.Include)} ! {SerializeSubjectSetRewrite(exclusion.Exclude)}",
+            ExclusionRewrite exclusion => SerializeExclusion(exclusion),
             _ => throw new NotSupportedException($"Rewrite type {rewrite.GetType().Name} is not supported for serialization")
         };
+
+    private static string SerializeExclusion(ExclusionRewrite exclusion)
+    {
+        var includeStr = SerializeSubjectSetRewrite(exclusion.Include);
+        var excludeStr = SerializeSubjectSetRewrite(exclusion.Exclude);
+
+        // Add parentheses around union/intersection expressions when they're the left operand of exclusion
+        // because exclusion (!) has higher precedence than union (|) and intersection (&)
+        if (exclusion.Include is UnionRewrite or IntersectionRewrite)
+            includeStr = $"({includeStr})";
+
+        return $"{includeStr} ! {excludeStr}";
+    }
 }

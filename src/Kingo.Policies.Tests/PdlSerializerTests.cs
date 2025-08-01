@@ -21,7 +21,7 @@ public sealed class PdlSerializerTests
         );
 
         var result = PdlSerializer.Serialize(document).Run();
-        
+
         Assert.True(result.IsSucc);
         var yaml = result.IfFail(ex => throw ex);
         Assert.Contains("file:", yaml);
@@ -69,16 +69,16 @@ public sealed class PdlSerializerTests
         );
 
         var result = PdlSerializer.Serialize(document).Run();
-        
+
         Assert.True(result.IsSucc);
         var yaml = result.IfFail(ex => throw ex);
-        
+
         // Verify namespace structure
         Assert.Contains("file:", yaml);
-        
+
         // Verify simple relation
         Assert.Contains("- owner", yaml);
-        
+
         // Verify complex relations
         Assert.Contains("editor: this | owner", yaml);
         Assert.Contains("auditor: this & viewer", yaml);
@@ -104,10 +104,10 @@ public sealed class PdlSerializerTests
         );
 
         var result = PdlSerializer.Serialize(document).Run();
-        
+
         Assert.True(result.IsSucc);
         var yaml = result.IfFail(ex => throw ex);
-        
+
         Assert.Contains("file:", yaml);
         Assert.Contains("folder:", yaml);
         Assert.Contains("- owner", yaml);
@@ -120,7 +120,7 @@ public sealed class PdlSerializerTests
         var document = new PdlDocument("original", Seq<Namespace>());
 
         var result = PdlSerializer.Serialize(document).Run();
-        
+
         Assert.True(result.IsSucc);
         var yaml = result.IfFail(ex => throw ex);
         Assert.Equal("{}\r\n", yaml);
@@ -182,40 +182,40 @@ public sealed class PdlSerializerTests
                     Seq(
                         // ThisRewrite
                         new Relation(RelationIdentifier.From("direct"), ThisRewrite.Default),
-                        
+
                         // ComputedSubjectSetRewrite
                         new Relation(
-                            RelationIdentifier.From("computed"), 
+                            RelationIdentifier.From("computed"),
                             new ComputedSubjectSetRewrite(RelationIdentifier.From("owner"))
                         ),
-                        
+
                         // TupleToSubjectSetRewrite
                         new Relation(
-                            RelationIdentifier.From("tuple"), 
+                            RelationIdentifier.From("tuple"),
                             new TupleToSubjectSetRewrite(RelationIdentifier.From("parent"), RelationIdentifier.From("viewer"))
                         ),
-                        
+
                         // UnionRewrite
                         new Relation(
-                            RelationIdentifier.From("union"), 
+                            RelationIdentifier.From("union"),
                             new UnionRewrite(Seq<SubjectSetRewrite>(
                                 ThisRewrite.Default,
                                 new ComputedSubjectSetRewrite(RelationIdentifier.From("owner"))
                             ))
                         ),
-                        
+
                         // IntersectionRewrite
                         new Relation(
-                            RelationIdentifier.From("intersection"), 
+                            RelationIdentifier.From("intersection"),
                             new IntersectionRewrite(Seq<SubjectSetRewrite>(
                                 ThisRewrite.Default,
                                 new ComputedSubjectSetRewrite(RelationIdentifier.From("viewer"))
                             ))
                         ),
-                        
+
                         // ExclusionRewrite
                         new Relation(
-                            RelationIdentifier.From("exclusion"), 
+                            RelationIdentifier.From("exclusion"),
                             new ExclusionRewrite(
                                 ThisRewrite.Default,
                                 new ComputedSubjectSetRewrite(RelationIdentifier.From("banned"))
@@ -283,10 +283,10 @@ public sealed class PdlSerializerTests
         var results = await Task.WhenAll(tasks);
 
         Assert.All(results, result => Assert.True(result.IsSucc));
-        
+
         // All results should be identical
         var firstYaml = results[0].IfFail(ex => throw ex);
-        Assert.All(results, result => 
+        Assert.All(results, result =>
         {
             var yaml = result.IfFail(ex => throw ex);
             Assert.Equal(firstYaml, yaml);
@@ -317,7 +317,7 @@ public sealed class PdlSerializerTests
         Assert.True(result.IsSucc);
 
         var yaml = result.IfFail(ex => throw ex);
-        
+
         // Verify it contains all namespaces
         for (var i = 0; i < 50; i++)
             Assert.Contains($"namespace{i}:", yaml);
