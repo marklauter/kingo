@@ -6,11 +6,7 @@ namespace Kingo.Policies;
 
 public sealed record PdlDocument(
     string Pdl,
-    NamespaceSet PolicySet);
-
-// <policy-set>
-public sealed record NamespaceSet(
-    Seq<Namespace> Policies);
+    Seq<Namespace> Namespaces);
 
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "it's fine")]
 // <namespace>
