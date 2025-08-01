@@ -1,3 +1,4 @@
+using Kingo.Policies.Converters;
 using LanguageExt;
 using YamlDotNet.Serialization;
 
@@ -16,6 +17,8 @@ public static class PdlSerializer
 
         return new SerializerBuilder()
             .WithTypeConverter(new RelationTypeConverter())
+            .WithTypeConverter(new YamlStringConvertible<NamespaceIdentifier>())
+            .WithTypeConverter(new YamlStringConvertible<RelationIdentifier>())
             .Build()
             .Serialize(namespaceDict);
     }
