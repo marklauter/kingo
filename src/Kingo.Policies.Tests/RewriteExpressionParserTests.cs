@@ -1,13 +1,12 @@
-using Kingo.Policies.Yaml;
 using LanguageExt;
 
-namespace Kingo.Policies.Tests.Yaml;
+namespace Kingo.Policies.Tests;
 
 public class RewriteExpressionParserTests
 {
     [Theory]
-    [InlineData("this", typeof(DirectRewrite))]
-    [InlineData("THIS", typeof(DirectRewrite))] 
+    [InlineData("this", typeof(ThisRewrite))]
+    [InlineData("THIS", typeof(ThisRewrite))] 
     [InlineData("owner", typeof(ComputedSubjectSetRewrite))]
     public void Parse_SingleTerms_ReturnsCorrectRewriteType(string input, Type expectedType)
     {
@@ -41,8 +40,8 @@ public class RewriteExpressionParserTests
     }
 
     [Theory]
-    [InlineData("this | owner", typeof(UnionRewrite), typeof(DirectRewrite), typeof(ComputedSubjectSetRewrite))]
-    [InlineData("this & viewer", typeof(IntersectionRewrite), typeof(DirectRewrite), typeof(ComputedSubjectSetRewrite))]
+    [InlineData("this | owner", typeof(UnionRewrite), typeof(ThisRewrite), typeof(ComputedSubjectSetRewrite))]
+    [InlineData("this & viewer", typeof(IntersectionRewrite), typeof(ThisRewrite), typeof(ComputedSubjectSetRewrite))]
     public void Parse_BinaryOperators_ReturnsCorrectStructure(string input, Type expectedRootType, Type expectedLeftType, Type expectedRightType)
     {
         var result = RewriteExpressionParser.Parse(input).Run();
@@ -91,7 +90,7 @@ public class RewriteExpressionParserTests
 
         Assert.Equal("banned", exclude.Relation.ToString());
         Assert.Equal(3, include.Children.Count);
-        _ = Assert.IsType<DirectRewrite>(include.Children[0]);
+        _ = Assert.IsType<ThisRewrite>(include.Children[0]);
         var computed = Assert.IsType<ComputedSubjectSetRewrite>(include.Children[1]);
         Assert.Equal("editor", computed.Relation.ToString());
         var tuple = Assert.IsType<TupleToSubjectSetRewrite>(include.Children[2]);
@@ -168,8 +167,8 @@ public class RewriteExpressionParserTests
     }
 
     [Theory]
-    [InlineData("(this)", typeof(DirectRewrite))]                      // Parentheses
-    [InlineData("this # this is a comment", typeof(DirectRewrite))]    // Comments
+    [InlineData("(this)", typeof(ThisRewrite))]                      // Parentheses
+    [InlineData("this # this is a comment", typeof(ThisRewrite))]    // Comments
     [InlineData("this |\nowner", typeof(UnionRewrite))]                // Unix line endings
     [InlineData("this |\r\nowner", typeof(UnionRewrite))]              // Windows line endings
     [InlineData("this &\nviewer", typeof(IntersectionRewrite))]        // Multi-line intersection

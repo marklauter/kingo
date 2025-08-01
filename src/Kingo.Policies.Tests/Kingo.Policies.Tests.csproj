@@ -16,14 +16,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Data\doc.policy.pdl" />
 	  <None Remove="Data\doc.policy.yml" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="Data\doc.policy.pdl">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
 	  <Content Include="Data\doc.policy.yml">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>

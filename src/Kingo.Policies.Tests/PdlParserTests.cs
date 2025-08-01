@@ -1,10 +1,9 @@
-using Kingo.Policies.Yaml;
 using LanguageExt;
 using static LanguageExt.Prelude;
 
-namespace Kingo.Policies.Tests.Yaml;
+namespace Kingo.Policies.Tests;
 
-public sealed class YamlPolicyParser2Tests
+public sealed class PdlParserTests
 {
     [Fact]
     public void Parse_SimpleYamlPolicy_ReturnsCorrectAst()
@@ -20,11 +19,11 @@ public sealed class YamlPolicyParser2Tests
                 new Namespace(
                     NamespaceIdentifier.From("file"),
                     Seq(
-                        new Relation(RelationIdentifier.From("owner"), DirectRewrite.Default),
+                        new Relation(RelationIdentifier.From("owner"), ThisRewrite.Default),
                         new Relation(
                             RelationIdentifier.From("editor"),
                             new UnionRewrite(Seq<SubjectSetRewrite>(
-                                DirectRewrite.Default,
+                                ThisRewrite.Default,
                                 new ComputedSubjectSetRewrite(RelationIdentifier.From("owner"))
                             ))
                         )
@@ -32,28 +31,10 @@ public sealed class YamlPolicyParser2Tests
                 )
             );
 
-        var result = YamlPolicyParser2.Parse(yaml).Run();
+        var result = PdlParser.Parse(yaml).Run();
         Assert.True(result.IsSucc);
         var doc = result.IfFail(ex => throw ex);
         Assert.Equal(expected, doc.Namespaces);
-    }
-
-    [Fact]
-    public void Parse_DocPolicyYmlFile_ReturnsValidDocument()
-    {
-        var yaml = File.ReadAllText("Data/doc.policy.yml");
-
-        var result = YamlPolicyParser2.Parse(yaml).Run();
-
-        Assert.True(result.IsSucc);
-        var doc = result.IfFail(ex => throw ex);
-        Assert.Equal(yaml, doc.Pdl);
-
-        // Basic validation - document contains expected namespaces
-        Assert.Contains("file:", yaml);
-        Assert.Contains("folder:", yaml);
-        Assert.Contains("viewer: (this | editor | (parent, viewer)) ! banned", yaml);
-        Assert.Contains("auditor: this & viewer", yaml);
     }
 
     [Fact]
@@ -64,11 +45,11 @@ public sealed class YamlPolicyParser2Tests
         var filePolicy = new Namespace(
             NamespaceIdentifier.From("file"),
             Seq(
-                new Relation(RelationIdentifier.From("owner"), DirectRewrite.Default),
+                new Relation(RelationIdentifier.From("owner"), ThisRewrite.Default),
                 new Relation(
                     RelationIdentifier.From("editor"),
                     new UnionRewrite(Seq<SubjectSetRewrite>(
-                        DirectRewrite.Default,
+                        ThisRewrite.Default,
                         new ComputedSubjectSetRewrite(RelationIdentifier.From("owner"))
                     ))
                 ),
@@ -76,7 +57,7 @@ public sealed class YamlPolicyParser2Tests
                     RelationIdentifier.From("viewer"),
                     new ExclusionRewrite(
                         new UnionRewrite(Seq<SubjectSetRewrite>(
-                            DirectRewrite.Default,
+                            ThisRewrite.Default,
                             new ComputedSubjectSetRewrite(RelationIdentifier.From("editor")),
                             new TupleToSubjectSetRewrite(RelationIdentifier.From("parent"), RelationIdentifier.From("viewer"))
                         )),
@@ -86,39 +67,39 @@ public sealed class YamlPolicyParser2Tests
                 new Relation(
                     RelationIdentifier.From("auditor"),
                     new IntersectionRewrite(Seq<SubjectSetRewrite>(
-                        DirectRewrite.Default,
+                        ThisRewrite.Default,
                         new ComputedSubjectSetRewrite(RelationIdentifier.From("viewer"))
                     ))
                 ),
-                new Relation(RelationIdentifier.From("banned"), DirectRewrite.Default)
+                new Relation(RelationIdentifier.From("banned"), ThisRewrite.Default)
             )
         );
 
         var folderPolicy = new Namespace(
             NamespaceIdentifier.From("folder"),
             Seq(
-                new Relation(RelationIdentifier.From("owner"), DirectRewrite.Default),
+                new Relation(RelationIdentifier.From("owner"), ThisRewrite.Default),
                 new Relation(
                     RelationIdentifier.From("viewer"),
                     new ExclusionRewrite(
                         new UnionRewrite(Seq<SubjectSetRewrite>(
-                            DirectRewrite.Default,
+                            ThisRewrite.Default,
                             new TupleToSubjectSetRewrite(RelationIdentifier.From("parent"), RelationIdentifier.From("viewer"))
                         )),
                         new ComputedSubjectSetRewrite(RelationIdentifier.From("banned"))
                     )
                 ),
-                new Relation(RelationIdentifier.From("banned"), DirectRewrite.Default)
+                new Relation(RelationIdentifier.From("banned"), ThisRewrite.Default)
             )
         );
 
         var expected = Seq(filePolicy, folderPolicy);
 
-        var result = YamlPolicyParser2.Parse(yaml).Run();
+        var result = PdlParser.Parse(yaml).Run();
         Assert.True(result.IsSucc);
         var doc = result.IfFail(ex => throw ex);
         Assert.Equal(expected, doc.Namespaces);
-        Assert.Equal(yaml, doc.Pdl);
+        Assert.Equal(yaml, doc.Yaml);
     }
 
     [Theory]
@@ -128,7 +109,7 @@ public sealed class YamlPolicyParser2Tests
     [InlineData("file:\n  - viewer: this & owner")]
     [InlineData("file:\n  - viewer: this ! owner")]
     public void Parse_ValidYamlFormats_ReturnsSuccess(string yaml) =>
-        Assert.True(YamlPolicyParser2.Parse(yaml).Run().IsSucc);
+        Assert.True(PdlParser.Parse(yaml).Run().IsSucc);
 
     [Theory]
     [InlineData("")]
@@ -154,12 +135,12 @@ public sealed class YamlPolicyParser2Tests
     [InlineData("[]")]                              // Array at root
     [InlineData("scalar")]                          // Scalar at root
     public void Parse_InvalidYamlFormats_ReturnsFailure(string yaml) =>
-        Assert.True(YamlPolicyParser2.Parse(yaml).Run().IsFail);
+        Assert.True(PdlParser.Parse(yaml).Run().IsFail);
 
     [Fact]
     public void Parse_Empty_ReturnsEmpty()
     {
-        var result = YamlPolicyParser2.Parse("{}").Run();
+        var result = PdlParser.Parse("{}").Run();
         Assert.True(result.IsSucc);
         var pdl = result.IfFail(ex => throw ex);
         Assert.Empty(pdl.Namespaces);
@@ -174,11 +155,11 @@ public sealed class YamlPolicyParser2Tests
     [InlineData("file:\n  - owner\n  - owner")]
     public void Parse_EdgeCaseYamlFormats_HandlesGracefully(string yaml) =>
         // Should either return success or failure, but not throw
-        _ = YamlPolicyParser2.Parse(yaml).Run();
+        _ = PdlParser.Parse(yaml).Run();
 
     [Fact]
     public void Parse_NullInput_ReturnsFailure() =>
-        Assert.True(YamlPolicyParser2.Parse(null!).Run().IsFail);
+        Assert.True(PdlParser.Parse(null!).Run().IsFail);
 
     [Theory]
     [InlineData("file:\n  - viewer: (this)")]
@@ -186,7 +167,7 @@ public sealed class YamlPolicyParser2Tests
     [InlineData("file:\n  - viewer: (parent, child)")]
     [InlineData("file:\n  - viewer: this | (parent, child) & owner ! banned")]
     public void Parse_ComplexExpressionFormats_ReturnsSuccess(string yaml) =>
-        Assert.True(YamlPolicyParser2.Parse(yaml).Run().IsSucc);
+        Assert.True(PdlParser.Parse(yaml).Run().IsSucc);
 
     [Fact]
     public async Task Parse_ConcurrentCalls_HandlesCorrectly()
@@ -194,7 +175,7 @@ public sealed class YamlPolicyParser2Tests
         const string yaml = "file:\n  - owner\n  - editor: this | owner";
 
         var tasks = Enumerable.Range(0, 10)
-            .Select(_ => Task.Run(() => YamlPolicyParser2.Parse(yaml).Run()))
+            .Select(_ => Task.Run(() => PdlParser.Parse(yaml).Run()))
             .ToArray();
 
         var results = await Task.WhenAll(tasks);
@@ -209,7 +190,7 @@ public sealed class YamlPolicyParser2Tests
             .Select(i => $"namespace{i}:\n  - owner\n  - editor: this | owner");
         var yaml = string.Join("\n", namespaces);
 
-        var result = YamlPolicyParser2.Parse(yaml).Run();
+        var result = PdlParser.Parse(yaml).Run();
         Assert.True(result.IsSucc);
 
         var doc = result.IfFail(ex => throw ex);
