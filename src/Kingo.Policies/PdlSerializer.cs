@@ -11,7 +11,7 @@ public static class PdlSerializer
     private static string SerializePdl(PdlDocument document)
     {
         var namespaceDict = document.Namespaces.ToDictionary(
-            ns => ns.Name,
+            ns => ns.Name.ToString(),  // Convert NamespaceIdentifier to string
             ns => ns.Relations.ToList());
 
         return new SerializerBuilder()
