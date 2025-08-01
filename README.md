@@ -218,7 +218,17 @@ FUT - work planned
 - 22 JUL 2025 - rewriting storage unit tests
 - 23 JUL 2025 - rewriting storage unit tests
 - 24 JUL 2025 - power outage due to storms
-- 25 JUL 2025 - refactored the SQLite document readers into a single reader. replaced generic document classes with property and class attributes. added key-value store style query class.
+- 25 JUL 2025 - replaced generic document classes with property and class attributes. 
+- 25 JUL 2025 - added key-value store style query class.
+- 25 JUL 2025 - refactored the SQLite document readers into a single reader. 
+- 26 JUL 2025 - refactored the SQLite document writers into a single writer. 
+- 27 JUL 2025 - updated SQLite reader and writer tests, fixed bugs
+- 28 JUL 2025 - updated SQLite reader and writer tests, fixed bugs
+- 29 JUL 2025 - updated SQLite reader and writer tests, fixed bugs
+- 30 JUL 2025 - experimental yaml parser for PDL
+- 30 JUL 2025 - extracted expression parser from original PDL document parser
+- 31 JUL 2025 - replaced custom PDL language with yaml formatted structure
+- 01 AUG 2025 - all yaml-based PDL parser tests pass
 - WIP - refactoring SQLite document writers to use the updated document structure 
 - WIP - dictionary encoding refactor 
 
