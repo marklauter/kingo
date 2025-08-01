@@ -11,40 +11,70 @@ PDP decisions are recorded in the decision journal.
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
-## roadmap (AI slop draft)
-- **Core Architecture**
-  - [ ] Complete dictionary encoding refactor for namespaces, relations, and subjects
-  - [x] Finalize MVCC key-value store implementation using SQLite (header/journal split)
-  - [ ] Ensure durable audit history and efficient tuple lookup
-- **Policy Engine**
-  - [X] Finalize Policy Definition Language (PDL) parser and AST
-  - [X] Implement full support for subjectset rewrite rules (union, intersection, exclusion)
-  - [ ] Document PDL syntax and provide more usage examples
-- **Access Control Subsystem**
-  - [ ] Refactor and test ACL tuple binary packing for performance
-  - [ ] Refactor ACL tuple storage and retrieval logic
-  - [ ] Refactor recursive subjectset rewrite evaluation (is-member traversal)
-  - [ ] Add integration tests for access control logic
-- **Storage System**
-  - [ ] Refactor and optimize document storage to work seamlessly with Dapper and SQLite
-  - [X] Add support for range keys and composite keys in document storage
-  - [ ] Document storage API and usage patterns
-- **Performance & Scalability**
-  - [ ] Benchmark tuple lookup and storage operations
-  - [ ] Optimize dictionary encoding and bit-packing strategies
-  - [ ] Plan for future event-based store and periodic snapshotting
-- **Documentation & Examples**
-  - [ ] Expand README with quick start, API usage, and architecture overview
-  - [ ] Add contribution guidelines and coding standards
-  - [ ] Document known limitations and future plans
-- **Testing & Quality**
-  - [X] Rewrite and expand storage unit tests
-  - [ ] Add policy engine and access control tests
-  - [ ] Set up CI for automated testing
-- **Future Enhancements**
-  - [ ] Implement event-based store (ledger model) for entity state
-  - [X] Add support for distributed sequence generation
-  - [ ] Explore integration with external identity providers or policy sources
+## roadmap
+
+- proof of concept (Will it work?)
+  - [X] in-memory key-value store with MVCC support
+  - [X] DynamoDB-style document support (hashkey, rangekey, version)
+  - [X] ACL checks with subject set rewrite tail chasing
+  - [X] refine core domain classes and concepts
+  - [X] comprehensive ACL unit tests that prove the concept is sound
+- transition to persistent storage (SQLite & Dapper)
+  - [X] poc with document from proof of concept
+  - [X] replace in-memory document reader with SQLite-backed key-value store
+  - [X] replace in-memory document writer with SQLite-backed key-value store
+  - [X] support MVCC
+  - [X] support journaling
+  - [X] refactor document from rigid class-based structure to a flexible and dynamic property attribute-based structure
+  - [X] refactor document reader to support the new dynamic document structure
+  - [X] refactor document writer to support the new dynamic document structure
+  - [X] refactor reader to support the new dynamic document structure
+  - [X] create a distributed MVCC-based sequence generator - sequence tracked in key-value store
+- policy description language (PDL)
+  - [X] design a simplified subject set rewrite expression language in BNF
+  - [X] design a custom marker-based policy description language in BNF
+  - [X] design the PDL AST
+  - [X] implement the PDL combinatory parser
+  - [X] implement the PDL AST serializer
+  - [X] refactor PDL to a YAML-based structure with updated BNF
+  - [X] extract the subject set rewrite expression parser from the draft PDL parser
+  - [X] implement the YAML-based PDL parser
+  - [X] implement the YAML-based PDL serializer
+- dictionary encoding (Performance!)
+  - [ ] define the key bit encodings
+  - [ ] define encoding dictionary structure
+  - [ ] read key encodings
+  - [ ] encode key
+  - [ ] write encoded key
+  - [ ] implement hybrid-cache
+- policy authoring point (Policies aren't going to create themselves.)
+  - [ ] define the PAP interface contract
+  - [ ] implement PAP PDL document import with persistent key-value store
+  - [ ] implement PAP PDL document export
+  - [ ] implement other CRUD operations
+  - [ ] maintain key encoding dictionary
+- policy evaluation point (previously ACL POC - If a tree falls in the forest, are you allowed to hear it?)
+  - [ ] refactor ACL checks from POC to use the dictionary encoded key store / cache
+  - [ ] refactor ACL check result to meaningful decision result (time, kookie, allowed/denied, reason, error, etc)
+- policy decision point client library
+  - [ ] implement PEP client
+  - [ ] implement controller auth filter attribute
+  - [ ] implement minimal API auth filter
+- monitoring (Yes, it's an after thought.)
+  - [ ] metrics
+  - [ ] logging (otel?)
+  - [ ] aspire?
+- performance
+  - [ ] benchmarks
+  - [ ] optimize
+- PAP UI
+- PEP REST API
+- documentation and samples
+  - [ ] provide C# sample code
+  - [ ] provide Python sample code
+- future
+  - [ ] integration with other security providers
+
 
 ## policy specs / subjectset rewrite rules
 policy description language (PDL) for building namespaces, relationships, and rewrite expressions
@@ -229,6 +259,7 @@ FUT - work planned
 - 30 JUL 2025 - extracted expression parser from original PDL document parser
 - 31 JUL 2025 - replaced custom PDL language with yaml formatted structure
 - 01 AUG 2025 - all yaml-based PDL parser tests pass
+- 01 AUG 2025 - updated roadmap
 - FUT - PDL AST to YAML serializer
 - WIP - refactoring SQLite document writers to use the updated document structure 
 - WIP - dictionary encoding refactor 
