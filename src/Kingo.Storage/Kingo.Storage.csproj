@@ -24,7 +24,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Json\Kingo.Json.csproj" />
 	  <ProjectReference Include="..\Kingo\Kingo.csproj" />
 	</ItemGroup>
 
