@@ -3,7 +3,7 @@ using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Policies;
+namespace Kingo.Policies.Converters;
 
 internal sealed class RelationTypeConverter
     : IYamlTypeConverter
