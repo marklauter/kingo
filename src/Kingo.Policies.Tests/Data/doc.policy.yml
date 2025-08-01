@@ -1,9 +1,17 @@
-﻿file:
-  - owner
-  - editor: this | owner
-  - viewer: (this | editor | (parent, viewer)) ! banned
-  - auditor: this & viewer
-  - banned
+﻿# rewrite set operators:
+#   ! = exclusion operator
+#   & = intersection operator
+#   | = union operator
+
+file:                           # namespace
+  - owner                       # empty relationship - implicit this
+  - editor: this | owner        # relationship with union rewrite
+  - viewer: >                   # relationship with union, tupleset, and exclusion rewrites
+      (this | editor | (parent, viewer)) ! banned
+  - auditor: this & viewer      # relationship with intersection rewrite
+  - banned                      # empty relationship - implicit this
+
+# second policy defined within same document
 folder:
   - owner
   - viewer: (this | (parent, viewer)) ! banned
