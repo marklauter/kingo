@@ -57,25 +57,19 @@ PDL BNF
 ```
 
 PDL sample:
-```pdl
-# comments are prefixed with #
+```yaml
 # rewrite set operators:
 #   ! = exclusion operator
 #   & = intersection operator
 #   | = union operator
 
-# namespace
-file:
-# empty relationship - implicit this
-  - owner
-# relationship with union rewrite
-  - editor: this | owner
-# relationship with union, tupleset, and exclusion rewrites
-  - viewer: (this | editor | (parent, viewer)) ! banned
-# relationship with intersection rewrite
-  - auditor: this & viewer
-# empty relationship - implicit this
-  - banned
+file:                           # namespace
+  - owner                       # empty relationship - implicit this
+  - editor: this | owner        # relationship with union rewrite
+  - viewer: >                   # relationship with union, tupleset, and exclusion rewrites
+      (this | editor | (parent, viewer)) ! banned
+  - auditor: this & viewer      # relationship with intersection rewrite
+  - banned                      # empty relationship - implicit this
 
 # second policy defined within same document
 folder:
