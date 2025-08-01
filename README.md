@@ -11,7 +11,7 @@ PDP decisions are recorded in the decision journal.
 - [Datomic Intro](https://www.youtube.com/watch?v=Cym4TZwTCNU)
 - [Datomic Information Model](https://www.infoq.com/articles/Datomic-Information-Model/)
 
-## roadmap (AI draft)
+## roadmap (AI slop draft)
 - **Core Architecture**
   - [ ] Complete dictionary encoding refactor for namespaces, relations, and subjects
   - [x] Finalize MVCC key-value store implementation using SQLite (header/journal split)
