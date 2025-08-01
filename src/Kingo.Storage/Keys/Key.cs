@@ -48,7 +48,7 @@ public readonly struct Key
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
         return !Validation.IsMatch(value)
-            ? throw new ArgumentException($"value contains invalid characters. expected: '^[A-Za-z0-9_/]+$', actual: '{value}'", nameof(value))
+            ? throw new ArgumentException($"value contains invalid characters. expected: '^[A-Za-z_/][A-Za-z0-9_/-]*$', actual: '{value}'", nameof(value))
             : value;
     }
 
@@ -107,6 +107,6 @@ internal partial class KeyRegExPatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    [GeneratedRegex(@"^[A-Za-z_/][A-Za-z0-9_/-]+$", PatternOptions)]
+    [GeneratedRegex(@"^[A-Za-z_/][A-Za-z0-9_/-]*$", PatternOptions)]
     public static partial Regex Key();
 }

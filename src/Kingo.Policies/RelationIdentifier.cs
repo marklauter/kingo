@@ -34,7 +34,7 @@ public readonly struct RelationIdentifier
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
         return !Validation.IsMatch(value)
-            ? throw new ArgumentException($"value contains invalid characters. expected: '^[A-Za-z0-9_.]+$', actual: {value}'", nameof(value))
+            ? throw new ArgumentException($"value contains invalid characters. expected: '^[A-Za-z_][A-Za-z0-9_.]*$', actual: '{value}'", nameof(value))
             : value;
     }
 

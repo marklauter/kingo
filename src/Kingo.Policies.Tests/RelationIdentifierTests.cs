@@ -16,6 +16,7 @@ public sealed class RelationIdentifierTests
     [InlineData("a-b")]
     [InlineData("a$b")]
     [InlineData("a b")]
+    [InlineData("a.b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
         var exception = Assert.Throws<ArgumentException>("value", () => RelationIdentifier.From(value));
@@ -25,7 +26,6 @@ public sealed class RelationIdentifierTests
 
     [Theory]
     [InlineData("a")]
-    [InlineData("a.b")]
     [InlineData("a_b")]
     [InlineData("a0")]
     [InlineData("...")]
@@ -113,7 +113,7 @@ public sealed class RelationIdentifierTests
         Assert.Throws<ArgumentException>(() => RelationIdentifier.Empty());
 
     [Fact]
-    public void Nothing_ReturnsCorrectValue()
+    public void Nothing_Returns_Three_Dots()
     {
         var nothing = RelationIdentifier.Nothing;
         Assert.Equal("...", nothing.ToString());
