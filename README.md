@@ -56,7 +56,7 @@ PDP decisions are recorded in the decision journal.
 - policy evaluation point (previously ACL POC - If a tree falls in the forest, are you allowed to hear it?)
   - [ ] refactor ACL checks from POC to use the dictionary encoded key store / cache
   - [ ] refactor ACL check result to meaningful decision result (time, kookie, allowed/denied, reason, error, etc)
-- policy decision point client library
+- policy decision point client library (Nuget package version conflict? WTF!)
   - [ ] implement PEP client
   - [ ] implement controller auth filter attribute
   - [ ] implement minimal API auth filter
@@ -64,15 +64,15 @@ PDP decisions are recorded in the decision journal.
   - [ ] metrics
   - [ ] logging (otel?)
   - [ ] aspire?
-- performance
+- performance (Go go, Speed Racer!)
   - [ ] benchmarks
   - [ ] optimize
-- PAP UI
-- PEP REST API
-- documentation and samples
+- PAP UI (Users gonna use.)
+- PEP REST API (Do you have permission to use the permission check?)
+- documentation and samples (Read the code, dude.)
   - [ ] provide C# sample code
   - [ ] provide Python sample code
-- future
+- future (Anyone got a time machine?)
   - [ ] integration with other security providers
 
 
