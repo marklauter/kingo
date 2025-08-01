@@ -21,8 +21,4 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\Kingo.Json\Kingo.Json.csproj" />
-	</ItemGroup>
-
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace Kingo.Json;
+﻿namespace Kingo;
 
 public interface ILongConvertible<T>
 {
