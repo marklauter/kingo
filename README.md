@@ -260,9 +260,9 @@ FUT - work planned
 - 31 JUL 2025 - replaced custom PDL language with yaml formatted structure
 - 01 AUG 2025 - all yaml-based PDL parser tests pass
 - 01 AUG 2025 - updated roadmap
-- FUT - PDL AST to YAML serializer
-- WIP - refactoring SQLite document writers to use the updated document structure 
+- 06 AUG 2025 - added storage interfaces with sqlite factories (sequence and writer) 
 - WIP - dictionary encoding refactor 
+- FUT - PDL AST to YAML serializer
 
 ## performance ideas
 1. tuples can be packed into the address space of a ulong 
