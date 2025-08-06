@@ -6,5 +6,5 @@ namespace Kingo.Storage;
 public interface ISequence<N>
     where N : INumber<N>
 {
-    Eff<N> NextAsync(Key name);
+    Task<N> NextAsync(Key name, CancellationToken cancellationToken);
 }

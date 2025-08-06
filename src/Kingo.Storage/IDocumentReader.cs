@@ -2,14 +2,14 @@
 
 public interface IDocumentReader<D>
 {
-    Eff<Option<D>> Find<HK>(HK hashKey)
+    Task<D> Find<HK>(HK hashKey, CancellationToken cancellationToken)
         where HK : IEquatable<HK>, IComparable<HK>;
 
-    Eff<Option<D>> Find<HK, RK>(HK hashKey, RK rangeKey)
+    Task<D> Find<HK, RK>(HK hashKey, RK rangeKey, CancellationToken cancellationToken)
         where HK : IEquatable<HK>, IComparable<HK>
         where RK : IEquatable<RK>, IComparable<RK>;
 
-    Eff<Seq<D>> Query<HK>(Query<D, HK> query)
+    Task<IEnumerable<D>> Query<HK>(Query<D, HK> query, CancellationToken cancellationToken)
         where HK : IEquatable<HK>, IComparable<HK>;
 }
 
