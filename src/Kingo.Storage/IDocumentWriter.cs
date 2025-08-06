@@ -1,5 +1,4 @@
-﻿using LanguageExt;
-
+﻿
 namespace Kingo.Storage;
 
 public interface IDocumentWriter<D>

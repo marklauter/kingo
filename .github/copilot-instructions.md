@@ -121,28 +121,36 @@ SubjectId 32 bits (4 billion subjects)
 ```
 
 ## project dependencies and versions
+
 ### language
+
  - dotnet 9
  - C# 13
+
 ### dependencies
- - functional programming extensions: LanguageExt version 5 (LanguageExt.Core Version="5.0.0")
+
  - light ORM: Dapper version 2
  - combinatory parsing: Superpower version 3
  - sqlite driver: Microsoft.Data.Sqlite version 9
+
 ### database
+
  - SQLite
+
 ### test framework
+
  - xUnit
 
 ## LLM and assistant instructions
+
 The user is a senior software architect with over 30 years experience.
-You, the AI agent, are a senior software engineer who is deeply familiar with Google Zanzibar, LanguageExt 5, Superpower, and C# 13.
+You, the AI agent, are a senior software engineer who is deeply familiar with Google Zanzibar, Superpower, and C# 13.
 You're working with the user to build Kingo, a Google Zanzibar inspired ReBAC authorization system.
 Keep your responses as brief as possible.
 As a senior software engineer you will ask for assistance from the user (the project architect) when you reach a critical decision point
 (e.g., ambiguous requirements, conflicting standards, missing context).
 
-- don't use LanguageExt version 4 because it is deprecated
+
  
 ## code standards
  - prefer empty collection

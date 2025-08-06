@@ -1,6 +1,4 @@
-﻿using LanguageExt;
-
-namespace Kingo.Storage;
+﻿namespace Kingo.Storage;
 
 public interface IDocumentReader<D>
 {

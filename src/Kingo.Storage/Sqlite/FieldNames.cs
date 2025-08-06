@@ -1,6 +1,4 @@
-﻿using LanguageExt;
-
-namespace Kingo.Storage.Sqlite;
+﻿namespace Kingo.Storage.Sqlite;
 
 internal static class FieldNames<D>
 {
