@@ -38,17 +38,16 @@ internal static class DocumentTypeCache<D>
     public static PropertyInfo HashKeyProperty { get; } =
         MappedProperties.Single(pi => pi.IsDefined(typeof(HashKeyAttribute), true));
 
-    public static Option<PropertyInfo> RangeKeyProperty { get; } =
+    public static PropertyInfo? RangeKeyProperty { get; } =
         MappedProperties.SingleOrDefault(pi => pi.IsDefined(typeof(RangeKeyAttribute), true));
 
-    public static Option<PropertyInfo> VersionProperty { get; } =
+    public static PropertyInfo? VersionProperty { get; } =
         MappedProperties.SingleOrDefault(pi => pi.IsDefined(typeof(VersionAttribute), true));
 
     static DocumentTypeCache() =>
-        _ = VersionProperty.Match(
-            Some: pi =>
-            typeof(INumber<>).MakeGenericType(pi.PropertyType).IsAssignableFrom(pi.PropertyType)
-                ? Prelude.unit
+        _ = VersionProperty is PropertyInfo pi
+            ? typeof(INumber<>).MakeGenericType(pi.PropertyType).IsAssignableFrom(pi.PropertyType)
+                ? 0
                 : throw new InvalidOperationException($"Version property '{pi.Name}' of type '{pi.PropertyType.Name}' must implement INumber<{pi.PropertyType.Name}>"),
-            None: () => Prelude.unit);
+            : 0);
 }
