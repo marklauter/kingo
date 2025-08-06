@@ -7,33 +7,33 @@ using System.Runtime.CompilerServices;
 
 namespace Kingo.Storage.Sqlite;
 
-public sealed class Sequence<N>(
+internal sealed class SqliteSequence<N>(
     IDbContext context,
-    Identifier table,
-    Key name)
+    Identifier table)
     where N : INumber<N>
 {
     private readonly record struct ReadParam(Key Key);
-    private readonly ReadParam readParam = new(name);
 
-    public async Task<N> NextAsync(CancellationToken cancellationToken)
+    public async Task<N> NextAsync(Key name, CancellationToken cancellationToken)
     {
         var backoff = new Backoff(10);
+        var readParam = new ReadParam(name);
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (await context.ExecuteAsync(NextAsync, cancellationToken) is (true, var n))
+            if (await context.ExecuteAsync((db, tx) =>
+                NextAsync(readParam, db, tx), cancellationToken) is (true, var n))
                 return n;
 
             await backoff.WaitAsync(cancellationToken);
         }
     }
 
-    private async Task<(bool success, N n)> NextAsync(DbConnection db, DbTransaction tx) =>
-        await WriteAsync(await ReadAsync(db, tx), db, tx);
+    private async Task<(bool success, N n)> NextAsync(ReadParam readParam, DbConnection db, DbTransaction tx) =>
+        await WriteAsync(await ReadAsync(readParam, db, tx), readParam, db, tx);
 
     private readonly string read = $"select value from {table} where key = @Key";
-    private async Task<(bool exists, N currentValue, N newValue)> ReadAsync(DbConnection db, DbTransaction tx) =>
+    private async Task<(bool exists, N currentValue, N newValue)> ReadAsync(ReadParam readParam, DbConnection db, DbTransaction tx) =>
         MapN((await db.QuerySingleOrDefaultAsync<N>(read, readParam, tx))!);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,9 +44,10 @@ public sealed class Sequence<N>(
 
     private async Task<(bool success, N n)> WriteAsync(
         (bool exists, N currentValue, N newValue) n,
+        ReadParam readParam,
         DbConnection db,
         DbTransaction tx) =>
-        await InsertOrUpdate(n, db, tx) == 1
+        await InsertOrUpdate(n, readParam, db, tx) == 1
             ? (true, n.newValue)
             : (false, n.currentValue);
 
@@ -57,6 +58,7 @@ public sealed class Sequence<N>(
     private readonly string update = $"update {table} set value = @NewValue where key = @Key and value = @CurrentValue";
     private Task<int> InsertOrUpdate(
         (bool exists, N currentValue, N newValue) n,
+        ReadParam readParam,
         DbConnection db,
         DbTransaction tx) =>
         n.exists

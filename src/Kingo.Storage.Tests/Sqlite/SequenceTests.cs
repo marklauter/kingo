@@ -31,18 +31,18 @@ public sealed class SequenceTests
 
     private readonly Key seqName = Key.From("my_seq");
 
-    private Sequence<int> CreateIntSequence(Key name) =>
-        new(Context, "seq_32", name);
+    private SqliteSequence<int> CreateIntSequence() =>
+        new(Context, "seq_32");
 
-    private Sequence<long> CreateLongSequence(Key name) =>
-        new(Context, "seq_64", name);
+    private SqliteSequence<long> CreateLongSequence() =>
+        new(Context, "seq_64");
 
     [Fact]
     public async Task NextAsync_ReturnsOne_WhenSequenceIsNew()
     {
-        var sequence = CreateIntSequence(seqName);
+        var sequence = CreateIntSequence();
 
-        var result = await sequence.NextAsync(CancellationToken.None);
+        var result = await sequence.NextAsync(seqName, CancellationToken.None);
 
         _ = result.Should().Be(1);
     }
@@ -51,24 +51,24 @@ public sealed class SequenceTests
     public async Task NextAsync_ReturnsConsecutiveNumbers_WhenCalledMultipleTimes()
     {
 
-        var sequence = CreateIntSequence(seqName);
+        var sequence = CreateIntSequence();
 
-        _ = (await sequence.NextAsync(CancellationToken.None)).Should().Be(1);
-        _ = (await sequence.NextAsync(CancellationToken.None)).Should().Be(2);
-        _ = (await sequence.NextAsync(CancellationToken.None)).Should().Be(3);
+        _ = (await sequence.NextAsync(seqName, CancellationToken.None)).Should().Be(1);
+        _ = (await sequence.NextAsync(seqName, CancellationToken.None)).Should().Be(2);
+        _ = (await sequence.NextAsync(seqName, CancellationToken.None)).Should().Be(3);
     }
 
     [Fact]
     public async Task NextAsync_ReturnsIndependentSequences_WhenUsingDifferentNames()
     {
 
-        var sequence1 = CreateIntSequence(Key.From("seq1"));
-        var sequence2 = CreateIntSequence(Key.From("seq2"));
+        var sequence1 = CreateIntSequence();
+        var sequence2 = CreateIntSequence();
 
-        var seq1_first = await sequence1.NextAsync(CancellationToken.None);
-        var seq2_first = await sequence2.NextAsync(CancellationToken.None);
-        var seq1_second = await sequence1.NextAsync(CancellationToken.None);
-        var seq2_second = await sequence2.NextAsync(CancellationToken.None);
+        var seq1_first = await sequence1.NextAsync("seq1", CancellationToken.None);
+        var seq2_first = await sequence2.NextAsync("seq2", CancellationToken.None);
+        var seq1_second = await sequence1.NextAsync("seq1", CancellationToken.None);
+        var seq2_second = await sequence2.NextAsync("seq2", CancellationToken.None);
 
         _ = seq1_first.Should().Be(1);
         _ = seq2_first.Should().Be(1);
@@ -80,19 +80,19 @@ public sealed class SequenceTests
     public async Task NextAsync_ThrowsTaskCanceledException_WhenTokenIsCanceled()
     {
 
-        var sequence = CreateIntSequence(seqName);
+        var sequence = CreateIntSequence();
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        _ = await Assert.ThrowsAsync<OperationCanceledException>(() => sequence.NextAsync(tokenSource.Token));
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(() => sequence.NextAsync(seqName, tokenSource.Token));
     }
 
     [Fact]
     public async Task NextAsync_HandlesHighConcurrency_WhenMultipleTasksAccess()
     {
-        var sequence = CreateIntSequence(seqName);
+        var sequence = CreateIntSequence();
         var tasks = Enumerable.Range(0, 100)
-            .Select(_ => Task.Run(() => sequence.NextAsync(CancellationToken.None)))
+            .Select(_ => Task.Run(() => sequence.NextAsync(seqName, CancellationToken.None)))
             .ToArray();
 
         var results = await Task.WhenAll(tasks);
@@ -106,10 +106,10 @@ public sealed class SequenceTests
     public async Task NextAsync_WorksWithLongType_WhenCalled()
     {
 
-        var sequence = CreateLongSequence(seqName);
+        var sequence = CreateLongSequence();
 
-        var first = await sequence.NextAsync(CancellationToken.None);
-        var second = await sequence.NextAsync(CancellationToken.None);
+        var first = await sequence.NextAsync(seqName, CancellationToken.None);
+        var second = await sequence.NextAsync(seqName, CancellationToken.None);
 
         _ = first.Should().Be(1L);
         _ = second.Should().Be(2L);
@@ -119,12 +119,12 @@ public sealed class SequenceTests
     public async Task NextAsync_PersistsState_WhenSequenceIsRecreated()
     {
 
-        var sequence1 = CreateIntSequence(seqName);
-        _ = await sequence1.NextAsync(CancellationToken.None);
-        _ = await sequence1.NextAsync(CancellationToken.None);
+        var sequence1 = CreateIntSequence();
+        _ = await sequence1.NextAsync(seqName, CancellationToken.None);
+        _ = await sequence1.NextAsync(seqName, CancellationToken.None);
 
-        var sequence2 = CreateIntSequence(seqName);
-        var result = await sequence2.NextAsync(CancellationToken.None);
+        var sequence2 = CreateIntSequence();
+        var result = await sequence2.NextAsync(seqName, CancellationToken.None);
 
         _ = result.Should().Be(3);
     }
@@ -132,14 +132,14 @@ public sealed class SequenceTests
     [Fact]
     public async Task NextAsync_HandlesConcurrentAccess_WithMultipleSequenceInstances()
     {
-        var sequence1 = CreateIntSequence(seqName);
-        var sequence2 = CreateIntSequence(seqName);
+        var sequence1 = CreateIntSequence();
+        var sequence2 = CreateIntSequence();
 
         var t = new List<Task<int>>();
         for (var i = 0; i < 50; i++)
         {
-            t.Add(sequence1.NextAsync(CancellationToken.None));
-            t.Add(sequence2.NextAsync(CancellationToken.None));
+            t.Add(sequence1.NextAsync(seqName, CancellationToken.None));
+            t.Add(sequence2.NextAsync(seqName, CancellationToken.None));
         }
 
         var r = await Task.WhenAll(t);
@@ -152,7 +152,7 @@ public sealed class SequenceTests
     public async Task NextAsync_MaintainsConsistency_UnderHighContention()
     {
         // this will achieve between 40 and 60 concurrent threads before crashing on the rocks of Sqlite, which is fine
-        var sequence = CreateIntSequence(seqName);
+        var sequence = CreateIntSequence();
         var concurrencyLevel = 50;
         var iterationsPerTask = 50;
 
@@ -161,7 +161,7 @@ public sealed class SequenceTests
             {
                 var results = new List<int>();
                 for (var i = 0; i < iterationsPerTask; i++)
-                    results.Add(await sequence.NextAsync(CancellationToken.None));
+                    results.Add(await sequence.NextAsync(seqName, CancellationToken.None));
                 return results;
             }))
             .ToArray();

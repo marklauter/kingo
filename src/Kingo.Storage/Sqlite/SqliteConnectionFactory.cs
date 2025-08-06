@@ -4,7 +4,7 @@ using System.Data.Common;
 
 namespace Kingo.Storage.Sqlite;
 
-public sealed class SqliteConnectionFactory(
+internal sealed class SqliteConnectionFactory(
     SqliteConnectionFactoryOptions options)
     : IDbConnectionFactory
 {
