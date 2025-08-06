@@ -79,7 +79,46 @@ folder:
 ```
 
 ## Current Development Focus
-The primary work-in-progress is the **dictionary encoding refactor**. This involves implementing the system to map string identifiers for namespaces, relations, and subjects to integer values to enable performance optimizations like tuple bit-packing.
+The primary work-in-progress is the dictionary encoding and policy authoring point (PAP). 
+Dictionary encoding involves mapping string identifiers for namespaces, 
+relations, and resources to integer values to enable performance optimizations 
+like tuple bit-packing. The goal is to store ACLs and rewrite tuples as integer values.
+
+The PAP and dictionary encoder are related because the encoding will be performed when new
+policy documents are submitted.
+
+ - dictionary encoding (Performance!)
+  - [ ] define the key bit encodings
+  - [ ] define encoding dictionary structure
+  - [ ] read key encodings
+  - [ ] encode key
+  - [ ] write encoded key
+  - [ ] implement hybrid-cache
+
+- policy authoring point (Policies aren't going to create themselves.)
+  - [ ] define the PAP interface contract
+  - [ ] implement PAP PDL document import with persistent key-value store
+  - [ ] implement PAP PDL document export
+  - [ ] implement other CRUD operations
+  - [ ] maintain key encoding dictionary
+
+### tuple model
+
+```
+<tuple> ::= <resource>‘#’<relation>‘@’<subject>
+<resource> ::= <namespace>‘:’<resource id>
+<subject> ::= <subject id> | <userset>
+<subjectset> ::= <object>‘#’<relation>
+```
+
+### bit packing
+
+```
+Namespace 18 bits (262k namespaces)
+Relation 12 bits (4k relations per namespace)
+Resource 34 bits (17 billion resources per namespace)
+SubjectId 32 bits (4 billion subjects)
+```
 
 ## project dependencies and versions
 ### language
