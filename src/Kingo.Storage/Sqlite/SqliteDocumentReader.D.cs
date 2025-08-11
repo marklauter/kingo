@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using Kingo.Storage.Context;
-using LanguageExt;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,21 +8,22 @@ using System.Text;
 namespace Kingo.Storage.Sqlite;
 
 internal sealed class SqliteDocumentReader<D>(IDbContext context)
+    : IDocumentReader<D>
 {
     private static readonly string TablePrefix = DocumentTypeCache<D>.Name;
     private static readonly string HashKeyName = DocumentTypeCache<D>.HashKeyProperty.Name;
-    private static readonly Option<PropertyInfo> RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
-    private static readonly Option<PropertyInfo> VersionProperty = DocumentTypeCache<D>.VersionProperty;
+    private static readonly PropertyInfo? RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
+    private static readonly PropertyInfo? VersionProperty = DocumentTypeCache<D>.VersionProperty;
 
-    public async Task<Option<D>> FindAsync<HK>(
+    public async Task<D?> FindAsync<HK>(
         HK hashKey,
         CancellationToken token)
         where HK : IEquatable<HK>, IComparable<HK> =>
         (await QueryAsync(
-            new Query<D, HK>(hashKey, Prelude.None),
-            token)).Head;
+            new Query<D, HK>(hashKey),
+            token)).FirstOrDefault();
 
-    public async Task<Option<D>> FindAsync<HK, RK>(
+    public async Task<D?> FindAsync<HK, RK>(
         HK hashKey,
         RK rangeKey,
         CancellationToken token)
@@ -30,16 +31,26 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
         where RK : IEquatable<RK>, IComparable<RK> =>
         (await QueryAsync(
             new Query<D, HK>(hashKey, RangeKeyCondition.IsEqualTo(rangeKey)),
-            token)).Head;
+            token)).FirstOrDefault();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public async Task<Seq<D>> QueryAsync<HK>(
+    public async Task<IEnumerable<D>> QueryAsync<HK>(
         Query<D, HK> query,
         CancellationToken token)
         where HK : IEquatable<HK>, IComparable<HK> =>
-        Prelude.Seq(FilterDocuments(
+        FilterDocuments(
             query,
-            await ReadDocumentsAsync(SqlContext<D>.Build(query), token)));
+            await ReadDocumentsAsync(SqlBuilder<D>.Build(query), token));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public async Task<IEnumerable<D>> QueryAsync<HK, N>(
+        Query<D, HK, N> query,
+        CancellationToken token)
+        where HK : IEquatable<HK>, IComparable<HK>
+        where N : INumber<N> =>
+        FilterDocuments(
+            query,
+            await ReadDocumentsAsync(SqlBuilder<D>.Build(query), token));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Task<IEnumerable<D>> ReadDocumentsAsync(
@@ -54,17 +65,27 @@ internal sealed class SqliteDocumentReader<D>(IDbContext context)
         Query<D, HK> query,
         IEnumerable<D> documents)
         where HK : IEquatable<HK>, IComparable<HK> =>
-        query.Filter.Match(
-            Some: documents.Where,
-            None: () => documents);
+        query.Filter is Func<D, bool> filter
+            ? documents.Where(filter)
+            : documents;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static IEnumerable<D> FilterDocuments<HK, N>(
+        Query<D, HK, N> query,
+        IEnumerable<D> documents)
+        where HK : IEquatable<HK>, IComparable<HK>
+        where N : INumber<N> =>
+        query.Filter is Func<D, bool> filter
+            ? documents.Where(filter)
+            : documents;
 }
 
-static file class SqlContext<D>
+static file class SqlBuilder<D>
 {
     private static readonly string TablePrefix = DocumentTypeCache<D>.Name;
     private static readonly string HashKeyName = DocumentTypeCache<D>.HashKeyProperty.Name;
-    private static readonly Option<PropertyInfo> RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
-    private static readonly bool HasVersion = DocumentTypeCache<D>.VersionProperty.IsSome;
+    private static readonly PropertyInfo? RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
+    private static readonly bool HasVersion = DocumentTypeCache<D>.VersionProperty is not null;
     private static readonly string SelectClause;
     private static readonly string WhereClause;
     private static readonly string JoinClause;
@@ -73,7 +94,7 @@ static file class SqlContext<D>
     private static readonly string OperatorClausePrefix;
     private static readonly string OperatorClauseSuffix;
 
-    static SqlContext()
+    static SqlBuilder()
     {
         SelectClause = HasVersion
         ? $"select b.* from {TablePrefix}_header a"
@@ -83,19 +104,13 @@ static file class SqlContext<D>
         ? $"where a.{HashKeyName} = @HashKey"
         : $"where {HashKeyName} = @HashKey";
 
-        var versionName = DocumentTypeCache<D>.VersionProperty
-            .Match(
-                Some: pi => pi.Name,
-                None: () => string.Empty);
-
         JoinClause = HasVersion
-        ? $"join {TablePrefix}_journal b on b.{HashKeyName} = a.{HashKeyName} and b.{versionName} = a.{versionName}"
-        : string.Empty;
+            ? $"join {TablePrefix}_journal b on b.{HashKeyName} = a.{HashKeyName} and b.{DocumentTypeCache<D>.VersionProperty!.Name} = a.{DocumentTypeCache<D>.VersionProperty!.Name}"
+            : string.Empty;
 
-        var rangeKeyName = DocumentTypeCache<D>.RangeKeyProperty
-            .Match(
-                Some: pi => pi.Name,
-                None: () => string.Empty);
+        var rangeKeyName = DocumentTypeCache<D>.RangeKeyProperty is PropertyInfo pi
+            ? pi.Name
+            : string.Empty;
 
         BetweenClause = rangeKeyName != string.Empty
             ? HasVersion
@@ -130,21 +145,36 @@ static file class SqlContext<D>
                 ["HashKey"] = query.HashKey
             });
 
+    public static (string Sql, Dictionary<string, object> Parameters) Build<HK, N>(Query<D, HK, N> query)
+        where HK : IEquatable<HK>, IComparable<HK>
+        where N : INumber<N> =>
+        AppendRangeKeyClause(
+            AppendWhereClause(
+                AppendJoinClause(
+                    AppendSelectClause(
+                        new StringBuilder()))),
+            query,
+            new Dictionary<string, object>
+            {
+                ["HashKey"] = query.HashKey
+            });
+
     private static (string Sql, Dictionary<string, object> Parameters) AppendRangeKeyClause<HK>(
         StringBuilder builder,
         Query<D, HK> query,
         Dictionary<string, object> parameters)
         where HK : IEquatable<HK>, IComparable<HK> =>
-        (query.RangeKeyCondition
-            .Match(
-                Some: condition =>
-                {
-                    var pi = RangeKeyProperty.IfNone(() => throw new InvalidOperationException("document does not define a range key"));
-                    return builder.AppendLine(BuildRangeKeyClause(condition, parameters));
-                },
-                None: builder)
+        ((query.RangeKeyCondition is RangeKeyCondition condition
+            ? builder.AppendLine(BuildRangeKeyClause(condition, parameters))
+            : builder)
             .ToString(),
             parameters);
+
+    private static void ThrowIfRangeKeyPropertyIsNull()
+    {
+        if (RangeKeyProperty is null)
+            throw new InvalidOperationException("document does not define a range key");
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static StringBuilder AppendWhereClause(StringBuilder builder) =>
@@ -165,6 +195,7 @@ static file class SqlContext<D>
         RangeKeyCondition condition,
         Dictionary<string, object> parameters)
     {
+        ThrowIfRangeKeyPropertyIsNull();
         var (clause, args) = ToOperatorClauseAndArgs(condition);
         AppendParameters(parameters, args);
         return clause;
