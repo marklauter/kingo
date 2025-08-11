@@ -10,6 +10,7 @@ namespace Kingo.Storage.Sqlite;
 internal sealed class SqliteSequence<N>(
     IDbContext context,
     Identifier table)
+    : ISequence<N>
     where N : INumber<N>
 {
     private readonly record struct ReadParam(Key Key);
