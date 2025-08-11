@@ -48,6 +48,6 @@ internal static class DocumentTypeCache<D>
         _ = VersionProperty is PropertyInfo pi
             ? typeof(INumber<>).MakeGenericType(pi.PropertyType).IsAssignableFrom(pi.PropertyType)
                 ? 0
-                : throw new InvalidOperationException($"Version property '{pi.Name}' of type '{pi.PropertyType.Name}' must implement INumber<{pi.PropertyType.Name}>"),
-            : 0);
+                : throw new InvalidOperationException($"Version property '{pi.Name}' of type '{pi.PropertyType.Name}' must implement INumber<{pi.PropertyType.Name}>")
+            : 0;
 }
