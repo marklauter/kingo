@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Kingo.Storage.Context;
-using LanguageExt;
 using System.Data.Common;
 using System.Globalization;
 using System.Numerics;
@@ -12,7 +11,7 @@ namespace Kingo.Storage.Sqlite;
 
 internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 {
-    private static readonly bool IsVersioned = DocumentTypeCache<D>.VersionProperty.IsSome;
+    private static readonly bool IsVersioned = DocumentTypeCache<D>.VersionProperty is not null;
 
     private static class Journal
     {
@@ -152,7 +151,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         if (await ExistsAsync(document, db, tx))
             throw new DocumentWriterException(
                 BuildDuplicateKeyError(document),
-                StorageErrorCodes.DuplicateKeyError);
+                KingoStorageErrorCodes.DuplicateKeyError);
 
         await InsertInternalAsync(document, db, tx);
     }
@@ -173,14 +172,14 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
                     Header.InsertAsync(document, db, tx))).Sum() != 2)
                 throw new DocumentWriterException(
                     $"expected two records modified for document insert with key {BuildKeyString(document)}",
-                    StorageErrorCodes.InsertCountMismatch);
+                    KingoStorageErrorCodes.InsertCountMismatch);
         }
         else
         {
             if (await Table.InsertAsync(document, db, tx) != 1)
                 throw new DocumentWriterException(
                     $"expected one record modified for document insert with key {BuildKeyString(document)}",
-                    StorageErrorCodes.InsertCountMismatch);
+                    KingoStorageErrorCodes.InsertCountMismatch);
         }
     }
 
@@ -205,14 +204,14 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
                     var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask)
                         ?? throw new DocumentWriterException(
                             $"key not found {BuildKeyString(document)}",
-                            StorageErrorCodes.NotFoundError);
+                            KingoStorageErrorCodes.NotFoundError);
 
                     var currentVersion = versionProperty.GetValue(document)!;
 
                     if (!currentVersion.Equals(originalVersion))
                         throw new DocumentWriterException(
                             $"version conflict {BuildKeyString(document)}, expected version: {currentVersion}, actual version: {originalVersion}",
-                            StorageErrorCodes.VersionConflictError);
+                            KingoStorageErrorCodes.VersionConflictError);
 
                     await UpdateVersionedAsync(document, db, tx);
                 },
@@ -223,12 +222,12 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             if (!await Table.ExistsAsync(document, db, tx))
                 throw new DocumentWriterException(
                     $"key not found {BuildKeyString(document)}",
-                    StorageErrorCodes.NotFoundError);
+                    KingoStorageErrorCodes.NotFoundError);
 
             if (await Table.UpdateAsync(document, db, tx) != 1)
                 throw new DocumentWriterException(
                     $"expected one record modified for document update with key {BuildKeyString(document)}",
-                    StorageErrorCodes.InsertCountMismatch);
+                    KingoStorageErrorCodes.InsertCountMismatch);
         }
     }
 
@@ -244,7 +243,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         if (await Journal.InsertAsync(newDocument, db, tx) != 1)
             throw new DocumentWriterException(
                 $"journal insert failed for key {BuildKeyString(document)}, version {newVersion}",
-                StorageErrorCodes.InsertCountMismatch);
+                KingoStorageErrorCodes.InsertCountMismatch);
 
         var updateMethod = typeof(Header)
             .GetMethod(nameof(Header.UpdateAsync))!
@@ -255,7 +254,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         if (updateResult != 1)
             throw new DocumentWriterException(
                 $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: unknown",
-                StorageErrorCodes.VersionConflictError);
+                KingoStorageErrorCodes.VersionConflictError);
     }
 
     public Task InsertOrUpdateAsync(D document, CancellationToken token) =>
@@ -288,7 +287,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
                     if (originalVersion is not null && !currentVersion.Equals(originalVersion))
                         throw new DocumentWriterException(
                             $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: {originalVersion}",
-                            StorageErrorCodes.VersionConflictError);
+                            KingoStorageErrorCodes.VersionConflictError);
 
                     await UpdateVersionedAsync(document, db, tx);
                 },
@@ -299,7 +298,7 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         if (await Table.UpdateAsync(document, db, tx) != 1)
             throw new DocumentWriterException(
                 $"expected one record modified for document update with key {BuildKeyString(document)}",
-                StorageErrorCodes.InsertCountMismatch);
+                KingoStorageErrorCodes.InsertCountMismatch);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
