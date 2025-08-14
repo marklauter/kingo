@@ -86,94 +86,139 @@ static file class SqlBuilder<D>
     private static readonly string HashKeyName = DocumentTypeCache<D>.HashKeyProperty.Name;
     private static readonly PropertyInfo? RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
     private static readonly bool HasVersion = DocumentTypeCache<D>.VersionProperty is not null;
+    private static readonly string VersionClause;
     private static readonly string SelectClause;
     private static readonly string WhereClause;
     private static readonly string JoinClause;
-    private static readonly string BetweenClause;
-    private static readonly string GTLTClause;
-    private static readonly string OperatorClausePrefix;
-    private static readonly string OperatorClauseSuffix;
+    private static readonly string RangeKeyBetweenClause;
+    private static readonly string RangeKeyGTLTClause;
+    private static readonly string RangeKeyOperatorClausePrefix;
+    private static readonly string RangeKeyOperatorClauseSuffix;
+    private const string HashKeyParamName = "HashKey";
+    private const string VersionParamName = "Version";
+    private const string RangeKeyParamName = "RangeKey";
 
     static SqlBuilder()
     {
         SelectClause = HasVersion
-        ? $"select b.* from {TablePrefix}_header a"
-        : $"select * from {TablePrefix}";
+            ? $"select b.* from {TablePrefix}_header a"
+            : $"select * from {TablePrefix}";
 
         WhereClause = HasVersion
-        ? $"where a.{HashKeyName} = @HashKey"
-        : $"where {HashKeyName} = @HashKey";
+            ? $"where a.{HashKeyName} = @{HashKeyParamName}"
+            : $"where {HashKeyName} = @{HashKeyParamName}";
 
+        var versionPropertyName = HasVersion
+            ? DocumentTypeCache<D>.VersionProperty!.Name
+            : string.Empty;
+
+        // no version means no journal
         JoinClause = HasVersion
-            ? $"join {TablePrefix}_journal b on b.{HashKeyName} = a.{HashKeyName} and b.{DocumentTypeCache<D>.VersionProperty!.Name} = a.{DocumentTypeCache<D>.VersionProperty!.Name}"
+            ? $"join {TablePrefix}_journal b on b.{HashKeyName} = a.{HashKeyName} and b.{versionPropertyName} = a.{versionPropertyName}"
+            : string.Empty;
+
+        VersionClause = HasVersion
+            ? $"and a.{versionPropertyName} = @{VersionParamName}"
             : string.Empty;
 
         var rangeKeyName = DocumentTypeCache<D>.RangeKeyProperty is PropertyInfo pi
             ? pi.Name
             : string.Empty;
 
-        BetweenClause = rangeKeyName != string.Empty
+        RangeKeyBetweenClause = rangeKeyName != string.Empty
             ? HasVersion
-                ? $"and a.{rangeKeyName} between @RangeKeyStart and @RangeKeyEnd"
-                : $"and {rangeKeyName} between @RangeKeyStart and @RangeKeyEnd"
+                ? $"and a.{rangeKeyName} between @{RangeKeyParamName}Start and @{RangeKeyParamName}End"
+                : $"and {rangeKeyName} between @{RangeKeyParamName}Start and @{RangeKeyParamName}End"
             : string.Empty;
-        GTLTClause = rangeKeyName != string.Empty
+
+        RangeKeyGTLTClause = rangeKeyName != string.Empty
             ? HasVersion
-                ? $"and @RangeKeyStart < a.{rangeKeyName} and a.{rangeKeyName} < @RangeKeyEnd"
-                : $"and @RangeKeyStart < {rangeKeyName} and {rangeKeyName} < @RangeKeyEnd"
+                ? $"and @{RangeKeyParamName}Start < a.{rangeKeyName} and a.{rangeKeyName} < @{RangeKeyParamName}End"
+                : $"and @{RangeKeyParamName}Start < {rangeKeyName} and {rangeKeyName} < @{RangeKeyParamName}End"
             : string.Empty;
-        OperatorClausePrefix = rangeKeyName != string.Empty
+
+        RangeKeyOperatorClausePrefix = rangeKeyName != string.Empty
             ? HasVersion
                 ? $"and a.{rangeKeyName}"
                 : $"and {rangeKeyName}"
             : string.Empty;
-        OperatorClauseSuffix = rangeKeyName != string.Empty
-            ? "@RangeKey"
+
+        RangeKeyOperatorClauseSuffix = rangeKeyName != string.Empty
+            ? $"@{RangeKeyParamName}"
             : string.Empty;
+
     }
 
     public static (string Sql, Dictionary<string, object> Parameters) Build<HK>(Query<D, HK> query)
-        where HK : IEquatable<HK>, IComparable<HK> =>
-        AppendRangeKeyClause(
+        where HK : IEquatable<HK>, IComparable<HK>
+    {
+        var sqlParams = new Dictionary<string, object>
+        {
+            [HashKeyParamName] = query.HashKey
+        };
+
+        return AppendRangeKeyClause(
             AppendWhereClause(
                 AppendJoinClause(
                     AppendSelectClause(
                         new StringBuilder()))),
             query,
-            new Dictionary<string, object>
-            {
-                ["HashKey"] = query.HashKey
-            });
+            sqlParams);
+    }
 
     public static (string Sql, Dictionary<string, object> Parameters) Build<HK, N>(Query<D, HK, N> query)
         where HK : IEquatable<HK>, IComparable<HK>
-        where N : INumber<N> =>
-        AppendRangeKeyClause(
-            AppendWhereClause(
-                AppendJoinClause(
-                    AppendSelectClause(
-                        new StringBuilder()))),
+        where N : INumber<N>
+    {
+        var sqlParams = new Dictionary<string, object>
+        {
+            [HashKeyParamName] = query.HashKey
+        };
+
+        return AppendRangeKeyClause(
+            AppendVersionClause(
+                AppendWhereClause(
+                    AppendJoinClause(
+                        AppendSelectClause(
+                            new StringBuilder()))),
+                query,
+                sqlParams),
             query,
-            new Dictionary<string, object>
-            {
-                ["HashKey"] = query.HashKey
-            });
+            sqlParams);
+    }
 
     private static (string Sql, Dictionary<string, object> Parameters) AppendRangeKeyClause<HK>(
         StringBuilder builder,
         Query<D, HK> query,
-        Dictionary<string, object> parameters)
+        Dictionary<string, object> sqlParams)
         where HK : IEquatable<HK>, IComparable<HK> =>
         ((query.RangeKeyCondition is RangeKeyCondition condition
-            ? builder.AppendLine(BuildRangeKeyClause(condition, parameters))
+            ? builder.AppendLine(BuildRangeKeyClause(condition, sqlParams))
             : builder)
             .ToString(),
-            parameters);
+            sqlParams);
 
-    private static void ThrowIfRangeKeyPropertyIsNull()
+    private static StringBuilder AppendVersionClause<HK, N>(
+        StringBuilder builder,
+        Query<D, HK, N> query,
+        Dictionary<string, object> sqlParams)
+        where HK : IEquatable<HK>, IComparable<HK>
+        where N : INumber<N>
     {
-        if (RangeKeyProperty is null)
-            throw new InvalidOperationException("document does not define a range key");
+        ThrowIfMissingVersionProperty();
+        if (HasVersion)
+        {
+            sqlParams.Add(VersionParamName, query.Version);
+            return builder.AppendLine(VersionClause);
+        }
+
+        return builder;
+    }
+
+    private static void ThrowIfMissingVersionProperty()
+    {
+        if (!HasVersion)
+            throw new KingoSqlBuilderException("document does not define a range key");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -193,27 +238,32 @@ static file class SqlBuilder<D>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string BuildRangeKeyClause(
         RangeKeyCondition condition,
-        Dictionary<string, object> parameters)
+        Dictionary<string, object> sqlParams)
     {
-        ThrowIfRangeKeyPropertyIsNull();
+        ThrowIfMissingRangeKeyProperty();
         var (clause, args) = ToOperatorClauseAndArgs(condition);
-        AppendParameters(parameters, args);
+        AppendRangeKeyParameters(sqlParams, args);
         return clause;
+    }
+    private static void ThrowIfMissingRangeKeyProperty()
+    {
+        if (RangeKeyProperty is null)
+            throw new KingoSqlBuilderException("document does not define a range key");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AppendParameters(
-        Dictionary<string, object> parameters,
+    private static void AppendRangeKeyParameters(
+        Dictionary<string, object> sqlParams,
         object[] values)
     {
         if (values.Length == 1)
         {
-            parameters.Add("RangeKey", values[0]);
+            sqlParams.Add("RangeKey", values[0]);
         }
         else
         {
-            parameters.Add("RangeKeyStart", values[0]);
-            parameters.Add("RangeKeyEnd", values[1]);
+            sqlParams.Add("RangeKeyStart", values[0]);
+            sqlParams.Add("RangeKeyEnd", values[1]);
         }
     }
 
@@ -227,12 +277,12 @@ static file class SqlBuilder<D>
             GreaterThanOrEqualCondition c => (OperatorClause(">="), [c.Key]),
             LessThanCondition c => (OperatorClause("<"), [c.Key]),
             LessThanOrEqualCondition c => (OperatorClause("<="), [c.Key]),
-            BetweenInclusiveCondition c => (BetweenClause, [c.LowerBound, c.UpperBound]),
-            BetweenExlusiveCondition c => (GTLTClause, [c.LowerBound, c.UpperBound]),
-            _ => throw new NotSupportedException("Unsupported range key condition.")
+            BetweenInclusiveCondition c => (RangeKeyBetweenClause, [c.LowerBound, c.UpperBound]),
+            BetweenExlusiveCondition c => (RangeKeyGTLTClause, [c.LowerBound, c.UpperBound]),
+            _ => throw new NotSupportedException($"unsupported range key condition {condition}")
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string OperatorClause(string op) =>
-        $"{OperatorClausePrefix} {op} {OperatorClauseSuffix}";
+        $"{RangeKeyOperatorClausePrefix} {op} {RangeKeyOperatorClauseSuffix}";
 }

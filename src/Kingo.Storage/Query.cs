@@ -4,28 +4,15 @@ namespace Kingo.Storage;
 
 public record Query<D, HK>(
     HK HashKey,
-    RangeKeyCondition? RangeKeyCondition,
-    Func<D, bool>? Filter)
-    where HK : IEquatable<HK>, IComparable<HK>
-{
-    public Query(HK HashKey, RangeKeyCondition? RangeKeyCondition)
-        : this(HashKey, RangeKeyCondition, null) { }
+    RangeKeyCondition? RangeKeyCondition = null,
+    Func<D, bool>? Filter = null)
+    where HK : IEquatable<HK>, IComparable<HK>;
 
-    public Query(HK HashKey)
-        : this(HashKey, null, null) { }
-}
-
-public record Query<D, HK, N>(
+public sealed record Query<D, HK, N>(
     HK HashKey,
-    RangeKeyCondition? RangeKeyCondition,
-    Func<D, bool>? Filter,
-    INumber<N>? Version)
+    INumber<N> Version,
+    RangeKeyCondition? RangeKeyCondition = null,
+    Func<D, bool>? Filter = null)
+    : Query<D, HK>(HashKey, RangeKeyCondition, Filter)
     where HK : IEquatable<HK>, IComparable<HK>
-    where N : INumber<N>
-{
-    public Query(HK HashKey, RangeKeyCondition? RangeKeyCondition)
-        : this(HashKey, RangeKeyCondition, null, null) { }
-
-    public Query(HK HashKey)
-        : this(HashKey, null, null, null) { }
-}
+    where N : INumber<N>;
