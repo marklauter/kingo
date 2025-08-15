@@ -13,67 +13,6 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 {
     private static readonly bool IsVersioned = DocumentTypeCache<D>.VersionProperty is not null;
 
-    private static class Journal
-    {
-        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.Name}_journal ({FieldNames<D>.Columns}) values ({FieldNames<D>.Values})";
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(InsertStatement, document, tx);
-    }
-
-    private static class Table
-    {
-        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.Name} ({FieldNames<D>.Columns}) values ({FieldNames<D>.Values})";
-        private static readonly string UpdateStatement;
-        private static readonly string DeleteStatement;
-        private static readonly string ExistsStatement;
-
-        static Table()
-        {
-            var table = DocumentTypeCache<D>.Name;
-            var hashKeyProperty = DocumentTypeCache<D>.HashKeyProperty;
-            var rangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
-
-            var hashKeyColumn = hashKeyProperty.Name;
-            var whereClause = new StringBuilder($"where {hashKeyColumn} = @{hashKeyProperty.Name}");
-
-            _ = rangeKeyProperty.IfSome(pi =>
-            {
-                var rangeKeyColumn = pi.Name;
-                var s = $" and {rangeKeyColumn} = @{pi.Name}";
-                _ = whereClause.Append(s);
-            });
-
-            var keyProperties = new System.Collections.Generic.HashSet<string> { DocumentTypeCache<D>.HashKeyProperty.Name };
-            _ = rangeKeyProperty.IfSome(pi => keyProperties.Add(pi.Name));
-
-            var updateColumns = DocumentTypeCache<D>.MappedProperties
-                .Where(pi => !keyProperties.Contains(pi.Name))
-                .Select(pi => $"{pi.Name} = @{pi.Name}");
-
-            UpdateStatement = $"update {table} set {string.Join(", ", updateColumns)} {whereClause}";
-            DeleteStatement = $"delete from {table} {whereClause}";
-            ExistsStatement = $"select exists(select 1 from {table} {whereClause})";
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(InsertStatement, document, tx);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<int> UpdateAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(UpdateStatement, document, tx);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<int> DeleteAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.ExecuteAsync(DeleteStatement, document, tx);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<bool> ExistsAsync(D document, DbConnection db, DbTransaction tx) =>
-            db.QuerySingleAsync<bool>(ExistsStatement, document, tx);
-    }
-
     private static class Header
     {
         private static readonly string InsertStatement;
@@ -84,27 +23,26 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 
         static Header()
         {
-            var table = $"{DocumentTypeCache<D>.Name}_header";
             var hashKeyProperty = DocumentTypeCache<D>.HashKeyProperty;
-            var rangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
-            var versionProperty = DocumentTypeCache<D>.VersionProperty.IfNone(() => throw new InvalidOperationException("Version property required for header operations"));
+            var versionProperty = DocumentTypeCache<D>.VersionProperty is not null
+                ? DocumentTypeCache<D>.VersionProperty!
+                : throw new SqlBuilderException($"version property is required for header operations. type: {DocumentTypeCache<D>.Name}");
 
-            var hashKeyColumn = hashKeyProperty.Name;
             var versionColumn = versionProperty.Name;
 
-            var insertCols = new StringBuilder($"{hashKeyColumn}, {versionColumn}");
+            var insertCols = new StringBuilder($"{hashKeyProperty.Name}, {versionColumn}");
             var insertVals = new StringBuilder($"@{hashKeyProperty.Name}, @{versionProperty.Name}");
-            var whereClause = new StringBuilder($"where {hashKeyColumn} = @{hashKeyProperty.Name}");
+            var whereClause = new StringBuilder($"where {hashKeyProperty.Name} = @{hashKeyProperty.Name}");
 
-            _ = rangeKeyProperty.IfSome(pi =>
+            if (DocumentTypeCache<D>.RangeKeyProperty is PropertyInfo pi)
             {
-                var rangeKeyColumn = pi.Name;
-                _ = insertCols.Insert(hashKeyColumn.Length + 2, $"{rangeKeyColumn}, ");
+                _ = insertCols.Insert(hashKeyProperty.Name.Length + 2, $"{pi.Name}, ");
                 _ = insertVals.Insert($"@{hashKeyProperty.Name}".Length + 2, $"@{pi.Name}, ");
-                var s = $" and {rangeKeyColumn} = @{pi.Name}";
+                var s = $" and {pi.Name} = @{pi.Name}";
                 _ = whereClause.Append(s);
-            });
+            }
 
+            var table = $"{DocumentTypeCache<D>.Name}_header";
             InsertStatement = $"insert into {table} ({insertCols}) values ({insertVals})";
             UpdateStatement = $"update {table} set {versionColumn} = @NewVersion {whereClause} and {versionColumn} = @OldVersion";
             DeleteStatement = $"delete from {table} {whereClause}";
@@ -120,7 +58,9 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         public static Task<int> UpdateAsync<V>(D document, V newVersion, DbConnection db, DbTransaction tx)
             where V : INumber<V>
         {
-            var versionProperty = DocumentTypeCache<D>.VersionProperty.IfNone(() => throw new InvalidOperationException("Version property required"));
+            var versionProperty = DocumentTypeCache<D>.VersionProperty is not null
+                ? DocumentTypeCache<D>.VersionProperty!
+                : throw new SqlBuilderException($"version property is required. type: {DocumentTypeCache<D>.Name}");
             var oldVersion = (V)versionProperty.GetValue(document)!;
 
             var parameters = new DynamicParameters(document);
@@ -143,15 +83,69 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             db.QuerySingleOrDefaultAsync<V?>(RevisionStatement, document, tx);
     }
 
+    private static class Journal
+    {
+        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.Name}_journal ({FieldNames<D>.Columns}) values ({FieldNames<D>.Values})";
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(InsertStatement, document, tx);
+    }
+
+    private static class Table
+    {
+        private static readonly string InsertStatement = $"insert into {DocumentTypeCache<D>.Name} ({FieldNames<D>.Columns}) values ({FieldNames<D>.Values})";
+        private static readonly string UpdateStatement;
+        private static readonly string DeleteStatement;
+        private static readonly string ExistsStatement;
+
+        static Table()
+        {
+            var whereClause = new StringBuilder($"where {DocumentTypeCache<D>.HashKeyProperty.Name} = @{DocumentTypeCache<D>.HashKeyProperty.Name}");
+
+            var keyProperties = new HashSet<string> { DocumentTypeCache<D>.HashKeyProperty.Name };
+            if (DocumentTypeCache<D>.RangeKeyProperty is PropertyInfo rkpi)
+            {
+                var rangeKeyColumn = rkpi.Name;
+                var s = $" and {rangeKeyColumn} = @{rkpi.Name}";
+                _ = whereClause.Append(s);
+                _ = keyProperties.Add(rkpi.Name);
+            }
+
+            var updateColumns = DocumentTypeCache<D>.MappedProperties
+                .Where(pi => !keyProperties.Contains(pi.Name))
+                .Select(pi => $"{pi.Name} = @{pi.Name}");
+
+            var table = DocumentTypeCache<D>.Name;
+            UpdateStatement = $"update {table} set {string.Join(", ", updateColumns)} {whereClause}";
+            DeleteStatement = $"delete from {table} {whereClause}";
+            ExistsStatement = $"select exists(select 1 from {table} {whereClause})";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<int> InsertAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(InsertStatement, document, tx);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<int> UpdateAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(UpdateStatement, document, tx);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<int> DeleteAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.ExecuteAsync(DeleteStatement, document, tx);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<bool> ExistsAsync(D document, DbConnection db, DbTransaction tx) =>
+            db.QuerySingleAsync<bool>(ExistsStatement, document, tx);
+    }
+
     public Task InsertAsync(D document, CancellationToken token) =>
         context.ExecuteAsync((db, tx) => InsertIfNotExistsAsync(document, db, tx), token);
 
     private static async Task InsertIfNotExistsAsync(D document, DbConnection db, DbTransaction tx)
     {
         if (await ExistsAsync(document, db, tx))
-            throw new DocumentWriterException(
-                BuildDuplicateKeyError(document),
-                KingoStorageErrorCodes.DuplicateKeyError);
+            throw new DuplicateKeyException(BuildDuplicateKeyError(document));
 
         await InsertInternalAsync(document, db, tx);
     }
@@ -170,16 +164,14 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
             if ((await Task.WhenAll(
                     Journal.InsertAsync(document, db, tx),
                     Header.InsertAsync(document, db, tx))).Sum() != 2)
-                throw new DocumentWriterException(
-                    $"expected two records modified for document insert with key {BuildKeyString(document)}",
-                    KingoStorageErrorCodes.InsertCountMismatch);
+                throw new WriterException(
+                    $"expected two records modified for document insert with key {BuildKeyString(document)}");
         }
         else
         {
             if (await Table.InsertAsync(document, db, tx) != 1)
-                throw new DocumentWriterException(
-                    $"expected one record modified for document insert with key {BuildKeyString(document)}",
-                    KingoStorageErrorCodes.InsertCountMismatch);
+                throw new WriterException(
+                    $"expected one record modified for document insert with key {BuildKeyString(document)}");
         }
     }
 
@@ -190,50 +182,48 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
     {
         if (IsVersioned)
         {
-            await DocumentTypeCache<D>.VersionProperty.Match(
-                Some: async versionProperty =>
-                {
-                    var versionType = versionProperty.PropertyType;
-                    var readRevisionMethod = typeof(Header)
-                        .GetMethod(nameof(Header.ReadRevisionAsync))!
-                        .MakeGenericMethod(versionType);
+            var versionProperty = DocumentTypeCache<D>.VersionProperty is not null
+                ? DocumentTypeCache<D>.VersionProperty!
+                : throw new SqlBuilderException($"versioned document must have version property, type: '{DocumentTypeCache<D>.Name}'");
 
-                    var originalVersionTask = (Task)readRevisionMethod.Invoke(null, [document, db, tx])!;
-                    await originalVersionTask;
+            var versionType = versionProperty.PropertyType;
+            var versionTask = (Task)typeof(Header)
+                .GetMethod(nameof(Header.ReadRevisionAsync))!
+                .MakeGenericMethod(versionType)
+                .Invoke(null, [document, db, tx])!;
 
-                    var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask)
-                        ?? throw new DocumentWriterException(
-                            $"key not found {BuildKeyString(document)}",
-                            KingoStorageErrorCodes.NotFoundError);
+            await versionTask;
 
-                    var currentVersion = versionProperty.GetValue(document)!;
+            var originalVersion = versionTask.GetType().GetProperty("Result")!.GetValue(versionTask)
+                ?? throw new KeyNotFoundException(
+                    $"key not found {BuildKeyString(document)}");
 
-                    if (!currentVersion.Equals(originalVersion))
-                        throw new DocumentWriterException(
-                            $"version conflict {BuildKeyString(document)}, expected version: {currentVersion}, actual version: {originalVersion}",
-                            KingoStorageErrorCodes.VersionConflictError);
+            var currentVersion = versionProperty.GetValue(document)!;
 
-                    await UpdateVersionedAsync(document, db, tx);
-                },
-                None: () => throw new InvalidOperationException("Versioned document must have version property"));
+            if (!currentVersion.Equals(originalVersion))
+                throw new VersionConflictException(
+                    $"version conflict {BuildKeyString(document)}, expected version: {currentVersion}, actual version: {originalVersion}");
+
+            await UpdateVersionedAsync(document, db, tx);
+
+            return;
         }
-        else
-        {
-            if (!await Table.ExistsAsync(document, db, tx))
-                throw new DocumentWriterException(
-                    $"key not found {BuildKeyString(document)}",
-                    KingoStorageErrorCodes.NotFoundError);
 
-            if (await Table.UpdateAsync(document, db, tx) != 1)
-                throw new DocumentWriterException(
-                    $"expected one record modified for document update with key {BuildKeyString(document)}",
-                    KingoStorageErrorCodes.InsertCountMismatch);
-        }
+        if (!await Table.ExistsAsync(document, db, tx))
+            throw new NotFoundException(
+                $"document not found {BuildKeyString(document)}");
+
+        if (await Table.UpdateAsync(document, db, tx) != 1)
+            throw new NotFoundException(
+                $"expected one record modified for document update with key {BuildKeyString(document)}");
     }
 
     private static async Task UpdateVersionedAsync(D document, DbConnection db, DbTransaction tx)
     {
-        var versionProperty = DocumentTypeCache<D>.VersionProperty.IfNone(() => throw new InvalidOperationException("Version property is required"));
+        var versionProperty = DocumentTypeCache<D>.VersionProperty is not null
+            ? DocumentTypeCache<D>.VersionProperty!
+            : throw new WriterException($"version property is required. type: '{DocumentTypeCache<D>.Name}'");
+
         var versionType = versionProperty.PropertyType;
         var currentVersion = versionProperty.GetValue(document)!;
 
@@ -241,9 +231,8 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         var newDocument = SetVersion(document, newVersion);
 
         if (await Journal.InsertAsync(newDocument, db, tx) != 1)
-            throw new DocumentWriterException(
-                $"journal insert failed for key {BuildKeyString(document)}, version {newVersion}",
-                KingoStorageErrorCodes.InsertCountMismatch);
+            throw new WriterException(
+                $"journal insert failed for key {BuildKeyString(document)}, version {newVersion}");
 
         var updateMethod = typeof(Header)
             .GetMethod(nameof(Header.UpdateAsync))!
@@ -252,9 +241,8 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         var updateResult = await (Task<int>)updateMethod.Invoke(null, [document, newVersion, db, tx])!;
 
         if (updateResult != 1)
-            throw new DocumentWriterException(
-                $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: unknown",
-                KingoStorageErrorCodes.VersionConflictError);
+            throw new VersionConflictException(
+                $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: unknown");
     }
 
     public Task InsertOrUpdateAsync(D document, CancellationToken token) =>
@@ -270,35 +258,33 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 
         if (IsVersioned)
         {
-            await DocumentTypeCache<D>.VersionProperty.Match(
-                Some: async versionProperty =>
-                {
-                    var versionType = versionProperty.PropertyType;
-                    var readRevisionMethod = typeof(Header)
-                        .GetMethod(nameof(Header.ReadRevisionAsync))!
-                        .MakeGenericMethod(versionType);
+            var versionProperty = DocumentTypeCache<D>.VersionProperty is not null
+                ? DocumentTypeCache<D>.VersionProperty!
+                : throw new WriterException("Versioned document must have version property");
 
-                    var originalVersionTask = (Task)readRevisionMethod.Invoke(null, [document, db, tx])!;
-                    await originalVersionTask;
+            var versionType = versionProperty.PropertyType;
+            var readRevisionMethod = typeof(Header)
+                .GetMethod(nameof(Header.ReadRevisionAsync))!
+                .MakeGenericMethod(versionType);
 
-                    var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask);
-                    var currentVersion = versionProperty.GetValue(document)!;
+            var originalVersionTask = (Task)readRevisionMethod.Invoke(null, [document, db, tx])!;
+            await originalVersionTask;
 
-                    if (originalVersion is not null && !currentVersion.Equals(originalVersion))
-                        throw new DocumentWriterException(
-                            $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: {originalVersion}",
-                            KingoStorageErrorCodes.VersionConflictError);
+            var originalVersion = originalVersionTask.GetType().GetProperty("Result")!.GetValue(originalVersionTask);
+            var currentVersion = versionProperty.GetValue(document)!;
 
-                    await UpdateVersionedAsync(document, db, tx);
-                },
-                None: () => throw new InvalidOperationException("Versioned document must have version property"));
+            if (originalVersion is not null && !currentVersion.Equals(originalVersion))
+                throw new VersionConflictException(
+                    $"version conflict {BuildKeyString(document)}, expected: {currentVersion}, actual: {originalVersion}");
+
+            await UpdateVersionedAsync(document, db, tx);
+
             return;
         }
 
         if (await Table.UpdateAsync(document, db, tx) != 1)
-            throw new DocumentWriterException(
-                $"expected one record modified for document update with key {BuildKeyString(document)}",
-                KingoStorageErrorCodes.InsertCountMismatch);
+            throw new WriterException(
+                $"expected one record modified for document update with key {BuildKeyString(document)}");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -335,18 +321,16 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static D ZeroVersion(D document) =>
-        DocumentTypeCache<D>.VersionProperty.Match(
-            Some: versionProperty =>
-            {
-                var zeroValue = Convert.ChangeType(0, versionProperty.PropertyType, CultureInfo.InvariantCulture);
-                return SetVersion(document, zeroValue);
-            },
-            None: () => document);
+        DocumentTypeCache<D>.VersionProperty is PropertyInfo versionProperty
+            ? SetVersion(document, Convert.ChangeType(0, versionProperty.PropertyType, CultureInfo.InvariantCulture))
+            : document;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static D SetVersion(D document, object version)
     {
-        var versionProperty = DocumentTypeCache<D>.VersionProperty.IfNone(() => throw new InvalidOperationException("Version property is required"));
+        var versionProperty = DocumentTypeCache<D>.VersionProperty is not null
+            ? DocumentTypeCache<D>.VersionProperty!
+            : throw new WriterException($"version property is required. type: '{DocumentTypeCache<D>.Name}'");
 
         var constructor = typeof(D).GetConstructors()
             .FirstOrDefault(c => c.GetParameters().Length > 0);
@@ -383,10 +367,11 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         var hashKeyValue = DocumentTypeCache<D>.HashKeyProperty.GetValue(document);
         var builder = new StringBuilder().Append(hashKeyValue);
 
-        return DocumentTypeCache<D>.RangeKeyProperty.Match(
-            Some: pi => builder.Append(CultureInfo.InvariantCulture, $":{pi.GetValue(document)}"),
-            None: () => builder)
-            .ToString();
+        return (
+            DocumentTypeCache<D>.RangeKeyProperty is PropertyInfo pi
+                ? builder.Append(CultureInfo.InvariantCulture, $":{pi.GetValue(document)}")
+                : builder
+            ).ToString();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -396,10 +381,10 @@ internal sealed class SqliteDocumentWriter<D>(IDbContext context)
         var builder = new StringBuilder("duplicate key (")
             .Append(CultureInfo.InvariantCulture, $"{hashKeyValue}");
 
-        return DocumentTypeCache<D>.RangeKeyProperty.Match(
-            Some: pi => builder.Append(CultureInfo.InvariantCulture, $", {pi.GetValue(document)}"),
-            None: () => builder)
-            .Append(')')
-            .ToString();
+        return (
+            DocumentTypeCache<D>.RangeKeyProperty is not null
+                ? builder.Append(CultureInfo.InvariantCulture, $", {DocumentTypeCache<D>.RangeKeyProperty.GetValue(document)}")
+                : builder.Append(')')
+            ).ToString();
     }
 }

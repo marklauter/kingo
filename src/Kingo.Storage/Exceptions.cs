@@ -1,65 +1,113 @@
 ﻿namespace Kingo.Storage;
 
-public class KingoStorageException
+public class StorageException
     : ApplicationException
 {
-    public KingoStorageException()
+    public StorageException()
     {
     }
 
-    public KingoStorageException(string? message) : base(message)
+    public StorageException(string? message) : base(message)
     {
     }
 
-    public KingoStorageException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-}
-
-public class KingoReaderException
-    : KingoStorageException
-{
-    public KingoReaderException()
-    {
-    }
-
-    public KingoReaderException(string? message) : base(message)
-    {
-    }
-
-    public KingoReaderException(string? message, Exception? innerException) : base(message, innerException)
+    public StorageException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
 }
 
-public class KingoSqlBuilderException
-    : KingoReaderException
+public sealed class ReaderException
+    : StorageException
 {
-    public KingoSqlBuilderException()
+    public ReaderException()
     {
     }
 
-    public KingoSqlBuilderException(string? message) : base(message)
+    public ReaderException(string? message) : base(message)
     {
     }
 
-    public KingoSqlBuilderException(string? message, Exception? innerException) : base(message, innerException)
+    public ReaderException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
 }
 
-public sealed class KingoWriterException
-    : KingoStorageException
+public sealed class SqlBuilderException
+    : StorageException
 {
-    public KingoWriterException()
+    public SqlBuilderException()
     {
     }
 
-    public KingoWriterException(string? message) : base(message)
+    public SqlBuilderException(string? message) : base(message)
     {
     }
 
-    public KingoWriterException(string? message, Exception? innerException) : base(message, innerException)
+    public SqlBuilderException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
+}
+
+public sealed class WriterException
+    : StorageException
+{
+    public WriterException()
+    {
+    }
+
+    public WriterException(string? message) : base(message)
+    {
+    }
+
+    public WriterException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
+}
+
+public sealed class NotFoundException
+    : StorageException
+{
+    public NotFoundException()
+    {
+    }
+
+    public NotFoundException(string? message) : base(message)
+    {
+    }
+
+    public NotFoundException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
+}
+
+public sealed class DuplicateKeyException
+    : StorageException
+{
+    public DuplicateKeyException()
+    {
+    }
+
+    public DuplicateKeyException(string? message) : base(message)
+    {
+    }
+
+    public DuplicateKeyException(string? message, Exception? innerException) : base(message, innerException)
+    {
+    }
+}
+
+public sealed class VersionConflictException
+    : StorageException
+{
+    public VersionConflictException()
+    {
+    }
+
+    public VersionConflictException(string? message) : base(message)
+    {
+    }
+
+    public VersionConflictException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
 }

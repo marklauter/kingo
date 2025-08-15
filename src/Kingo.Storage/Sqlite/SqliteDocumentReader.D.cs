@@ -10,11 +10,6 @@ namespace Kingo.Storage.Sqlite;
 internal sealed class SqliteDocumentReader<D>(IDbContext context)
     : IDocumentReader<D>
 {
-    private static readonly string TablePrefix = DocumentTypeCache<D>.Name;
-    private static readonly string HashKeyName = DocumentTypeCache<D>.HashKeyProperty.Name;
-    private static readonly PropertyInfo? RangeKeyProperty = DocumentTypeCache<D>.RangeKeyProperty;
-    private static readonly PropertyInfo? VersionProperty = DocumentTypeCache<D>.VersionProperty;
-
     public async Task<D?> FindAsync<HK>(
         HK hashKey,
         CancellationToken token)
@@ -218,7 +213,7 @@ static file class SqlBuilder<D>
     private static void ThrowIfMissingVersionProperty()
     {
         if (!HasVersion)
-            throw new KingoSqlBuilderException("document does not define a range key");
+            throw new SqlBuilderException($"document requires a range key. type: '{DocumentTypeCache<D>.Name}'");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -248,7 +243,7 @@ static file class SqlBuilder<D>
     private static void ThrowIfMissingRangeKeyProperty()
     {
         if (RangeKeyProperty is null)
-            throw new KingoSqlBuilderException("document does not define a range key");
+            throw new SqlBuilderException($"document requires a range key. type: '{DocumentTypeCache<D>.Name}'");
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -279,7 +274,7 @@ static file class SqlBuilder<D>
             LessThanOrEqualCondition c => (OperatorClause("<="), [c.Key]),
             BetweenInclusiveCondition c => (RangeKeyBetweenClause, [c.LowerBound, c.UpperBound]),
             BetweenExlusiveCondition c => (RangeKeyGTLTClause, [c.LowerBound, c.UpperBound]),
-            _ => throw new NotSupportedException($"unsupported range key condition {condition}")
+            _ => throw new NotSupportedException($"unsupported range key condition: '{condition}', type: '{DocumentTypeCache<D>.Name}'")
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
