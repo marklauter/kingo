@@ -1,7 +1,5 @@
-using FluentAssertions;
 using Kingo.Storage.Keys;
 using Kingo.Storage.Sqlite;
-using LanguageExt;
 
 namespace Kingo.Storage.Tests.Sqlite;
 
@@ -44,36 +42,40 @@ public sealed class SequenceTests
 
         var result = await sequence.NextAsync(seqName, CancellationToken.None);
 
-        _ = result.Should().Be(1);
+        Assert.Equal(1, result);
     }
 
     [Fact]
     public async Task NextAsync_ReturnsConsecutiveNumbers_WhenCalledMultipleTimes()
     {
-
         var sequence = CreateIntSequence();
 
-        _ = (await sequence.NextAsync(seqName, CancellationToken.None)).Should().Be(1);
-        _ = (await sequence.NextAsync(seqName, CancellationToken.None)).Should().Be(2);
-        _ = (await sequence.NextAsync(seqName, CancellationToken.None)).Should().Be(3);
+        Assert.Equal(1, await sequence.NextAsync(seqName, CancellationToken.None));
+        Assert.Equal(2, await sequence.NextAsync(seqName, CancellationToken.None));
+        Assert.Equal(3, await sequence.NextAsync(seqName, CancellationToken.None));
     }
 
     [Fact]
     public async Task NextAsync_ReturnsIndependentSequences_WhenUsingDifferentNames()
     {
+        var sequence = CreateIntSequence();
 
+        Assert.Equal(1, await sequence.NextAsync("seq1", CancellationToken.None));
+        Assert.Equal(1, await sequence.NextAsync("seq2", CancellationToken.None));
+        Assert.Equal(2, await sequence.NextAsync("seq1", CancellationToken.None));
+        Assert.Equal(2, await sequence.NextAsync("seq2", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task NextAsync_ReturnsIndependentSequences_WhenUsingDifferentNames_AndGenerators()
+    {
         var sequence1 = CreateIntSequence();
         var sequence2 = CreateIntSequence();
 
-        var seq1_first = await sequence1.NextAsync("seq1", CancellationToken.None);
-        var seq2_first = await sequence2.NextAsync("seq2", CancellationToken.None);
-        var seq1_second = await sequence1.NextAsync("seq1", CancellationToken.None);
-        var seq2_second = await sequence2.NextAsync("seq2", CancellationToken.None);
-
-        _ = seq1_first.Should().Be(1);
-        _ = seq2_first.Should().Be(1);
-        _ = seq1_second.Should().Be(2);
-        _ = seq2_second.Should().Be(2);
+        Assert.Equal(1, await sequence1.NextAsync("seq1", CancellationToken.None));
+        Assert.Equal(1, await sequence2.NextAsync("seq2", CancellationToken.None));
+        Assert.Equal(2, await sequence1.NextAsync("seq1", CancellationToken.None));
+        Assert.Equal(2, await sequence2.NextAsync("seq2", CancellationToken.None));
     }
 
     [Fact]
@@ -98,35 +100,25 @@ public sealed class SequenceTests
         var results = await Task.WhenAll(tasks);
         var distinctValues = results.Distinct().OrderBy(x => x).ToArray();
 
-        _ = distinctValues.Should().HaveCount(100);
-        _ = distinctValues.Should().BeEquivalentTo(Enumerable.Range(1, 100));
+        Assert.Equal(100, distinctValues.Length);
+        Assert.Equivalent(Enumerable.Range(1, 100), distinctValues);
     }
 
     [Fact]
     public async Task NextAsync_WorksWithLongType_WhenCalled()
     {
-
         var sequence = CreateLongSequence();
 
-        var first = await sequence.NextAsync(seqName, CancellationToken.None);
-        var second = await sequence.NextAsync(seqName, CancellationToken.None);
-
-        _ = first.Should().Be(1L);
-        _ = second.Should().Be(2L);
+        Assert.Equal(1L, await sequence.NextAsync(seqName, CancellationToken.None));
+        Assert.Equal(2L, await sequence.NextAsync(seqName, CancellationToken.None));
     }
 
     [Fact]
     public async Task NextAsync_PersistsState_WhenSequenceIsRecreated()
     {
-
-        var sequence1 = CreateIntSequence();
-        _ = await sequence1.NextAsync(seqName, CancellationToken.None);
-        _ = await sequence1.NextAsync(seqName, CancellationToken.None);
-
-        var sequence2 = CreateIntSequence();
-        var result = await sequence2.NextAsync(seqName, CancellationToken.None);
-
-        _ = result.Should().Be(3);
+        Assert.Equal(1, await CreateIntSequence().NextAsync(seqName, CancellationToken.None));
+        Assert.Equal(2, await CreateIntSequence().NextAsync(seqName, CancellationToken.None));
+        Assert.Equal(3, await CreateIntSequence().NextAsync(seqName, CancellationToken.None));
     }
 
     [Fact]
@@ -144,8 +136,8 @@ public sealed class SequenceTests
 
         var r = await Task.WhenAll(t);
 
-        _ = r.Should().HaveCount(100);
-        _ = r.Should().BeEquivalentTo(Enumerable.Range(1, 100));
+        Assert.Equal(100, r.Length);
+        Assert.Equivalent(Enumerable.Range(1, 100), r);
     }
 
     [Fact]
@@ -170,9 +162,9 @@ public sealed class SequenceTests
         var allResults = allTaskResults.SelectMany(x => x).OrderBy(x => x).ToArray();
 
         var expectedCount = concurrencyLevel * iterationsPerTask;
-        _ = allResults.Should().HaveCount(expectedCount);
-        _ = allResults.Should().BeEquivalentTo(Enumerable.Range(1, expectedCount));
-        _ = allResults.Should().OnlyHaveUniqueItems();
+        Assert.Equal(expectedCount, allResults.Length);
+        Assert.Equivalent(Enumerable.Range(1, expectedCount), allResults);
+        Assert.Equal(expectedCount, allResults.Distinct().Count());
     }
 }
 
