@@ -49,7 +49,7 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 
 Before any domain code commits to the substrate:
 
-1. Add `DynamoDbLite` and `AWSSDK.DynamoDBv2` references to a new spike project (or inside `Kingo.Tests`).
+1. Add the NuGet package (and its transitive `AWSSDK.DynamoDBv2` dependency) to a spike project — or directly to `Kingo.Tests` for the smoke test: `dotnet add package MSL.DynamoDbLite --version 0.0.0`.
 2. Define one POCO — e.g. `AclTupleRecord` with `[DynamoDBHashKey]` on the encoded `(object#relation)`, `[DynamoDBRangeKey]` on the subject, `[DynamoDBVersion]` on a `Version` long.
 3. Run a write-then-read smoke test through `DynamoDBContext` using DynamoDbLite's in-memory store.
 
@@ -57,6 +57,7 @@ That's a ~1-hour spike with a real go/no-go signal: does the substrate behave th
 
 ## References
 
+- NuGet: `MSL.DynamoDbLite` (current: `0.0.0`)
 - Project: `D:\dynamodblite\DynamoDbLite\`
 - Architecture: `D:\dynamodblite\DynamoDbLite\docs\architecture-decisions.md`
 - API parity matrix: https://github.com/marklauter/DynamoDbLite/wiki/API-Parity
