@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Kingo.Tests/Kingo.Tests.csproj" />
+  <Project Path="Kingo/Kingo.csproj" />
+</Solution>
