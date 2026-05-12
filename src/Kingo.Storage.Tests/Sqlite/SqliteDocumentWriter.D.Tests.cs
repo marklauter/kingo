@@ -1,7 +1,6 @@
 using Dapper;
 using Kingo.Storage.Context;
 using Kingo.Storage.Sqlite;
-using LanguageExt;
 
 namespace Kingo.Storage.Tests.Sqlite;
 
