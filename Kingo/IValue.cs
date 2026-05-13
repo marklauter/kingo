@@ -1,6 +1,11 @@
+using System.Numerics;
+
 namespace Kingo;
 
 public interface IValue<TSelf, TValue>
+    : IComparable<TSelf>
+    , IEquatable<TSelf>
+    , IComparisonOperators<TSelf, TSelf, bool>
     where TSelf : IValue<TSelf, TValue>
 {
     TValue Value { get; }
