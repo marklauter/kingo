@@ -3,8 +3,9 @@ namespace Kingo;
 /// <summary>
 /// Contract for types that can be converted to and from a string representation.
 /// </summary>
-/// <typeparam name="T">The type that implements the conversion operations.</typeparam>
+/// <typeparam name="T">The implementing type — must be self-referential (CRTP).</typeparam>
 public interface IStringConvertible<T>
+    where T : IStringConvertible<T>
 {
     /// <summary>
     /// Instantiates <typeparamref name="T"/> from the string <paramref name="s"/>.
