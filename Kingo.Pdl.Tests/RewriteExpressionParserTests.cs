@@ -1,4 +1,4 @@
-namespace Kingo.Policies.Tests;
+namespace Kingo.Pdl.Tests;
 
 public sealed class RewriteExpressionParserTests
 {

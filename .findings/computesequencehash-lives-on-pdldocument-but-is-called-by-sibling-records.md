@@ -2,7 +2,7 @@
 
 Severity: nit
 Type: code
-Location: `Kingo.Policies/PdlDocument.cs:18, Kingo.Policies/PdlDocument.cs:33, Kingo.Policies/PdlDocument.cs:64, Kingo.Policies/PdlDocument.cs:73`
+Location: `Kingo.Pdl/PdlDocument.cs:18, Kingo.Pdl/PdlDocument.cs:33, Kingo.Pdl/PdlDocument.cs:64, Kingo.Pdl/PdlDocument.cs:73`
 Principle: One source of truth
 Shared hashing helper sits on one record while three other records reach across to call it.
 

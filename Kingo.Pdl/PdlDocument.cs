@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 public sealed record PdlDocument(
     string Yaml,

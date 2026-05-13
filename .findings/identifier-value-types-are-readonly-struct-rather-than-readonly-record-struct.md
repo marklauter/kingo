@@ -2,7 +2,7 @@
 
 Severity: nit
 Type: code
-Location: `Kingo.Policies/NamespaceIdentifier.cs:11, Kingo.Policies/RelationIdentifier.cs:10`
+Location: `Kingo.Pdl/NamespaceIdentifier.cs:11, Kingo.Pdl/RelationIdentifier.cs:10`
 Principle: Make invalid states unrepresentable
 Hand-rolled struct with manual equality and operators duplicates what a record struct would synthesize.
 

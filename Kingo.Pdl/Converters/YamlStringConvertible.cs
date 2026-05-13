@@ -2,7 +2,7 @@ using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Policies.Converters;
+namespace Kingo.Pdl.Converters;
 
 internal sealed class YamlStringConvertible<T>
     : IYamlTypeConverter

@@ -60,4 +60,4 @@ A bare relation name (e.g. `owner`, `banned`) has no rewrite — semantically eq
 
 ## Prior art
 
-The dictionary-encoding quarry branch contains a working implementation (`src/Kingo.Policies/`) using YamlDotNet for the outer parser and Superpower for the embedded grammar, plus a round-tripping serializer. See `docs/notes/sources.md`.
+The dictionary-encoding quarry branch contains a working implementation (`src/Kingo.Pdl/`) using YamlDotNet for the outer parser and Superpower for the embedded grammar, plus a round-tripping serializer. See `docs/notes/sources.md`.

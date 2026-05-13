@@ -16,7 +16,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kingo.Policies\Kingo.Policies.csproj" />
+		<ProjectReference Include="..\Kingo.Pdl\Kingo.Pdl.csproj" />
 	</ItemGroup>
 
 </Project>

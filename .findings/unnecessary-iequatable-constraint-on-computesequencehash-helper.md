@@ -2,7 +2,7 @@
 
 Severity: nit
 Type: code
-Location: `Kingo.Policies/PdlDocument.cs:18`
+Location: `Kingo.Pdl/PdlDocument.cs:18`
 Principle: Inference, not annotation
 The helper's body only calls HashCode.Add, which uses EqualityComparer<T>.Default and works for any T.
 

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 internal sealed partial class RegExPatterns
 {

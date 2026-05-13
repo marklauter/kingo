@@ -1,9 +1,9 @@
-using Kingo.Policies.Converters;
+using Kingo.Pdl.Converters;
 using System.Collections.Immutable;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 public static class PdlParser
 {

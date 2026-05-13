@@ -2,7 +2,7 @@
 
 Severity: important
 Type: code
-Location: `Kingo.Policies/PdlParser.cs:11`
+Location: `Kingo.Pdl/PdlParser.cs:11`
 Principle: Fail loud when prevention fails
 catch (Exception) wraps OutOfMemoryException, OperationCanceledException, and other infrastructure failures as PdlParseException, hiding their type from callers.
 

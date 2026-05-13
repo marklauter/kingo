@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 [JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'namespace'")]

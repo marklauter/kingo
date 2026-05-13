@@ -1,7 +1,7 @@
-using Kingo.Policies.Converters;
+using Kingo.Pdl.Converters;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 public static class PdlSerializer
 {

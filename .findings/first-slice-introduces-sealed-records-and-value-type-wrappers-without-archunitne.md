@@ -2,7 +2,7 @@
 
 Severity: nit
 Type: code
-Location: `Kingo.Policies/PdlDocument.cs:1`
+Location: `Kingo.Pdl/PdlDocument.cs:1`
 Principle: The first slice sets the pattern
 The pattern lands without an architectural test enforcing it for future slices.
 
@@ -21,7 +21,7 @@ Two options, in increasing scope:
 
 1. Defer until there's a clearer architectural shape (more projects, defined layers). Acknowledge the gap explicitly in a doc note so future-you doesn't forget.
 2. Land a minimal `Kingo.Architecture.Tests` project now with two tests:
-   - All concrete classes and records in `Kingo.Policies` are `sealed`.
-   - All public structs in `Kingo.Policies` are `readonly` and implement `IEquatable<TSelf>`.
+   - All concrete classes and records in `Kingo.Pdl` are `sealed`.
+   - All public structs in `Kingo.Pdl` are `readonly` and implement `IEquatable<TSelf>`.
 
 Option 2 is closer to the writing-csharp prescription. Option 1 is the smaller commit if you're not ready for a third project.

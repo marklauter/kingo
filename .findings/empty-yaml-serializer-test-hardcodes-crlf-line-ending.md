@@ -2,7 +2,7 @@
 
 Severity: nit
 Type: code
-Location: `Kingo.Policies.Tests/PdlSerializerTests.cs:97`
+Location: `Kingo.Pdl.Tests/PdlSerializerTests.cs:97`
 Principle: One source of truth
 Assert.Equal hardcodes "{}\r\n" which may not match YamlDotNet output on Linux CI runners.
 

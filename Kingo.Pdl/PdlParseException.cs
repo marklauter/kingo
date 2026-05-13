@@ -1,4 +1,4 @@
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 public static class PdlParseErrorCodes
 {

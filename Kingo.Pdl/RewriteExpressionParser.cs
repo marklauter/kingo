@@ -4,7 +4,7 @@ using Superpower.Model;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 internal static class RewriteExpressionParser
 {

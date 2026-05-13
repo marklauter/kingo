@@ -1,16 +1,16 @@
-namespace Kingo.Policies.Tests;
+namespace Kingo.Pdl.Tests;
 
-public sealed class RelationIdentifierTests
+public sealed class NamespaceTests
 {
     [Fact]
     public void From_Throws_IfValueIsNull() =>
-        Assert.Throws<ArgumentNullException>(() => RelationIdentifier.From(null!));
+        Assert.Throws<ArgumentNullException>(() => NamespaceIdentifier.From(null!));
 
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
     public void From_Throws_IfValueIsWhitespace(string value) =>
-        Assert.Throws<ArgumentException>(() => RelationIdentifier.From(value));
+        Assert.Throws<ArgumentException>(() => NamespaceIdentifier.From(value));
 
     [Theory]
     [InlineData("a-b")]
@@ -19,27 +19,27 @@ public sealed class RelationIdentifierTests
     [InlineData("a.b")]
     public void From_Throws_IfValueContainsInvalidCharacters(string value)
     {
-        var exception = Assert.Throws<ArgumentException>(nameof(value), () => RelationIdentifier.From(value));
+        var exception = Assert.Throws<ArgumentException>(nameof(value), () => NamespaceIdentifier.From(value));
         Assert.StartsWith("value contains invalid characters", exception.Message, StringComparison.Ordinal);
         Assert.Contains(value, exception.Message, StringComparison.Ordinal);
     }
 
     [Theory]
     [InlineData("a")]
+    [InlineData("_a")]
     [InlineData("a_b")]
     [InlineData("a0")]
-    [InlineData("...")]
     public void From_ReturnsIdentifier_IfValueIsValid(string value)
     {
-        var relation = RelationIdentifier.From(value);
-        Assert.Equal(value, relation.ToString());
+        var identifier = NamespaceIdentifier.From(value);
+        Assert.Equal(value, identifier.ToString());
     }
 
     [Fact]
     public void Equals_ReturnsTrue_IfValuesAreEqual()
     {
-        var a = RelationIdentifier.From("a");
-        var b = RelationIdentifier.From("a");
+        var a = NamespaceIdentifier.From("a");
+        var b = NamespaceIdentifier.From("a");
 
         Assert.True(a.Equals(b));
         Assert.True(a.Equals((object)b));
@@ -51,8 +51,8 @@ public sealed class RelationIdentifierTests
     [Fact]
     public void Equals_ReturnsFalse_IfValuesAreNotEqual()
     {
-        var a = RelationIdentifier.From("a");
-        var b = RelationIdentifier.From("b");
+        var a = NamespaceIdentifier.From("a");
+        var b = NamespaceIdentifier.From("b");
 
         Assert.False(a.Equals(b));
         Assert.False(a.Equals((object)b));
@@ -64,8 +64,8 @@ public sealed class RelationIdentifierTests
     [Fact]
     public void CompareTo_ReturnsCorrectValue()
     {
-        var a = RelationIdentifier.From("a");
-        var b = RelationIdentifier.From("b");
+        var a = NamespaceIdentifier.From("a");
+        var b = NamespaceIdentifier.From("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(a < b);
@@ -78,8 +78,8 @@ public sealed class RelationIdentifierTests
     [Fact]
     public void GetHashCode_ReturnsSameValue_ForEqualIdentifiers()
     {
-        var a = RelationIdentifier.From("a");
-        var b = RelationIdentifier.From("a");
+        var a = NamespaceIdentifier.From("a");
+        var b = NamespaceIdentifier.From("a");
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
 
@@ -87,18 +87,11 @@ public sealed class RelationIdentifierTests
     public void ToString_ReturnsValue()
     {
         const string value = "a_b_c";
-        var relation = RelationIdentifier.From(value);
-        Assert.Equal(value, relation.ToString());
+        var identifier = NamespaceIdentifier.From(value);
+        Assert.Equal(value, identifier.ToString());
     }
 
     [Fact]
     public void Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => RelationIdentifier.Empty());
-
-    [Fact]
-    public void Nothing_Returns_Three_Dots()
-    {
-        var nothing = RelationIdentifier.Nothing;
-        Assert.Equal("...", nothing.ToString());
-    }
+        Assert.Throws<ArgumentException>(() => NamespaceIdentifier.Empty());
 }

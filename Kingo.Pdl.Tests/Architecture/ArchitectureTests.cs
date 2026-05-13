@@ -4,10 +4,10 @@ using ArchUnitNET.Loader;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 using ArchitectureModel = ArchUnitNET.Domain.Architecture;
 
-namespace Kingo.Policies.Tests.Architecture;
+namespace Kingo.Pdl.Tests.Architecture;
 
 // Encodes the structural invariants that the writing-csharp first-slice pattern locks in
-// for Kingo.Policies. Drift trips the build instead of a human reviewer.
+// for Kingo.Pdl. Drift trips the build instead of a human reviewer.
 public sealed class ArchitectureTests
 {
     private static readonly ArchitectureModel Policies = new ArchLoader()
@@ -15,13 +15,13 @@ public sealed class ArchitectureTests
         .Build();
 
     [Fact]
-    public void AllTypesResideInKingoPoliciesNamespace() =>
+    public void AllTypesResideInKingoPdlNamespace() =>
         Verify(Types()
             .That()
             .DoNotHaveNameContaining("<") // exclude compiler-generated closures / async state machines
             .Should()
-            .ResideInNamespaceMatching(@"^Kingo\.Policies(\..*)?$")
-            .Because("Kingo.Policies is a self-contained policy parser; types belong inside its namespace."));
+            .ResideInNamespaceMatching(@"^Kingo\.Pdl(\..*)?$")
+            .Because("Kingo.Pdl is a self-contained parser; types belong inside its namespace."));
 
     [Fact]
     public void ConcreteClassesAreSealed() =>

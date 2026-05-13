@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Kingo.Policies;
+namespace Kingo.Pdl;
 
 [JsonConverter(typeof(StringConvertible<RelationIdentifier>))]
 public readonly record struct RelationIdentifier
