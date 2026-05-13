@@ -1,5 +1,6 @@
 using Kingo.Policies.Converters;
 using System.Collections.Immutable;
+using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
 namespace Kingo.Policies;
@@ -18,13 +19,18 @@ public static class PdlParser
                 .WithTypeConverter(new YamlStringConvertible<RelationIdentifier>())
                 .Build()
                 .Deserialize<Dictionary<NamespaceIdentifier, List<Relation>>>(yaml)
-                .Select(kvp => new Namespace(kvp.Key, [.. kvp.Value]))
+                .Select(kvp => new Namespace(kvp.Key, [.. kvp.Value ?? []]))
                 .ToImmutableArray();
 
             return new PdlDocument(yaml, namespaces);
         }
-        catch (Exception ex) when (ex is not PdlParseException)
+        catch (YamlException ex)
         {
+            throw new PdlParseException(PdlParseErrorCodes.SyntaxError, $"failed to parse PDL document: {ex.Message}", ex);
+        }
+        catch (ArgumentException ex)
+        {
+            // Identifier validation in NamespaceIdentifier / RelationIdentifier throws ArgumentException for bad names.
             throw new PdlParseException(PdlParseErrorCodes.SyntaxError, $"failed to parse PDL document: {ex.Message}", ex);
         }
     }

@@ -92,23 +92,6 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void ImplicitConversion_ToString_ReturnsValue()
-    {
-        const string value = "a_b_c";
-        var identifier = NamespaceIdentifier.From(value);
-        string s = identifier;
-        Assert.Equal(value, s);
-    }
-
-    [Fact]
-    public void ImplicitConversion_FromString_ReturnsIdentifier()
-    {
-        const string value = "a_b_c";
-        NamespaceIdentifier identifier = value;
-        Assert.Equal(value, identifier.ToString());
-    }
-
-    [Fact]
     public void Empty_Throws() =>
         Assert.Throws<ArgumentException>(() => NamespaceIdentifier.Empty());
 }

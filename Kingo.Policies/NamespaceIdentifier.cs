@@ -8,9 +8,8 @@ namespace Kingo.Policies;
 
 [JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'namespace'")]
-public readonly struct NamespaceIdentifier
+public readonly record struct NamespaceIdentifier
     : IStringConvertible<NamespaceIdentifier>
-    , IEquatable<NamespaceIdentifier>
     , IComparable<NamespaceIdentifier>
     , IEquatable<string>
     , IComparable<string>
@@ -38,16 +37,7 @@ public readonly struct NamespaceIdentifier
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override int GetHashCode() => value.GetHashCode(StringComparison.Ordinal);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override string ToString() => value;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(NamespaceIdentifier other) => string.Equals(value, other.value, StringComparison.Ordinal);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is NamespaceIdentifier ns && Equals(ns);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(NamespaceIdentifier other) => string.CompareOrdinal(value, other.value);
@@ -57,18 +47,6 @@ public readonly struct NamespaceIdentifier
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(string? other) => string.CompareOrdinal(value, other);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator string(NamespaceIdentifier ns) => ns.value;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator NamespaceIdentifier(string value) => new(value);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(NamespaceIdentifier left, NamespaceIdentifier right) => left.Equals(right);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(NamespaceIdentifier left, NamespaceIdentifier right) => !(left == right);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator <(NamespaceIdentifier left, NamespaceIdentifier right) => left.CompareTo(right) < 0;

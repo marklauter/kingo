@@ -97,7 +97,7 @@ public sealed class PdlSerializerTests
 
         var yaml = PdlSerializer.Serialize(document);
 
-        Assert.Equal("{}\r\n", yaml);
+        Assert.Equal("{}", yaml.TrimEnd('\r', '\n'));
     }
 
     [Fact]

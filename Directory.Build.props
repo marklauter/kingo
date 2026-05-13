@@ -11,7 +11,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<!-- CA2225: 'Provide a named alternate to operator op_Implicit' fights with idiomatic value-type operators where ToString()/From(string) already exist. -->
+		<!-- CA2225 Provide a named alternate to operator op_Implicit : fights idiomatic value-type operators where ToString()/From(string) already exist -->
 		<NoWarn>$(NoWarn);CA2225</NoWarn>
 	</PropertyGroup>
 

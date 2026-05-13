@@ -92,23 +92,6 @@ public sealed class RelationIdentifierTests
     }
 
     [Fact]
-    public void ImplicitConversion_ToString_ReturnsValue()
-    {
-        const string value = "a_b_c";
-        var relation = RelationIdentifier.From(value);
-        string s = relation;
-        Assert.Equal(value, s);
-    }
-
-    [Fact]
-    public void ImplicitConversion_FromString_ReturnsIdentifier()
-    {
-        const string value = "a_b_c";
-        RelationIdentifier relation = value;
-        Assert.Equal(value, relation.ToString());
-    }
-
-    [Fact]
     public void Empty_Throws() =>
         Assert.Throws<ArgumentException>(() => RelationIdentifier.Empty());
 

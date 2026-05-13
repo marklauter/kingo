@@ -12,16 +12,7 @@ public sealed record PdlDocument(
         && Yaml == other.Yaml
         && Namespaces.AsSpan().SequenceEqual(other.Namespaces.AsSpan());
 
-    public override int GetHashCode() => HashCode.Combine(Yaml, ComputeSequenceHash(Namespaces));
-
-    internal static int ComputeSequenceHash<T>(ImmutableArray<T> items)
-        where T : IEquatable<T>
-    {
-        var hash = new HashCode();
-        foreach (var item in items)
-            hash.Add(item);
-        return hash.ToHashCode();
-    }
+    public override int GetHashCode() => HashCode.Combine(Yaml, PolicyHash.OfSequence(Namespaces));
 }
 
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'namespace'")]
@@ -34,7 +25,7 @@ public sealed record Namespace(
         && Name.Equals(other.Name)
         && Relations.AsSpan().SequenceEqual(other.Relations.AsSpan());
 
-    public override int GetHashCode() => HashCode.Combine(Name, PdlDocument.ComputeSequenceHash(Relations));
+    public override int GetHashCode() => HashCode.Combine(Name, PolicyHash.OfSequence(Relations));
 }
 
 public sealed record Relation(
@@ -68,7 +59,7 @@ public sealed record UnionRewrite(
     public bool Equals(UnionRewrite? other) =>
         other is not null && Children.AsSpan().SequenceEqual(other.Children.AsSpan());
 
-    public override int GetHashCode() => PdlDocument.ComputeSequenceHash(Children);
+    public override int GetHashCode() => PolicyHash.OfSequence(Children);
 }
 
 public sealed record IntersectionRewrite(
@@ -78,10 +69,21 @@ public sealed record IntersectionRewrite(
     public bool Equals(IntersectionRewrite? other) =>
         other is not null && Children.AsSpan().SequenceEqual(other.Children.AsSpan());
 
-    public override int GetHashCode() => PdlDocument.ComputeSequenceHash(Children);
+    public override int GetHashCode() => PolicyHash.OfSequence(Children);
 }
 
 public sealed record ExclusionRewrite(
     SubjectSetRewrite Include,
     SubjectSetRewrite Exclude)
     : SubjectSetRewrite;
+
+internal static class PolicyHash
+{
+    public static int OfSequence<T>(ImmutableArray<T> items)
+    {
+        var hash = new HashCode();
+        foreach (var item in items)
+            hash.Add(item);
+        return hash.ToHashCode();
+    }
+}
