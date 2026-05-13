@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Kingo.Policies;
 
-internal partial class RegExPatterns
+internal sealed partial class RegExPatterns
 {
     private const RegexOptions PatternOptions =
         RegexOptions.ExplicitCapture |
