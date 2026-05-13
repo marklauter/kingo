@@ -1,6 +1,7 @@
 <Project>
 
-	<PropertyGroup Condition="'$(IsTestProject)' != 'true' and '$(OutputType)' != 'Exe'">
+	<!-- Documentation generation is opt-in via IsPackable. Libraries that ship as NuGet packages set <IsPackable>true</IsPackable> in their csproj and pick up doc-gen + warning-as-error on missing comments. Internal libraries set <IsPackable>false</IsPackable> and skip the ceremony. -->
+	<PropertyGroup Condition="'$(IsTestProject)' != 'true' and '$(OutputType)' != 'Exe' and '$(IsPackable)' != 'false'">
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
 	</PropertyGroup>

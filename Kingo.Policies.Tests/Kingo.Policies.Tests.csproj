@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Include>[Kingo*]*</Include>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="Data\doc.policy.yml" />
+		<Content Include="Data\doc.policy.yml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kingo.Policies\Kingo.Policies.csproj" />
+	</ItemGroup>
+
+</Project>
