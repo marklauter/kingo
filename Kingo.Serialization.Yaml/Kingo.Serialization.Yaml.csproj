@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="YamlDotNet" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kingo.Serialization\Kingo.Serialization.csproj" />
+	</ItemGroup>
+
+</Project>

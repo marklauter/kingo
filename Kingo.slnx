@@ -1,6 +1,12 @@
 <Solution>
   <Project Path="Kingo.Pdl.Tests/Kingo.Pdl.Tests.csproj" />
   <Project Path="Kingo.Pdl/Kingo.Pdl.csproj" />
+  <Project Path="Kingo.Serialization.Json.Tests/Kingo.Serialization.Json.Tests.csproj" />
+  <Project Path="Kingo.Serialization.Json/Kingo.Serialization.Json.csproj" />
+  <Project Path="Kingo.Serialization.Tests/Kingo.Serialization.Tests.csproj" />
+  <Project Path="Kingo.Serialization.Yaml.Tests/Kingo.Serialization.Yaml.Tests.csproj" />
+  <Project Path="Kingo.Serialization.Yaml/Kingo.Serialization.Yaml.csproj" />
+  <Project Path="Kingo.Serialization/Kingo.Serialization.csproj" />
   <Project Path="Kingo.Tests/Kingo.Tests.csproj" />
   <Project Path="Kingo/Kingo.csproj" />
 </Solution>
