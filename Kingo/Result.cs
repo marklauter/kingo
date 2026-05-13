@@ -25,17 +25,46 @@ public abstract record Result<T>
         };
     }
 
-    /// <summary>Pattern-match the result for side effects, producing no value.</summary>
-    public void Switch(Action<T> onSuccess, Action<Error> onError)
+    /// <summary>
+    /// Functor map: transform the success value with <paramref name="fn"/>; pass the failure through unchanged.
+    /// </summary>
+    public Result<TResult> Map<TResult>(Func<T, TResult> fn)
     {
-        ArgumentNullException.ThrowIfNull(onSuccess);
-        ArgumentNullException.ThrowIfNull(onError);
-        switch (this)
+        ArgumentNullException.ThrowIfNull(fn);
+        return this switch
         {
-            case Success<T> s: onSuccess(s.Value); break;
-            case Failure<T> f: onError(f.Error); break;
-            default: throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>.");
-        }
+            Success<T> s => new Success<TResult>(fn(s.Value)),
+            Failure<T> f => new Failure<TResult>(f.Error),
+            _ => throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>."),
+        };
+    }
+
+    /// <summary>
+    /// Monadic bind: chain a result-returning function after a successful result; short-circuit on failure.
+    /// </summary>
+    public Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn)
+    {
+        ArgumentNullException.ThrowIfNull(fn);
+        return this switch
+        {
+            Success<T> s => fn(s.Value),
+            Failure<T> f => new Failure<TResult>(f.Error),
+            _ => throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>."),
+        };
+    }
+
+    /// <summary>
+    /// Async monadic bind: chain a result-returning async function after a successful result; short-circuit on failure.
+    /// </summary>
+    public async Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn)
+    {
+        ArgumentNullException.ThrowIfNull(fn);
+        return this switch
+        {
+            Success<T> s => await fn(s.Value).ConfigureAwait(false),
+            Failure<T> f => new Failure<TResult>(f.Error),
+            _ => throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>."),
+        };
     }
 }
 
@@ -57,52 +86,17 @@ public static class Result
     public static Result<T> Failure<T>(Error error) => new Failure<T>(error);
 
     /// <summary>
-    /// Lift a unary function over a <see cref="Result{T}"/>-wrapped argument. The function runs only when the argument is <see cref="Success{T}"/>; otherwise the failure passes through unchanged.
+    /// Canonical applicative application: feed a <see cref="Result{T}"/>-wrapped argument to a <see cref="Result{T}"/>-wrapped function. Multi-arity handled by currying — apply repeatedly to consume each argument. Short-circuits on the first failure, with the wrapped function checked before the wrapped argument.
     /// </summary>
-    public static Result<TResult> Apply<T, TResult>(Func<T, TResult> fn, Result<T> result)
+    public static Result<TResult> Apply<T, TResult>(Result<Func<T, TResult>> resultFn, Result<T> resultArg)
     {
-        ArgumentNullException.ThrowIfNull(fn);
-        ArgumentNullException.ThrowIfNull(result);
-        return result switch
+        ArgumentNullException.ThrowIfNull(resultFn);
+        ArgumentNullException.ThrowIfNull(resultArg);
+        return (resultFn, resultArg) switch
         {
-            Success<T> s => Success(fn(s.Value)),
-            Failure<T> f => Failure<TResult>(f.Error),
-            _ => throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>."),
-        };
-    }
-
-    /// <summary>
-    /// Lift a binary function over two <see cref="Result{T}"/>-wrapped arguments. Short-circuits on the first failure — <paramref name="r1"/> is checked before <paramref name="r2"/>.
-    /// </summary>
-    public static Result<TResult> Apply<T1, T2, TResult>(Func<T1, T2, TResult> fn, Result<T1> r1, Result<T2> r2)
-    {
-        ArgumentNullException.ThrowIfNull(fn);
-        ArgumentNullException.ThrowIfNull(r1);
-        ArgumentNullException.ThrowIfNull(r2);
-        return (r1, r2) switch
-        {
-            (Success<T1> s1, Success<T2> s2) => Success(fn(s1.Value, s2.Value)),
-            (Failure<T1> f, _) => Failure<TResult>(f.Error),
-            (_, Failure<T2> f) => Failure<TResult>(f.Error),
-            _ => throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>."),
-        };
-    }
-
-    /// <summary>
-    /// Lift a ternary function over three <see cref="Result{T}"/>-wrapped arguments. Short-circuits on the first failure.
-    /// </summary>
-    public static Result<TResult> Apply<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> fn, Result<T1> r1, Result<T2> r2, Result<T3> r3)
-    {
-        ArgumentNullException.ThrowIfNull(fn);
-        ArgumentNullException.ThrowIfNull(r1);
-        ArgumentNullException.ThrowIfNull(r2);
-        ArgumentNullException.ThrowIfNull(r3);
-        return (r1, r2, r3) switch
-        {
-            (Success<T1> s1, Success<T2> s2, Success<T3> s3) => Success(fn(s1.Value, s2.Value, s3.Value)),
-            (Failure<T1> f, _, _) => Failure<TResult>(f.Error),
-            (_, Failure<T2> f, _) => Failure<TResult>(f.Error),
-            (_, _, Failure<T3> f) => Failure<TResult>(f.Error),
+            (Success<Func<T, TResult>> f, Success<T> a) => Success(f.Value(a.Value)),
+            (Failure<Func<T, TResult>> f, _) => Failure<TResult>(f.Error),
+            (_, Failure<T> a) => Failure<TResult>(a.Error),
             _ => throw new InvalidOperationException("Result<T> must be either Success<T> or Failure<T>."),
         };
     }
