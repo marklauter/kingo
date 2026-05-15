@@ -6,6 +6,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Kingo.Serialization.Yaml\Kingo.Serialization.Yaml.csproj" />
+		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />
 	</ItemGroup>
 
 </Project>

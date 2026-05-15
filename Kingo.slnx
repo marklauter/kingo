@@ -7,6 +7,7 @@
   <Project Path="Kingo.Serialization.Yaml.Tests/Kingo.Serialization.Yaml.Tests.csproj" />
   <Project Path="Kingo.Serialization.Yaml/Kingo.Serialization.Yaml.csproj" />
   <Project Path="Kingo.Serialization/Kingo.Serialization.csproj" />
+  <Project Path="Kingo.Testing/Kingo.Testing.csproj" />
   <Project Path="Kingo.Tests/Kingo.Tests.csproj" />
   <Project Path="Kingo/Kingo.csproj" />
   <Project Path="Results.Tests/Results.Tests.csproj" />

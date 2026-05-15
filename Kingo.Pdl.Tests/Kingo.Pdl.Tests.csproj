@@ -12,11 +12,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TngTech.ArchUnitNET" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\Kingo.Pdl\Kingo.Pdl.csproj" />
+		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />
 	</ItemGroup>
 
 </Project>

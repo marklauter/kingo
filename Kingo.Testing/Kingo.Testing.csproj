@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="TngTech.ArchUnitNET" />
+		<!-- xunit.v3.extensibility.core + xunit.v3.assert (not the xunit.v3 metapackage) — this project exposes [Fact]-bearing base classes for derived test projects to consume; the xunit.v3 metapackage requires the consumer to be an executable test project. -->
+		<PackageReference Include="xunit.v3.extensibility.core" />
+		<PackageReference Include="xunit.v3.assert" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+</Project>

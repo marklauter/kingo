@@ -32,6 +32,9 @@
 		<ThresholdStat>minimum</ThresholdStat>
 		<!-- Exception types are plumbing; exclude from coverage to avoid noise. -->
 		<Exclude>[*]*Exception</Exclude>
+		<!-- CA1515 Make public types internal : test classes must be public for xunit discovery -->
+		<!-- CA1812 Internal class never instantiated : test fixtures and middleware are activated reflectively, analyzer cannot see construction -->
+		<NoWarn>$(NoWarn);CA1515;CA1812</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
