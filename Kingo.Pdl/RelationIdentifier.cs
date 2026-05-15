@@ -7,25 +7,59 @@ namespace Kingo.Pdl;
 
 [JsonConverter(typeof(StringConvertible<RelationIdentifier>))]
 public readonly record struct RelationIdentifier
-    : IStringConvertible<RelationIdentifier>
-    , IComparable<RelationIdentifier>
+    : IValue<RelationIdentifier, string>
+    , IStringConvertible<RelationIdentifier>
     , IEquatable<string>
     , IComparable<string>
 {
     private readonly string value;
     private static readonly Regex Validation = RegExPatterns.RelationIdentifier();
 
+    /// <summary>Gets the underlying string value.</summary>
+    public string Value => value;
+
+    /// <summary>
+    /// Constructs a <see cref="RelationIdentifier"/> from a trusted source without validation. Use when the value has already been validated (for example, when reading from a trusted store).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RelationIdentifier Create(string value) => new(value);
+
+    /// <summary>
+    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{T}"/>.
+    /// </summary>
+    public static Result<RelationIdentifier> Parse(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return Error.Validation("rel.empty", "relation identifier cannot be empty or whitespace");
+        if (!Validation.IsMatch(s))
+            return Error.Validation("rel.invalid", $"relation identifier '{s}' contains invalid characters; expected '^\\.\\.\\.$|^[A-Za-z_][A-Za-z0-9_]*$'");
+        return new RelationIdentifier(s);
+    }
+
+    /// <summary>Attempts to parse <paramref name="s"/>; on success, <paramref name="parsed"/> receives the value.</summary>
+    public static bool TryParse(string s, out RelationIdentifier parsed)
+    {
+        if (Parse(s) is Success<RelationIdentifier> success)
+        {
+            parsed = success.Value;
+            return true;
+        }
+        parsed = default;
+        return false;
+    }
+
+    // Legacy IStringConvertible<T> surface — scheduled for removal alongside StringConvertible<T>.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RelationIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
 
     public static RelationIdentifier Nothing { get; } = From("...");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RelationIdentifier From(string s) => new(s);
+    public static RelationIdentifier From(string s) => new(ValidValue(s));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private RelationIdentifier(string value) => this.value = ValidValue(value);
+    private RelationIdentifier(string value) => this.value = value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string ValidValue(string value)

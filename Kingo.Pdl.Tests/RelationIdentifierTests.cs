@@ -101,4 +101,62 @@ public sealed class RelationIdentifierTests
         var nothing = RelationIdentifier.Nothing;
         Assert.Equal("...", nothing.ToString());
     }
+
+    [Fact]
+    public void Value_ReturnsUnderlyingString()
+    {
+        var id = RelationIdentifier.From("owner");
+        Assert.Equal("owner", id.Value);
+    }
+
+    [Fact]
+    public void Create_DoesNotValidate()
+    {
+        // Trusted path — caller asserts the value is valid; Create accepts what From would reject.
+        var id = RelationIdentifier.Create("not-a-valid-identifier");
+        Assert.Equal("not-a-valid-identifier", id.Value);
+    }
+
+    [Fact]
+    public void Parse_ValidInput_ReturnsSuccess()
+    {
+        var result = RelationIdentifier.Parse("owner");
+        var s = Assert.IsType<Success<RelationIdentifier>>(result);
+        Assert.Equal("owner", s.Value.Value);
+    }
+
+    [Fact]
+    public void Parse_NothingSentinel_ReturnsSuccess()
+    {
+        var result = RelationIdentifier.Parse("...");
+        var s = Assert.IsType<Success<RelationIdentifier>>(result);
+        Assert.Equal("...", s.Value.Value);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("a-b")]
+    [InlineData("a.b")]
+    [InlineData("0bad")]
+    public void Parse_InvalidInput_ReturnsValidationFailure(string input)
+    {
+        var result = RelationIdentifier.Parse(input);
+        var f = Assert.IsType<Failure<RelationIdentifier>>(result);
+        Assert.Equal(ErrorType.Validation, f.Error.Type);
+    }
+
+    [Fact]
+    public void TryParse_ValidInput_ReturnsTrueAndPopulatesOut()
+    {
+        Assert.True(RelationIdentifier.TryParse("owner", out var parsed));
+        Assert.Equal("owner", parsed.Value);
+    }
+
+    [Fact]
+    public void TryParse_InvalidInput_ReturnsFalseAndOutIsDefault()
+    {
+        Assert.False(RelationIdentifier.TryParse("bad-id", out var parsed));
+        Assert.Equal(default, parsed);
+    }
 }

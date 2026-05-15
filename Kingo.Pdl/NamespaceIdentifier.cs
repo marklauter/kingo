@@ -9,23 +9,57 @@ namespace Kingo.Pdl;
 [JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'namespace'")]
 public readonly record struct NamespaceIdentifier
-    : IStringConvertible<NamespaceIdentifier>
-    , IComparable<NamespaceIdentifier>
+    : IValue<NamespaceIdentifier, string>
+    , IStringConvertible<NamespaceIdentifier>
     , IEquatable<string>
     , IComparable<string>
 {
     private readonly string value;
     private static readonly Regex Validation = RegExPatterns.NamespaceIdentifier();
 
+    /// <summary>Gets the underlying string value.</summary>
+    public string Value => value;
+
+    /// <summary>
+    /// Constructs a <see cref="NamespaceIdentifier"/> from a trusted source without validation. Use when the value has already been validated (for example, when reading from a trusted store).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NamespaceIdentifier Create(string value) => new(value);
+
+    /// <summary>
+    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{T}"/>.
+    /// </summary>
+    public static Result<NamespaceIdentifier> Parse(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+            return Error.Validation("ns.empty", "namespace identifier cannot be empty or whitespace");
+        if (!Validation.IsMatch(s))
+            return Error.Validation("ns.invalid", $"namespace identifier '{s}' contains invalid characters; expected '^[A-Za-z_][A-Za-z0-9_]*$'");
+        return new NamespaceIdentifier(s);
+    }
+
+    /// <summary>Attempts to parse <paramref name="s"/>; on success, <paramref name="parsed"/> receives the value.</summary>
+    public static bool TryParse(string s, out NamespaceIdentifier parsed)
+    {
+        if (Parse(s) is Success<NamespaceIdentifier> success)
+        {
+            parsed = success.Value;
+            return true;
+        }
+        parsed = default;
+        return false;
+    }
+
+    // Legacy IStringConvertible<T> surface — scheduled for removal alongside StringConvertible<T>.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NamespaceIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NamespaceIdentifier From(string s) => new(s);
+    public static NamespaceIdentifier From(string s) => new(ValidValue(s));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [JsonConstructor]
-    private NamespaceIdentifier(string value) => this.value = ValidValue(value);
+    private NamespaceIdentifier(string value) => this.value = value;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string ValidValue(string value)

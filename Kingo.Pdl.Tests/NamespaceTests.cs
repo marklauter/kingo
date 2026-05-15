@@ -94,4 +94,54 @@ public sealed class NamespaceTests
     [Fact]
     public void Empty_Throws() =>
         Assert.Throws<ArgumentException>(() => NamespaceIdentifier.Empty());
+
+    [Fact]
+    public void Value_ReturnsUnderlyingString()
+    {
+        var id = NamespaceIdentifier.From("file");
+        Assert.Equal("file", id.Value);
+    }
+
+    [Fact]
+    public void Create_DoesNotValidate()
+    {
+        // Trusted path — caller asserts the value is valid; Create accepts what From would reject.
+        var id = NamespaceIdentifier.Create("not-a-valid-identifier");
+        Assert.Equal("not-a-valid-identifier", id.Value);
+    }
+
+    [Fact]
+    public void Parse_ValidInput_ReturnsSuccess()
+    {
+        var result = NamespaceIdentifier.Parse("file");
+        var s = Assert.IsType<Success<NamespaceIdentifier>>(result);
+        Assert.Equal("file", s.Value.Value);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("a-b")]
+    [InlineData("a.b")]
+    [InlineData("0bad")]
+    public void Parse_InvalidInput_ReturnsValidationFailure(string input)
+    {
+        var result = NamespaceIdentifier.Parse(input);
+        var f = Assert.IsType<Failure<NamespaceIdentifier>>(result);
+        Assert.Equal(ErrorType.Validation, f.Error.Type);
+    }
+
+    [Fact]
+    public void TryParse_ValidInput_ReturnsTrueAndPopulatesOut()
+    {
+        Assert.True(NamespaceIdentifier.TryParse("file", out var parsed));
+        Assert.Equal("file", parsed.Value);
+    }
+
+    [Fact]
+    public void TryParse_InvalidInput_ReturnsFalseAndOutIsDefault()
+    {
+        Assert.False(NamespaceIdentifier.TryParse("bad-id", out var parsed));
+        Assert.Equal(default, parsed);
+    }
 }
