@@ -1,4 +1,3 @@
-using Results;
 using Values;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
@@ -14,10 +13,9 @@ internal sealed class YamlStringConvertible<T>
 
     public object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
     {
-        if (!parser.TryConsume<Scalar>(out var scalar))
-            throw new YamlException($"Expected a scalar value to deserialize to {typeof(T).Name}.");
-
-        return T.Parse(scalar.Value ?? string.Empty).Match<object>(
+        return !parser.TryConsume<Scalar>(out var scalar)
+            ? throw new YamlException($"Expected a scalar value to deserialize to {typeof(T).Name}.")
+            : T.Parse(scalar.Value ?? string.Empty).Match<object>(
             onSuccess: value => value,
             onError: error => throw new YamlException($"Failed to parse {typeof(T).Name}: {error.Message}"));
     }

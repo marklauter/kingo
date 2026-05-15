@@ -5,8 +5,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kingo\Kingo.csproj" />
-		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />
+		<ProjectReference Include="..\..\src\Kingo\Kingo.csproj" />
+		<ProjectReference Include="..\..\src\Kingo.Testing\Kingo.Testing.csproj" />
 	</ItemGroup>
 
 </Project>

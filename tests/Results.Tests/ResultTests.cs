@@ -5,7 +5,7 @@ public sealed class ResultTests
     [Fact]
     public void Success_Factory_ReturnsSuccessVariant()
     {
-        Result<int> result = Result.Success(42);
+        var result = Result.Success(42);
         var s = Assert.IsType<Success<int>>(result);
         Assert.Equal(42, s.Value);
     }
@@ -14,7 +14,7 @@ public sealed class ResultTests
     public void Failure_Factory_ReturnsFailureVariant()
     {
         var error = Error.NotFound("err.x", "msg");
-        Result<int> result = Result.Failure<int>(error);
+        var result = Result.Failure<int>(error);
         var f = Assert.IsType<Failure<int>>(result);
         Assert.Equal(error, f.Error);
     }
@@ -217,7 +217,7 @@ public sealed class ResultTests
     [Fact]
     public void Apply_OverWrappedFunctionAndWrappedSuccess_AppliesFunction()
     {
-        Result<Func<int, int>> doubler = Result.Success<Func<int, int>>(x => x * 2);
+        var doubler = Result.Success<Func<int, int>>(x => x * 2);
         Result<int> arg = 21;
 
         var applied = Result.Apply(doubler, arg);
@@ -242,7 +242,7 @@ public sealed class ResultTests
     [Fact]
     public void Apply_WrappedArgFailure_PassesArgErrorThrough()
     {
-        Result<Func<int, int>> doubler = Result.Success<Func<int, int>>(x => x * 2);
+        var doubler = Result.Success<Func<int, int>>(x => x * 2);
         var error = Error.NotFound("err.arg", "arg missing");
         Result<int> arg = error;
 
@@ -270,7 +270,7 @@ public sealed class ResultTests
     public void Apply_BinaryViaCurry_OverTwoSuccesses_AppliesFunction()
     {
         // Curry a binary function and chain Apply twice — the canonical applicative pattern.
-        Result<Func<int, Func<int, int>>> curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);
+        var curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);
         Result<int> a = 10;
         Result<int> b = 32;
 
@@ -283,7 +283,7 @@ public sealed class ResultTests
     [Fact]
     public void Apply_BinaryViaCurry_FirstArgFailure_ShortCircuits()
     {
-        Result<Func<int, Func<int, int>>> curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);
+        var curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);
         var error = Error.Validation("err.first", "first arg bad");
         Result<int> a = error;
         Result<int> b = 32;

@@ -1,17 +1,21 @@
 <Solution>
-  <Project Path="Kingo.Pdl.Tests/Kingo.Pdl.Tests.csproj" />
-  <Project Path="Kingo.Pdl/Kingo.Pdl.csproj" />
-  <Project Path="Kingo.Serialization.Json.Tests/Kingo.Serialization.Json.Tests.csproj" />
-  <Project Path="Kingo.Serialization.Json/Kingo.Serialization.Json.csproj" />
-  <Project Path="Kingo.Serialization.Tests/Kingo.Serialization.Tests.csproj" />
-  <Project Path="Kingo.Serialization.Yaml.Tests/Kingo.Serialization.Yaml.Tests.csproj" />
-  <Project Path="Kingo.Serialization.Yaml/Kingo.Serialization.Yaml.csproj" />
-  <Project Path="Kingo.Serialization/Kingo.Serialization.csproj" />
-  <Project Path="Kingo.Testing/Kingo.Testing.csproj" />
-  <Project Path="Kingo.Tests/Kingo.Tests.csproj" />
-  <Project Path="Kingo/Kingo.csproj" />
-  <Project Path="Results.Tests/Results.Tests.csproj" />
-  <Project Path="Results/Results.csproj" />
-  <Project Path="Values.Tests/Values.Tests.csproj" />
-  <Project Path="Values/Values.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/Kingo/Kingo.csproj" />
+    <Project Path="src/Kingo.Pdl/Kingo.Pdl.csproj" />
+    <Project Path="src/Kingo.Serialization/Kingo.Serialization.csproj" />
+    <Project Path="src/Kingo.Serialization.Json/Kingo.Serialization.Json.csproj" />
+    <Project Path="src/Kingo.Serialization.Yaml/Kingo.Serialization.Yaml.csproj" />
+    <Project Path="src/Kingo.Testing/Kingo.Testing.csproj" />
+    <Project Path="src/Results/Results.csproj" />
+    <Project Path="src/Values/Values.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Kingo.Pdl.Tests/Kingo.Pdl.Tests.csproj" />
+    <Project Path="tests/Kingo.Serialization.Json.Tests/Kingo.Serialization.Json.Tests.csproj" />
+    <Project Path="tests/Kingo.Serialization.Tests/Kingo.Serialization.Tests.csproj" />
+    <Project Path="tests/Kingo.Serialization.Yaml.Tests/Kingo.Serialization.Yaml.Tests.csproj" />
+    <Project Path="tests/Kingo.Tests/Kingo.Tests.csproj" />
+    <Project Path="tests/Results.Tests/Results.Tests.csproj" />
+    <Project Path="tests/Values.Tests/Values.Tests.csproj" />
+  </Folder>
 </Solution>
