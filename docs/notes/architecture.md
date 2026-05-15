@@ -17,7 +17,7 @@ Today, domain types are distributed across `Kingo` and `Kingo.Pdl`; consolidatio
 
 Interfaces that describe what the core needs from the outside world, without specifying how. A port says "give me something that can deserialize a policy from a string"; it does not say "give me a YamlDotNet deserializer." Ports live close enough to the core that they share its language; the implementations live elsewhere.
 
-### Adapters — `Kingo.Serialization.Json`, `Kingo.Serialization.Yaml`, future storage adapters, transport adapters, etc.
+### Adapters — `Kingo.Serialization.Json`, `Kingo.Serialization.Yaml`, `Kingo.Serialization.Pdl`, future storage adapters, transport adapters, etc.
 
 Concrete implementations of the ports, using whichever third-party library or platform is appropriate. Adapters know about YamlDotNet, System.Text.Json, DynamoDbLite, ASP.NET Core. Domain code never directly references them; it talks to the port.
 
