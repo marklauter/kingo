@@ -26,23 +26,28 @@ public readonly record struct Error
 
     private static Error Create(ErrorType type, string code, string message)
     {
+        if (type == ErrorType.Undefined)
+        {
+            throw new ArgumentException($"{nameof(ErrorType)}.{nameof(ErrorType.Undefined)} is a sentinel value and cannot be used to construct an Error.", nameof(type));
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         return new Error(type, code, message);
     }
 
-    /// <summary>Input failed validation. Caller should fix the input and retry.</summary>
+    /// <summary>Construct a <see cref="ErrorType.Validation"/> error with the given <paramref name="code"/> and <paramref name="message"/>.</summary>
     public static Error Validation(string code, string message) => Create(ErrorType.Validation, code, message);
 
-    /// <summary>Resource was not found.</summary>
+    /// <summary>Construct a <see cref="ErrorType.NotFound"/> error with the given <paramref name="code"/> and <paramref name="message"/>.</summary>
     public static Error NotFound(string code, string message) => Create(ErrorType.NotFound, code, message);
 
-    /// <summary>Resource existed but has been deleted.</summary>
+    /// <summary>Construct a <see cref="ErrorType.Gone"/> error with the given <paramref name="code"/> and <paramref name="message"/>.</summary>
     public static Error Gone(string code, string message) => Create(ErrorType.Gone, code, message);
 
-    /// <summary>Operation would violate a uniqueness or version invariant.</summary>
+    /// <summary>Construct a <see cref="ErrorType.Conflict"/> error with the given <paramref name="code"/> and <paramref name="message"/>.</summary>
     public static Error Conflict(string code, string message) => Create(ErrorType.Conflict, code, message);
 
-    /// <summary>Failure outside the domain's named cases. Treated as a bug rather than a domain outcome.</summary>
+    /// <summary>Construct an <see cref="ErrorType.Unexpected"/> error with the given <paramref name="code"/> and <paramref name="message"/>.</summary>
     public static Error Unexpected(string code, string message) => Create(ErrorType.Unexpected, code, message);
 }

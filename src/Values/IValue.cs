@@ -13,7 +13,7 @@ namespace Values;
 /// <list type="bullet">
 ///   <item><description><see cref="Create"/> performs no validation — it is the hot path for trusted sources (EF Core value converters, in-memory caches, internal code) where the value was validated on the way in.</description></item>
 ///   <item><description><see cref="Parse"/> performs full validation and returns a <see cref="Result{T}"/>. Use it at every untrusted boundary (request bodies, configuration files, user input).</description></item>
-///   <item><description><see cref="TryParse"/> projects <see cref="Parse"/> into the BCL <c>bool</c>+<c>out</c> shape. Each implementor declares it on its own type — where ASP.NET Core's parameter binder and other reflection-based pipelines discover it — and delegates to <see cref="Value.TryParse{TSelf, TValue}"/>, the canonical body shared by every wrapper.</description></item>
+///   <item><description><see cref="TryParse"/> projects <see cref="Parse"/> into the BCL <c>bool</c>+<c>out</c> shape. Each implementor declares it on its own type — where ASP.NET Core's parameter binder and other reflection-based pipelines discover it — and delegates to <see cref="Value.TryParse{TSelf, TValue}"/>.</description></item>
 /// </list>
 /// <para>
 /// Wrappers also implement <see cref="IComparable{TSelf}"/>, <see cref="IEquatable{TSelf}"/>, and <see cref="IComparisonOperators{TSelf, TSelf, bool}"/> so they participate in sorting, equality, and ordered comparisons without extra ceremony at the call site.
@@ -38,16 +38,16 @@ public interface IValue<TSelf, TValue>
     static abstract TSelf Create(TValue value);
 
     /// <summary>
-    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{T}"/> that carries either the wrapped value or the structured <see cref="Error"/> describing what failed.
+    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{TSelf}"/> that carries either the wrapped value or the structured <see cref="Error"/> describing what failed.
     /// </summary>
     /// <param name="s">The untrusted input string.</param>
     /// <returns>
-    /// <see cref="Success{TSelf}"/> wrapping the constructed value when <paramref name="s"/> is well-formed and satisfies every validation rule; otherwise <see cref="Failure{TSelf}"/> carrying the validation <see cref="Error"/>.
+    /// <see cref="Result{TSelf}.Success"/> wrapping the constructed value when <paramref name="s"/> is well-formed and satisfies every validation rule; otherwise <see cref="Result{TSelf}.Failure"/> carrying the validation <see cref="Error"/>.
     /// </returns>
     static abstract Result<TSelf> Parse(string s);
 
     /// <summary>
-    /// Parses <paramref name="s"/>, projecting <see cref="Parse"/> into the BCL <c>bool</c>+<c>out</c> shape. The contract is <see langword="static"/> <see langword="abstract"/> so each implementor declares <c>TryParse</c> on its own type, where ASP.NET Core's parameter binder and other reflection-based pipelines discover it. Implementors delegate to <see cref="Value.TryParse{TSelf, TValue}"/> so the parse-to-<c>bool</c>+<c>out</c> projection lives in one place across every wrapper.
+    /// Parses <paramref name="s"/>, projecting <see cref="Parse"/> into the BCL <c>bool</c>+<c>out</c> shape. The contract is <see langword="static"/> <see langword="abstract"/> so each implementor declares <c>TryParse</c> on its own type, where ASP.NET Core's parameter binder and other reflection-based pipelines discover it. Implementors delegate to <see cref="Value.TryParse{TSelf, TValue}"/>.
     /// </summary>
     /// <param name="s">The untrusted input string.</param>
     /// <param name="parsed">When this method returns <see langword="true"/>, the parsed value; otherwise <see langword="default"/>.</param>
@@ -80,7 +80,7 @@ public static class Value
         [MaybeNullWhen(false)] out TSelf parsed)
         where TSelf : IValue<TSelf, TValue>
     {
-        if (TSelf.Parse(s) is Success<TSelf> success)
+        if (TSelf.Parse(s) is Result<TSelf>.Success success)
         {
             parsed = success.Value;
             return true;

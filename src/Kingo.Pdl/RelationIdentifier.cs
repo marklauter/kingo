@@ -29,16 +29,16 @@ public readonly record struct RelationIdentifier
     public static Result<RelationIdentifier> Parse(string s)
     {
         if (string.IsNullOrWhiteSpace(s))
-            return Error.Validation("rel.empty", "relation identifier cannot be empty or whitespace");
+            return Result.Failure<RelationIdentifier>(Error.Validation("rel.empty", "relation identifier cannot be empty or whitespace"));
         return !Validation.IsMatch(s)
-            ? (Result<RelationIdentifier>)Error.Validation("rel.invalid", $"relation identifier '{s}' contains invalid characters; expected '^\\.\\.\\.$|^[A-Za-z_][A-Za-z0-9_]*$'")
-            : (Result<RelationIdentifier>)new RelationIdentifier(s);
+            ? Result.Failure<RelationIdentifier>(Error.Validation("rel.invalid", $"relation identifier '{s}' contains invalid characters; expected '^\\.\\.\\.$|^[A-Za-z_][A-Za-z0-9_]*$'"))
+            : Result.Success(new RelationIdentifier(s));
     }
 
     /// <summary>Attempts to parse <paramref name="s"/>; on success, <paramref name="parsed"/> receives the value.</summary>
     public static bool TryParse(string s, out RelationIdentifier parsed)
     {
-        if (Parse(s) is Success<RelationIdentifier> success)
+        if (Parse(s) is Result<RelationIdentifier>.Success success)
         {
             parsed = success.Value;
             return true;

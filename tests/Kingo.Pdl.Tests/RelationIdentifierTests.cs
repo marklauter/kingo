@@ -119,7 +119,7 @@ public sealed class RelationIdentifierTests
     public void Parse_ValidInput_ReturnsSuccess()
     {
         var result = RelationIdentifier.Parse("owner");
-        var s = Assert.IsType<Success<RelationIdentifier>>(result);
+        var s = Assert.IsType<Result<RelationIdentifier>.Success>(result);
         Assert.Equal("owner", s.Value.Value);
     }
 
@@ -127,7 +127,7 @@ public sealed class RelationIdentifierTests
     public void Parse_NothingSentinel_ReturnsSuccess()
     {
         var result = RelationIdentifier.Parse("...");
-        var s = Assert.IsType<Success<RelationIdentifier>>(result);
+        var s = Assert.IsType<Result<RelationIdentifier>.Success>(result);
         Assert.Equal("...", s.Value.Value);
     }
 
@@ -140,7 +140,7 @@ public sealed class RelationIdentifierTests
     public void Parse_InvalidInput_ReturnsValidationFailure(string input)
     {
         var result = RelationIdentifier.Parse(input);
-        var f = Assert.IsType<Failure<RelationIdentifier>>(result);
+        var f = Assert.IsType<Result<RelationIdentifier>.Failure>(result);
         Assert.Equal(ErrorType.Validation, f.Error.Type);
     }
 

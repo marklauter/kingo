@@ -112,7 +112,7 @@ public sealed class NamespaceTests
     public void Parse_ValidInput_ReturnsSuccess()
     {
         var result = NamespaceIdentifier.Parse("file");
-        var s = Assert.IsType<Success<NamespaceIdentifier>>(result);
+        var s = Assert.IsType<Result<NamespaceIdentifier>.Success>(result);
         Assert.Equal("file", s.Value.Value);
     }
 
@@ -125,7 +125,7 @@ public sealed class NamespaceTests
     public void Parse_InvalidInput_ReturnsValidationFailure(string input)
     {
         var result = NamespaceIdentifier.Parse(input);
-        var f = Assert.IsType<Failure<NamespaceIdentifier>>(result);
+        var f = Assert.IsType<Result<NamespaceIdentifier>.Failure>(result);
         Assert.Equal(ErrorType.Validation, f.Error.Type);
     }
 

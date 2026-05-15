@@ -6,7 +6,7 @@ public sealed class ResultTests
     public void Success_Factory_ReturnsSuccessVariant()
     {
         var result = Result.Success(42);
-        var s = Assert.IsType<Success<int>>(result);
+        var s = Assert.IsType<Result<int>.Success>(result);
         Assert.Equal(42, s.Value);
     }
 
@@ -15,31 +15,14 @@ public sealed class ResultTests
     {
         var error = Error.NotFound("err.x", "msg");
         var result = Result.Failure<int>(error);
-        var f = Assert.IsType<Failure<int>>(result);
-        Assert.Equal(error, f.Error);
-    }
-
-    [Fact]
-    public void ImplicitConversion_FromValue_CreatesSuccess()
-    {
-        Result<int> result = 42;
-        var s = Assert.IsType<Success<int>>(result);
-        Assert.Equal(42, s.Value);
-    }
-
-    [Fact]
-    public void ImplicitConversion_FromError_CreatesFailure()
-    {
-        var error = Error.Validation("err.input", "bad");
-        Result<int> result = error;
-        var f = Assert.IsType<Failure<int>>(result);
+        var f = Assert.IsType<Result<int>.Failure>(result);
         Assert.Equal(error, f.Error);
     }
 
     [Fact]
     public void Match_Success_InvokesOnSuccess()
     {
-        Result<int> result = 42;
+        var result = Result.Success(42);
         var matched = result.Match(
             onSuccess: v => $"value: {v}",
             onError: e => $"error: {e.Code}");
@@ -49,7 +32,7 @@ public sealed class ResultTests
     [Fact]
     public void Match_Failure_InvokesOnError()
     {
-        Result<int> result = Error.NotFound("err.x", "msg");
+        var result = Result.Failure<int>(Error.NotFound("err.x", "msg"));
         var matched = result.Match(
             onSuccess: v => $"value: {v}",
             onError: e => $"error: {e.Code}");
@@ -59,9 +42,9 @@ public sealed class ResultTests
     [Fact]
     public void Map_OverSuccess_TransformsValue()
     {
-        Result<int> result = 21;
+        var result = Result.Success(21);
         var mapped = result.Map(x => x * 2);
-        var s = Assert.IsType<Success<int>>(mapped);
+        var s = Assert.IsType<Result<int>.Success>(mapped);
         Assert.Equal(42, s.Value);
     }
 
@@ -69,27 +52,27 @@ public sealed class ResultTests
     public void Map_OverFailure_PassesFailureThrough()
     {
         var error = Error.NotFound("err.x", "msg");
-        Result<int> result = error;
+        var result = Result.Failure<int>(error);
         var mapped = result.Map(x => x * 2);
-        var f = Assert.IsType<Failure<int>>(mapped);
+        var f = Assert.IsType<Result<int>.Failure>(mapped);
         Assert.Equal(error, f.Error);
     }
 
     [Fact]
     public void Map_TypeChange_TransformsToNewType()
     {
-        Result<int> result = 42;
+        var result = Result.Success(42);
         var mapped = result.Map(x => $"value: {x}");
-        var s = Assert.IsType<Success<string>>(mapped);
+        var s = Assert.IsType<Result<string>.Success>(mapped);
         Assert.Equal("value: 42", s.Value);
     }
 
     [Fact]
     public void Bind_OverSuccess_RunsContinuation()
     {
-        Result<int> result = 21;
+        var result = Result.Success(21);
         var bound = result.Bind(x => Result.Success(x * 2));
-        var s = Assert.IsType<Success<int>>(bound);
+        var s = Assert.IsType<Result<int>.Success>(bound);
         Assert.Equal(42, s.Value);
     }
 
@@ -97,9 +80,9 @@ public sealed class ResultTests
     public void Bind_OverSuccessReturningFailure_PropagatesInnerFailure()
     {
         var inner = Error.Validation("err.range", "out of range");
-        Result<int> result = 21;
-        var bound = result.Bind<int>(_ => inner);
-        var f = Assert.IsType<Failure<int>>(bound);
+        var result = Result.Success(21);
+        var bound = result.Bind(_ => Result.Failure<int>(inner));
+        var f = Assert.IsType<Result<int>.Failure>(bound);
         Assert.Equal(inner, f.Error);
     }
 
@@ -107,7 +90,7 @@ public sealed class ResultTests
     public void Bind_OverFailure_SkipsContinuation()
     {
         var error = Error.NotFound("err.outer", "outer failure");
-        Result<int> result = error;
+        var result = Result.Failure<int>(error);
         var invoked = false;
         var bound = result.Bind(x =>
         {
@@ -115,20 +98,20 @@ public sealed class ResultTests
             return Result.Success(x * 2);
         });
         Assert.False(invoked);
-        var f = Assert.IsType<Failure<int>>(bound);
+        var f = Assert.IsType<Result<int>.Failure>(bound);
         Assert.Equal(error, f.Error);
     }
 
     [Fact]
     public async Task BindAsync_OverSuccess_AwaitsAndReturnsContinuation()
     {
-        Result<int> result = 21;
+        var result = Result.Success(21);
         var bound = await result.BindAsync(async x =>
         {
             await Task.Yield();
             return Result.Success(x * 2);
         });
-        var s = Assert.IsType<Success<int>>(bound);
+        var s = Assert.IsType<Result<int>.Success>(bound);
         Assert.Equal(42, s.Value);
     }
 
@@ -136,16 +119,16 @@ public sealed class ResultTests
     public async Task BindAsync_OverFailure_SkipsContinuation()
     {
         var error = Error.NotFound("err.outer", "outer failure");
-        Result<int> result = error;
+        var result = Result.Failure<int>(error);
         var invoked = false;
-        var bound = await result.BindAsync<int>(async _ =>
+        var bound = await result.BindAsync(async _ =>
         {
             invoked = true;
             await Task.Yield();
             return Result.Success(0);
         });
         Assert.False(invoked);
-        var f = Assert.IsType<Failure<int>>(bound);
+        var f = Assert.IsType<Result<int>.Failure>(bound);
         Assert.Equal(error, f.Error);
     }
 
@@ -153,24 +136,24 @@ public sealed class ResultTests
     public async Task BindAsync_OverSuccessReturningFailure_PropagatesInnerFailure()
     {
         var inner = Error.Validation("err.range", "out of range");
-        Result<int> result = 21;
-        var bound = await result.BindAsync<int>(async _ =>
+        var result = Result.Success(21);
+        var bound = await result.BindAsync(async _ =>
         {
             await Task.Yield();
-            return inner;
+            return Result.Failure<int>(inner);
         });
-        var f = Assert.IsType<Failure<int>>(bound);
+        var f = Assert.IsType<Result<int>.Failure>(bound);
         Assert.Equal(inner, f.Error);
     }
 
     [Fact]
     public void PatternMatch_DispatchesOnSuccessVariant()
     {
-        Result<int> result = 42;
+        var result = Result.Success(42);
         var matched = result switch
         {
-            Success<int> s => s.Value,
-            Failure<int> => -1,
+            Result<int>.Success s => s.Value,
+            Result<int>.Failure => -1,
             _ => -2,
         };
         Assert.Equal(42, matched);
@@ -179,11 +162,11 @@ public sealed class ResultTests
     [Fact]
     public void PatternMatch_DispatchesOnFailureVariant()
     {
-        Result<int> result = Error.NotFound("err.x", "msg");
+        var result = Result.Failure<int>(Error.NotFound("err.x", "msg"));
         var code = result switch
         {
-            Success<int> => "ok",
-            Failure<int> f => f.Error.Code,
+            Result<int>.Success => "ok",
+            Result<int>.Failure f => f.Error.Code,
             _ => "?",
         };
         Assert.Equal("err.x", code);
@@ -192,8 +175,8 @@ public sealed class ResultTests
     [Fact]
     public void Equals_ReturnsTrue_ForTwoSuccessesWithSameValue()
     {
-        Result<int> a = 42;
-        Result<int> b = 42;
+        var a = Result.Success(42);
+        var b = Result.Success(42);
         Assert.Equal(a, b);
     }
 
@@ -201,16 +184,16 @@ public sealed class ResultTests
     public void Equals_ReturnsTrue_ForTwoFailuresWithSameError()
     {
         var error = Error.NotFound("err.x", "msg");
-        Result<int> a = error;
-        Result<int> b = error;
+        var a = Result.Failure<int>(error);
+        var b = Result.Failure<int>(error);
         Assert.Equal(a, b);
     }
 
     [Fact]
     public void Equals_ReturnsFalse_BetweenSuccessAndFailure()
     {
-        Result<int> success = 42;
-        Result<int> failure = Error.NotFound("err.x", "msg");
+        var success = Result.Success(42);
+        var failure = Result.Failure<int>(Error.NotFound("err.x", "msg"));
         Assert.NotEqual(success, failure);
     }
 
@@ -218,11 +201,11 @@ public sealed class ResultTests
     public void Apply_OverWrappedFunctionAndWrappedSuccess_AppliesFunction()
     {
         var doubler = Result.Success<Func<int, int>>(x => x * 2);
-        Result<int> arg = 21;
+        var arg = Result.Success(21);
 
         var applied = Result.Apply(doubler, arg);
 
-        var s = Assert.IsType<Success<int>>(applied);
+        var s = Assert.IsType<Result<int>.Success>(applied);
         Assert.Equal(42, s.Value);
     }
 
@@ -230,12 +213,12 @@ public sealed class ResultTests
     public void Apply_WrappedFunctionFailure_PassesFunctionErrorThrough()
     {
         var error = Error.Unexpected("err.fn", "function unavailable");
-        Result<Func<int, int>> doubler = error;
-        Result<int> arg = 21;
+        var doubler = Result.Failure<Func<int, int>>(error);
+        var arg = Result.Success(21);
 
         var applied = Result.Apply(doubler, arg);
 
-        var f = Assert.IsType<Failure<int>>(applied);
+        var f = Assert.IsType<Result<int>.Failure>(applied);
         Assert.Equal(error, f.Error);
     }
 
@@ -244,11 +227,11 @@ public sealed class ResultTests
     {
         var doubler = Result.Success<Func<int, int>>(x => x * 2);
         var error = Error.NotFound("err.arg", "arg missing");
-        Result<int> arg = error;
+        var arg = Result.Failure<int>(error);
 
         var applied = Result.Apply(doubler, arg);
 
-        var f = Assert.IsType<Failure<int>>(applied);
+        var f = Assert.IsType<Result<int>.Failure>(applied);
         Assert.Equal(error, f.Error);
     }
 
@@ -257,12 +240,12 @@ public sealed class ResultTests
     {
         var fnError = Error.Unexpected("err.fn", "function unavailable");
         var argError = Error.NotFound("err.arg", "arg missing");
-        Result<Func<int, int>> doubler = fnError;
-        Result<int> arg = argError;
+        var doubler = Result.Failure<Func<int, int>>(fnError);
+        var arg = Result.Failure<int>(argError);
 
         var applied = Result.Apply(doubler, arg);
 
-        var f = Assert.IsType<Failure<int>>(applied);
+        var f = Assert.IsType<Result<int>.Failure>(applied);
         Assert.Equal(fnError, f.Error);
     }
 
@@ -271,12 +254,12 @@ public sealed class ResultTests
     {
         // Curry a binary function and chain Apply twice — the canonical applicative pattern.
         var curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);
-        Result<int> a = 10;
-        Result<int> b = 32;
+        var a = Result.Success(10);
+        var b = Result.Success(32);
 
         var sum = Result.Apply(Result.Apply(curriedAdd, a), b);
 
-        var s = Assert.IsType<Success<int>>(sum);
+        var s = Assert.IsType<Result<int>.Success>(sum);
         Assert.Equal(42, s.Value);
     }
 
@@ -285,12 +268,12 @@ public sealed class ResultTests
     {
         var curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);
         var error = Error.Validation("err.first", "first arg bad");
-        Result<int> a = error;
-        Result<int> b = 32;
+        var a = Result.Failure<int>(error);
+        var b = Result.Success(32);
 
         var sum = Result.Apply(Result.Apply(curriedAdd, a), b);
 
-        var f = Assert.IsType<Failure<int>>(sum);
+        var f = Assert.IsType<Result<int>.Failure>(sum);
         Assert.Equal(error, f.Error);
     }
 }

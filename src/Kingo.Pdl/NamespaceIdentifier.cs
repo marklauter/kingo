@@ -31,16 +31,16 @@ public readonly record struct NamespaceIdentifier
     public static Result<NamespaceIdentifier> Parse(string s)
     {
         if (string.IsNullOrWhiteSpace(s))
-            return Error.Validation("ns.empty", "namespace identifier cannot be empty or whitespace");
+            return Result.Failure<NamespaceIdentifier>(Error.Validation("ns.empty", "namespace identifier cannot be empty or whitespace"));
         return !Validation.IsMatch(s)
-            ? (Result<NamespaceIdentifier>)Error.Validation("ns.invalid", $"namespace identifier '{s}' contains invalid characters; expected '^[A-Za-z_][A-Za-z0-9_]*$'")
-            : (Result<NamespaceIdentifier>)new NamespaceIdentifier(s);
+            ? Result.Failure<NamespaceIdentifier>(Error.Validation("ns.invalid", $"namespace identifier '{s}' contains invalid characters; expected '^[A-Za-z_][A-Za-z0-9_]*$'"))
+            : Result.Success(new NamespaceIdentifier(s));
     }
 
     /// <summary>Attempts to parse <paramref name="s"/>; on success, <paramref name="parsed"/> receives the value.</summary>
     public static bool TryParse(string s, out NamespaceIdentifier parsed)
     {
-        if (Parse(s) is Success<NamespaceIdentifier> success)
+        if (Parse(s) is Result<NamespaceIdentifier>.Success success)
         {
             parsed = success.Value;
             return true;
