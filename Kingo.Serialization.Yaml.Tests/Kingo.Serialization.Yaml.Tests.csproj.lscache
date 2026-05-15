@@ -31,7 +31,7 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /noconfig
 /unsafe-
 /checked-
-/nowarn:CA2225,1701,1702,8002
+/nowarn:CA2225,IDE0011,1701,1702,8002
 /fullpaths
 /nostdlib+
 /errorreport:prompt

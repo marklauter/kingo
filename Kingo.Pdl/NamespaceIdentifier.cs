@@ -1,4 +1,3 @@
-using Kingo.Json;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -6,11 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace Kingo.Pdl;
 
-[JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
 [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'namespace'")]
 public readonly record struct NamespaceIdentifier
     : IValue<NamespaceIdentifier, string>
-    , IStringConvertible<NamespaceIdentifier>
     , IEquatable<string>
     , IComparable<string>
 {
@@ -50,10 +47,7 @@ public readonly record struct NamespaceIdentifier
         return false;
     }
 
-    // Legacy IStringConvertible<T> surface — scheduled for removal alongside StringConvertible<T>.
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static NamespaceIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
-
+    /// <summary>Throws on invalid input; equivalent to <see cref="Parse"/> in success-or-throw shape. Retained for parser-internal use; new code should prefer <see cref="Parse"/>.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NamespaceIdentifier From(string s) => new(ValidValue(s));
 

@@ -6,20 +6,25 @@ namespace Kingo.Pdl.Converters;
 
 internal sealed class YamlStringConvertible<T>
     : IYamlTypeConverter
-    where T : IStringConvertible<T>
+    where T : IValue<T, string>
 {
     public bool Accepts(Type type) => type == typeof(T);
 
-    public object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer) =>
-        parser.TryConsume<Scalar>(out var scalar)
-            ? string.IsNullOrEmpty(scalar.Value) ? T.Empty() : T.From(scalar.Value)
-            : throw new YamlException($"Expected a scalar value to deserialize to {typeof(T).Name}.");
+    public object? ReadYaml(IParser parser, Type type, ObjectDeserializer rootDeserializer)
+    {
+        if (!parser.TryConsume<Scalar>(out var scalar))
+            throw new YamlException($"Expected a scalar value to deserialize to {typeof(T).Name}.");
+
+        return T.Parse(scalar.Value ?? string.Empty).Match<object>(
+            onSuccess: value => value,
+            onError: error => throw new YamlException($"Failed to parse {typeof(T).Name}: {error.Message}"));
+    }
 
     public void WriteYaml(IEmitter emitter, object? value, Type type, ObjectSerializer serializer)
     {
         if (value is not T convertible)
             throw new ArgumentException($"Expected {typeof(T).Name} but got {value?.GetType()?.Name ?? "null"}");
 
-        emitter.Emit(new Scalar(convertible?.ToString() ?? string.Empty));
+        emitter.Emit(new Scalar(convertible.Value));
     }
 }

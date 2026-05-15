@@ -12,7 +12,8 @@
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<!-- CA2225 Provide a named alternate to operator op_Implicit : fights idiomatic value-type operators where ToString()/From(string) already exist -->
-		<NoWarn>$(NoWarn);CA2225</NoWarn>
+		<!-- IDE0011 Add braces : .editorconfig prefers braceless single-statement blocks; suppression aligns the analyzer with the codebase convention -->
+		<NoWarn>$(NoWarn);CA2225;IDE0011</NoWarn>
 	</PropertyGroup>
 
 	<!-- Universal InternalsVisibleTo: every non-test project automatically grants internals to its <ProjectName>.Tests sibling. -->

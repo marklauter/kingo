@@ -92,10 +92,6 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => NamespaceIdentifier.Empty());
-
-    [Fact]
     public void Value_ReturnsUnderlyingString()
     {
         var id = NamespaceIdentifier.From("file");

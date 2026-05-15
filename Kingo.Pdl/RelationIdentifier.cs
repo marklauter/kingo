@@ -1,14 +1,11 @@
-using Kingo.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Kingo.Pdl;
 
-[JsonConverter(typeof(StringConvertible<RelationIdentifier>))]
 public readonly record struct RelationIdentifier
     : IValue<RelationIdentifier, string>
-    , IStringConvertible<RelationIdentifier>
     , IEquatable<string>
     , IComparable<string>
 {
@@ -48,12 +45,10 @@ public readonly record struct RelationIdentifier
         return false;
     }
 
-    // Legacy IStringConvertible<T> surface — scheduled for removal alongside StringConvertible<T>.
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RelationIdentifier Empty() => throw new ArgumentException($"empty {nameof(value)} not allowed");
+    /// <summary>The "..." sentinel — used by the PDL grammar to represent an unspecified relation.</summary>
+    public static RelationIdentifier Nothing { get; } = Create("...");
 
-    public static RelationIdentifier Nothing { get; } = From("...");
-
+    /// <summary>Throws on invalid input; equivalent to <see cref="Parse"/> in success-or-throw shape. Retained for parser-internal use; new code should prefer <see cref="Parse"/>.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static RelationIdentifier From(string s) => new(ValidValue(s));
 

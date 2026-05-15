@@ -92,10 +92,6 @@ public sealed class RelationIdentifierTests
     }
 
     [Fact]
-    public void Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => RelationIdentifier.Empty());
-
-    [Fact]
     public void Nothing_Returns_Three_Dots()
     {
         var nothing = RelationIdentifier.Nothing;
