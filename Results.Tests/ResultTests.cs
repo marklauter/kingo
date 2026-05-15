@@ -1,4 +1,4 @@
-namespace Kingo.Tests;
+namespace Results.Tests;
 
 public sealed class ResultTests
 {

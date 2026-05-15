@@ -1,6 +1,7 @@
+using Results;
 using System.Numerics;
 
-namespace Kingo;
+namespace Values;
 
 /// <summary>
 /// Contract for a strongly-typed wrapper around a primitive <typeparamref name="TValue"/>. Distinguishes a fast, trusted construction path (<see cref="Create"/>) from a validating, untrusted parse path (<see cref="Parse"/>), with a BCL-shaped <see cref="TryParse"/> adapter for boundary integration.

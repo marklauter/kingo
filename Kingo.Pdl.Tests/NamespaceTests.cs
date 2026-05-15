@@ -1,3 +1,5 @@
+using Results;
+
 namespace Kingo.Pdl.Tests;
 
 public sealed class NamespaceTests

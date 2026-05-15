@@ -1,4 +1,4 @@
-namespace Kingo;
+namespace Results;
 
 /// <summary>
 /// Named failure shapes the domain knows how to act on.

@@ -1,4 +1,4 @@
-namespace Kingo;
+namespace Results;
 
 /// <summary>
 /// Discriminated result of a domain operation — either a successful <typeparamref name="T"/> value (<see cref="Success{T}"/>) or a named <see cref="Kingo.Error"/> (<see cref="Failure{T}"/>). Pattern match the result to handle both cases.

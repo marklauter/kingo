@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo;
+namespace Results;
 
 /// <summary>
 /// A named domain failure carrying a typed category, a machine-readable code, and a human-readable message.
