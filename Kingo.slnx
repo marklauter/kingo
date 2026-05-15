@@ -9,4 +9,8 @@
   <Project Path="Kingo.Serialization/Kingo.Serialization.csproj" />
   <Project Path="Kingo.Tests/Kingo.Tests.csproj" />
   <Project Path="Kingo/Kingo.csproj" />
+  <Project Path="Results.Tests/Results.Tests.csproj" />
+  <Project Path="Results/Results.csproj" />
+  <Project Path="Values.Tests/Values.Tests.csproj" />
+  <Project Path="Values/Values.csproj" />
 </Solution>
