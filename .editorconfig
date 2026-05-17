@@ -259,6 +259,7 @@ csharp_style_prefer_top_level_statements = true:silent
 csharp_style_prefer_null_check_over_type_check = true:suggestion
 dotnet_diagnostic.xUnit2001.severity = suggestion
 dotnet_diagnostic.CA1001.severity = warning
+dotnet_diagnostic.CA1062.severity = none # Nullable reference types are the contract; no runtime null checks.
 dotnet_diagnostic.CA1309.severity = warning
 dotnet_diagnostic.IDISP014.severity = warning
 dotnet_diagnostic.CA1805.severity = warning

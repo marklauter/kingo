@@ -38,11 +38,11 @@ public interface IValue<TSelf, TValue>
     static abstract TSelf Create(TValue value);
 
     /// <summary>
-    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{TSelf}"/> that carries either the wrapped value or the structured <see cref="Error"/> describing what failed.
+    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{TSelf}"/> that carries either the wrapped value or the structured <see cref="Error"/>s describing what failed.
     /// </summary>
     /// <param name="s">The untrusted input string.</param>
     /// <returns>
-    /// <see cref="Result{TSelf}.Success"/> wrapping the constructed value when <paramref name="s"/> is well-formed and satisfies every validation rule; otherwise <see cref="Result{TSelf}.Failure"/> carrying the validation <see cref="Error"/>.
+    /// <see cref="Result{TSelf}.Success"/> wrapping the constructed value when <paramref name="s"/> is well-formed and satisfies every validation rule; otherwise <see cref="Result{TSelf}.Failure"/> carrying one or more validation <see cref="Error"/>s.
     /// </returns>
     static abstract Result<TSelf> Parse(string s);
 
@@ -68,7 +68,7 @@ public interface IValue<TSelf, TValue>
 public static class Value
 {
     /// <summary>
-    /// Canonical <c>TryParse</c> body for <see cref="IValue{TSelf, TValue}"/> implementors: invokes <typeparamref name="TSelf"/>'s <see cref="IValue{TSelf, TValue}.Parse"/> and projects the <see cref="Result{T}"/> into the BCL <c>bool</c>+<c>out</c> shape, discarding the <see cref="Error"/> on failure.
+    /// Canonical <c>TryParse</c> body for <see cref="IValue{TSelf, TValue}"/> implementors: invokes <typeparamref name="TSelf"/>'s <see cref="IValue{TSelf, TValue}.Parse"/> and projects the <see cref="Result{T}"/> into the BCL <c>bool</c>+<c>out</c> shape, discarding any accumulated <see cref="Error"/>s on failure.
     /// </summary>
     /// <typeparam name="TSelf">The wrapper type implementing <see cref="IValue{TSelf, TValue}"/>.</typeparam>
     /// <typeparam name="TValue">The underlying primitive type the wrapper carries.</typeparam>

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Results.Tests;
 
 public sealed class ResultTests
@@ -16,8 +18,63 @@ public sealed class ResultTests
         var error = Error.NotFound("err.x", "msg");
         var result = Result.Failure<int>(error);
         var f = Assert.IsType<Result<int>.Failure>(result);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
+
+    [Fact]
+    public void Failure_ParamsFactory_PreservesOrder()
+    {
+        var e1 = Error.Validation("err.1", "first");
+        var e2 = Error.Validation("err.2", "second");
+        var result = Result.Failure<int>(e1, e2);
+        var f = Assert.IsType<Result<int>.Failure>(result);
+        Assert.Equal(2, f.Errors.Length);
+        Assert.Equal(e1, f.Errors[0]);
+        Assert.Equal(e2, f.Errors[1]);
+    }
+
+    [Fact]
+    public void Failure_ParamsFactory_EmptyArray_Throws() =>
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>(Array.Empty<Error>()));
+
+    [Fact]
+    public void Failure_ImmutableArrayFactory_StoresArrayDirectly()
+    {
+        var e1 = Error.Validation("err.1", "first");
+        var e2 = Error.Validation("err.2", "second");
+        var errors = ImmutableArray.Create(e1, e2);
+        var result = Result.Failure<int>(errors);
+        var f = Assert.IsType<Result<int>.Failure>(result);
+        Assert.Equal(errors, f.Errors);
+        Assert.Equal(2, f.Errors.Length);
+        Assert.Equal(e1, f.Errors[0]);
+        Assert.Equal(e2, f.Errors[1]);
+    }
+
+    [Fact]
+    public void Failure_ImmutableArrayFactory_Default_Throws() =>
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>(default(ImmutableArray<Error>)));
+
+    [Fact]
+    public void Failure_ImmutableArrayFactory_Empty_Throws() =>
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>(ImmutableArray<Error>.Empty));
+
+    [Fact]
+    public void Failure_ListFactory_PreservesOrder()
+    {
+        var e1 = Error.Validation("err.1", "first");
+        var e2 = Error.Validation("err.2", "second");
+        var result = Result.Failure<int>((IReadOnlyList<Error>)new List<Error> { e1, e2 });
+        var f = Assert.IsType<Result<int>.Failure>(result);
+        Assert.Equal(2, f.Errors.Length);
+        Assert.Equal(e1, f.Errors[0]);
+        Assert.Equal(e2, f.Errors[1]);
+    }
+
+    [Fact]
+    public void Failure_ListFactory_Empty_Throws() =>
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>((IReadOnlyList<Error>)new List<Error>()));
 
     [Fact]
     public void Match_Success_InvokesOnSuccess()
@@ -25,7 +82,7 @@ public sealed class ResultTests
         var result = Result.Success(42);
         var matched = result.Match(
             onSuccess: v => $"value: {v}",
-            onError: e => $"error: {e.Code}");
+            onError: errors => $"error: {errors[0].Code}");
         Assert.Equal("value: 42", matched);
     }
 
@@ -35,7 +92,7 @@ public sealed class ResultTests
         var result = Result.Failure<int>(Error.NotFound("err.x", "msg"));
         var matched = result.Match(
             onSuccess: v => $"value: {v}",
-            onError: e => $"error: {e.Code}");
+            onError: errors => $"error: {errors[0].Code}");
         Assert.Equal("error: err.x", matched);
     }
 
@@ -55,7 +112,8 @@ public sealed class ResultTests
         var result = Result.Failure<int>(error);
         var mapped = result.Map(x => x * 2);
         var f = Assert.IsType<Result<int>.Failure>(mapped);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
 
     [Fact]
@@ -83,7 +141,8 @@ public sealed class ResultTests
         var result = Result.Success(21);
         var bound = result.Bind(_ => Result.Failure<int>(inner));
         var f = Assert.IsType<Result<int>.Failure>(bound);
-        Assert.Equal(inner, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(inner, only);
     }
 
     [Fact]
@@ -99,7 +158,8 @@ public sealed class ResultTests
         });
         Assert.False(invoked);
         var f = Assert.IsType<Result<int>.Failure>(bound);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
 
     [Fact]
@@ -129,7 +189,8 @@ public sealed class ResultTests
         });
         Assert.False(invoked);
         var f = Assert.IsType<Result<int>.Failure>(bound);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
 
     [Fact]
@@ -143,7 +204,8 @@ public sealed class ResultTests
             return Result.Failure<int>(inner);
         });
         var f = Assert.IsType<Result<int>.Failure>(bound);
-        Assert.Equal(inner, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(inner, only);
     }
 
     [Fact]
@@ -166,7 +228,7 @@ public sealed class ResultTests
         var code = result switch
         {
             Result<int>.Success => "ok",
-            Result<int>.Failure f => f.Error.Code,
+            Result<int>.Failure f => f.Errors[0].Code,
             _ => "?",
         };
         Assert.Equal("err.x", code);
@@ -181,11 +243,14 @@ public sealed class ResultTests
     }
 
     [Fact]
-    public void Equals_ReturnsTrue_ForTwoFailuresWithSameError()
+    public void Equals_ReturnsTrue_ForTwoFailuresOverSameErrorArray()
     {
-        var error = Error.NotFound("err.x", "msg");
-        var a = Result.Failure<int>(error);
-        var b = Result.Failure<int>(error);
+        // Failure's value equality reduces to ImmutableArray<Error>.Equals, which compares the
+        // underlying array reference — independently constructed failures with the "same" errors
+        // are NOT equal. Sharing the array makes them equal.
+        var errors = ImmutableArray.Create(Error.NotFound("err.x", "msg"));
+        var a = new Result<int>.Failure(errors);
+        var b = new Result<int>.Failure(errors);
         Assert.Equal(a, b);
     }
 
@@ -219,7 +284,8 @@ public sealed class ResultTests
         var applied = Result.Apply(doubler, arg);
 
         var f = Assert.IsType<Result<int>.Failure>(applied);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
 
     [Fact]
@@ -232,11 +298,12 @@ public sealed class ResultTests
         var applied = Result.Apply(doubler, arg);
 
         var f = Assert.IsType<Result<int>.Failure>(applied);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
 
     [Fact]
-    public void Apply_BothFailures_ShortCircuitsToFunctionError()
+    public void Apply_BothFailures_AccumulatesBothErrors()
     {
         var fnError = Error.Unexpected("err.fn", "function unavailable");
         var argError = Error.NotFound("err.arg", "arg missing");
@@ -246,7 +313,9 @@ public sealed class ResultTests
         var applied = Result.Apply(doubler, arg);
 
         var f = Assert.IsType<Result<int>.Failure>(applied);
-        Assert.Equal(fnError, f.Error);
+        Assert.Equal(2, f.Errors.Length);
+        Assert.Equal(fnError, f.Errors[0]);
+        Assert.Equal(argError, f.Errors[1]);
     }
 
     [Fact]
@@ -274,6 +343,7 @@ public sealed class ResultTests
         var sum = Result.Apply(Result.Apply(curriedAdd, a), b);
 
         var f = Assert.IsType<Result<int>.Failure>(sum);
-        Assert.Equal(error, f.Error);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
     }
 }

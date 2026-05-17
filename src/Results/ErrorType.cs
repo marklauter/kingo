@@ -5,8 +5,8 @@ namespace Results;
 /// </summary>
 public enum ErrorType
 {
-    /// <summary>Default / unset; reserved sentinel.</summary>
-    Undefined = 0,
+    /// <summary>Failure outside the domain's named cases. Treated as a bug rather than a domain outcome.</summary>
+    Unexpected,
 
     /// <summary>Input failed validation. Caller should fix the input and retry.</summary>
     Validation,
@@ -19,7 +19,4 @@ public enum ErrorType
 
     /// <summary>Operation would violate a uniqueness or version invariant.</summary>
     Conflict,
-
-    /// <summary>Failure outside the domain's named cases. Treated as a bug rather than a domain outcome.</summary>
-    Unexpected,
 }

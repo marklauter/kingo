@@ -26,11 +26,6 @@ public readonly record struct Error
 
     private static Error Create(ErrorType type, string code, string message)
     {
-        if (type == ErrorType.Undefined)
-        {
-            throw new ArgumentException($"{nameof(ErrorType)}.{nameof(ErrorType.Undefined)} is a sentinel value and cannot be used to construct an Error.", nameof(type));
-        }
-
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
         return new Error(type, code, message);
