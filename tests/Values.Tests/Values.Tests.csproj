@@ -6,7 +6,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Values\Values.csproj" />
-		<ProjectReference Include="..\..\src\Kingo.Testing\Kingo.Testing.csproj" />
+		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />
 	</ItemGroup>
 
 </Project>

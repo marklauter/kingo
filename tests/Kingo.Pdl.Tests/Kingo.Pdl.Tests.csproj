@@ -13,7 +13,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Kingo.Pdl\Kingo.Pdl.csproj" />
-		<ProjectReference Include="..\..\src\Kingo.Testing\Kingo.Testing.csproj" />
+		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />
 	</ItemGroup>
 
 </Project>
