@@ -404,3 +404,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# VS Code C# Dev Kit language service cache
+*.csproj.lscache
