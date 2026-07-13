@@ -6,7 +6,7 @@ namespace Values;
 /// <summary>
 /// Static helpers shared by <see cref="IValue{TSelf, TValue}"/> implementations. Houses the canonical <c>TryParse</c> body so each implementor's <c>TryParse</c> declaration can be a one-line delegation, keeping the parse-to-<c>bool</c>+<c>out</c> projection in one place across every wrapper.
 /// </summary>
-public static class Value
+public static class ValueParser
 {
     /// <summary>
     /// Canonical <c>TryParse</c> body for <see cref="IValue{TSelf, TValue}"/> implementors: invokes <typeparamref name="TSelf"/>'s <see cref="IValue{TSelf, TValue}.Parse"/> and projects the <see cref="Result{T}"/> into the BCL <c>bool</c>+<c>out</c> shape, discarding any accumulated <see cref="Error"/>s on failure.
