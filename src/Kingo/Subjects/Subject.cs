@@ -13,7 +13,7 @@ public abstract record Subject
     private protected Subject() { }
 
     /// <summary>
-    /// Parses the canonical text form: a <see cref="SubjectSet"/> when <paramref name="s"/> contains <c>#</c> (e.g. <c>group:eng#member</c>); otherwise a <see cref="DirectSubject"/> (e.g. <c>user:anne</c>).
+    /// Parses the canonical text form: a <see cref="SubjectSet"/> when <paramref name="s"/> contains <c>#</c> (e.g. <c>team:sales#member</c>); otherwise a <see cref="DirectSubject"/> (e.g. <c>user:anne</c>).
     /// </summary>
     public static Result<Subject> Parse(string s)
     {
