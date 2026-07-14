@@ -22,15 +22,15 @@ Format: Hoplite frontmatter standard — flat Obsidian Properties, wikilinks as 
 
 - [[four-service-split-by-load-profile]] — five Zanzibar APIs across four hosts grouped by load profile; ACL Check is the hot path.
 - [[immutablearray-for-domain-collections]] — domain values carry `ImmutableArray<T>`; custom structural equality is mandatory.
-- [[dynamodblite-substrate]] — code against `AWSSDK.DynamoDBv2`, run DynamoDbLite locally; no storage port for the local/prod switch. Spike pending.
+- [[dynamodblite-substrate]] — code against `AWSSDK.DynamoDBv2`, run DynamoDbLite locally; no storage port for the local/prod switch. Settled: production-ready, key/value store style (no ORM).
 
 ## Todos
 
-Queue order: test pass → PDL adapter → converters.
+Queue order: PDL adapter → converters → (then, any order) rewrite interpreters, DynamoDbLite spike, zookie/snapshot design — the Write host waits on all three. The core test pass closed 2026-07-14 (ten test files; gate green, Kingo at 98% line / 100% branch; note deleted per its disposition).
 
-- [[kingo-core-test-pass]] — **open**; the core is built but untested, coverage ratchet is red. Next work item.
-- [[dissolve-kingo-pdl-under-hexagonal-layout]] — **open**, blocked by the test pass; rewrite parser/serializer as `Kingo.Serialization.Pdl`, delete the quarry project.
+- [[dissolve-kingo-pdl-under-hexagonal-layout]] — **open**; the next work item. Rewrite parser/serializer as `Kingo.Serialization.Pdl`, delete the quarry project.
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**, blocked by the PDL adapter; `IParse`-keyed converters registered in the adapters.
+- [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
 
 ## Reference

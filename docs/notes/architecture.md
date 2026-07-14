@@ -44,6 +44,5 @@ Concrete implementations of the ports, using whichever third-party library or pl
 
 ## Open threads
 
-- [[kingo-core-test-pass]]
 - [[dissolve-kingo-pdl-under-hexagonal-layout]]
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]]

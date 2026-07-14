@@ -28,7 +28,7 @@
 		<CoverletOutputFormat>cobertura</CoverletOutputFormat>
 		<!-- Each test project measures only its own system under test: Foo.Tests covers assembly Foo. -->
 		<Include>[$(MSBuildProjectName.Replace('.Tests',''))]*</Include>
-		<Threshold>80,80,80</Threshold>
+		<Threshold>95,95,95</Threshold>
 		<ThresholdType>line,branch,method</ThresholdType>
 		<ThresholdStat>minimum</ThresholdStat>
 		<!-- Exception types are plumbing; exclude from coverage to avoid noise. -->

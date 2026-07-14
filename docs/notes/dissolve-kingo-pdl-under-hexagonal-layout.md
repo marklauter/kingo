@@ -1,13 +1,12 @@
 ---
 type: todo
 title: Dissolve Kingo.Pdl under hexagonal layout
-summary: "The domain half landed by fresh construction in Kingo core; what remains is rewriting the parser/serializer as the Kingo.Serialization.Pdl adapter and deleting the Kingo.Pdl quarry project."
+summary: "The domain half landed by fresh construction in Kingo core; what remains is rewriting the parser/serializer as the Kingo.Serialization.Pdl adapter and deleting the Kingo.Pdl quarry project. Unblocked 2026-07-14 — the active work item."
 tags: [note, todo, hexagonal, pdl]
 created: 2026-05-13
 status: open
 priority: high
 effort: medium
-blocked_by: "[[kingo-core-test-pass]]"
 ---
 
 # Dissolve Kingo.Pdl under hexagonal layout
@@ -41,3 +40,9 @@ Remaining work:
 - Delete `Kingo.Pdl` (and its tests) once the adapter round-trips.
 
 Likely coordinated with [[move-jsonconverter-off-identifier-types-into-the-json-adapter]].
+
+**Update 2026-07-14 — unblocked; this is the active work item.** The core test pass closed the same day (ten test files pin the identifier grammars, delimiter reservations, composite Parse/ToString round-trips, applicative error accumulation, and the ImmutableArray structural-equality overrides; `build-gate.sh` green, Kingo at 98% line / 100% branch). Additions to the plan since it was written:
+
+- **The transform exits through `Namespace.Define`, not the raw constructor.** `Define(name, relationships)` is the core's `Result`-returning structured factory (landed with the test pass): duplicate relationship names fail as accumulated `namespace.duplicate_relationship` validation errors. The adapter decodes the document, then calls `Define` at the untrusted boundary — its first real caller. The raw constructor is pure assignment for trusted sources only, mirroring the `Create`/`Parse` split ([[domain-language]]).
+- **First slice sets the layer.** This work creates the first port interface in `Kingo.Serialization` and the adapter-layer ArchUnit rules; `.Json`/`.Yaml` inherit the shape. The three serialization projects are scaffolded but empty today.
+- **Queue behind it:** [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] (unblocks REST hosts), then in any order the rewrite interpreters ([[four-service-split-by-load-profile]]), storage on DynamoDbLite ([[dynamodblite-substrate]]), and the zookie/snapshot design session — the Write host waits on all three.

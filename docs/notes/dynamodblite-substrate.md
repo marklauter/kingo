@@ -1,10 +1,10 @@
 ---
 type: decision
 title: DynamoDbLite as the storage substrate
-summary: "Rather than hand-roll a key-value store on SQLite, code Kingo against AWSSDK.DynamoDBv2 and use DynamoDbLite (SQLite-backed) locally — the local-vs-prod switch is a client-construction choice with no port. Spike pending before domain code commits."
+summary: "Code Kingo against AWSSDK.DynamoDBv2 and use DynamoDbLite (SQLite-backed) locally — the local-vs-prod switch is a client-construction choice with no port. Settled 2026-07-14: DynamoDbLite is production-ready and storage access uses the key/value store style (low-level PK/SK items, not the DynamoDBContext ORM)."
 tags: [note, decision, storage]
 created: 2026-05-12
-status: evolving
+status: locked
 ---
 
 # DynamoDbLite as the storage substrate
@@ -46,23 +46,16 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 - **Leopard-style set-fold caching** — application concern.
 - **Policy authoring (PAP)** — separate from storage. The YAML PDL parser on the `dictionary-encoding` quarry is the closest existing work.
 
+## Settled 2026-07-14
+
+- **DynamoDbLite is production-ready** (Mark's call as its author) — the previously recommended go/no-go spike is moot; storage work proceeds directly against the substrate.
+- **Key/value store style, not the ORM.** Storage access uses the low-level (PK, SK) item operations with hand-mapped `Dictionary<string, AttributeValue>` in the storage adapter — not `DynamoDBContext` with `[DynamoDBHashKey]`-attributed POCOs. This keeps DynamoDB attributes off every record in the system (persistence-ignorance all the way down: the earlier ORM preference would have required attribute-carrying storage POCOs) and gives the adapter direct control of the item shape the Zanzibar mapping table above depends on.
+
 ## Caveats
 
-- **Adapter cost.** Domain types need to become DynamoDB-shaped. Prefer the high-level `DynamoDBContext` ORM with `[DynamoDBHashKey] / [DynamoDBRangeKey] / [DynamoDBVersion]` attributes on POCOs over hand-mapping `Dictionary<string, AttributeValue>`. DynamoDbLite's Phase 12 validated the ORM path with 50+ tests.
-- **API ergonomics.** The AWS SDK reads verbosely. Plan on a thin Kingo-shaped facade (`IAclRepository.Get(subjectSet, subject)`) rather than scattering `PutItemAsync` through the evaluator.
-- **Phase 14 parity tests are scaffolding only.** Behavioral drift between DynamoDbLite and real AWS DynamoDB has not been end-to-end validated. For a study project this is fine; before committing prod traffic, finishing parity tests is the gate.
+- **API ergonomics.** The AWS SDK reads verbosely, and the key/value style more so. Plan on a thin Kingo-shaped facade behind a port (`IStatementStore.Read(subjectSet)`-shaped) rather than scattering `PutItemAsync` through the evaluator; the hand-mapping lives entirely inside that adapter.
 - **Cost at scale.** Pay-per-request on hot ACL lookups gets expensive. Not a near-term concern for Kingo.
 - **Out of scope in DynamoDbLite** (intentionally): backup & PITR, Global Tables, Kinesis streaming, PartiQL, resource policies. None of these matter for Kingo's design.
-
-## Recommended first spike
-
-Before any domain code commits to the substrate:
-
-1. Add the NuGet package (and its transitive `AWSSDK.DynamoDBv2` dependency) to a spike project — or directly to `Kingo.Tests` for the smoke test: `dotnet add package MSL.DynamoDbLite --version 0.0.0`.
-2. Define one POCO — e.g. `AclTupleRecord` with `[DynamoDBHashKey]` on the encoded `(object#relation)`, `[DynamoDBRangeKey]` on the subject, `[DynamoDBVersion]` on a `Version` long.
-3. Run a write-then-read smoke test through `DynamoDBContext` using DynamoDbLite's in-memory store.
-
-That's a ~1-hour spike with a real go/no-go signal: does the substrate behave the way Kingo needs it to, and does the ORM mapping cover the domain shape without contortion.
 
 ## References
 

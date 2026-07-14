@@ -20,6 +20,6 @@ The fresh-built `Kingo` core carries no serialization attributes; `[JsonConverte
 
 ## Next
 
-- Build the generic `IParse`-keyed JSON/YAML converters in `Kingo.Serialization.Json` / `Kingo.Serialization.Yaml` — one converter family for all value types, registered at the `JsonSerializerOptions` level so the adapter owns the mapping. This is item 3 in the [[kingo-core-test-pass]] queue, right behind the PDL adapter; it unblocks the REST hosts.
+- Build the generic `IParse`-keyed JSON/YAML converters in `Kingo.Serialization.Json` / `Kingo.Serialization.Yaml` — one converter family for all value types, registered at the `JsonSerializerOptions` level so the adapter owns the mapping. Queued right behind the PDL adapter ([[dissolve-kingo-pdl-under-hexagonal-layout]]); it unblocks the REST hosts.
 - Decide whether the adapter exposes a `JsonSerializerOptions` factory (`KingoJsonOptions.Default`) or registers types via attributes-on-the-options.
-- ArchUnit rule (with the adapter tests): no serialization attributes on domain types — already listed in [[kingo-core-test-pass]]'s layout rules.
+- ArchUnit rule (with the adapter tests): no serialization attributes on domain types.
