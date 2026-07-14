@@ -3,10 +3,10 @@ name: .NET Tests
 on:
   push:
     branches: [ "main" ]
-    paths: [ "src/**", "tests/**", "Directory.Build.props", "Directory.Packages.props" ]
+    paths: [ "src/**", "tests/**", "Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props", ".editorconfig", ".gitattributes", "global.json", ".github/workflows/dotnet.tests.yml", ".github/actions/setup-dotnet/action.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "src/**", "tests/**", "Directory.Build.props", "Directory.Packages.props" ]
+    paths: [ "src/**", "tests/**", "Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props", ".editorconfig", ".gitattributes", "global.json", ".github/workflows/dotnet.tests.yml", ".github/actions/setup-dotnet/action.yml" ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,19 +19,8 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
-
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
+    - uses: actions/checkout@v7
+    - uses: ./.github/actions/setup-dotnet
 
     - name: Verify formatting
       run: dotnet format "Kingo.slnx" --severity info --verify-no-changes
@@ -42,19 +31,8 @@ jobs:
       matrix:
         configuration: [ Debug, Release ]
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
-
-    - name: Cache NuGet packages
-      uses: actions/cache@v4
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
+    - uses: actions/checkout@v7
+    - uses: ./.github/actions/setup-dotnet
 
     - name: Restore dependencies
       run: dotnet restore
@@ -67,8 +45,14 @@ jobs:
 
     - name: Upload coverage report
       if: always() && matrix.configuration == 'Debug'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-cobertura
-        path: Kingo.Tests/coverage.cobertura.xml
+        path: |
+          tests/Values.Tests/coverage.cobertura.xml
+          tests/Results.Tests/coverage.cobertura.xml
+          tests/Kingo.Tests/coverage.cobertura.xml
+          tests/Kingo.Serialization.Tests/coverage.cobertura.xml
+          tests/Kingo.Serialization.Json.Tests/coverage.cobertura.xml
+          tests/Kingo.Serialization.Yaml.Tests/coverage.cobertura.xml
         if-no-files-found: error
