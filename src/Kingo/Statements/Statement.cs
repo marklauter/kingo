@@ -6,7 +6,7 @@ using Values;
 namespace Kingo.Statements;
 
 /// <summary>
-/// A stored statement — the <c>&lt;tuple&gt;</c> production of the tuple grammar: <c>&lt;resource&gt;#&lt;relationship&gt;@&lt;subject&gt;</c> (e.g. <c>doc:readme#viewer@user:anne</c>). A subject&#8211;predicate&#8211;object triple in the RDF sense: <see cref="Relationship"/> is the predicate connecting <see cref="Subject"/> to <see cref="Resource"/>. An aggregate root: created and deleted atomically, never mutated; its domain key is the whole value. Covers permission edges, memberships, and structural edges (e.g. <c>folder:a#parent@folder:b</c>) alike — access semantics come from the rewrite rules, not the statement itself. Not to be confused with <c>Kingo.Namespaces.RelationshipDefinition</c>, the policy-side definition.
+/// A stored statement — the <c>&lt;tuple&gt;</c> production of the tuple grammar: <c>&lt;resource&gt;#&lt;relationship&gt;@&lt;subject&gt;</c> (e.g. <c>doc:readme#viewer@user:anne</c>). A subject&#8211;predicate&#8211;object triple in the RDF sense: <see cref="Relationship"/> is the predicate connecting <see cref="Subject"/> to <see cref="Resource"/>. An aggregate root: created and deleted atomically, never mutated; its domain key is the whole value. Covers permission edges, memberships, and structural edges (e.g. <c>folder:a#parent@folder:b</c>) alike — access semantics come from the rewrite rules, not the statement itself. Not to be confused with <c>Kingo.Namespaces.Relationship</c>, the policy-side definition.
 /// </summary>
 public sealed record Statement(
     Resource Resource,
