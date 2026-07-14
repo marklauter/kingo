@@ -10,7 +10,7 @@ public sealed class ValueParserTests
     [InlineData("abc")]
     public void TryParse_ValidInput_ReturnsTrueAndPopulatesOut(string input)
     {
-        Assert.True(ValueParser.TryParse<TestValue, string>(input, out var parsed));
+        Assert.True(ValueParser.TryParse<TestValue>(input, out var parsed));
         Assert.Equal(input, parsed.Value);
     }
 
@@ -21,7 +21,7 @@ public sealed class ValueParserTests
     [InlineData("a b")]
     public void TryParse_InvalidInput_ReturnsFalseAndOutIsDefault(string input)
     {
-        Assert.False(ValueParser.TryParse<TestValue, string>(input, out var parsed));
+        Assert.False(ValueParser.TryParse<TestValue>(input, out var parsed));
         Assert.Equal(default, parsed);
     }
 
@@ -29,7 +29,7 @@ public sealed class ValueParserTests
     public void TryParse_ProducesSameValueAsParse()
     {
         var viaParse = Assert.IsType<Result<TestValue>.Success>(TestValue.Parse("abc")).Value;
-        Assert.True(ValueParser.TryParse<TestValue, string>("abc", out var viaTryParse));
+        Assert.True(ValueParser.TryParse<TestValue>("abc", out var viaTryParse));
         Assert.Equal(viaParse, viaTryParse);
     }
 

@@ -405,3 +405,6 @@ FodyWeavers.xsd
 
 # local scratch
 .tmp/
+
+# zanzibar paper (local copy)
+5068.pdf

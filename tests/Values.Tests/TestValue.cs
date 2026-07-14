@@ -5,6 +5,7 @@ namespace Values.Tests;
 // Reference IValue implementor for exercising ValueParser. A valid TestValue is one or more lowercase ASCII letters.
 public readonly record struct TestValue
     : IValue<TestValue, string>
+    , ITryParse<TestValue>
 {
     private readonly string value;
 
@@ -17,9 +18,9 @@ public readonly record struct TestValue
             ? Result.Success(new TestValue(s))
             : Result.Failure<TestValue>(Error.Validation("test.invalid", $"'{s}' is not one or more lowercase ASCII letters"));
 
-    // The canonical one-line delegation prescribed by the IValue<TSelf, TValue> docs.
+    // The canonical one-line delegation prescribed by the ITryParse<TSelf> docs.
     public static bool TryParse(string s, out TestValue parsed) =>
-        ValueParser.TryParse<TestValue, string>(s, out parsed);
+        ValueParser.TryParse(s, out parsed);
 
     private TestValue(string value) => this.value = value;
 
