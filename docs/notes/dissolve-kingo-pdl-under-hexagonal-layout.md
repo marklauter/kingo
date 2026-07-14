@@ -18,11 +18,13 @@ Under hexagonal layering, `Kingo.Pdl` as a standalone project has no clean home 
 PDL is a distinct format — YAML outer structure plus a Superpower-parsed embedded mini-language for rewrite expressions. That's not "general YAML"; it's its own grammar. A dedicated `Kingo.Serialization.Pdl` adapter sits alongside `.Json` and `.Yaml` as a peer rather than folding PDL's specifics into the generic YAML adapter.
 
 ## Next
-Split the contents:
-- AST records + identifiers + `RegExPatterns` + `PolicyHash` → `Kingo` (domain core).
-- `PdlParser`, `PdlSerializer`, `RewriteExpressionParser`, `Converters/*`, `PdlParseException` → new `Kingo.Serialization.Pdl` adapter (paired with `Kingo.Serialization.Pdl.Tests`).
-- Move tests: domain tests → `Kingo.Tests`; parser/serializer tests → `Kingo.Serialization.Pdl.Tests`.
-- Update `Kingo.Pdl.Tests/Architecture/ArchitectureTests.cs` ArchUnit rules: rescope to the new locations (domain rules under `Kingo`, adapter rules under `Kingo.Serialization.Pdl`).
-- Delete `Kingo.Pdl` and `Kingo.Pdl.Tests` from `Kingo.slnx` once empty.
+
+**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [domain-language](domain-language.md): identifier IValues (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
+
+Remaining work:
+- Rewrite the parser/serializer as `Kingo.Serialization.Pdl`, targeting the new core types (`Namespace`, `Relationship`, `SubjectSetRewrite`). The parser's own AST, if it needs one, stays `internal` to the adapter and transforms into core types at its exit — parse errors surface as `Result` failures, not `PdlParseException`.
+- Salvage from `Kingo.Pdl` as reference: `PdlParser`/`PdlSerializer` structure, `RewriteExpressionParser` (Superpower grammar — matches the BNF in [pdl-yaml](pdl-yaml.md)), round-trip tests.
+- New `Kingo.Serialization.Pdl.Tests` with ArchUnit rules for the adapter layer.
+- Delete `Kingo.Pdl` (and its tests) once the adapter round-trips.
 
 Likely coordinated with [move-jsonconverter-off-identifier-types-into-the-json-adapter](move-jsonconverter-off-identifier-types-into-the-json-adapter.md) and [ivalue-tself-tvalue-absorbs-all-value-type-wrappers](ivalue-tself-tvalue-absorbs-all-value-type-wrappers.md).

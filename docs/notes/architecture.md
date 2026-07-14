@@ -9,9 +9,9 @@ The project follows hexagonal architecture with a DDD core at the center. Projec
 
 ### Domain core — `Kingo`
 
-The center. Pure types describing the ubiquitous domain: namespaces, relations, identifiers, the subject-set rewrite AST, foundational primitives like `Result<T>` / `Error` / `IValue<TSelf, TValue>`. No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
+The center. Pure types describing the ubiquitous domain per [domain-language](domain-language.md): the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Namespaces` (policy model + the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST), `Resources`, `Subjects`, `Statements`. No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
 
-Today, domain types are distributed across `Kingo` and `Kingo.Pdl`; consolidation into `Kingo` is tracked by [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md).
+The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry is superseded per [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md).
 
 ### Ports — `Kingo.Serialization`, future `Kingo.Storage`, etc.
 
