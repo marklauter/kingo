@@ -36,7 +36,7 @@ PDL is a distinct format — YAML outer structure plus a Superpower-parsed embed
 Remaining work:
 
 - Rewrite the parser/serializer as `Kingo.Serialization.Pdl`, targeting the new core types (`Namespace`, `Relationship`, `SubjectSetRewrite`). The parser's own AST, if it needs one, stays `internal` to the adapter and transforms into core types at its exit — parse errors surface as `Result` failures, not `PdlParseException`.
-- Salvage from `Kingo.Pdl` as reference: `PdlParser`/`PdlSerializer` structure, `RewriteExpressionParser` (Superpower grammar — matches the BNF in [[pdl-yaml]]), round-trip tests.
+- Salvage from `Kingo.Pdl` as reference: `PdlParser`/`PdlSerializer` structure, `RewriteExpressionParser` (Superpower grammar — matches the BNF in [[pdl-yaml]]), round-trip tests. Two review findings from the quarry carry forward as requirements: no catch-all exception wrapping at the parse boundary (the `Result`-failure mandate above covers it), and round-trip tests must not assert platform line endings byte-exact — CI runs `ubuntu-latest`, so pin the serializer's newline (`.WithNewLine("\n")`) or normalize before asserting.
 - New `Kingo.Serialization.Pdl.Tests` with ArchUnit rules for the adapter layer.
 - Delete `Kingo.Pdl` (and its tests) once the adapter round-trips.
 
