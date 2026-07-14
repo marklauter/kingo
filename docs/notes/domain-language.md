@@ -68,6 +68,8 @@ The taxonomy, settled 2026-07-14. Only identifiers are `IValue`s; the line is si
 
 Canonical string forms belong to the core: `IValue.Parse` owns each terminal's text form, and the composite `Parse` factories own the `ns:id#rel@subject` notation. Serialization adapters handle *document* formats around them; they never define the grammar.
 
+**The Parse boundary rule (settled 2026-07-14):** a type gets a core `Parse` iff its text form is defined by the tuple grammar itself — single line, delimiters reserved by the terminal rules, trivially invertible from `ToString`, parseable with a few `IndexOf` calls and zero dependencies. Parsing is *invoked* at edges but the rules are *owned* by the type (a pure `string → Result<T>` function violates nothing). The policy model (`Namespace`, `Relationship`, `SubjectSetRewrite`) gets no core `Parse`: it has no grammar-defined text form — its textual existence is only ever inside a document (PDL YAML, JSON), and a third-party parser in the signature (YamlDotNet, Superpower) is the tell that it's adapter territory. The rewrite expression language (`(this | editor) ! banned`) is already a format — precedence, parens, comments — and was born in the adapter. **Graduation criterion:** if the canonical notation ever needs escaping, quoting, encoding variants, or versioning, it has become a wire format and the whole pair (`Parse` + `ToString`) moves to a serialization adapter; core keeps structured construction only.
+
 ### Policy model (not part of the tuple grammar, same core)
 
 Parse-agnostic and storable — produced equally by the PDL parser, a JSON adapter, or the Write API. Not an AST.
