@@ -2,17 +2,10 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-// CS8509 / IDE0072: switch expressions in this file dispatch over the closed Result<T> hierarchy
-// (Success | Failure). The compiler cannot prove exhaustiveness for class hierarchies, but the
-// private-protected ctor makes the variant set sealed in practice. Suppressing here removes
-// dead defensive arms that otherwise drag test coverage down.
-#pragma warning disable CS8509
-#pragma warning disable IDE0072
-
 namespace Results;
 
 /// <summary>
-/// Discriminated result of a domain operation — either a successful <typeparamref name="T"/> value (<see cref="Result{T}.Success"/>) or a non-empty collection of <see cref="Error"/>s (<see cref="Result{T}.Failure"/>). Consume via <see cref="Match"/>, transform via <see cref="Map"/>, chain via <see cref="Bind"/> or <see cref="BindAsync"/>. Combine independent results via <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/> (applicative — accumulates errors on the failure path) or the Unit-keyed <c>Result.Apply</c> overload (effect sequencing). The inheritance hierarchy is closed — <see cref="Result{T}.Success"/> and <see cref="Result{T}.Failure"/> are the only inhabitants.
+/// Discriminated result of a domain operation — either a successful <typeparamref name="T"/> value (<see cref="Result{T}.Success"/>) or a non-empty collection of <see cref="Error"/>s (<see cref="Result{T}.Failure"/>). Consume via <see cref="Match"/>, transform via <see cref="Map"/>, chain via <see cref="Bind"/> or <see cref="BindAsync"/>. Combine independent results via <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/> (applicative — accumulates errors on the failure path) or the Unit-keyed <c>Result.Apply</c> overload (effect sequencing). The inheritance hierarchy is closed — <see cref="Result{T}.Success"/> and <see cref="Result{T}.Failure"/> are the only inhabitants — and dispatch is virtual: each inhabitant implements the combinators, so exhaustiveness is a compile-time fact (a new inhabitant cannot build without them) rather than a runtime switch.
 /// </summary>
 /// <typeparam name="T">The success value type.</typeparam>
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Discriminated-union shape: Success and Failure are inhabitants of Result<T>; nesting names the relationship in the type itself.")]
@@ -21,7 +14,20 @@ public abstract record Result<T>
     private protected Result() { }
 
     /// <summary>The successful inhabitant of <see cref="Result{T}"/>.</summary>
-    public sealed record Success(T Value) : Result<T>;
+    public sealed record Success(T Value) : Result<T>
+    {
+        /// <inheritdoc/>
+        public override TResult Match<TResult>(Func<T, TResult> onSuccess, Func<ImmutableArray<Error>, TResult> onError) => onSuccess(Value);
+
+        /// <inheritdoc/>
+        public override Result<TResult> Map<TResult>(Func<T, TResult> fn) => new Result<TResult>.Success(fn(Value));
+
+        /// <inheritdoc/>
+        public override Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn) => fn(Value);
+
+        /// <inheritdoc/>
+        public override Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn) => fn(Value);
+    }
 
     /// <summary>The failed inhabitant of <see cref="Result{T}"/>. <see cref="Errors"/> is always non-empty: the constructor is internal, so external construction goes through the <c>Result.Failure</c> factories, which enforce it. Equality is structural over <see cref="Errors"/> (element-wise, order-sensitive) — <see cref="ImmutableArray{T}"/>'s default record equality would otherwise compare the underlying array reference.</summary>
     public sealed record Failure : Result<T>
@@ -30,6 +36,18 @@ public abstract record Result<T>
         public ImmutableArray<Error> Errors { get; }
 
         internal Failure(ImmutableArray<Error> errors) => Errors = errors;
+
+        /// <inheritdoc/>
+        public override TResult Match<TResult>(Func<T, TResult> onSuccess, Func<ImmutableArray<Error>, TResult> onError) => onError(Errors);
+
+        /// <inheritdoc/>
+        public override Result<TResult> Map<TResult>(Func<T, TResult> fn) => new Result<TResult>.Failure(Errors);
+
+        /// <inheritdoc/>
+        public override Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn) => new Result<TResult>.Failure(Errors);
+
+        /// <inheritdoc/>
+        public override Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn) => Task.FromResult<Result<TResult>>(new Result<TResult>.Failure(Errors));
 
         public bool Equals(Failure? other) =>
             other is not null && Errors.AsSpan().SequenceEqual(other.Errors.AsSpan());
@@ -44,42 +62,22 @@ public abstract record Result<T>
     }
 
     /// <summary>Pattern-match the result, producing a value on either path.</summary>
-    public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<ImmutableArray<Error>, TResult> onError) =>
-        this switch
-        {
-            Success s => onSuccess(s.Value),
-            Failure f => onError(f.Errors),
-        };
+    public abstract TResult Match<TResult>(Func<T, TResult> onSuccess, Func<ImmutableArray<Error>, TResult> onError);
 
     /// <summary>
     /// Functor map: transform the success value with <paramref name="fn"/>; pass the failure through unchanged.
     /// </summary>
-    public Result<TResult> Map<TResult>(Func<T, TResult> fn) =>
-        this switch
-        {
-            Success s => new Result<TResult>.Success(fn(s.Value)),
-            Failure f => new Result<TResult>.Failure(f.Errors),
-        };
+    public abstract Result<TResult> Map<TResult>(Func<T, TResult> fn);
 
     /// <summary>
     /// Monadic bind: chain a result-returning function after a successful result; short-circuit on failure.
     /// </summary>
-    public Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn) =>
-        this switch
-        {
-            Success s => fn(s.Value),
-            Failure f => new Result<TResult>.Failure(f.Errors),
-        };
+    public abstract Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn);
 
     /// <summary>
     /// Async monadic bind: chain a result-returning async function after a successful result; short-circuit on failure. Cancellation is the responsibility of <paramref name="fn"/> — no <see cref="System.Threading.CancellationToken"/> is threaded through the API; callers needing cancellation pass a lambda that captures the token from its enclosing scope.
     /// </summary>
-    public async Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn) =>
-        this switch
-        {
-            Success s => await fn(s.Value).ConfigureAwait(false),
-            Failure f => new Result<TResult>.Failure(f.Errors),
-        };
+    public abstract Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn);
 }
 
 /// <summary>
@@ -112,6 +110,8 @@ public static class Result
     /// <summary>
     /// Applicative application: feed a <see cref="Result{T}"/>-wrapped argument to a <see cref="Result{T}"/>-wrapped function. Multi-arity handled by currying — apply repeatedly to consume each argument. When both <paramref name="resultFn"/> and <paramref name="resultArg"/> fail, their errors are accumulated (function errors first, then argument errors); this is the Validation-applicative behaviour rather than fail-fast.
     /// </summary>
+    [SuppressMessage("Style", "IDE0072:Add missing cases", Justification = "the four named arms are the applicative's full truth table over the closed Success | Failure pair; keeping the table legible outweighs covering the compiler's unreachable default branch (Mark, 2026-07-14)")]
+#pragma warning disable CS8509 // switch is exhaustive over the closed hierarchy; the compiler cannot prove it and SuppressMessage cannot reach compiler warnings
     public static Result<TResult> Apply<T, TResult>(Result<Func<T, TResult>> resultFn, Result<T> resultArg) =>
         (resultFn, resultArg) switch
         {
@@ -120,6 +120,7 @@ public static class Result
             (Result<Func<T, TResult>>.Success _, Result<T>.Failure a) => new Result<TResult>.Failure(a.Errors),
             (Result<Func<T, TResult>>.Failure f, Result<T>.Failure a) => new Result<TResult>.Failure([.. f.Errors, .. a.Errors]),
         };
+#pragma warning restore CS8509
 
     /// <summary>
     /// Variadic effect sequencing: combine any number of <see cref="Result{T}"/>s of <see cref="Unit"/>. Succeeds when every input succeeds (and when <paramref name="results"/> is empty — the identity element); otherwise returns a <see cref="Result{T}.Failure"/> whose errors are accumulated across all failed inputs in input order. <c>params ReadOnlySpan</c> keeps the argument list off the heap at every arity, and the single-failure path returns the failing input unchanged rather than copying its errors.
