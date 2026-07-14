@@ -4,9 +4,11 @@ using Values;
 namespace Kingo.Resources;
 
 /// <summary>
-/// A namespaced resource — the <c>&lt;resource&gt;</c> production of the tuple grammar: <c>&lt;namespace&gt;:&lt;resource-id&gt;</c> (e.g. <c>doc:readme</c>). An aggregate root; its domain key is the composite value itself. Resources have no stored state of their own — they exist as the anchor relationship facts attach to.
+/// A namespaced resource — the <c>&lt;resource&gt;</c> production of the tuple grammar: <c>&lt;namespace&gt;:&lt;resource-id&gt;</c> (e.g. <c>doc:readme</c>). An aggregate root; its domain key is the composite value itself. Resources have no stored state of their own — they exist as the anchor statements attach to.
 /// </summary>
-public sealed record Resource(NamespaceIdentifier Namespace, ResourceIdentifier Id)
+public sealed record Resource(
+    NamespaceIdentifier Namespace,
+    ResourceIdentifier Id)
     : IParse<Resource>
 {
     private const char Separator = ':';

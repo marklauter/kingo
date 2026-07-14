@@ -20,15 +20,17 @@ public abstract record Subject
         return string.IsNullOrWhiteSpace(s)
             ? Result.Failure<Subject>(Error.Validation("subject.empty", "subject cannot be empty or whitespace"))
             : s.Contains('#', StringComparison.Ordinal)
-            ? SubjectSet.Parse(s).Map(Subject (set) => set)
-            : SubjectIdentifier.Parse(s).Map(Subject (id) => new DirectSubject(id));
+                ? SubjectSet.Parse(s).Map(Subject (set) => set)
+                : SubjectIdentifier.Parse(s).Map(Subject (id) => new DirectSubject(id));
     }
 }
 
 /// <summary>
 /// A subject referenced directly by its identifier — the <c>&lt;subject-id&gt;</c> alternative of the <c>&lt;subject&gt;</c> production.
 /// </summary>
-public sealed record DirectSubject(SubjectIdentifier Id) : Subject
+public sealed record DirectSubject(
+    SubjectIdentifier Id)
+    : Subject
 {
     /// <summary>Canonical text form: the identifier itself.</summary>
     public override string ToString() => Id.ToString();
@@ -37,7 +39,9 @@ public sealed record DirectSubject(SubjectIdentifier Id) : Subject
 /// <summary>
 /// The set of subjects that hold <see cref="Relationship"/> on <see cref="Resource"/> — the <c>&lt;subjectset&gt;</c> production: <c>&lt;resource&gt;#&lt;relationship&gt;</c> (e.g. <c>doc:readme#viewer</c>). Also the indirect-membership alternative of the <c>&lt;subject&gt;</c> production.
 /// </summary>
-public sealed record SubjectSet(Resource Resource, RelationshipIdentifier Relationship)
+public sealed record SubjectSet(
+    Resource Resource,
+    RelationshipIdentifier Relationship)
     : Subject
     , IParse<SubjectSet>
 {
