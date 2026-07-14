@@ -1,3 +1,12 @@
+---
+type: decision
+title: DynamoDbLite as the storage substrate
+summary: "Rather than hand-roll a key-value store on SQLite, code Kingo against AWSSDK.DynamoDBv2 and use DynamoDbLite (SQLite-backed) locally — the local-vs-prod switch is a client-construction choice with no port. Spike pending before domain code commits."
+tags: [note, decision, storage]
+created: 2026-05-12
+status: evolving
+---
+
 # DynamoDbLite as the storage substrate
 
 [DynamoDbLite](https://github.com/marklauter/DynamoDbLite) is a SQLite-backed implementation of the AWS DynamoDB v2 SDK. The decision: rather than hand-roll a key-value store on SQLite (the `dictionary-encoding` quarry approach), code Kingo against `AWSSDK.DynamoDBv2` and use DynamoDbLite locally. The local-vs-prod switch becomes a client-construction choice with no port.
@@ -20,7 +29,7 @@ Zanzibar production runs on Spanner, but the abstract model is a partition+sort 
 
 ## What this dissolves from earlier production-gap reviews
 
-Several gaps called out in `docs/notes/sources.md` and earlier reviews collapse the moment Kingo's domain sits on top of DynamoDB:
+Several gaps called out in [[sources]] and earlier reviews collapse the moment Kingo's domain sits on top of DynamoDB:
 
 - **Persistence** — substrate handles it
 - **Watch API** — DynamoDB Streams

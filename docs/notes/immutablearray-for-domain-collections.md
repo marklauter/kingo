@@ -1,7 +1,13 @@
-# ImmutableArray for domain collections
+---
+type: decision
+title: ImmutableArray for domain collections
+summary: "Domain values carry their collections as ImmutableArray<T>: policy values are build-once/read-many snapshots and mutation never touches these types — with custom structural equality and the default-instance trap riding along as mandatory caveats."
+tags: [note, decision, ddd, performance]
+created: 2026-07-14
+status: locked
+---
 
-Tags: decision,ddd,performance
-Domain values carry their collections as `ImmutableArray<T>`: policy values are build-once/read-many snapshots, and mutation never touches these types — the Write side constructs whole new values.
+# ImmutableArray for domain collections
 
 ## Observation
 
@@ -32,5 +38,5 @@ If incremental policy editing ever becomes a real workflow, builder/`ImmutableLi
 
 ## Related
 
-- [domain-language](domain-language.md) — the types these collections live in.
-- [four-service-split-by-load-profile](four-service-split-by-load-profile.md) — why read-side compiled forms (FrozenDictionary) live in the hosts, not the model.
+- [[domain-language]] — the types these collections live in.
+- [[four-service-split-by-load-profile]] — why read-side compiled forms (FrozenDictionary) live in the hosts, not the model.

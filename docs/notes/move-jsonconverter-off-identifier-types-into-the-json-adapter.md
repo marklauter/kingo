@@ -1,25 +1,25 @@
+---
+type: todo
+title: Move JsonConverter off identifier types into the JSON adapter
+summary: "The domain half is moot — the fresh-built core carries no serialization attributes; what remains is the IParse-keyed converter registration in Kingo.Serialization.Json, queued behind the PDL adapter."
+tags: [note, todo, hexagonal, serialization]
+created: 2026-05-13
+status: open
+priority: medium
+effort: low
+blocked_by: "[[dissolve-kingo-pdl-under-hexagonal-layout]]"
+---
+
 # Move JsonConverter off identifier types into the JSON adapter
 
-Tags: todo,hexagonal
-Domain types currently carry [JsonConverter] attributes — a leak under hexagonal layering. Move converter registration to the JSON adapter at the JsonSerializerOptions level.
-
 ## Observation
-`NamespaceIdentifier` and `RelationIdentifier` (currently in `Kingo.Pdl`) each carry:
 
-```csharp
-[JsonConverter(typeof(StringConvertible<NamespaceIdentifier>))]
-[JsonConverter(typeof(StringConvertible<RelationIdentifier>))]
-```
+The pre-reboot identifier types carried `[JsonConverter(typeof(StringConvertible<...>))]` attributes — the domain type declaring *how it is serialized*. That couples domain to serialization, exactly the leak writing-csharp warns against ("the domain doesn't know how it's stored," generalized to "doesn't know how it's serialized").
 
-`StringConvertible<T>` is the JSON converter at `Kingo/Json/StringConvertible.cs`. `IStringConvertible<T>` is the CRTP contract these wrappers implement.
-
-## Interpretation
-The attribute sits on the domain type, declaring *how the type is serialized*. That couples domain to serialization — exactly the leak writing-csharp warns against ("the domain doesn't know how it's stored," generalized to "doesn't know how it's serialized"). Identifier types should be pure domain primitives; the JSON-format opinion belongs at the adapter boundary.
+The fresh-built `Kingo` core carries no serialization attributes; `[JsonConverter]` and `StringConvertible<T>` survive only in the dead `Kingo.Pdl` quarry. The Parse boundary rule in [[domain-language]] settles the design: wire-*capability* lives on the type (`IParse`), the wire *format* lives in the adapter's converters.
 
 ## Next
-- During the planned identifier rewrite, drop `[JsonConverter]` from `NamespaceIdentifier`, `RelationIdentifier`, and any future value-type wrapper.
-- Register converters at the `JsonSerializerOptions` level inside `Kingo.Serialization.Json` so the adapter owns the mapping.
-- `IStringConvertible<T>` is being phased out alongside this work; the replacement (`IValue<TSelf, TValue>`) and its JSON adapter ship together.
-- Decide whether the adapter exposes a `JsonSerializerOptions` factory (`KingoJsonOptions.Default`) or registers types via attributes-on-the-options.
 
-Coordinated with [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md).
+- Build the generic `IParse`-keyed JSON/YAML converters in `Kingo.Serialization.Json` / `Kingo.Serialization.Yaml` — one converter family for all value types, registered at the `JsonSerializerOptions` level so the adapter owns the mapping. This is item 3 in the [[kingo-core-test-pass]] queue, right behind the PDL adapter; it unblocks the REST hosts.
+- Decide whether the adapter exposes a `JsonSerializerOptions` factory (`KingoJsonOptions.Default`) or registers types via attributes-on-the-options.
+- ArchUnit rule (with the adapter tests): no serialization attributes on domain types — already listed in [[kingo-core-test-pass]]'s layout rules.

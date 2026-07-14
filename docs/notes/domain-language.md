@@ -1,7 +1,13 @@
-# Domain language — the tuple grammar and its types
+---
+type: note
+title: Domain language — the tuple grammar and its types
+summary: "The ubiquitous language of the whole system: the relation-tuple grammar in Kingo vocabulary (Subject, SubjectSet, Resource, Relationship) and the mapping from each production to its C# type — the contract Kingo (the domain core) implements."
+tags: [note, spec, ddd, vocabulary]
+created: 2026-07-14
+status: evolving
+---
 
-Tags: spec,ddd,vocabulary
-The ubiquitous language of the whole system: the relation-tuple grammar in Kingo vocabulary (Subject, SubjectSet, Resource, Relationship) and the mapping from each production to its C# type. This is the contract `Kingo` (the domain core) implements.
+# Domain language — the tuple grammar and its types
 
 ## Vocabulary
 
@@ -19,7 +25,7 @@ A note on principals: a subject is a *set of principals*. Many trusted IDPs each
 
 ## Tuple grammar
 
-Same hybrid-BNF style as [pdl-yaml](pdl-yaml.md) — legibility over ceremony.
+Same hybrid-BNF style as [[pdl-yaml]] — legibility over ceremony.
 
 ```bnf
 <tuple>       ::= <resource> '#' <relationship> '@' <subject>
@@ -76,7 +82,7 @@ Parse-agnostic and storable — produced equally by the PDL parser, a JSON adapt
 
 - `Namespace(Name, Relationships)` — a policy definition **as a value** (structural equality, immutable snapshot). Entity-ness — versioning, lifecycle, OCC, authorship — is the Write/PAP context's wrapper and never lives in core. Rule: if a core type grows a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service.
 - `Relationship(Name, Rewrite)` — a named relationship and its rewrite, inside a `Namespace`. The name is free for the policy record because the stored fact is `Statement` — the relationship is the *predicate* of the triple, not the triple itself. Pre-reboot main called this `RelationshipSpec`; Pdl called it `Relation`.
-- `SubjectSetRewrite` — the rewrite **algebra**, a closed DU: `This | ComputedSubjectSet | TupleToSubjectSet | Union | Intersection | Exclusion`. Authoring syntax and precedence: [pdl-yaml](pdl-yaml.md). Evaluation: one algebra, two interpreters (Check's short-circuiting boolean walk, Expand's full tree materialization) per [four-service-split-by-load-profile](four-service-split-by-load-profile.md).
+- `SubjectSetRewrite` — the rewrite **algebra**, a closed DU: `This | ComputedSubjectSet | TupleToSubjectSet | Union | Intersection | Exclusion`. Authoring syntax and precedence: [[pdl-yaml]]. Evaluation: one algebra, two interpreters (Check's short-circuiting boolean walk, Expand's full tree materialization) per [[four-service-split-by-load-profile]].
 
 ## Aggregate roots (settled 2026-07-14)
 
@@ -97,8 +103,8 @@ Layout rule: **root `Kingo` holds the cross-cutting vocabulary — the identifie
 
 ## Related
 
-- [architecture](architecture.md) — where the layers live; this note is the language the core layer speaks.
-- [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md) — the migration that implements this spec.
-- [pdl-yaml](pdl-yaml.md) — the authoring format for the policy model.
-- [four-service-split-by-load-profile](four-service-split-by-load-profile.md) — how the services consume the language.
-- [immutablearray-for-domain-collections](immutablearray-for-domain-collections.md) — why domain values carry `ImmutableArray<T>` and the equality/default caveats that ride along.
+- [[architecture]] — where the layers live; this note is the language the core layer speaks.
+- [[dissolve-kingo-pdl-under-hexagonal-layout]] — the migration that implements this spec.
+- [[pdl-yaml]] — the authoring format for the policy model.
+- [[four-service-split-by-load-profile]] — how the services consume the language.
+- [[immutablearray-for-domain-collections]] — why domain values carry `ImmutableArray<T>` and the equality/default caveats that ride along.

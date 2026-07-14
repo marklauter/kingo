@@ -1,7 +1,13 @@
-# Architecture
+---
+type: note
+title: Architecture
+summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds domain types, Kingo.Serialization defines ports, Kingo.Serialization.{Json,Yaml,...} are adapters."
+tags: [note, architecture, hexagonal, ddd]
+created: 2026-05-13
+status: evolving
+---
 
-Tags: hexagonal,ddd
-Kingo organizes as hexagonal with a DDD core: Kingo holds domain types, Kingo.Serialization defines ports, Kingo.Serialization.{Json,Yaml,...} are adapters.
+# Architecture
 
 ## Organization
 
@@ -9,9 +15,9 @@ The project follows hexagonal architecture with a DDD core at the center. Projec
 
 ### Domain core — `Kingo`
 
-The center. Pure types describing the ubiquitous domain per [domain-language](domain-language.md): the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Namespaces` (policy model + the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST), `Resources`, `Subjects`, `Statements`. No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
+The center. Pure types describing the ubiquitous domain per [[domain-language]]: the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Namespaces` (policy model + the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST), `Resources`, `Subjects`, `Statements`. No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
 
-The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry is superseded per [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md).
+The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry is superseded per [[dissolve-kingo-pdl-under-hexagonal-layout]].
 
 ### Ports — `Kingo.Serialization`, future `Kingo.Storage`, etc.
 
@@ -35,6 +41,7 @@ Concrete implementations of the ports, using whichever third-party library or pl
 - Writing-csharp principles — particularly "The domain doesn't know how it's stored" and "Make invalid states unrepresentable."
 
 ## Open threads
-- [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md)
-- [move-jsonconverter-off-identifier-types-into-the-json-adapter](move-jsonconverter-off-identifier-types-into-the-json-adapter.md)
-- [ivalue-tself-tvalue-absorbs-all-value-type-wrappers](ivalue-tself-tvalue-absorbs-all-value-type-wrappers.md)
+
+- [[kingo-core-test-pass]]
+- [[dissolve-kingo-pdl-under-hexagonal-layout]]
+- [[move-jsonconverter-off-identifier-types-into-the-json-adapter]]

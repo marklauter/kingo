@@ -1,14 +1,22 @@
+---
+type: decision
+title: Four-service split by load profile
+summary: "Kingo exposes the five Zanzibar APIs (Read, Write, Watch, Check, Expand) across four separate ASP.NET Core hosts, grouped by load profile rather than one host per API: Write, Read+Expand, Watch, and ACL Check as the hot path."
+tags: [note, decision, architecture, services]
+created: 2026-07-14
+status: locked
+---
+
 # Four-service split by load profile
 
-Tags: decision,architecture,services
-Kingo exposes the five Zanzibar APIs (Read, Write, Watch, Check, Expand) across four separate ASP.NET Core hosts, grouped by load profile rather than one host per API.
-
 ## Observation
+
 The Zanzibar paper (§2.4) defines five client APIs, but their load requirements differ by orders of magnitude. Checks and reads dominate Zanzibar's 10M+ QPS peak, and the paper's entire distributed-systems arsenal — distributed caching with consistent hashing, request hedging, hot-spot mitigation, the Leopard index — exists to serve Check's latency budget. Mutations are rare. Read and Expand are query-shaped and latency-tolerant (UI serving). Watch is streaming with a different connection lifecycle entirely.
 
 In our day-job CQRS systems the same lesson holds: bounded contexts share domain vocabulary but almost never share projection — a write-side order looks nothing like a read-side order. Deployment boundaries should follow load profiles, not domain seams.
 
 ## Interpretation
+
 Four hosts:
 
 1. **Write** — mutations are rare; can run on a very slow system. Sole writer of the tuple store; appends the changelog, which is the zookie source.
@@ -26,6 +34,7 @@ Supporting decisions:
 Note this is deliberately more service-oriented than Zanzibar itself, which co-hosts Read/Write/Check/Expand on one aclserver fleet with only Watch separate. The split is justified by the load-profile argument, not by fidelity to the paper.
 
 ## Next
+
 - When scaffolding hosts, use this four-host layout (e.g. under `src/services/`), each referencing core and storage, never each other.
 - First design decision the split forces: the zookie/snapshot model — timestamp source and what "snapshot no earlier than zookie" means against the storage target.
-- Coordinated with [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md): the tuple grammar and rewrite AST land in `Kingo` core before the hosts exist.
+- Coordinated with [[dissolve-kingo-pdl-under-hexagonal-layout]]: the tuple grammar and rewrite AST land in `Kingo` core before the hosts exist.

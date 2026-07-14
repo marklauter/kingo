@@ -1,6 +1,15 @@
+---
+type: note
+title: PDL — YAML structure with embedded rewrite expressions
+summary: "The Policy Definition Language: a YAML outer structure carrying the namespace map, with each relation's optional rewrite expression as a small embedded language parsed separately. Deliberately still speaks quarry-era terms pending the Kingo.Serialization.Pdl adapter work."
+tags: [note, spec, pdl, yaml]
+created: 2026-05-12
+status: evolving
+---
+
 # PDL — YAML structure with embedded rewrite expressions
 
-> **Status (2026-07-14):** this note still speaks in quarry-era terms (`Relation`, `src/Kingo.Pdl`). The drift is deliberate — the terminology pass happens when the `Kingo.Serialization.Pdl` adapter work starts, since the format itself may evolve then too. Current domain vocabulary lives in [domain-language](domain-language.md): the policy record is `Relationship`, the algebra is `SubjectSetRewrite`, the stored fact is `Statement`.
+> **Status (2026-07-14):** this note still speaks in quarry-era terms (`Relation`, `src/Kingo.Pdl`). The drift is deliberate — the terminology pass happens when the `Kingo.Serialization.Pdl` adapter work starts, since the format itself may evolve then too. Current domain vocabulary lives in [[domain-language]]: the policy record is `Relationship`, the algebra is `SubjectSetRewrite`, the stored fact is `Statement`.
 
 The Policy Definition Language defines namespaces and their relations. The outer structure is YAML; each relation's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower).
 
@@ -62,4 +71,4 @@ A bare relation name (e.g. `owner`, `banned`) has no rewrite — semantically eq
 
 ## Prior art
 
-The dictionary-encoding quarry branch contains a working implementation (`src/Kingo.Pdl/`) using YamlDotNet for the outer parser and Superpower for the embedded grammar, plus a round-tripping serializer. See `docs/notes/sources.md`.
+The dictionary-encoding quarry branch contains a working implementation (`src/Kingo.Pdl/`) using YamlDotNet for the outer parser and Superpower for the embedded grammar, plus a round-tripping serializer. See [[sources]].
