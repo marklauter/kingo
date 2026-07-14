@@ -111,5 +111,4 @@ public sealed class ApplyUnitTests
         Assert.Equal(e2, f.Errors[1]);
         Assert.Equal(e3, f.Errors[2]);
     }
-
 }

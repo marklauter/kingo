@@ -28,8 +28,8 @@ public sealed class ResultLawTests
     public void Functor_Composition_Success()
     {
         var fa = Result.Success(10);
-        Func<int, int> f = x => x + 1;
-        Func<int, string> g = x => $"v={x}";
+        int f(int x) => x + 1;
+        string g(int x) => $"v={x}";
         AssertEquivalent(fa.Map(f).Map(g), fa.Map(x => g(f(x))));
     }
 
@@ -37,8 +37,8 @@ public sealed class ResultLawTests
     public void Functor_Composition_Failure()
     {
         var fa = Result.Failure<int>(ErrA);
-        Func<int, int> f = x => x + 1;
-        Func<int, string> g = x => $"v={x}";
+        int f(int x) => x + 1;
+        string g(int x) => $"v={x}";
         AssertEquivalent(fa.Map(f).Map(g), fa.Map(x => g(f(x))));
     }
 
@@ -65,7 +65,7 @@ public sealed class ResultLawTests
     [Fact]
     public void Applicative_Homomorphism()
     {
-        Func<int, int> f = x => x * 2;
+        static int f(int x) => x * 2;
         AssertEquivalent(
             Result.Success(f(21)),
             Result.Apply(Result.Success(f), Result.Success(21)));
@@ -74,7 +74,7 @@ public sealed class ResultLawTests
     [Fact]
     public void Applicative_Interchange_Success()
     {
-        Func<int, string> fn = x => $"v={x}";
+        static string fn(int x) => $"v={x}";
         var u = Result.Success(fn);
         const int y = 42;
         AssertEquivalent(
@@ -96,8 +96,7 @@ public sealed class ResultLawTests
     public void Applicative_Composition_AllSuccess()
     {
         // pure(compose) <*> u <*> v <*> w == u <*> (v <*> w)
-        Func<Func<int, string>, Func<Func<bool, int>, Func<bool, string>>> compose =
-            f => g => x => f(g(x));
+        Func<Func<bool, int>, Func<bool, string>> compose(Func<int, string> f) => g => x => f(g(x));
         var u = Result.Success<Func<int, string>>(x => $"v={x}");
         var v = Result.Success<Func<bool, int>>(b => b ? 1 : 0);
         var w = Result.Success(true);
@@ -110,8 +109,7 @@ public sealed class ResultLawTests
     [Fact]
     public void Applicative_Composition_WithFailures_AccumulatesEquivalently()
     {
-        Func<Func<int, string>, Func<Func<bool, int>, Func<bool, string>>> compose =
-            f => g => x => f(g(x));
+        Func<Func<bool, int>, Func<bool, string>> compose(Func<int, string> f) => g => x => f(g(x));
         var u = Result.Failure<Func<int, string>>(ErrA);
         var v = Result.Failure<Func<bool, int>>(ErrB);
         var w = Result.Success(true);
@@ -129,7 +127,7 @@ public sealed class ResultLawTests
     [Fact]
     public void Monad_LeftIdentity()
     {
-        Func<int, Result<string>> f = x => Result.Success($"v={x}");
+        static Result<string> f(int x) => Result.Success($"v={x}");
         AssertEquivalent(f(42), Result.Success(42).Bind(f));
     }
 
@@ -150,8 +148,8 @@ public sealed class ResultLawTests
     [Fact]
     public void Monad_Associativity_AllSuccess()
     {
-        Func<int, Result<int>> f = x => Result.Success(x + 1);
-        Func<int, Result<string>> g = x => Result.Success($"v={x}");
+        Result<int> f(int x) => Result.Success(x + 1);
+        Result<string> g(int x) => Result.Success($"v={x}");
         var m = Result.Success(10);
         AssertEquivalent(m.Bind(f).Bind(g), m.Bind(x => f(x).Bind(g)));
     }
@@ -159,8 +157,8 @@ public sealed class ResultLawTests
     [Fact]
     public void Monad_Associativity_OuterFailure()
     {
-        Func<int, Result<int>> f = x => Result.Success(x + 1);
-        Func<int, Result<string>> g = x => Result.Success($"v={x}");
+        Result<int> f(int x) => Result.Success(x + 1);
+        Result<string> g(int x) => Result.Success($"v={x}");
         var m = Result.Failure<int>(ErrA);
         AssertEquivalent(m.Bind(f).Bind(g), m.Bind(x => f(x).Bind(g)));
     }
@@ -168,8 +166,8 @@ public sealed class ResultLawTests
     [Fact]
     public void Monad_Associativity_InnerFailure()
     {
-        Func<int, Result<int>> f = _ => Result.Failure<int>(ErrA);
-        Func<int, Result<string>> g = x => Result.Success($"v={x}");
+        Result<int> f(int _) => Result.Failure<int>(ErrA);
+        Result<string> g(int x) => Result.Success($"v={x}");
         var m = Result.Success(10);
         AssertEquivalent(m.Bind(f).Bind(g), m.Bind(x => f(x).Bind(g)));
     }

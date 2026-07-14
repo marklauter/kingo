@@ -6,7 +6,7 @@ public sealed class UnitTests
     public void Value_ReturnsSingleton() => Assert.Equal(Unit.Value, Unit.Value);
 
     [Fact]
-    public void Default_EqualsValue() => Assert.Equal(Unit.Value, default(Unit));
+    public void Default_EqualsValue() => Assert.Equal(Unit.Value, default);
 
     [Fact]
     public void TwoInstances_AreEqual()

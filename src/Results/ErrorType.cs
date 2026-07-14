@@ -5,8 +5,8 @@ namespace Results;
 /// </summary>
 public enum ErrorType
 {
-    /// <summary>Failure outside the domain's named cases. Treated as a bug rather than a domain outcome.</summary>
-    Unexpected,
+    /// <summary>Failure outside the domain's named cases — including an uninitialized <c>default(Error)</c>, whose type reads as this zero value. Treated as a bug rather than a domain outcome.</summary>
+    Undefined = 0,
 
     /// <summary>Input failed validation. Caller should fix the input and retry.</summary>
     Validation,

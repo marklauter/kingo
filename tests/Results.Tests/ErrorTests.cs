@@ -37,10 +37,10 @@ public sealed class ErrorTests
     }
 
     [Fact]
-    public void Unexpected_CreatesErrorWithUnexpectedType()
+    public void Undefined_CreatesErrorWithUndefinedType()
     {
-        var error = Error.Unexpected("err.boom", "something went wrong");
-        Assert.Equal(ErrorType.Unexpected, error.Type);
+        var error = Error.Undefined("err.boom", "something went wrong");
+        Assert.Equal(ErrorType.Undefined, error.Type);
     }
 
     [Theory]
@@ -56,6 +56,32 @@ public sealed class ErrorTests
     [InlineData(" ")]
     public void Factory_Throws_IfMessageIsNullOrWhitespace(string? message) =>
         Assert.ThrowsAny<ArgumentException>(() => Error.NotFound("err.x", message!));
+
+    [Fact]
+    public void Default_IsUndefinedAndThrowsOnCodeAndMessageReads()
+    {
+        // default(Error) is an uninitialized instance — itself a bug. Type lands in the
+        // treated-as-a-bug bucket; Code/Message fail loudly instead of leaking null through
+        // their non-nullable declarations (null strings interpolate silently otherwise).
+        var error = default(Error);
+        Assert.Equal(ErrorType.Undefined, error.Type);
+        _ = Assert.Throws<InvalidOperationException>(() => error.Code);
+        _ = Assert.Throws<InvalidOperationException>(() => error.Message);
+
+        // The record-synthesized PrintMembers reads Code/Message, so ToString inherits the
+        // throw — string interpolation and log formatting of a trash Error fail loudly too.
+        _ = Assert.Throws<InvalidOperationException>(error.ToString);
+    }
+
+    [Fact]
+    public void Undefined_FactoryInstance_ReadsCodeAndMessageNormally()
+    {
+        // Type == Undefined alone is not the trash discriminator — factory-built
+        // Undefined errors are legitimate and fully readable.
+        var error = Error.Undefined("err.boom", "something went wrong");
+        Assert.Equal("err.boom", error.Code);
+        Assert.Equal("something went wrong", error.Message);
+    }
 
     [Fact]
     public void Equals_ReturnsTrue_ForSameTypeAndCodeAndMessage()

@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 // CS8509 / IDE0072: switch expressions in this file dispatch over the closed Result<T> hierarchy
 // (Success | Failure). The compiler cannot prove exhaustiveness for class hierarchies, but the
@@ -22,9 +23,14 @@ public abstract record Result<T>
     /// <summary>The successful inhabitant of <see cref="Result{T}"/>.</summary>
     public sealed record Success(T Value) : Result<T>;
 
-    /// <summary>The failed inhabitant of <see cref="Result{T}"/>. <see cref="Errors"/> is always non-empty when constructed via the <c>Result.Failure</c> factories. Equality is structural over <see cref="Errors"/> (element-wise, order-sensitive) — <see cref="ImmutableArray{T}"/>'s default record equality would otherwise compare the underlying array reference.</summary>
-    public sealed record Failure(ImmutableArray<Error> Errors) : Result<T>
+    /// <summary>The failed inhabitant of <see cref="Result{T}"/>. <see cref="Errors"/> is always non-empty: the constructor is internal, so external construction goes through the <c>Result.Failure</c> factories, which enforce it. Equality is structural over <see cref="Errors"/> (element-wise, order-sensitive) — <see cref="ImmutableArray{T}"/>'s default record equality would otherwise compare the underlying array reference.</summary>
+    public sealed record Failure : Result<T>
     {
+        /// <summary>The errors carried by this failure; never empty.</summary>
+        public ImmutableArray<Error> Errors { get; }
+
+        internal Failure(ImmutableArray<Error> errors) => Errors = errors;
+
         public bool Equals(Failure? other) =>
             other is not null && Errors.AsSpan().SequenceEqual(other.Errors.AsSpan());
 
@@ -87,32 +93,21 @@ public static class Result
     /// <summary>Construct a failed result from a single <see cref="Error"/>. The success type <typeparamref name="T"/> must be supplied explicitly — it cannot be inferred from <paramref name="error"/>.</summary>
     public static Result<T> Failure<T>(Error error) => new Result<T>.Failure([error]);
 
-    /// <summary>Construct a failed result from one or more <see cref="Error"/>s. Throws <see cref="ArgumentException"/> when <paramref name="errors"/> is empty — a failure must carry at least one error.</summary>
-    public static Result<T> Failure<T>(params Error[] errors) => errors.Length == 0
+    /// <summary>Construct a failed result from one or more <see cref="Error"/>s. Throws <see cref="ArgumentException"/> when <paramref name="errors"/> is empty — a failure must carry at least one error. <c>params ReadOnlySpan</c> keeps varargs argument lists off the heap; collection expressions and pre-built <see cref="ImmutableArray{T}"/>s bind to the <see cref="ImmutableArray{T}"/> overload instead (see its <see cref="OverloadResolutionPriorityAttribute"/>).</summary>
+    public static Result<T> Failure<T>(params ReadOnlySpan<Error> errors) => errors.Length == 0
         ? throw new ArgumentException("Failure requires at least one error.", nameof(errors))
-        : new Result<T>.Failure(ImmutableArray.Create(errors));
+        : new Result<T>.Failure([.. errors]);
 
-    /// <summary>Construct a failed result from a pre-built <see cref="ImmutableArray{T}"/> of <see cref="Error"/>s. Cheapest factory — the array is stored directly with no copy. Throws <see cref="ArgumentException"/> when <paramref name="errors"/> is default or empty.</summary>
+    /// <summary>Construct a failed result from a pre-built <see cref="ImmutableArray{T}"/> of <see cref="Error"/>s. Cheapest factory — the array is stored directly with no copy, and collection expressions (<c>Failure&lt;T&gt;([a, b])</c>) build it directly. Throws <see cref="ArgumentException"/> when <paramref name="errors"/> is default or empty. The priority attribute breaks the tie with the <see cref="ReadOnlySpan{T}"/> overload that <see cref="ImmutableArray{T}"/>'s implicit span conversion would otherwise cause.</summary>
+    [OverloadResolutionPriority(1)]
     public static Result<T> Failure<T>(ImmutableArray<Error> errors) => errors.IsDefaultOrEmpty
         ? throw new ArgumentException("Failure requires at least one error.", nameof(errors))
         : new Result<T>.Failure(errors);
 
     /// <summary>Construct a failed result from a list of <see cref="Error"/>s. Throws <see cref="ArgumentException"/> when <paramref name="errors"/> is empty — a failure must carry at least one error.</summary>
-    public static Result<T> Failure<T>(IReadOnlyList<Error> errors)
-    {
-        if (errors.Count == 0)
-        {
-            throw new ArgumentException("Failure requires at least one error.", nameof(errors));
-        }
-
-        var builder = ImmutableArray.CreateBuilder<Error>(errors.Count);
-        for (var i = 0; i < errors.Count; i++)
-        {
-            builder.Add(errors[i]);
-        }
-
-        return new Result<T>.Failure(builder.MoveToImmutable());
-    }
+    public static Result<T> Failure<T>(IReadOnlyList<Error> errors) => errors.Count == 0
+        ? throw new ArgumentException("Failure requires at least one error.", nameof(errors))
+        : new Result<T>.Failure([.. errors]);
 
     /// <summary>
     /// Applicative application: feed a <see cref="Result{T}"/>-wrapped argument to a <see cref="Result{T}"/>-wrapped function. Multi-arity handled by currying — apply repeatedly to consume each argument. When both <paramref name="resultFn"/> and <paramref name="resultArg"/> fail, their errors are accumulated (function errors first, then argument errors); this is the Validation-applicative behaviour rather than fail-fast.
@@ -123,7 +118,7 @@ public static class Result
             (Result<Func<T, TResult>>.Success f, Result<T>.Success a) => Success(f.Value(a.Value)),
             (Result<Func<T, TResult>>.Failure f, Result<T>.Success _) => new Result<TResult>.Failure(f.Errors),
             (Result<Func<T, TResult>>.Success _, Result<T>.Failure a) => new Result<TResult>.Failure(a.Errors),
-            (Result<Func<T, TResult>>.Failure f, Result<T>.Failure a) => new Result<TResult>.Failure(Concat(f.Errors, a.Errors)),
+            (Result<Func<T, TResult>>.Failure f, Result<T>.Failure a) => new Result<TResult>.Failure([.. f.Errors, .. a.Errors]),
         };
 
     /// <summary>
@@ -165,6 +160,4 @@ public static class Result
 
         return new Result<Unit>.Failure(builder.MoveToImmutable());
     }
-
-    private static ImmutableArray<Error> Concat(ImmutableArray<Error> a, ImmutableArray<Error> b) => [.. a, .. b];
 }

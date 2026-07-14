@@ -39,6 +39,22 @@ public sealed class ResultTests
         Assert.Throws<ArgumentException>(() => Result.Failure<int>(Array.Empty<Error>()));
 
     [Fact]
+    public void Failure_CollectionExpression_ResolvesToImmutableArrayOverload()
+    {
+        // Pins overload resolution for the collection-expression call shape: it must bind
+        // (to the priority-tagged ImmutableArray overload) rather than go CS0121-ambiguous.
+        var e1 = Error.Validation("err.1", "first");
+        var e2 = Error.Validation("err.2", "second");
+
+        var result = Result.Failure<int>([e1, e2]);
+
+        var f = Assert.IsType<Result<int>.Failure>(result);
+        Assert.Equal(2, f.Errors.Length);
+        Assert.Equal(e1, f.Errors[0]);
+        Assert.Equal(e2, f.Errors[1]);
+    }
+
+    [Fact]
     public void Failure_ImmutableArrayFactory_StoresArrayDirectly()
     {
         var e1 = Error.Validation("err.1", "first");
@@ -54,18 +70,18 @@ public sealed class ResultTests
 
     [Fact]
     public void Failure_ImmutableArrayFactory_Default_Throws() =>
-        Assert.Throws<ArgumentException>(() => Result.Failure<int>(default(ImmutableArray<Error>)));
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>(default));
 
     [Fact]
     public void Failure_ImmutableArrayFactory_Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => Result.Failure<int>(ImmutableArray<Error>.Empty));
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>([]));
 
     [Fact]
     public void Failure_ListFactory_PreservesOrder()
     {
         var e1 = Error.Validation("err.1", "first");
         var e2 = Error.Validation("err.2", "second");
-        var result = Result.Failure<int>((IReadOnlyList<Error>)new List<Error> { e1, e2 });
+        var result = Result.Failure<int>(new List<Error> { e1, e2 });
         var f = Assert.IsType<Result<int>.Failure>(result);
         Assert.Equal(2, f.Errors.Length);
         Assert.Equal(e1, f.Errors[0]);
@@ -74,7 +90,7 @@ public sealed class ResultTests
 
     [Fact]
     public void Failure_ListFactory_Empty_Throws() =>
-        Assert.Throws<ArgumentException>(() => Result.Failure<int>((IReadOnlyList<Error>)new List<Error>()));
+        Assert.Throws<ArgumentException>(() => Result.Failure<int>(new List<Error>()));
 
     [Fact]
     public void Match_Success_InvokesOnSuccess()
@@ -301,7 +317,7 @@ public sealed class ResultTests
     [Fact]
     public void Apply_WrappedFunctionFailure_PassesFunctionErrorThrough()
     {
-        var error = Error.Unexpected("err.fn", "function unavailable");
+        var error = Error.Undefined("err.fn", "function unavailable");
         var doubler = Result.Failure<Func<int, int>>(error);
         var arg = Result.Success(21);
 
@@ -329,7 +345,7 @@ public sealed class ResultTests
     [Fact]
     public void Apply_BothFailures_AccumulatesBothErrors()
     {
-        var fnError = Error.Unexpected("err.fn", "function unavailable");
+        var fnError = Error.Undefined("err.fn", "function unavailable");
         var argError = Error.NotFound("err.arg", "arg missing");
         var doubler = Result.Failure<Func<int, int>>(fnError);
         var arg = Result.Failure<int>(argError);

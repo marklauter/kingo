@@ -32,12 +32,12 @@ public interface IValue<TSelf, TValue>
     /// <summary>
     /// Constructs a <typeparamref name="TSelf"/> from <paramref name="value"/> without validation. The caller asserts the source is trusted; misuse is the caller's defect.
     /// </summary>
-    /// <param name="value">The pre-validated value to wrap.</param>
+    /// <param name="value">The pre-validated, or trusted value to wrap.</param>
     /// <returns>A new <typeparamref name="TSelf"/> instance.</returns>
     static abstract TSelf Create(TValue value);
 
     /// <summary>
-    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{TSelf}"/> that carries either the wrapped value or the structured <see cref="Error"/>s describing what failed.
+    /// Parses <paramref name="s"/> with full validation, returning a <see cref="Result{TSelf}"/> that carries either the wrapped value or the structured <see cref="Error"/>s describing what failed. All parse and validation logic lives here — <see cref="TryParse"/> contributes none. Whether <see langword="null"/> is valid input is a business rule of the implementing type: a type for which null is invalid checks and returns a validation failure; a type for which it is valid does not check. Reflection-based callers can deliver null at runtime regardless of the parameter's non-nullable annotation.
     /// </summary>
     /// <param name="s">The untrusted input string.</param>
     /// <returns>
@@ -46,7 +46,7 @@ public interface IValue<TSelf, TValue>
     static abstract Result<TSelf> Parse(string s);
 
     /// <summary>
-    /// Parses <paramref name="s"/>, projecting <see cref="Parse"/> into the BCL <c>bool</c>+<c>out</c> shape. The contract is <see langword="static"/> <see langword="abstract"/> so each implementor declares <c>TryParse</c> on its own type, where ASP.NET Core's parameter binder and other reflection-based pipelines discover it. Implementors delegate to <see cref="ValueParser.TryParse{TSelf, TValue}"/>.
+    /// Projects <see cref="Parse"/> into the BCL <c>bool</c>+<c>out</c> shape. TryParse never does parse or validation work of its own — no null checks, no rules; <see cref="Parse"/> owns 100% of that per the implementing type's business rules. The contract is <see langword="static"/> <see langword="abstract"/> so each implementor declares <c>TryParse</c> on its own type, where ASP.NET Core's parameter binder and other reflection-based pipelines discover it. Implementors delegate to <see cref="ValueParser.TryParse{TSelf, TValue}"/>.
     /// </summary>
     /// <param name="s">The untrusted input string.</param>
     /// <param name="parsed">When this method returns <see langword="true"/>, the parsed value; otherwise <see langword="default"/>.</param>
