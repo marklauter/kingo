@@ -9,7 +9,7 @@ namespace Values;
 /// <typeparam name="TValue">The underlying primitive type the wrapper carries (for example <see cref="string"/>, <see cref="int"/>, or <see cref="Guid"/>).</typeparam>
 /// <remarks>
 /// <list type="bullet">
-///   <item><description><see cref="Create"/> performs no validation — it is the hot path for trusted sources (EF Core value converters, in-memory caches, internal code) where the value was validated on the way in.</description></item>
+///   <item><description><see cref="Create"/> is pure assignment — no validation, no normalization. It is the hot path for trusted sources (EF Core value converters, in-memory caches, internal code) where the value was validated and canonicalized on the way in.</description></item>
 ///   <item><description><see cref="IParse{TSelf}.Parse"/> performs full validation and returns a <see cref="Results.Result{T}"/>. Use it at every untrusted boundary (request bodies, configuration files, user input).</description></item>
 ///   <item><description>The BCL <c>bool</c>+<c>out</c> <c>TryParse</c> shape is deliberately not part of this contract — it is a REST-binding concern. Types that cross the ASP.NET boundary opt in via <see cref="ITryParse{TSelf}"/>.</description></item>
 /// </list>
@@ -30,9 +30,9 @@ public interface IValue<TSelf, TValue>
     TValue Value { get; }
 
     /// <summary>
-    /// Constructs a <typeparamref name="TSelf"/> from <paramref name="value"/> without validation. The caller asserts the source is trusted; misuse is the caller's defect.
+    /// Constructs a <typeparamref name="TSelf"/> from <paramref name="value"/> by pure assignment — no validation, no normalization. The caller asserts the source is trusted: <paramref name="value"/> is valid and already in canonical form. Misuse is the caller's defect.
     /// </summary>
-    /// <param name="value">The pre-validated, or trusted value to wrap.</param>
+    /// <param name="value">The trusted value to wrap — pre-validated and canonical.</param>
     /// <returns>A new <typeparamref name="TSelf"/> instance.</returns>
     static abstract TSelf Create(TValue value);
 }
