@@ -1,19 +1,20 @@
 ---
 type: todo
 title: Kingo core test pass
-summary: "The domain core is built and pushed but untested — Kingo.Tests' coverage ratchet (80/80/80) fails the solution until the test pass lands. Next work item; the PDL adapter and IParse-keyed converters queue behind it."
+summary: "The domain core is built but mostly untested — Namespace equality and Define validation have tests; the identifier and composite-parse surface has none, and the coverage ratchet (80/80/80) gates the solution. Next work item; the PDL adapter and IParse-keyed converters queue behind it."
 tags: [note, todo, testing]
 created: 2026-07-14
 status: open
 priority: high
 effort: medium
+disposition: delete-on-close
 ---
 
 # Kingo core test pass
 
 ## Observation
 
-`src/Kingo` was built fresh on 2026-07-14 per [[domain-language]]: four identifier IValues, the grammar compositions (`Resource`, `SubjectSet`, `Subject` DU, `Statement`), and the policy model (`Namespace`, `Relationship`, `SubjectSetRewrite` algebra). Zero tests exist for any of it; `Kingo.Tests` currently holds only placeholder tests and its coverage ratchet is red.
+`src/Kingo` was built fresh on 2026-07-14 per [[domain-language]]: four identifier IValues, the grammar compositions (`Resource`, `SubjectSet`, `Subject` DU, `Statement`), and the policy model (`Namespace`, `Relationship`, `SubjectSetRewrite` algebra). First tests landed the same day — `NamespaceTests` pins structural equality and `Namespace.Define`'s duplicate-name validation. The identifier and composite-parse surface is still untested, and the coverage ratchet (`Directory.Build.props`: 80/80/80 line/branch/method) gates the solution.
 
 ## Interpretation
 
@@ -31,7 +32,7 @@ Style precedents: law tests in Results.Tests; the reflection-shape test in Value
 
 ## Next
 
-1. Write the test pass; acceptance is `build-gate.sh` green (format, build, tests, ratchet).
+1. Write the test pass; acceptance is `build-gate.sh` green (format, build, tests, ratchet). The script isn't a repo file — it's the canonical gate from the writing-csharp skill (`csharp` plugin, `skills/writing-csharp/scripts/build-gate.sh`).
 2. Then **`Kingo.Serialization.Pdl`** — the step that makes the core reachable: today nothing can produce a `Namespace` value except hand-written C#, and policy authoring is the front door. New project + `Kingo.Serialization.Pdl.Tests`; salvage the Superpower rewrite-expression grammar and YamlDotNet structure from the `Kingo.Pdl` quarry as reference; parser-internal AST stays `internal`, transform exits into `Namespace`/`Relationship`/`SubjectSetRewrite`; all errors as `Result` failures (no `PdlParseException` at the boundary). Acceptance: PDL text → domain values → PDL text round-trips. Details in [[dissolve-kingo-pdl-under-hexagonal-layout]].
 3. Same layer, right behind it: the generic `IParse`-keyed JSON/YAML converters for identifiers and composites (one converter family for all value types — wire-capability on the type, wire format in the adapter, per the Parse boundary rule in [[domain-language]]). Unblocks the REST hosts. Tracked in [[move-jsonconverter-off-identifier-types-into-the-json-adapter]].
 4. Later, unblocked by any of the above: the rewrite interpreters (Check's boolean walk, Expand's tree) with statement lookup as a port, per [[four-service-split-by-load-profile]].

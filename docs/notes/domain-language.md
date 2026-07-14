@@ -80,9 +80,9 @@ Canonical string forms belong to the core: `IValue.Parse` owns each terminal's t
 
 Parse-agnostic and storable — produced equally by the PDL parser, a JSON adapter, or the Write API. Not an AST.
 
-- `Namespace(Name, Relationships)` — a policy definition **as a value** (structural equality, immutable snapshot). Entity-ness — versioning, lifecycle, OCC, authorship — is the Write/PAP context's wrapper and never lives in core. Rule: if a core type grows a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service.
+- `Namespace(Name, Relationships)` — a policy definition **as a value** (structural equality, immutable snapshot). Construction mirrors the `Create`/`Parse` split on the value types: the constructor is pure assignment for trusted sources; `Define` is the `Result`-returning factory for untrusted input, rejecting duplicate relationship names (`namespace.duplicate_relationship`, one error per name). Entity-ness — versioning, lifecycle, OCC, authorship — is the Write/PAP context's wrapper and never lives in core. Rule: if a core type grows a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service.
 - `Relationship(Name, Rewrite)` — a named relationship and its rewrite, inside a `Namespace`. The name is free for the policy record because the stored fact is `Statement` — the relationship is the *predicate* of the triple, not the triple itself. Pre-reboot main called this `RelationshipSpec`; Pdl called it `Relation`.
-- `SubjectSetRewrite` — the rewrite **algebra**, a closed DU: `This | ComputedSubjectSet | TupleToSubjectSet | Union | Intersection | Exclusion`. Authoring syntax and precedence: [[pdl-yaml]]. Evaluation: one algebra, two interpreters (Check's short-circuiting boolean walk, Expand's full tree materialization) per [[four-service-split-by-load-profile]].
+- `SubjectSetRewrite` — the rewrite **algebra**, a closed DU: `This | ComputedSubjectSet | TupleToSubjectSet | Union | Intersection | Exclusion` (the C# type names carry a `Rewrite` suffix: `ThisRewrite`, `UnionRewrite`, ...). Authoring syntax and precedence: [[pdl-yaml]]. Evaluation: one algebra, two interpreters (Check's short-circuiting boolean walk, Expand's full tree materialization) per [[four-service-split-by-load-profile]].
 
 ## Aggregate roots (settled 2026-07-14)
 

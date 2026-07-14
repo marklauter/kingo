@@ -21,6 +21,8 @@ The foundational primitives — `Result<T>` / `Error` (Results project) and `IVa
 
 ### Ports — `Kingo.Serialization`, future `Kingo.Storage`, etc.
 
+(The three serialization projects are scaffolded but empty as of 2026-07-14 — the first port interface and adapter land with the `Kingo.Serialization.Pdl` work per [[dissolve-kingo-pdl-under-hexagonal-layout]].)
+
 Interfaces that describe what the core needs from the outside world, without specifying how. A port says "give me something that can deserialize a policy from a string"; it does not say "give me a YamlDotNet deserializer." Ports live close enough to the core that they share its language; the implementations live elsewhere.
 
 ### Adapters — `Kingo.Serialization.Json`, `Kingo.Serialization.Yaml`, `Kingo.Serialization.Pdl`, future storage adapters, transport adapters, etc.
