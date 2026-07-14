@@ -3,14 +3,14 @@ namespace Results.Tests;
 public sealed class ApplyUnitTests
 {
     [Fact]
-    public void Binary_BothSuccess_ReturnsSuccess()
+    public void TwoInputs_BothSuccess_ReturnsSuccess()
     {
         var result = Result.Apply(Result.Success(Unit.Value), Result.Success(Unit.Value));
         _ = Assert.IsType<Result<Unit>.Success>(result);
     }
 
     [Fact]
-    public void Binary_LeftFailure_RightSuccess_PropagatesLeftErrors()
+    public void TwoInputs_LeftFailure_RightSuccess_PropagatesLeftErrors()
     {
         var error = Error.Validation("err.left", "left bad");
         var left = Result.Failure<Unit>(error);
@@ -24,7 +24,7 @@ public sealed class ApplyUnitTests
     }
 
     [Fact]
-    public void Binary_LeftSuccess_RightFailure_PropagatesRightErrors()
+    public void TwoInputs_LeftSuccess_RightFailure_PropagatesRightErrors()
     {
         var error = Error.Validation("err.right", "right bad");
         var left = Result.Success(Unit.Value);
@@ -38,7 +38,17 @@ public sealed class ApplyUnitTests
     }
 
     [Fact]
-    public void Binary_BothFailure_AccumulatesInOrder()
+    public void SingleFailure_ReturnsFailingInputUnchanged()
+    {
+        var failure = Result.Failure<Unit>(Error.Validation("err.only", "only failure"));
+
+        var result = Result.Apply(Result.Success(Unit.Value), failure, Result.Success(Unit.Value));
+
+        Assert.Same(failure, result);
+    }
+
+    [Fact]
+    public void TwoInputs_BothFailure_AccumulatesInOrder()
     {
         var leftError = Error.Validation("err.left", "left bad");
         var rightError = Error.Validation("err.right", "right bad");

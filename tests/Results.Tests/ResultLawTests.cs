@@ -2,32 +2,15 @@ namespace Results.Tests;
 
 /// <summary>
 /// Functor, applicative, and monad law tests for <see cref="Result{T}"/>. These pin the algebraic
-/// contract: implementation changes that break a law will break a test here. Comparison uses
-/// structural equality on <see cref="Result{T}.Failure.Errors"/> rather than record equality —
-/// failures built independently wrap distinct <c>ImmutableArray&lt;Error&gt;</c> instances even
-/// when their contents match.
+/// contract: implementation changes that break a law will break a test here.
 /// </summary>
 public sealed class ResultLawTests
 {
     private static readonly Error ErrA = Error.Validation("err.a", "a");
     private static readonly Error ErrB = Error.Validation("err.b", "b");
 
-    private static void AssertEquivalent<T>(Result<T> expected, Result<T> actual)
-    {
-        if (expected is Result<T>.Success es && actual is Result<T>.Success a_s)
-        {
-            Assert.Equal(es.Value, a_s.Value);
-            return;
-        }
-        if (expected is Result<T>.Failure ef && actual is Result<T>.Failure af)
-        {
-            Assert.True(
-                ef.Errors.SequenceEqual(af.Errors),
-                $"Failure errors differ: expected [{string.Join(",", ef.Errors.Select(e => e.Code))}], got [{string.Join(",", af.Errors.Select(e => e.Code))}]");
-            return;
-        }
-        Assert.Fail($"Variant mismatch: expected {expected.GetType()}, got {actual.GetType()}");
-    }
+    private static void AssertEquivalent<T>(Result<T> expected, Result<T> actual) =>
+        Assert.Equal(expected, actual);
 
     // ---------- Functor laws ----------
     // 1. Identity:    fa.Map(id) == fa

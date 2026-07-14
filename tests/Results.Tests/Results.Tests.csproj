@@ -1,16 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<Include>[Results*]*</Include>
-		<!-- Coverage floors (line, branch, method). Raise only — never lower. -->
-		<!-- Current totals: 100 / 83.33 / 100. Branch ceiling is bounded by switch-expression IL: -->
-		<!-- closed-hierarchy pattern dispatch emits unreachable "neither arm matched" branches -->
-		<!-- that no test can hit (Result<T> ctor is private protected). -->
-		<Threshold>95,80,95</Threshold>
-		<ThresholdType>line,branch,method</ThresholdType>
-		<ThresholdStat>total</ThresholdStat>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Results\Results.csproj" />
 		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />

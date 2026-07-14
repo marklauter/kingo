@@ -1,5 +1,4 @@
 using Results;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Values;
 
@@ -18,8 +17,8 @@ public static class ValueParser
     /// <returns><see langword="true"/> when parsing succeeded; <see langword="false"/> otherwise.</returns>
     public static bool TryParse<TSelf, TValue>(
         string s,
-        [MaybeNullWhen(false)] out TSelf parsed)
-        where TSelf : IValue<TSelf, TValue>
+        out TSelf parsed)
+        where TSelf : struct, IValue<TSelf, TValue>
     {
         if (TSelf.Parse(s) is Result<TSelf>.Success success)
         {

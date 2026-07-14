@@ -8,7 +8,7 @@ using ArchitectureModel = ArchUnitNET.Domain.Architecture;
 namespace Kingo.Testing;
 
 /// <summary>
-/// Base class for per-project architecture tests. Derive once per test project, pass the system-under-test assembly and the regex that types in that project must match. The three universal rules (namespace shape, sealed concrete classes, no public instance fields) inherit automatically.
+/// Base class for per-project architecture tests. Derive once per test project, pass the system-under-test assembly and the regex that types in that project must match. The universal rules (namespace shape, sealed concrete classes, no public instance fields, IValue implementors are readonly record structs) inherit automatically.
 /// </summary>
 /// <remarks>
 /// Use <see cref="Assembly.Load(string)"/> in the derived constructor — that lets empty assemblies (no domain types yet) still load without a marker type.
@@ -53,6 +53,29 @@ public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expe
             .NotBePublic()
             .Because("writing-csharp: immutable by default — no public mutable instance state.")
             .WithoutRequiringPositiveResults());
+
+    [Fact]
+    public void ValueWrappersAreReadonlyRecordStructs()
+    {
+        // ArchUnitNET does not model readonly-ness or record synthesis, so this rule uses reflection:
+        // readonly structs carry [IsReadOnly]; record structs synthesize a non-public PrintMembers(StringBuilder).
+        var violations = targetAssembly.GetTypes()
+            .Where(ImplementsIValue)
+            .Where(type => !IsReadonlyRecordStruct(type))
+            .Select(type => type.FullName)
+            .ToList();
+
+        if (violations.Count > 0)
+            Assert.Fail($"writing-csharp: IValue<TSelf, TValue> implementors must be readonly record structs. Violations: {string.Join(", ", violations)}");
+    }
+
+    private static bool ImplementsIValue(System.Type type) =>
+        type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition().FullName == "Values.IValue`2");
+
+    private static bool IsReadonlyRecordStruct(System.Type type) =>
+        type.IsValueType
+        && type.IsDefined(typeof(System.Runtime.CompilerServices.IsReadOnlyAttribute), inherit: false)
+        && type.GetMethod("PrintMembers", BindingFlags.Instance | BindingFlags.NonPublic, [typeof(System.Text.StringBuilder)]) is not null;
 
     private void Verify(IArchRule rule)
     {

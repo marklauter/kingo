@@ -81,4 +81,22 @@ public sealed class ErrorTests
         var b = Error.NotFound("err.y", "msg");
         Assert.NotEqual(a, b);
     }
+
+    [Fact]
+    public void Equals_ReturnsFalse_WhenMessageDiffers()
+    {
+        // Messages interpolate runtime values, so same type+code with different messages are
+        // distinct errors. Any future dedup of accumulated errors inherits this semantic.
+        var a = Error.Validation("err.invalid", "'foo' contains invalid characters");
+        var b = Error.Validation("err.invalid", "'bar' contains invalid characters");
+        Assert.NotEqual(a, b);
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsSameValue_ForEqualErrors()
+    {
+        var a = Error.NotFound("err.x", "msg");
+        var b = Error.NotFound("err.x", "msg");
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+    }
 }

@@ -1,9 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<Include>[Values*]*</Include>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Values\Values.csproj" />
 		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />

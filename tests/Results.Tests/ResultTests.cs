@@ -243,15 +243,39 @@ public sealed class ResultTests
     }
 
     [Fact]
-    public void Equals_ReturnsTrue_ForTwoFailuresOverSameErrorArray()
+    public void Equals_ReturnsTrue_ForIndependentlyConstructedFailuresWithEqualErrors()
     {
-        // Failure's value equality reduces to ImmutableArray<Error>.Equals, which compares the
-        // underlying array reference — independently constructed failures with the "same" errors
-        // are NOT equal. Sharing the array makes them equal.
-        var errors = ImmutableArray.Create(Error.NotFound("err.x", "msg"));
-        var a = new Result<int>.Failure(errors);
-        var b = new Result<int>.Failure(errors);
+        var a = Result.Failure<int>(Error.NotFound("err.x", "msg"));
+        var b = Result.Failure<int>(Error.NotFound("err.x", "msg"));
         Assert.Equal(a, b);
+    }
+
+    [Fact]
+    public void Equals_ReturnsFalse_WhenFailureErrorsDiffer()
+    {
+        var a = Result.Failure<int>(Error.NotFound("err.x", "msg"));
+        var b = Result.Failure<int>(Error.NotFound("err.y", "msg"));
+        Assert.NotEqual(a, b);
+    }
+
+    [Fact]
+    public void Equals_IsOrderSensitive_OverFailureErrors()
+    {
+        // Accumulation order is part of the contract (function errors first, left-then-right),
+        // so equality is sequence equality, not set equality.
+        var e1 = Error.Validation("err.1", "first");
+        var e2 = Error.Validation("err.2", "second");
+        var a = Result.Failure<int>(e1, e2);
+        var b = Result.Failure<int>(e2, e1);
+        Assert.NotEqual(a, b);
+    }
+
+    [Fact]
+    public void GetHashCode_ReturnsSameValue_ForEqualFailures()
+    {
+        var a = Result.Failure<int>(Error.NotFound("err.x", "msg"));
+        var b = Result.Failure<int>(Error.NotFound("err.x", "msg"));
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
 
     [Fact]

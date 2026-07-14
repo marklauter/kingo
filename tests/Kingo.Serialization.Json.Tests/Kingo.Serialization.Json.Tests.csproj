@@ -1,9 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<Include>[Kingo*]*</Include>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Kingo.Serialization.Json\Kingo.Serialization.Json.csproj" />
 		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />

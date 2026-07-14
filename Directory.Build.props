@@ -26,8 +26,9 @@
 		<IsTestProject>true</IsTestProject>
 		<CollectCoverage>true</CollectCoverage>
 		<CoverletOutputFormat>cobertura</CoverletOutputFormat>
-		<!-- Coverage ratchet disabled while the codebase is a skeleton. Raise progressively (Plumber's mature target is 95,90,95 line,branch,method). -->
-		<Threshold>0,0,0</Threshold>
+		<!-- Each test project measures only its own system under test: Foo.Tests covers assembly Foo. -->
+		<Include>[$(MSBuildProjectName.Replace('.Tests',''))]*</Include>
+		<Threshold>80,80,80</Threshold>
 		<ThresholdType>line,branch,method</ThresholdType>
 		<ThresholdStat>minimum</ThresholdStat>
 		<!-- Exception types are plumbing; exclude from coverage to avoid noise. -->

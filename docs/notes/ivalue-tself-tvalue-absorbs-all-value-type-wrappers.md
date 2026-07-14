@@ -10,7 +10,7 @@ Existing value-type wrappers (`NamespaceIdentifier`, `RelationIdentifier` in `Ki
 - `TValue Value { get; }` — public access to the wrapped primitive.
 - `static abstract TSelf Create(TValue)` — trusted path, no validation.
 - `static abstract Result<TSelf> Parse(string)` — untrusted path, full validation, returns `Result<TSelf>`.
-- `static abstract bool TryParse(string, [MaybeNullWhen(false)] out TSelf)` — BCL adapter; each implementor declares it on its own type so reflection-based pipelines (ASP.NET Core parameter binding, etc.) discover it. The canonical body lives in the sibling helper `Value.TryParse<TSelf, TValue>` so each implementor's declaration can be a one-line delegation.
+- `static abstract bool TryParse(string, out TSelf)` — BCL adapter; each implementor declares it on its own type so reflection-based pipelines (ASP.NET Core parameter binding, etc.) discover it. The canonical body lives in the sibling helper `ValueParser.TryParse<TSelf, TValue>` so each implementor's declaration can be a one-line delegation. (Named `ValueParser` because a helper named `Value` is shadowed by the `Value` property the interface mandates on every implementor — the unqualified call would never compile at its intended call site.)
 - Inherits `IComparable<TSelf>`, `IEquatable<TSelf>`, `IComparisonOperators<TSelf, TSelf, bool>`.
 
 `IStringConvertible<T>` and `StringConvertible<T>` (JSON converter) are slated for removal.
@@ -28,7 +28,7 @@ Rewrite each value-type wrapper:
   - Expose `Value` as a public property.
   - Implement `Create(TValue)` (trusted, no validation).
   - Implement `Parse(string) → Result<TSelf>` (validation lives here).
-  - Declare `TryParse` as a one-line delegation: `public static bool TryParse(string s, [MaybeNullWhen(false)] out FooId parsed) => Value.TryParse<FooId, string>(s, out parsed);`. The declaration on the wrapper type is what reflection-based pipelines find.
+  - Declare `TryParse` as a one-line delegation: `public static bool TryParse(string s, out FooId parsed) => ValueParser.TryParse<FooId, string>(s, out parsed);`. The declaration on the wrapper type is what reflection-based pipelines find. (No `[MaybeNullWhen(false)]` — `TSelf` is constrained to `struct`, so the `out` param is never null.)
   - Confirm `CompareTo`, `Equals`, `<`, `<=`, `>`, `>=` are present (record struct synthesizes `==`/`!=`).
 - Move identifiers to `Kingo` (domain core) as part of [dissolve-kingo-pdl-under-hexagonal-layout](dissolve-kingo-pdl-under-hexagonal-layout.md).
 - Delete `Kingo/IStringConvertible.cs` and `Kingo/Json/StringConvertible.cs` once nothing references them.
