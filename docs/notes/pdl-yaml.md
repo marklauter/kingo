@@ -1,5 +1,7 @@
 # PDL — YAML structure with embedded rewrite expressions
 
+> **Status (2026-07-14):** this note still speaks in quarry-era terms (`Relation`, `src/Kingo.Pdl`). The drift is deliberate — the terminology pass happens when the `Kingo.Serialization.Pdl` adapter work starts, since the format itself may evolve then too. Current domain vocabulary lives in [domain-language](domain-language.md): the policy record is `Relationship`, the algebra is `SubjectSetRewrite`, the stored fact is `Statement`.
+
 The Policy Definition Language defines namespaces and their relations. The outer structure is YAML; each relation's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower).
 
 This split is deliberate. YAML carries the namespace map, comments, indentation, and editor tooling. The rewrite expression — e.g. `(this | editor | (parent, viewer)) ! banned` — would be awkward to encode in pure YAML, so it lives in a string and gets parsed separately.
