@@ -171,4 +171,51 @@ public sealed class ResultLawTests
         var m = Result.Success(10);
         AssertEquivalent(m.Bind(f).Bind(g), m.Bind(x => f(x).Bind(g)));
     }
+
+    // ---------- LINQ alias coherence ----------
+    // Select and SelectMany are aliases, not reimplementations: each must agree with the
+    // operation it names, so the laws proven above transfer to the LINQ vocabulary for free.
+
+    [Fact]
+    public void Select_AgreesWithMap_Success()
+    {
+        var m = Result.Success(10);
+        static string f(int x) => $"v={x}";
+        AssertEquivalent(m.Map(f), m.Select(f));
+    }
+
+    [Fact]
+    public void Select_AgreesWithMap_Failure()
+    {
+        var m = Result.Failure<int>(ErrA);
+        static string f(int x) => $"v={x}";
+        AssertEquivalent(m.Map(f), m.Select(f));
+    }
+
+    [Fact]
+    public void SelectMany_AgreesWithBind_Success()
+    {
+        var m = Result.Success(10);
+        static Result<string> f(int x) => Result.Success($"v={x}");
+        AssertEquivalent(m.Bind(f), m.SelectMany(f));
+    }
+
+    [Fact]
+    public void SelectMany_AgreesWithBind_Failure()
+    {
+        var m = Result.Failure<int>(ErrA);
+        static Result<string> f(int x) => Result.Success($"v={x}");
+        AssertEquivalent(m.Bind(f), m.SelectMany(f));
+    }
+
+    [Fact]
+    public void SelectMany_Projection_AgreesWithBindThenMap()
+    {
+        var m = Result.Success(10);
+        static Result<int> f(int x) => Result.Success(x + 1);
+        static string project(int x, int y) => $"{x}+{y}";
+        AssertEquivalent(
+            m.Bind(x => f(x).Map(y => project(x, y))),
+            m.SelectMany(f, project));
+    }
 }

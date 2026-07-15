@@ -382,6 +382,143 @@ public sealed class ResultTests
     }
 
     [Fact]
+    public void Select_OverSuccess_TransformsValue()
+    {
+        var result = Result.Success(21);
+        var selected = result.Select(x => x * 2);
+        var s = Assert.IsType<Result<int>.Success>(selected);
+        Assert.Equal(42, s.Value);
+    }
+
+    [Fact]
+    public void Select_OverFailure_PassesFailureThrough()
+    {
+        var error = Error.NotFound("err.x", "msg");
+        var result = Result.Failure<int>(error);
+        var selected = result.Select(x => x * 2);
+        var f = Assert.IsType<Result<int>.Failure>(selected);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
+    }
+
+    [Fact]
+    public void SelectMany_OverSuccess_RunsContinuation()
+    {
+        var result = Result.Success(21);
+        var bound = result.SelectMany(x => Result.Success(x * 2));
+        var s = Assert.IsType<Result<int>.Success>(bound);
+        Assert.Equal(42, s.Value);
+    }
+
+    [Fact]
+    public void SelectMany_OverFailure_SkipsContinuation()
+    {
+        var error = Error.NotFound("err.outer", "outer failure");
+        var result = Result.Failure<int>(error);
+        var invoked = false;
+        var bound = result.SelectMany(x =>
+        {
+            invoked = true;
+            return Result.Success(x * 2);
+        });
+        Assert.False(invoked);
+        var f = Assert.IsType<Result<int>.Failure>(bound);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
+    }
+
+    [Fact]
+    public void SelectMany_WithProjection_OverTwoSuccesses_CombinesValues()
+    {
+        var result = Result.Success(10).SelectMany(
+            x => Result.Success(32),
+            (x, y) => x + y);
+        var s = Assert.IsType<Result<int>.Success>(result);
+        Assert.Equal(42, s.Value);
+    }
+
+    [Fact]
+    public void SelectMany_WithProjection_InnerFailure_PropagatesWithoutProjecting()
+    {
+        var inner = Error.Validation("err.inner", "inner failure");
+        var projected = false;
+        var result = Result.Success(10).SelectMany(
+            _ => Result.Failure<int>(inner),
+            (x, y) =>
+            {
+                projected = true;
+                return x + y;
+            });
+        Assert.False(projected);
+        var f = Assert.IsType<Result<int>.Failure>(result);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(inner, only);
+    }
+
+    [Fact]
+    public void SelectMany_QuerySyntax_BindsAndProjects()
+    {
+        // Pins the compiler's query-syntax binding: chained `from` clauses must resolve to the
+        // projection overload of SelectMany.
+        var result =
+            from x in Result.Success(10)
+            from y in Result.Success(32)
+            select x + y;
+        var s = Assert.IsType<Result<int>.Success>(result);
+        Assert.Equal(42, s.Value);
+    }
+
+    [Fact]
+    public void SelectMany_QuerySyntax_ShortCircuitsOnFirstFailure()
+    {
+        // Bind is sequential: the second clause's error is never produced, unlike applicative Apply.
+        var e1 = Error.Validation("err.1", "first");
+        var result =
+            from x in Result.Failure<int>(e1)
+            from y in Result.Success(32)
+            select x + y;
+        var f = Assert.IsType<Result<int>.Failure>(result);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(e1, only);
+    }
+
+    [Fact]
+    public void Validate_ConditionHolds_ReturnsSuccessUnit()
+    {
+        var result = Result.Validate(condition: true, Error.Validation("err.x", "unused"));
+        var s = Assert.IsType<Result<Unit>.Success>(result);
+        Assert.Equal(Unit.Value, s.Value);
+    }
+
+    [Fact]
+    public void Validate_ConditionFails_ReturnsFailureCarryingError()
+    {
+        var error = Error.Validation("err.x", "condition violated");
+        var result = Result.Validate(condition: false, error);
+        var f = Assert.IsType<Result<Unit>.Failure>(result);
+        var only = Assert.Single(f.Errors);
+        Assert.Equal(error, only);
+    }
+
+    [Fact]
+    public void Validate_ComposedWithVariadicApply_AccumulatesEveryViolation()
+    {
+        // The intended pairing: lift independent checks, combine applicatively, report all violations.
+        var e1 = Error.Validation("err.1", "first");
+        var e2 = Error.Validation("err.2", "second");
+
+        var result = Result.Apply(
+            Result.Validate(condition: false, e1),
+            Result.Validate(condition: true, Error.Validation("err.ok", "unused")),
+            Result.Validate(condition: false, e2));
+
+        var f = Assert.IsType<Result<Unit>.Failure>(result);
+        Assert.Equal(2, f.Errors.Length);
+        Assert.Equal(e1, f.Errors[0]);
+        Assert.Equal(e2, f.Errors[1]);
+    }
+
+    [Fact]
     public void Apply_BinaryViaCurry_FirstArgFailure_ShortCircuits()
     {
         var curriedAdd = Result.Success<Func<int, Func<int, int>>>(x => y => x + y);

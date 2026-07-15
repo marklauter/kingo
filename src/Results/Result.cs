@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Results;
 
 /// <summary>
-/// Discriminated result of a domain operation — either a successful <typeparamref name="T"/> value (<see cref="Result{T}.Success"/>) or a non-empty collection of <see cref="Error"/>s (<see cref="Result{T}.Failure"/>). Consume via <see cref="Match"/>, transform via <see cref="Map"/>, chain via <see cref="Bind"/> or <see cref="BindAsync"/>. Combine independent results via <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/> (applicative — accumulates errors on the failure path) or the Unit-keyed <c>Result.Apply</c> overload (effect sequencing). The inheritance hierarchy is closed — <see cref="Result{T}.Success"/> and <see cref="Result{T}.Failure"/> are the only inhabitants — and dispatch is virtual: each inhabitant implements the combinators, so exhaustiveness is a compile-time fact (a new inhabitant cannot build without them) rather than a runtime switch.
+/// Discriminated result of a domain operation — either a successful <typeparamref name="T"/> value (<see cref="Result{T}.Success"/>) or a non-empty collection of <see cref="Error"/>s (<see cref="Result{T}.Failure"/>). Consume via <see cref="Match"/>, transform via <see cref="Map"/>, chain via <see cref="Bind"/> or <see cref="BindAsync"/>; <see cref="Select"/> and the <see cref="SelectMany{TIntermediate, TResult}(Func{T, Result{TIntermediate}}, Func{T, TIntermediate, TResult})"/> shapes are LINQ-named aliases of the same operations. Combine independent results via <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/> (applicative — accumulates errors on the failure path) or the Unit-keyed <c>Result.Apply</c> overload (effect sequencing). The inheritance hierarchy is closed — <see cref="Result{T}.Success"/> and <see cref="Result{T}.Failure"/> are the only inhabitants — and dispatch is virtual: each inhabitant implements the combinators, so exhaustiveness is a compile-time fact (a new inhabitant cannot build without them) rather than a runtime switch.
 /// </summary>
 /// <typeparam name="T">The success value type.</typeparam>
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Discriminated-union shape: Success and Failure are inhabitants of Result<T>; nesting names the relationship in the type itself.")]
@@ -78,6 +78,20 @@ public abstract record Result<T>
     /// Async monadic bind: chain a result-returning async function after a successful result; short-circuit on failure. Cancellation is the responsibility of <paramref name="fn"/> — no <see cref="System.Threading.CancellationToken"/> is threaded through the API; callers needing cancellation pass a lambda that captures the token from its enclosing scope.
     /// </summary>
     public abstract Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn);
+
+    /// <summary>LINQ-named alias of <see cref="Map"/>: transform the success value with <paramref name="selector"/>; pass the failure through unchanged.</summary>
+    public Result<TResult> Select<TResult>(Func<T, TResult> selector) => Map(selector);
+
+    /// <summary>LINQ-named alias of <see cref="Bind"/>: chain a result-returning function after a successful result; short-circuit on failure.</summary>
+    public Result<TResult> SelectMany<TResult>(Func<T, Result<TResult>> selector) => Bind(selector);
+
+    /// <summary>
+    /// Monadic bind with projection — the shape the compiler binds for chained <c>from</c> clauses in query syntax. Equivalent to <c>Bind(x =&gt; selector(x).Map(y =&gt; resultSelector(x, y)))</c>: short-circuits on the first failure, so errors do not accumulate across clauses (bind is sequential; use <c>Result.Apply</c> when independent failures should all be reported).
+    /// </summary>
+    public Result<TResult> SelectMany<TIntermediate, TResult>(
+        Func<T, Result<TIntermediate>> selector,
+        Func<T, TIntermediate, TResult> resultSelector) =>
+        Bind(x => selector(x).Map(y => resultSelector(x, y)));
 }
 
 /// <summary>
@@ -106,6 +120,12 @@ public static class Result
     public static Result<T> Failure<T>(IReadOnlyList<Error> errors) => errors.Count == 0
         ? throw new ArgumentException("Failure requires at least one error.", nameof(errors))
         : new Result<T>.Failure([.. errors]);
+
+    /// <summary>
+    /// Lift a boolean check into a <see cref="Result{T}"/> of <see cref="Unit"/>: success when <paramref name="condition"/> holds, otherwise a failure carrying <paramref name="error"/>. The entry point for applicative accumulation — lift each independent check, then combine with the variadic <see cref="Apply(ReadOnlySpan{Result{Unit}})"/> overload so every violated condition is reported, not just the first.
+    /// </summary>
+    public static Result<Unit> Validate(bool condition, Error error) =>
+        condition ? Success(Unit.Value) : new Result<Unit>.Failure([error]);
 
     /// <summary>
     /// Applicative application: feed a <see cref="Result{T}"/>-wrapped argument to a <see cref="Result{T}"/>-wrapped function. Multi-arity handled by currying — apply repeatedly to consume each argument. When both <paramref name="resultFn"/> and <paramref name="resultArg"/> fail, their errors are accumulated (function errors first, then argument errors); this is the Validation-applicative behaviour rather than fail-fast.
