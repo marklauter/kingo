@@ -5,7 +5,9 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). A subject is the unified identity a set of authn-side principals maps to; it need not be human and need not have authenticated. Character rules are provisional; <c>#</c> and <c>@</c> are reserved by the tuple grammar.
+/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). A subject is the unified identity a
+/// set of authn-side principals maps to; it need not be human and need not have authenticated. Character rules are provisional; <c>#</c> and <c>@</c> are
+/// reserved by the tuple grammar.
 /// </summary>
 public readonly record struct SubjectIdentifier
     : IValue<SubjectIdentifier, string>

@@ -1,11 +1,12 @@
-using Kingo.Resources;
 using Results;
 using Values;
 
-namespace Kingo.Subjects;
+namespace Kingo.Statements;
 
 /// <summary>
-/// The <c>&lt;subject&gt;</c> production of the tuple grammar — a discriminated union: either a direct subject reference (<see cref="DirectSubject"/>) or a set of subjects reachable through a relationship (<see cref="SubjectSet"/>). The hierarchy is closed; pattern-match to consume. The subject aggregate root's domain key is <see cref="SubjectIdentifier"/> — the unified identity a set of authn-side principals maps to.
+/// The <c>&lt;subject&gt;</c> production of the tuple grammar — a discriminated union: either a direct subject reference (<see cref="DirectSubject"/>) or a set
+/// of subjects reachable through a relationship (<see cref="SubjectSet"/>). The hierarchy is closed; pattern-match to consume. The subject aggregate root's
+/// domain key is <see cref="SubjectIdentifier"/> — the unified identity a set of authn-side principals maps to.
 /// </summary>
 public abstract record Subject
     : IParse<Subject>
@@ -13,7 +14,8 @@ public abstract record Subject
     private protected Subject() { }
 
     /// <summary>
-    /// Parses the canonical text form: a <see cref="SubjectSet"/> when <paramref name="s"/> contains <c>#</c> (e.g. <c>team:sales#member</c>); otherwise a <see cref="DirectSubject"/> (e.g. <c>user:anne</c>).
+    /// Parses the canonical text form: a <see cref="SubjectSet"/> when <paramref name="s"/> contains <c>#</c> (e.g. <c>team:sales#member</c>); otherwise a
+    /// <see cref="DirectSubject"/> (e.g. <c>user:anne</c>).
     /// </summary>
     public static Result<Subject> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
@@ -35,7 +37,9 @@ public sealed record DirectSubject(
 }
 
 /// <summary>
-/// The set of subjects that hold <see cref="Relationship"/> on <see cref="Resource"/> — the <c>&lt;subjectset&gt;</c> production: <c>&lt;resource&gt;#&lt;relationship&gt;</c> (e.g. <c>doc:readme#viewer</c>). Also the indirect-membership alternative of the <c>&lt;subject&gt;</c> production.
+/// The set of subjects that hold <see cref="Relationship"/> on <see cref="Resource"/> — the <c>&lt;subjectset&gt;</c> production:
+/// <c>&lt;resource&gt;#&lt;relationship&gt;</c> (e.g. <c>doc:readme#viewer</c>). Also the indirect-membership alternative of the <c>&lt;subject&gt;</c>
+/// production.
 /// </summary>
 public sealed record SubjectSet(
     Resource Resource,
@@ -46,7 +50,8 @@ public sealed record SubjectSet(
     private const char Separator = '#';
 
     /// <summary>
-    /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;#&lt;relationship&gt;</c> with full validation, accumulating errors across both parts.
+    /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;#&lt;relationship&gt;</c> with full validation, accumulating errors across both
+    /// parts.
     /// </summary>
     public static new Result<SubjectSet> Parse(string s)
     {

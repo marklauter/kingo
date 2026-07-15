@@ -9,7 +9,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kingo.Serialization\Kingo.Serialization.csproj" />
+		<ProjectReference Include="..\Kingo\Kingo.csproj" />
 	</ItemGroup>
 
 </Project>

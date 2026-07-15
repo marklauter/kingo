@@ -1,7 +1,9 @@
 namespace Results;
 
 /// <summary>
-/// A named domain failure carrying a typed category, a machine-readable code, and a human-readable message. Every valid instance comes from the static factories; <c>default(Error)</c> is an uninitialized instance — itself a bug — whose <see cref="Code"/> and <see cref="Message"/> reads throw <see cref="InvalidOperationException"/> rather than leaking nulls through their non-nullable declarations.
+/// A named domain failure carrying a typed category, a machine-readable code, and a human-readable message. Every valid instance comes from the static
+/// factories; <c>default(Error)</c> is an uninitialized instance — itself a bug — whose <see cref="Code"/> and <see cref="Message"/> reads throw
+/// <see cref="InvalidOperationException"/> rather than leaking nulls through their non-nullable declarations.
 /// </summary>
 public readonly record struct Error
 {
@@ -10,10 +12,15 @@ public readonly record struct Error
 
     private const string UninitializedMessage = "uninitialized Error: valid instances come from the Error factories";
 
-    /// <summary>Stable, machine-readable identifier for the specific failure (e.g. "tuple.not_found"). Throws <see cref="InvalidOperationException"/> on an uninitialized (default) instance.</summary>
+    /// <summary>
+    /// Stable, machine-readable identifier for the specific failure (e.g. "tuple.not_found"). Throws <see cref="InvalidOperationException"/> on an
+    /// uninitialized (default) instance.
+    /// </summary>
     public string Code => field ?? throw new InvalidOperationException(UninitializedMessage);
 
-    /// <summary>Human-readable message; suitable for logs and error responses. Throws <see cref="InvalidOperationException"/> on an uninitialized (default) instance.</summary>
+    /// <summary>
+    /// Human-readable message; suitable for logs and error responses. Throws <see cref="InvalidOperationException"/> on an uninitialized (default) instance.
+    /// </summary>
     public string Message => field ?? throw new InvalidOperationException(UninitializedMessage);
 
     private Error(ErrorType type, string code, string message)

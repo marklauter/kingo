@@ -26,7 +26,7 @@ Two caveats that ride along with the choice:
 
 On `Namespace.Relationships` specifically, the array is a deliberate *document-shaped* choice: it preserves authored order (PDL round-trip fidelity) and gives cheap order-sensitive structural equality. The two gaps it leaves are intentional deferrals, not oversights:
 
-- Duplicate relationship names are representable through the pure-assignment constructor (trusted path, mirroring `IValue.Create`); `Namespace.Define` is the `Result`-returning factory that rejects them at the untrusted boundary, one `Validation` error per duplicated name.
+- Duplicate relationship names are unrepresentable: `Namespace.Create` is the only construction path (ctor private, 2026-07-14) and rejects them with one `Validation` error per duplicated name.
 - Keyed lookup (`RelationshipIdentifier → SubjectSetRewrite`) is the interpreters' concern, not the model's: the Check host compiles a `Namespace` into its own read-side form (e.g. `FrozenDictionary` — built for the build-once/read-forever profile). Write-side-vs-read-side projection applied one level down.
 
 If incremental policy editing ever becomes a real workflow, builder/`ImmutableList` machinery belongs inside the PAP/Write context, converting to the flat array when it mints the final value. The domain type stays read-shaped.

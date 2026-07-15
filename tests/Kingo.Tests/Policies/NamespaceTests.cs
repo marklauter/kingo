@@ -11,6 +11,9 @@ public sealed class NamespaceTests
 
     private static Relationship Rel(string name) => new(RelationshipIdentifier.Create(name));
 
+    private static Namespace Make(NamespaceIdentifier name, ImmutableArray<Relationship> relationships) =>
+        Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
+
     [Fact]
     public void Equals_SameNameAndElementWiseEqualRelationships_AreEqualWithMatchingHashCodes()
     {
@@ -19,8 +22,8 @@ public sealed class NamespaceTests
         ImmutableArray<Relationship> left = [Rel("viewer"), Rel("editor")];
         ImmutableArray<Relationship> right = [Rel("viewer"), Rel("editor")];
 
-        var a = new Namespace(Ns("doc"), left);
-        var b = new Namespace(Ns("doc"), right);
+        var a = Make(Ns("doc"), left);
+        var b = Make(Ns("doc"), right);
 
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
@@ -29,8 +32,8 @@ public sealed class NamespaceTests
     [Fact]
     public void Equals_DifferentName_NotEqual()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer")]);
-        var b = new Namespace(Ns("folder"), [Rel("viewer")]);
+        var a = Make(Ns("doc"), [Rel("viewer")]);
+        var b = Make(Ns("folder"), [Rel("viewer")]);
 
         Assert.NotEqual(a, b);
     }
@@ -38,8 +41,8 @@ public sealed class NamespaceTests
     [Fact]
     public void Equals_SameNameDifferentRelationships_NotEqual()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer")]);
-        var b = new Namespace(Ns("doc"), [Rel("editor")]);
+        var a = Make(Ns("doc"), [Rel("viewer")]);
+        var b = Make(Ns("doc"), [Rel("editor")]);
 
         Assert.NotEqual(a, b);
     }
@@ -47,8 +50,8 @@ public sealed class NamespaceTests
     [Fact]
     public void Equals_SameRelationshipsDifferentOrder_NotEqual()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer"), Rel("editor")]);
-        var b = new Namespace(Ns("doc"), [Rel("editor"), Rel("viewer")]);
+        var a = Make(Ns("doc"), [Rel("viewer"), Rel("editor")]);
+        var b = Make(Ns("doc"), [Rel("editor"), Rel("viewer")]);
 
         Assert.NotEqual(a, b);
     }
@@ -56,8 +59,8 @@ public sealed class NamespaceTests
     [Fact]
     public void Equals_DifferentLengthsPrefix_NotEqual()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer"), Rel("editor")]);
-        var b = new Namespace(Ns("doc"), [Rel("viewer")]);
+        var a = Make(Ns("doc"), [Rel("viewer"), Rel("editor")]);
+        var b = Make(Ns("doc"), [Rel("viewer")]);
 
         Assert.NotEqual(a, b);
     }
@@ -68,8 +71,8 @@ public sealed class NamespaceTests
         ImmutableArray<Relationship> left = [];
         ImmutableArray<Relationship> right = [];
 
-        var a = new Namespace(Ns("doc"), left);
-        var b = new Namespace(Ns("doc"), right);
+        var a = Make(Ns("doc"), left);
+        var b = Make(Ns("doc"), right);
 
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
@@ -79,25 +82,15 @@ public sealed class NamespaceTests
     [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "always-false is the behavior under test: pins the null branch of the hand-written Equals")]
     public void Equals_Null_IsFalse()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer")]);
+        var a = Make(Ns("doc"), [Rel("viewer")]);
 
         Assert.False(a.Equals(null));
     }
 
     [Fact]
-    public void With_ChangingName_ProducesUnequalValue()
-    {
-        var a = new Namespace(Ns("doc"), [Rel("viewer")]);
-
-        var b = a with { Name = Ns("folder") };
-
-        Assert.NotEqual(a, b);
-    }
-
-    [Fact]
     public void With_NoChanges_ProducesEqualValue()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer")]);
+        var a = Make(Ns("doc"), [Rel("viewer")]);
 
         var b = a with { };
 
@@ -108,9 +101,9 @@ public sealed class NamespaceTests
     [Fact]
     public void OperatorEquals_IsConsistentWithEquals()
     {
-        var a = new Namespace(Ns("doc"), [Rel("viewer"), Rel("editor")]);
-        var b = new Namespace(Ns("doc"), [Rel("viewer"), Rel("editor")]);
-        var c = new Namespace(Ns("doc"), [Rel("viewer")]);
+        var a = Make(Ns("doc"), [Rel("viewer"), Rel("editor")]);
+        var b = Make(Ns("doc"), [Rel("viewer"), Rel("editor")]);
+        var c = Make(Ns("doc"), [Rel("viewer")]);
 
         Assert.True(a == b);
         Assert.False(a != b);
@@ -119,27 +112,27 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void Define_UniqueRelationshipNames_ReturnsSuccessEqualToConstructed()
+    public void Create_UniqueRelationshipNames_ReturnsSuccessEqualToConstructed()
     {
-        var result = Namespace.Define(Ns("doc"), [Rel("viewer"), Rel("editor")]);
+        var result = Namespace.Create(Ns("doc"), [Rel("viewer"), Rel("editor")]);
 
         var success = Assert.IsType<Result<Namespace>.Success>(result);
-        Assert.Equal(new Namespace(Ns("doc"), [Rel("viewer"), Rel("editor")]), success.Value);
+        Assert.Equal(Make(Ns("doc"), [Rel("viewer"), Rel("editor")]), success.Value);
     }
 
     [Fact]
-    public void Define_EmptyRelationships_ReturnsSuccess()
+    public void Create_EmptyRelationships_ReturnsSuccess()
     {
-        var result = Namespace.Define(Ns("doc"), []);
+        var result = Namespace.Create(Ns("doc"), []);
 
         var success = Assert.IsType<Result<Namespace>.Success>(result);
         Assert.Empty(success.Value.Relationships);
     }
 
     [Fact]
-    public void Define_DuplicateRelationshipName_ReturnsValidationFailure()
+    public void Create_DuplicateRelationshipName_ReturnsValidationFailure()
     {
-        var result = Namespace.Define(Ns("doc"), [Rel("viewer"), Rel("editor"), Rel("viewer")]);
+        var result = Namespace.Create(Ns("doc"), [Rel("viewer"), Rel("editor"), Rel("viewer")]);
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
@@ -150,7 +143,7 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void Define_SameNameDifferentRewrites_IsStillADuplicate()
+    public void Create_SameNameDifferentRewrites_IsStillADuplicate()
     {
         // Uniqueness is by Name alone — two definitions for the same relationship are
         // the conflict, regardless of whether their rewrites agree.
@@ -159,7 +152,7 @@ public sealed class NamespaceTests
             RelationshipIdentifier.Create("viewer"),
             new ComputedSubjectSetRewrite(RelationshipIdentifier.Create("editor")));
 
-        var result = Namespace.Define(Ns("doc"), [viewerDirect, viewerComputed]);
+        var result = Namespace.Create(Ns("doc"), [viewerDirect, viewerComputed]);
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
@@ -167,9 +160,9 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void Define_MultipleDuplicatedNames_AccumulatesOneErrorPerNameInFirstOccurrenceOrder()
+    public void Create_MultipleDuplicatedNames_AccumulatesOneErrorPerNameInFirstOccurrenceOrder()
     {
-        var result = Namespace.Define(
+        var result = Namespace.Create(
             Ns("doc"),
             [Rel("viewer"), Rel("editor"), Rel("viewer"), Rel("editor")]);
 
@@ -181,22 +174,13 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void Define_NamesDifferingOnlyByCase_AreDistinct()
+    public void Create_NamesDifferingOnlyByCase_AreDistinct()
     {
         // Uniqueness is ordinal over canonical values. Parsed relationship names are
         // always lowercase; mixed case here is only reachable through the trusted
-        // Create path, and Define compares what it is given.
-        var result = Namespace.Define(Ns("doc"), [Rel("viewer"), Rel("Viewer")]);
+        // Create path, and Create compares what it is given.
+        var result = Namespace.Create(Ns("doc"), [Rel("viewer"), Rel("Viewer")]);
 
         _ = Assert.IsType<Result<Namespace>.Success>(result);
-    }
-
-    [Fact]
-    public void Constructor_IsPureAssignment_AcceptsDuplicatesDefineRejects()
-    {
-        // Trusted path — mirrors IValue.Create: no validation, misuse is the caller's defect.
-        var ns = new Namespace(Ns("doc"), [Rel("viewer"), Rel("viewer")]);
-
-        Assert.Equal(2, ns.Relationships.Length);
     }
 }

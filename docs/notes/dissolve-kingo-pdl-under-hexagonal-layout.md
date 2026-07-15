@@ -1,10 +1,10 @@
 ---
 type: todo
 title: Dissolve Kingo.Pdl under hexagonal layout
-summary: "The domain half landed by fresh construction in Kingo core; what remains is rewriting the parser/serializer as the Kingo.Serialization.Pdl adapter and deleting the Kingo.Pdl quarry project. Unblocked 2026-07-14 — the active work item."
+summary: "Closed 2026-07-14: the domain half landed by fresh construction in Kingo core; the adapter half landed as Kingo.Serialization.Pdl (first port interface, adapter-layer ArchUnit rules, Result-first parser/serializer); the Kingo.Pdl quarry is deleted."
 tags: [note, todo, hexagonal, pdl]
 created: 2026-05-13
-status: open
+status: closed
 priority: high
 effort: medium
 ---
@@ -46,3 +46,11 @@ Likely coordinated with [[move-jsonconverter-off-identifier-types-into-the-json-
 - **The transform exits through `Namespace.Define`, not the raw constructor.** `Define(name, relationships)` is the core's `Result`-returning structured factory (landed with the test pass): duplicate relationship names fail as accumulated `namespace.duplicate_relationship` validation errors. The adapter decodes the document, then calls `Define` at the untrusted boundary — its first real caller. The raw constructor is pure assignment for trusted sources only, mirroring the `Create`/`Parse` split ([[domain-language]]).
 - **First slice sets the layer.** This work creates the first port interface in `Kingo.Serialization` and the adapter-layer ArchUnit rules; `.Json`/`.Yaml` inherit the shape. The three serialization projects are scaffolded but empty today.
 - **Queue behind it:** [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] (unblocks REST hosts), then in any order the rewrite interpreters ([[four-service-split-by-load-profile]]), storage on DynamoDbLite ([[dynamodblite-substrate]]), and the zookie/snapshot design session — the Write host waits on all three.
+
+**Update 2026-07-14 — closed.** The adapter landed as planned, with the shape it sets recorded in [[architecture]]:
+
+- `IDocumentSerializer<T>` in `Kingo.Serialization` is the first port: `Serialize(T) → string` (total for valid domain input) and `Deserialize(string) → Result<T>` (the trust boundary).
+- `PdlSerializer : IDocumentSerializer<ImmutableArray<Namespace>>` is the only public type in `Kingo.Serialization.Pdl`. The Superpower grammar produces an internal string-leaf AST (`RewriteNode`) that transforms into the core algebra at its exit through `RelationshipIdentifier.Parse` / `Namespace.Define`, accumulating every error; the YAML walk uses the representation model, catching only `YamlException` at the load boundary and translating it to a `pdl.syntax` validation error. Serializer newline pinned via `WithNewLine("\n")`.
+- Two quarry bugs fixed in the rewrite: the operator-chain fold flattens only *consecutive same-operator runs*, so a parenthesized operand stays opaque and nested trees round-trip structurally; and the renderer parenthesizes by grammar position (compound exclude-side terms included), so arbitrary domain trees — not just parser-produced ones — reparse to structurally equal trees.
+- `AdapterArchitectureTestsBase` (Kingo.Testing) encodes the adapter-layer rules — public types implement a port; no exception types defined — and the `.Json`/`.Yaml` arch tests already derive from it.
+- `Kingo.Pdl` and `Kingo.Pdl.Tests` deleted; the quarry survives only on the archive branches ([[sources]]). Gate green, adapter at 100% line/branch/method.

@@ -14,9 +14,9 @@ Format: Hoplite frontmatter standard — flat Obsidian Properties, wikilinks as 
 
 ## The system
 
-- [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types, `Kingo.Serialization` defines ports, `Kingo.Serialization.{Json,Yaml,Pdl}` are adapters.
+- [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types; `Kingo.Serialization.Pdl` is the PDL document codec; `.Json`/`.Yaml` are value-type converter packs for future REST hosts. No ports project — the first genuine port family (storage, transport) gets its own.
 - [[domain-language]] — the ubiquitous language: the relation-tuple grammar in Kingo vocabulary and the mapping from each production to its C# type. The Parse boundary rule lives here.
-- [[pdl-yaml]] — the Policy Definition Language: YAML outer structure, embedded rewrite-expression language. Deliberately quarry-era pending the adapter work.
+- [[pdl-yaml]] — the Policy Definition Language: YAML outer structure, embedded rewrite-expression language. Implemented by the `Kingo.Serialization.Pdl` adapter.
 
 ## Decisions
 
@@ -26,12 +26,13 @@ Format: Hoplite frontmatter standard — flat Obsidian Properties, wikilinks as 
 
 ## Todos
 
-Queue order: PDL adapter → converters → (then, any order) rewrite interpreters, DynamoDbLite spike, zookie/snapshot design — the Write host waits on all three. The core test pass closed 2026-07-14 (ten test files; gate green, Kingo at 98% line / 100% branch; note deleted per its disposition).
+Queue order: converters → (then, any order) rewrite interpreters, DynamoDbLite spike, zookie/snapshot design — the Write host waits on all three. The core test pass closed 2026-07-14 (ten test files; gate green, Kingo at 98% line / 100% branch; note deleted per its disposition).
 
-- [[dissolve-kingo-pdl-under-hexagonal-layout]] — **open**; the next work item. Rewrite parser/serializer as `Kingo.Serialization.Pdl`, delete the quarry project.
-- [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**, blocked by the PDL adapter; `IParse`-keyed converters registered in the adapters.
+- [[realign-serialization-projects-around-their-real-consumers]] — **open**; Mark's post-review correction: .Json/.Yaml are value-type converter packs for REST hosts, no document crosses the wire, so `IDocumentSerializer` (and maybe `Kingo.Serialization`) should go; candidate: `PdlDocument : IParse<PdlDocument>`.
+- [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**; the next work item, unblocked 2026-07-14 by the PDL adapter. `IParse`-keyed converters registered in the adapters.
 - [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
+- [[dissolve-kingo-pdl-under-hexagonal-layout]] — **closed** 2026-07-14: `Kingo.Serialization.Pdl` adapter landed (first port, adapter-layer ArchUnit rules), quarry deleted.
 
 ## Reference
 

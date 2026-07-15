@@ -5,7 +5,8 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). Character rules are provisional; the terminal must never contain the tuple delimiters <c>:</c>, <c>#</c>, or <c>@</c>.
+/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). Character rules
+/// are provisional; the terminal must never contain the tuple delimiters <c>:</c>, <c>#</c>, or <c>@</c>.
 /// </summary>
 public readonly record struct ResourceIdentifier
     : IValue<ResourceIdentifier, string>
@@ -21,8 +22,8 @@ public readonly record struct ResourceIdentifier
         string.IsNullOrWhiteSpace(s)
             ? Result.Failure<ResourceIdentifier>(Error.Validation("resource_id.empty", "resource identifier cannot be empty or whitespace"))
             : !ResourceIdentifierPatterns.Validation().IsMatch(s)
-            ? Result.Failure<ResourceIdentifier>(Error.Validation("resource_id.invalid", $"resource identifier '{s}' contains invalid characters; expected '^[A-Za-z0-9_][A-Za-z0-9_.-]*$'"))
-            : Result.Success(new ResourceIdentifier(s));
+                ? Result.Failure<ResourceIdentifier>(Error.Validation("resource_id.invalid", $"resource identifier '{s}' contains invalid characters; expected '^[A-Za-z0-9_][A-Za-z0-9_.-]*$'"))
+                : Result.Success(new ResourceIdentifier(s));
 
     private ResourceIdentifier(string value) => Value = value;
 

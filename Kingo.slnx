@@ -1,15 +1,15 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Kingo/Kingo.csproj" />
-    <Project Path="src/Kingo.Serialization/Kingo.Serialization.csproj" />
     <Project Path="src/Kingo.Serialization.Json/Kingo.Serialization.Json.csproj" />
+    <Project Path="src/Kingo.Serialization.Pdl/Kingo.Serialization.Pdl.csproj" />
     <Project Path="src/Kingo.Serialization.Yaml/Kingo.Serialization.Yaml.csproj" />
     <Project Path="src/Results/Results.csproj" />
     <Project Path="src/Values/Values.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Kingo.Serialization.Json.Tests/Kingo.Serialization.Json.Tests.csproj" />
-    <Project Path="tests/Kingo.Serialization.Tests/Kingo.Serialization.Tests.csproj" />
+    <Project Path="tests/Kingo.Serialization.Pdl.Tests/Kingo.Serialization.Pdl.Tests.csproj" />
     <Project Path="tests/Kingo.Serialization.Yaml.Tests/Kingo.Serialization.Yaml.Tests.csproj" />
     <Project Path="tests/Kingo.Testing/Kingo.Testing.csproj" />
     <Project Path="tests/Kingo.Tests/Kingo.Tests.csproj" />

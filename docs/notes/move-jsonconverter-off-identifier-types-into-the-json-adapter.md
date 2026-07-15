@@ -1,13 +1,12 @@
 ---
 type: todo
 title: Move JsonConverter off identifier types into the JSON adapter
-summary: "The domain half is moot — the fresh-built core carries no serialization attributes; what remains is the IParse-keyed converter registration in Kingo.Serialization.Json, queued behind the PDL adapter."
+summary: "The domain half is moot — the fresh-built core carries no serialization attributes; what remains is the IParse-keyed converter registration in Kingo.Serialization.Json. Unblocked 2026-07-14 by the PDL adapter — the next work item."
 tags: [note, todo, hexagonal, serialization]
 created: 2026-05-13
 status: open
 priority: medium
 effort: low
-blocked_by: "[[dissolve-kingo-pdl-under-hexagonal-layout]]"
 ---
 
 # Move JsonConverter off identifier types into the JSON adapter
@@ -16,7 +15,7 @@ blocked_by: "[[dissolve-kingo-pdl-under-hexagonal-layout]]"
 
 The pre-reboot identifier types carried `[JsonConverter(typeof(StringConvertible<...>))]` attributes — the domain type declaring *how it is serialized*. That couples domain to serialization, exactly the leak writing-csharp warns against ("the domain doesn't know how it's stored," generalized to "doesn't know how it's serialized").
 
-The fresh-built `Kingo` core carries no serialization attributes; `[JsonConverter]` and `StringConvertible<T>` survive only in the dead `Kingo.Pdl` quarry. The Parse boundary rule in [[domain-language]] settles the design: wire-*capability* lives on the type (`IParse`), the wire *format* lives in the adapter's converters.
+The fresh-built `Kingo` core carries no serialization attributes; `[JsonConverter]` and `StringConvertible<T>` survived only in the `Kingo.Pdl` quarry, deleted 2026-07-14 with [[dissolve-kingo-pdl-under-hexagonal-layout]]. The Parse boundary rule in [[domain-language]] settles the design: wire-*capability* lives on the type (`IParse`), the wire *format* lives in the adapter's converters. The adapter layer's shape is now set: converters implement or hang off ports from `Kingo.Serialization` (`IDocumentSerializer<T>` is the first), public surface is port implementations only, and `AdapterArchitectureTestsBase` enforces both.
 
 ## Next
 

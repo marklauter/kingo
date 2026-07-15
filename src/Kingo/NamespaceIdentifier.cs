@@ -6,7 +6,8 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Identifies a <see cref="Namespace"/> — the <c>&lt;namespace&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
+/// Identifies a <see cref="Namespace"/> — the <c>&lt;namespace&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). Case-insensitive:
+/// <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct NamespaceIdentifier
     : IValue<NamespaceIdentifier, string>

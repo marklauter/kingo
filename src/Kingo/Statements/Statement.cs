@@ -1,5 +1,3 @@
-using Kingo.Resources;
-using Kingo.Subjects;
 using Results;
 using Values;
 
@@ -8,8 +6,10 @@ namespace Kingo.Statements;
 /// <summary>
 /// A stored statement — the <c>&lt;tuple&gt;</c> production of the tuple grammar:
 /// <c>&lt;resource&gt;#&lt;relationship&gt;@&lt;subject&gt;</c> (e.g. <c>doc:readme#viewer@user:anne</c>).
-/// A subject&#8211;predicate&#8211;object triple in the RDF sense: <see cref="Relationship"/> is the predicate
-/// connecting <see cref="Subject"/> to <see cref="Resource"/>. An aggregate root: created and deleted
+/// A set-membership assertion, and an RDF triple read set-first: the RDF-subject is the
+/// <see cref="SubjectSet"/> (<see cref="Resource"/> + <see cref="Relationship"/> name the set), the predicate
+/// is membership itself (∋), and the RDF-object is the <see cref="Subject"/> being asserted into the set —
+/// which is why the parameter order mirrors the text form. An aggregate root: created and deleted
 /// atomically, never mutated; its domain key is the whole value. Covers permission edges, memberships,
 /// and structural edges (e.g. <c>folder:a#parent@folder:b</c>) alike — access semantics come from the
 /// rewrite rules, not the statement itself. Not to be confused with <c>Kingo.Policies.Relationship</c>,
@@ -23,7 +23,7 @@ public sealed record Statement(
 {
     private const char Separator = '@';
 
-    /// <summary>The statement's left-hand side as the <see cref="Subjects.SubjectSet"/> it asserts membership in.</summary>
+    /// <summary>The statement's left-hand side as the <see cref="Kingo.Statements.SubjectSet"/> it asserts membership in.</summary>
     public SubjectSet SubjectSet => new(Resource, Relationship);
 
     /// <summary>

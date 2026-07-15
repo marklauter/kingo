@@ -1,8 +1,7 @@
-using Kingo.Resources;
-using Kingo.Subjects;
+using Kingo.Statements;
 using Results;
 
-namespace Kingo.Tests.Subjects;
+namespace Kingo.Tests.Statements;
 
 public sealed class SubjectTests
 {

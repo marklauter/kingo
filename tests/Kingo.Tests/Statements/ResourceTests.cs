@@ -1,7 +1,7 @@
-using Kingo.Resources;
+using Kingo.Statements;
 using Results;
 
-namespace Kingo.Tests.Resources;
+namespace Kingo.Tests.Statements;
 
 public sealed class ResourceTests
 {

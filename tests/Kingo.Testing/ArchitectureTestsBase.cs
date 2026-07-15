@@ -8,7 +8,9 @@ using ArchitectureModel = ArchUnitNET.Domain.Architecture;
 namespace Kingo.Testing;
 
 /// <summary>
-/// Base class for per-project architecture tests. Derive once per test project, pass the system-under-test assembly and the regex that types in that project must match. The universal rules (namespace shape, sealed concrete classes, no public instance fields, IValue implementors are readonly record structs) inherit automatically.
+/// Base class for per-project architecture tests. Derive once per test project, pass the system-under-test assembly and the regex that types in that project
+/// must match. The universal rules (namespace shape, sealed concrete classes, no public instance fields, IValue implementors are readonly record structs)
+/// inherit automatically.
 /// </summary>
 /// <remarks>
 /// Use <see cref="Assembly.Load(string)"/> in the derived constructor — that lets empty assemblies (no domain types yet) still load without a marker type.

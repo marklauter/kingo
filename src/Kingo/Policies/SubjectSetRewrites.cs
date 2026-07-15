@@ -3,7 +3,11 @@ using System.Collections.Immutable;
 namespace Kingo.Policies;
 
 /// <summary>
-/// The rewrite algebra — a closed discriminated union describing how a relationship's effective subject set is computed: direct membership (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a tupleset (<see cref="TupleToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>, <see cref="ExclusionRewrite"/>). Parse-agnostic: produced equally by the PDL adapter, other serialization adapters, or the Write API. Authoring syntax and precedence: docs/notes/pdl-yaml.md.
+/// The rewrite algebra — a closed discriminated union describing how a relationship's effective subject set is computed: direct membership
+/// (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a tupleset
+/// (<see cref="TupleToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>,
+/// <see cref="ExclusionRewrite"/>). Parse-agnostic: produced equally by the PDL adapter, other serialization adapters, or the Write API. Authoring syntax and
+/// precedence: docs/notes/pdl-yaml.md.
 /// </summary>
 public abstract record SubjectSetRewrite
 {
@@ -24,7 +28,9 @@ public sealed record ComputedSubjectSetRewrite(
     : SubjectSetRewrite;
 
 /// <summary>
-/// Walks the statements of <paramref name="TuplesetRelationship"/> on the resource and, for each subject found, evaluates <paramref name="ComputedRelationship"/> on that subject — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants viewer on the file").
+/// Walks the statements of <paramref name="TuplesetRelationship"/> on the resource and, for each subject found, evaluates
+/// <paramref name="ComputedRelationship"/> on that subject — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants viewer on
+/// the file").
 /// </summary>
 public sealed record TupleToSubjectSetRewrite(
     RelationshipIdentifier TuplesetRelationship,
