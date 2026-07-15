@@ -57,10 +57,7 @@ public sealed class RelationshipIdentifierTests
     }
 
     [Fact]
-    public void Nothing_Value_IsThreeDots()
-    {
-        Assert.Equal("...", RelationshipIdentifier.Nothing.Value);
-    }
+    public void Nothing_Value_IsThreeDots() => Assert.Equal("...", RelationshipIdentifier.Nothing.Value);
 
     [Fact]
     public void Parse_NothingSentinel_SucceedsAndEqualsNothing()
