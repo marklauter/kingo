@@ -1,11 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Results;
 
 /// <summary>
 /// A named domain failure carrying a typed category, a machine-readable code, and a human-readable message. Every valid instance comes from the static factories; <c>default(Error)</c> is an uninitialized instance — itself a bug — whose <see cref="Code"/> and <see cref="Message"/> reads throw <see cref="InvalidOperationException"/> rather than leaking nulls through their non-nullable declarations.
 /// </summary>
-[SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'error' and matches the ErrorOr pattern; alternatives like 'Failure' or 'DomainError' would obscure intent")]
 public readonly record struct Error
 {
     /// <summary>The category of failure — drives caller's handling logic.</summary>
