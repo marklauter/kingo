@@ -8,16 +8,16 @@ namespace Kingo.Sdl;
 
 /// <summary>
 /// The parse half of the SDL adapter: Schema Definition Language document text (docs/notes/sdl-yaml.md) to the core schema model
-/// (<see cref="SchemaSdlExtensions.ToSdl"/> renders the other direction). YAML carries the outer namespace map; each relationship's optional rewrite
-/// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionRenderer"/>. Parsing exits through
+/// (<see cref="SdlPrinter.Print"/> renders the other direction). YAML carries the outer namespace map; each relationship's optional rewrite
+/// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionPrinter"/>. Parsing exits through
 /// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>Namespace.Create</c>, <c>Schema.Create</c> —
 /// accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
-public static class SdlSerializer
+public static class SdlParser
 {
     /// <summary>
     /// Parses untrusted SDL text, returning the defined <see cref="Schema"/> or every accumulated validation <see cref="Error"/>: <c>sdl.syntax</c>
-    /// (malformed YAML), <c>sdl.document</c> (not a single mapping), <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes),
+    /// (malformed YAML), <c>sdl.document</c> (not a single mapping), <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
     /// <c>sdl.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>sdl.rewrite</c> (bad rewrite expressions), plus whatever
     /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> via <c>Namespace.Create</c>, and <c>schema.empty</c> /
     /// <c>schema.duplicate_namespace</c> via <c>Schema.Create</c> — YAML keys are case-sensitive but namespace identity is not, so case-variant keys collapse
@@ -42,6 +42,12 @@ public static class SdlSerializer
         catch (YamlException ex)
         {
             // substrate fault translated at the boundary: malformed text is a modeled outcome of parsing untrusted input
+            return Result.Failure<YamlMappingNode>(Error.Validation("sdl.syntax", $"malformed YAML: {ex.Message}"));
+        }
+        catch (ArgumentException ex)
+        {
+            // YamlDotNet leaks ArgumentException for shapes its representation model cannot load (e.g. "- : this"
+            // dies in YamlNode.ParseNode with "current event is of an unsupported type") — same modeled outcome
             return Result.Failure<YamlMappingNode>(Error.Validation("sdl.syntax", $"malformed YAML: {ex.Message}"));
         }
     }
@@ -79,20 +85,31 @@ public static class SdlSerializer
         };
 
     private static Result<Relationship> ParseRewriteRelationship(KeyValuePair<YamlNode, YamlNode> entry) =>
-        // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
+        // Key.Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         entry is { Key: YamlScalarNode name, Value: YamlScalarNode expression }
             ? Result.Apply(
                 ParseRelationshipName(name.Value!)
                     .Map<Func<SubjectSetRewrite, Relationship>>(relationship => rewrite => new Relationship(relationship, rewrite)),
-                RewriteExpressionParser.Parse(expression.Value!))
+                ParseRewriteExpression(name, expression))
             : Result.Failure<Relationship>(Error.Validation("sdl.relationship", "a relationship is a bare name or a single '<name>: <rewrite expression>' pair"));
+
+    /// <summary>
+    /// The value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain empty scalar — a plain
+    /// scalar cannot spell an empty string, so this shape is always a forgotten expression and gets a pointed error instead of the mini-language's generic
+    /// unexpected-end-of-input. Any other scalar hands its raw text to the expression parser: SDL owns the text, not YAML's scalar typing, so a plain
+    /// <c>null</c> is the identifier <c>null</c> — which is also what keeps a relationship so named round-tripping, since the renderer emits it unquoted.
+    /// </summary>
+    private static Result<SubjectSetRewrite> ParseRewriteExpression(YamlScalarNode name, YamlScalarNode expression) =>
+        expression is { Style: ScalarStyle.Plain, Value: null or "" }
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation("sdl.relationship", $"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name"))
+            : RewriteExpressionParser.Parse(expression.Value!);
 
     /// <summary>
     /// A relationship name in SDL must survive the rewrite grammar: <c>this</c> always lexes as the keyword (a relationship so named could never be referenced
     /// — or worse, a reference would silently mean direct membership) and <c>...</c> cannot lex at all, so both are reserved.
     /// </summary>
     private static Result<RelationshipIdentifier> ParseRelationshipName(string name) =>
-        RelationshipIdentifier.Parse(name).Bind(relationship => RewriteExpressionRenderer.IsReserved(relationship)
+        RelationshipIdentifier.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
             ? Result.Failure<RelationshipIdentifier>(Error.Validation("sdl.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
             : Result.Success(relationship));
 }

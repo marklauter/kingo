@@ -26,7 +26,7 @@ Inside a rewrite expression:
 
 `!` binds tighter than `&` / `|`. `&` and `|` share precedence and are read left-to-right; mix them with parentheses if grouping matters. Chained `!` associates left, matching mathematical set difference: `a ! b ! c` is `(a ! b) ! c`.
 
-A structural note the adapter honors: a run of consecutive same-operator applications is one n-ary node (`a | b | c` is a single three-child union), and a parenthesized operand is opaque — `(a | b) | c` is a union whose first child is a union. The renderer parenthesizes by grammar position, so any `SubjectSetRewrite` tree round-trips to a structurally equal tree.
+A structural note the adapter honors: a run of consecutive same-operator applications is one n-ary node (`a | b | c` is a single three-child union), and a parenthesized operand is opaque — `(a | b) | c` is a union whose first child is a union. The printer parenthesizes by grammar position, so any `SubjectSetRewrite` tree round-trips to a structurally equal tree.
 
 ## Example
 
@@ -52,6 +52,8 @@ folder:
 ```
 
 A bare relationship name (e.g. `owner`, `banned`) has no rewrite — semantically equivalent to `this`. A namespace with no relationships (`file:` alone, or `file: []`) is valid. Identifiers are case-insensitive and normalize to lowercase — that is the core's `Parse` rule, not the adapter's.
+
+The bare name is the *only* spelling of "no rewrite": a `<name>:` pair with a missing value is rejected (`sdl.relationship`) rather than defaulted, since it always reads as a forgotten expression. And in expression position SDL owns the scalar's raw text, not YAML's typing — a plain `null` is the identifier `null` (a legal relationship name), which is also what keeps that name round-tripping, because the serializer emits it unquoted.
 
 ## Rewrite grammar (BNF)
 

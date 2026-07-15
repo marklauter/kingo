@@ -16,10 +16,13 @@ public sealed class SdlRoundTripTests
     [InlineData("file:\n  - viewer: this | (parent, child) & owner ! banned")]
     [InlineData("file:\n  - owner\nfolder:\n  - viewer: (this | (parent, viewer)) ! banned")]
     [InlineData("file:")]
+    // 'null' is a legal relationship name; the renderer emits it as unquoted plain text and the parser reads
+    // raw scalar text, so the pair stays inverse even where YAML's own typing would read a null
+    [InlineData("file:\n  - null\n  - viewer: null")]
     public void RoundTrip_FromText_PreservesDomainValues(string sdl)
     {
         var original = ParseSuccess(sdl);
-        var roundTripped = ParseSuccess(original.ToSdl());
+        var roundTripped = ParseSuccess(original.Print());
 
         Assert.Equal(original, roundTripped);
     }
@@ -29,6 +32,7 @@ public sealed class SdlRoundTripTests
     {
         ["this"] = ThisRewrite.Default,
         ["computed"] = Computed("owner"),
+        ["computed null"] = Computed("null"), // rendered unquoted; survives because the parser treats scalar text as expression source
         ["tuple-to-subjectset"] = new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
         ["flat union"] = new UnionRewrite([ThisRewrite.Default, Computed("owner")]),
         ["flat intersection"] = new IntersectionRewrite([Computed("a"), Computed("b"), Computed("c")]),
@@ -66,7 +70,7 @@ public sealed class SdlRoundTripTests
             MakeNs(Ns("file"), [new Relationship(Rel("viewer"), RewriteCases[key])]),
         ]);
 
-        var roundTripped = ParseSuccess(original.ToSdl());
+        var roundTripped = ParseSuccess(original.Print());
 
         Assert.Equal(original, roundTripped);
     }
@@ -90,7 +94,7 @@ public sealed class SdlRoundTripTests
             """;
 
         var original = ParseSuccess(sdl);
-        var roundTripped = ParseSuccess(original.ToSdl());
+        var roundTripped = ParseSuccess(original.Print());
 
         Assert.Equal(original, roundTripped);
     }

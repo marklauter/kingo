@@ -19,6 +19,8 @@ public sealed class RewriteExpressionParserTests
     [Theory]
     [InlineData("owner", "owner")]
     [InlineData("OWNER", "owner")]
+    [InlineData("thisone", "thisone")] // the keyword requires delimiters: an identifier merely starting with 'this' is an identifier
+    [InlineData("_underscore", "_underscore")]
     public void Parse_Identifier_ReturnsComputedNormalizedToLowercase(string expression, string expected) =>
         Assert.Equal(Computed(expected), ParseSuccess(expression));
 
@@ -108,6 +110,11 @@ banned")]
     [InlineData("invalid-name")]
     [InlineData("123invalid")]
     [InlineData("a ! (b !")]
+    [InlineData("a b")] // two terms with no operator between them
+    [InlineData("()")]
+    [InlineData("(this, viewer)")] // a tupleset relationship is an identifier; 'this' lexes as the keyword
+    [InlineData("this ! ! banned")]
+    [InlineData("...")] // the tuple grammar's sentinel cannot lex in a rewrite expression
     public void Parse_InvalidExpressions_FailsWithRewriteCode(string expression)
     {
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
@@ -115,5 +122,26 @@ banned")]
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("sdl.rewrite", error.Code);
+    }
+
+    [Fact]
+    public void Parse_IdentifiersOutsideTheCoreGrammar_SurfaceTheCoreErrorsAccumulated()
+    {
+        // Superpower's C-style identifier lexes Unicode letters, but the core identifier grammar is ASCII:
+        // the exit transform's RelationshipIdentifier.Parse rejects each one and the errors accumulate
+        var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("café | naïve"));
+
+        Assert.Equal(2, failure.Errors.Length);
+        Assert.All(failure.Errors, error => Assert.Equal("relationship_id.invalid", error.Code));
+    }
+
+    [Fact]
+    public void Parse_InvalidExpression_MessageEmbedsTheOffendingText()
+    {
+        // the SDL author sees the error, not the document position: the message must carry the expression itself
+        var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("this |"));
+
+        var error = Assert.Single(failure.Errors);
+        Assert.Contains("'this |'", error.Message, StringComparison.Ordinal);
     }
 }

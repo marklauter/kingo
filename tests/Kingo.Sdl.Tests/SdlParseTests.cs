@@ -108,6 +108,7 @@ public sealed class SdlParseTests
     [InlineData("file:\n  - viewer: this # comment")]
     [InlineData("file:\n  - viewer: (parent, child)")]
     [InlineData("file:\n  - viewer: this | (parent, child) & owner ! banned")]
+    [InlineData("base: &shared\n  - owner\nfile: *shared")] // anchor reuse is plain YAML; both namespaces get the shared relationship list
     public void Parse_ValidDocuments_Succeeds(string sdl) =>
         _ = ParseSuccess(sdl);
 
@@ -120,8 +121,15 @@ public sealed class SdlParseTests
     [InlineData("a:\n  - x\n---\nb:\n  - y", "sdl.document")]
     [InlineData("invalid: yaml: content", "sdl.syntax")]
     [InlineData("file:\n  - viewer: | this", "sdl.syntax")]
+    [InlineData("file:\n  - a\nfile:\n  - b", "sdl.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
+    [InlineData("file:\n  - a: this\n    a: owner", "sdl.syntax")] // duplicate keys inside a relationship mapping, likewise
+    [InlineData("file: *missing", "sdl.syntax")] // unresolved alias
     [InlineData("file: 5", "sdl.namespace")]
     [InlineData("file:\n  a: b", "sdl.namespace")]
+    [InlineData("file: ''", "sdl.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
+    [InlineData("file: 'null'", "sdl.namespace")]
+    [InlineData("file: NuLL", "sdl.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
+    [InlineData("'':\n  - owner", "namespace_id.empty")]
     [InlineData("file name:\n  - owner", "namespace_id.invalid")]
     [InlineData("file-name:\n  - owner", "namespace_id.invalid")]
     [InlineData("123file:\n  - owner", "namespace_id.invalid")]
@@ -130,8 +138,13 @@ public sealed class SdlParseTests
     [InlineData("file:\n  - 123owner", "relationship_id.invalid")]
     [InlineData("file:\n  - owner.ext", "relationship_id.invalid")]
     [InlineData("file:\n  - ", "relationship_id.empty")]
+    [InlineData("file:\n  - : this", "sdl.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
     [InlineData("file:\n  - [nested]", "sdl.relationship")]
+    [InlineData("file: &a [*a]", "sdl.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
     [InlineData("file:\n  - a: this\n    b: this", "sdl.relationship")]
+    [InlineData("file:\n  - viewer:", "sdl.relationship")] // a pair missing its rewrite expression; the bare-name form is how SDL spells "no rewrite"
+    [InlineData("file:\n  - viewer: ''", "sdl.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
+    [InlineData("file:\n  - viewer: ~", "sdl.rewrite")] // plain scalar text is expression source, and '~' cannot lex
     [InlineData("? [complex, key]\n: - owner", "sdl.namespace")]
     [InlineData("file:\n  - ? [complex, key]\n    : this", "sdl.relationship")]
     [InlineData("file:\n  - viewer:\n      - nested", "sdl.relationship")]
@@ -153,6 +166,41 @@ public sealed class SdlParseTests
 
         Assert.All(errors, error => Assert.Equal(ErrorType.Validation, error.Type));
         Assert.Contains(errors, error => error.Code == expectedCode);
+    }
+
+    [Fact]
+    public void Parse_MissingRewriteExpression_NamesTheRelationshipAndTheBareNameForm()
+    {
+        var errors = ParseFailure("file:\n  - viewer:");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("sdl.relationship", error.Code);
+        Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
+        Assert.Contains("bare name", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Parse_PlainNullExpressionText_IsTheNullIdentifier()
+    {
+        // SDL owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
+        // to a relationship named null — which is also what lets that name survive a round trip, since the
+        // renderer emits it unquoted (SdlPrinter.Print)
+        var ns = Assert.Single(ParseSuccess("file:\n  - null\n  - viewer: null").Namespaces);
+
+        ImmutableArray<Relationship> expected = [Bare("null"), new Relationship(Rel("viewer"), Computed("null"))];
+        Assert.Equal(expected, ns.Relationships);
+    }
+
+    [Fact]
+    public void Parse_DefectsInOneRelationshipPair_AccumulateAcrossNameAndExpression()
+    {
+        // Result.Apply accumulates both sides of a single '<name>: <expression>' pair, and the namespace name on top
+        var errors = ParseFailure("123file:\n  - 456bad: this |");
+
+        Assert.Equal(3, errors.Length);
+        Assert.Equal("namespace_id.invalid", errors[0].Code);
+        Assert.Equal("relationship_id.invalid", errors[1].Code);
+        Assert.Equal("sdl.rewrite", errors[2].Code);
     }
 
     [Fact]

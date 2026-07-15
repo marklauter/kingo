@@ -3,10 +3,10 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SchemaSdlExtensionsTests
+public sealed class SdlPrinterTests
 {
     [Fact]
-    public void ToSdl_SimpleDocument_EmitsCanonicalSdl()
+    public void Print_SimpleDocument_EmitsCanonicalSdl()
     {
         var schema = MakeSchema(
         [
@@ -20,11 +20,11 @@ public sealed class SchemaSdlExtensionsTests
                 ]),
         ]);
 
-        Assert.Equal("file:\n- owner\n- editor: this | owner\n", schema.ToSdl());
+        Assert.Equal("file:\n- owner\n- editor: this | owner\n", schema.Print());
     }
 
     [Fact]
-    public void ToSdl_AllRewriteTypes_EmitsExpectedExpressions()
+    public void Print_AllRewriteTypes_EmitsExpectedExpressions()
     {
         var schema = MakeSchema(
         [
@@ -40,7 +40,7 @@ public sealed class SchemaSdlExtensionsTests
                 ]),
         ]);
 
-        var sdl = schema.ToSdl();
+        var sdl = schema.Print();
 
         Assert.Contains("- direct", sdl, StringComparison.Ordinal);
         Assert.Contains("computed: owner", sdl, StringComparison.Ordinal);
@@ -51,7 +51,7 @@ public sealed class SchemaSdlExtensionsTests
     }
 
     [Fact]
-    public void ToSdl_MultipleNamespaces_EmitsAllInOrder()
+    public void Print_MultipleNamespaces_EmitsAllInOrder()
     {
         var schema = MakeSchema(
         [
@@ -59,11 +59,11 @@ public sealed class SchemaSdlExtensionsTests
             MakeNs(Ns("folder"), [Bare("viewer")]),
         ]);
 
-        Assert.Equal("file:\n- owner\nfolder:\n- viewer\n", schema.ToSdl());
+        Assert.Equal("file:\n- owner\nfolder:\n- viewer\n", schema.Print());
     }
 
     [Fact]
-    public void ToSdl_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
+    public void Print_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
     {
         var schema = MakeSchema(
         [
@@ -72,33 +72,34 @@ public sealed class SchemaSdlExtensionsTests
                 [Bare("owner"), new Relationship(Rel("editor"), ThisRewrite.Default)]),
         ]);
 
-        Assert.DoesNotContain("\r", schema.ToSdl(), StringComparison.Ordinal);
+        Assert.DoesNotContain("\r", schema.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void ToSdl_NamespaceWithoutRelationships_EmitsEmptySequence()
+    public void Print_NamespaceWithoutRelationships_EmitsEmptySequence()
     {
         var schema = MakeSchema([MakeNs(Ns("file"), [])]);
 
-        Assert.Equal("file: []\n", schema.ToSdl());
+        Assert.Equal("file: []\n", schema.Print());
     }
 
     [Theory]
     [InlineData("this")]
+    [InlineData("THIS")] // Create performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
     [InlineData("...")]
-    public void ToSdl_ReservedRelationshipName_IsCallerDefect(string name)
+    public void Print_ReservedRelationshipName_IsCallerDefect(string name)
     {
         // SDL cannot express a relationship named by a rewrite-grammar reserved word: 'this' could
         // never be referenced (a reference lexes as the keyword) and '...' cannot lex at all.
         var schema = MakeSchema([MakeNs(Ns("file"), [Bare(name)])]);
 
-        _ = Assert.Throws<ArgumentException>(schema.ToSdl);
+        _ = Assert.Throws<ArgumentException>(schema.Print);
     }
 
     [Theory]
     [InlineData("this")]
     [InlineData("...")]
-    public void ToSdl_ReservedReferenceInRewrite_IsCallerDefect(string name)
+    public void Print_ReservedReferenceInRewrite_IsCallerDefect(string name)
     {
         // a computed reference to 'this' would silently reparse as ThisRewrite — direct membership
         // instead of a relationship reference — so emitting it is corruption, not serialization
@@ -107,11 +108,11 @@ public sealed class SchemaSdlExtensionsTests
             MakeNs(Ns("file"), [new Relationship(Rel("viewer"), Computed(name))]),
         ]);
 
-        _ = Assert.Throws<ArgumentException>(schema.ToSdl);
+        _ = Assert.Throws<ArgumentException>(schema.Print);
     }
 
     [Fact]
-    public void ToSdl_ReservedReferenceInTupleset_IsCallerDefect()
+    public void Print_ReservedReferenceInTupleset_IsCallerDefect()
     {
         var schema = MakeSchema(
         [
@@ -120,6 +121,6 @@ public sealed class SchemaSdlExtensionsTests
                 [new Relationship(Rel("viewer"), new TupleToSubjectSetRewrite(Rel("parent"), Rel("...")))]),
         ]);
 
-        _ = Assert.Throws<ArgumentException>(schema.ToSdl);
+        _ = Assert.Throws<ArgumentException>(schema.Print);
     }
 }

@@ -22,8 +22,8 @@ internal static class TestHelpers
         Assert.IsType<Result<Schema>.Success>(Schema.Create(namespaces)).Value;
 
     public static Schema ParseSuccess(string text) =>
-        Assert.IsType<Result<Schema>.Success>(SdlSerializer.Parse(text)).Value;
+        Assert.IsType<Result<Schema>.Success>(SdlParser.Parse(text)).Value;
 
     public static ImmutableArray<Error> ParseFailure(string text) =>
-        Assert.IsType<Result<Schema>.Failure>(SdlSerializer.Parse(text)).Errors;
+        Assert.IsType<Result<Schema>.Failure>(SdlParser.Parse(text)).Errors;
 }

@@ -4,10 +4,10 @@ using YamlDotNet.Serialization;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// Renders a <see cref="Schema"/> to its SDL document text — the serialize half of the SDL round trip (<see cref="SdlSerializer.Parse"/> is the other).
-/// An extension so the call site reads as a domain capability (<c>schema.ToSdl()</c>) while the format knowledge stays in the adapter.
+/// Prints a <see cref="Schema"/> to its SDL document text — the serialize half of the SDL round trip (<see cref="SdlParser.Parse"/> is the other).
+/// An extension so the call site reads as a domain capability (<c>schema.Print()</c>) while the format knowledge stays in the adapter.
 /// </summary>
-public static class SchemaSdlExtensions
+public static class SdlPrinter
 {
     private static readonly ISerializer DocumentSerializer = new SerializerBuilder()
         .WithNewLine("\n") // the document format owns its line ending, independent of platform
@@ -18,19 +18,19 @@ public static class SchemaSdlExtensions
     /// well-formed by construction (namespace names are unique); the one document invariant the domain cannot express is the caller's defect and throws
     /// <see cref="ArgumentException"/>: no relationship name or rewrite reference may be a reserved word of the rewrite grammar (<c>this</c>, <c>...</c>).
     /// </summary>
-    public static string ToSdl(this Schema schema)
+    public static string Print(this Schema schema)
     {
         OrderedDictionary<string, List<object>> document = new(schema.Namespaces.Length);
         foreach (var ns in schema.Namespaces)
-            document.Add(ns.Name.Value, [.. ns.Relationships.Select(RenderRelationship)]);
+            document.Add(ns.Name.Value, [.. ns.Relationships.Select(PrintRelationship)]);
 
         return DocumentSerializer.Serialize(document);
     }
 
-    private static object RenderRelationship(Relationship relationship) =>
-        RewriteExpressionRenderer.IsReserved(relationship.Name)
+    private static object PrintRelationship(Relationship relationship) =>
+        RewriteExpressionPrinter.IsReserved(relationship.Name)
             ? throw new ArgumentException($"relationship '{relationship.Name}' cannot be expressed in SDL: '{relationship.Name}' is reserved by the rewrite grammar")
             : relationship.Rewrite is ThisRewrite
                 ? relationship.Name.Value
-                : new Dictionary<string, string> { [relationship.Name.Value] = RewriteExpressionRenderer.Render(relationship.Rewrite) };
+                : new Dictionary<string, string> { [relationship.Name.Value] = RewriteExpressionPrinter.Print(relationship.Rewrite) };
 }

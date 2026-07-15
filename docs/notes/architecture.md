@@ -29,7 +29,7 @@ No ports project exists today. The first attempt — `Kingo.Serialization` holdi
 
 Concrete implementations of the ports, using whichever third-party library or platform is appropriate. Adapters know about YamlDotNet, System.Text.Json, DynamoDbLite, ASP.NET Core. Domain code never directly references them; it talks to the port.
 
-The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Sdl` is the whole-document SDL codec (YamlDotNet + Superpower; public surface: `SdlSerializer.Parse(text) → Result<Schema>` and the `schema.ToSdl()` extension — format knowledge in the adapter, domain untouched); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
+The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Sdl` is the whole-document SDL codec (YamlDotNet + Superpower; public surface: `SdlParser.Parse(text) → Result<Schema>` and the `schema.Print()` extension — format knowledge in the adapter, domain untouched); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
 
 ## Principles
 
@@ -48,4 +48,4 @@ The serialization projects have distinct jobs ([[realign-serialization-projects-
 
 - [[dissolve-kingo-pdl-under-hexagonal-layout]]
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]]
-- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; SDL public-surface rework landed 2026-07-15: `SdlSerializer.Parse` + `schema.ToSdl()`; the interim `SdlDocument : IParse<SdlDocument>` idea was dropped — no wrapper type needed.
+- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; SDL public-surface rework landed 2026-07-15: `SdlParser.Parse` + `schema.Print()`; the interim `SdlDocument : IParse<SdlDocument>` idea was dropped — no wrapper type needed.
