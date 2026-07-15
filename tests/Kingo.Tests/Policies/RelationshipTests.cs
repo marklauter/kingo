@@ -1,6 +1,6 @@
-using Kingo.Namespaces;
+using Kingo.Policies;
 
-namespace Kingo.Tests.Namespaces;
+namespace Kingo.Tests.Policies;
 
 public sealed class RelationshipTests
 {

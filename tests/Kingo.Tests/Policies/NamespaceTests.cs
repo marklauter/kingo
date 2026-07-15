@@ -1,9 +1,9 @@
-using Kingo.Namespaces;
+using Kingo.Policies;
 using Results;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Tests.Namespaces;
+namespace Kingo.Tests.Policies;
 
 public sealed class NamespaceTests
 {
