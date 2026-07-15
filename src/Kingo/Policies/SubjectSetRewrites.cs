@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace Kingo.Namespaces;
+namespace Kingo.Policies;
 
 /// <summary>
 /// The rewrite algebra — a closed discriminated union describing how a relationship's effective subject set is computed: direct membership (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a tupleset (<see cref="TupleToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>, <see cref="ExclusionRewrite"/>). Parse-agnostic: produced equally by the PDL adapter, other serialization adapters, or the Write API. Authoring syntax and precedence: docs/notes/pdl-yaml.md.

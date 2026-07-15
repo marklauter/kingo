@@ -1,13 +1,11 @@
 using Results;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Namespaces;
+namespace Kingo.Policies;
 
 /// <summary>
-/// A namespace's policy definition <b>as a value</b> — an immutable snapshot of its relationships and their rewrites, with structural equality. Parse-agnostic and storable. An aggregate root; its domain key is <see cref="Name"/> (unique, case-insensitive, immutable — there is no rename, only a new namespace). Relationship names are unique within the namespace — <see cref="Define"/> enforces this at the untrusted boundary; the constructor is pure assignment for trusted sources (misuse is the caller's defect), mirroring the <c>Create</c>/<c>Parse</c> split on the value types. Entity-ness (versioning, lifecycle, optimistic concurrency, authorship) is the Write/PAP context's wrapper and never lives in core: if this type ever grows a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service (docs/notes/domain-language.md).
+/// A namespace's definition <b>as a value</b> — an immutable snapshot of its relationships and their rewrites, with structural equality. Parse-agnostic and storable. An entity within the <see cref="Policy"/> aggregate, not a root: its identity is local — <see cref="Name"/> unique (case-insensitive) within its policy, immutable (there is no rename, only a new namespace). Relationship names are unique within the namespace — <see cref="Define"/> enforces this at the untrusted boundary; the constructor is pure assignment for trusted sources (misuse is the caller's defect), mirroring the <c>Create</c>/<c>Parse</c> split on the value types. Entity-ness (versioning, lifecycle, optimistic concurrency, authorship) is the Write/PAP context's wrapper and never lives in core: if this type ever grows a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service (docs/notes/domain-language.md).
 /// </summary>
-[SuppressMessage("Naming", "CA1716:Identifiers should not match keywords", Justification = "the domain word is 'namespace'")]
 public sealed record Namespace(
     NamespaceIdentifier Name,
     ImmutableArray<Relationship> Relationships)
