@@ -29,7 +29,7 @@ Format: Hoplite frontmatter standard — flat Obsidian Properties, wikilinks as 
 
 Queue order: converters → (then, any order) rewrite interpreters, DynamoDbLite spike, zookie/snapshot design — the Write host waits on all three. The core test pass closed 2026-07-14 (ten test files; gate green, Kingo at 98% line / 100% branch; note deleted per its disposition).
 
-- [[realign-serialization-projects-around-their-real-consumers]] — **open**; Mark's post-review correction: .Json/.Yaml are value-type converter packs for REST hosts, no document crosses the wire, so `IDocumentSerializer` (and maybe `Kingo.Serialization`) should go; final surface: `SdlParser.Parse(text) → Result<Schema>` + `schema.Print()` — no wrapper type needed.
+- [[realign-serialization-projects-around-their-real-consumers]] — **closed** 2026-07-15: ports project dissolved, `Schema` landed, SDL surface reworked to `SdlParser.Parse(text) → Result<Schema>` + `schema.Print()`. The lost "public types implement a port" arch rule is replaced with nothing — no port exists to anchor it; it returns with the first genuine port family (storage).
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**; the next work item, unblocked 2026-07-14 by the SDL adapter. `IParse`-keyed converters registered in the adapters.
 - [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
