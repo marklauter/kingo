@@ -130,17 +130,19 @@ public static class Result
     /// <summary>
     /// Applicative application: feed a <see cref="Result{T}"/>-wrapped argument to a <see cref="Result{T}"/>-wrapped function. Multi-arity handled by currying — apply repeatedly to consume each argument. When both <paramref name="resultFn"/> and <paramref name="resultArg"/> fail, their errors are accumulated (function errors first, then argument errors); this is the Validation-applicative behaviour rather than fail-fast.
     /// </summary>
-    [SuppressMessage("Style", "IDE0072:Add missing cases", Justification = "the four named arms are the applicative's full truth table over the closed Success | Failure pair; keeping the table legible outweighs covering the compiler's unreachable default branch (Mark, 2026-07-14)")]
-#pragma warning disable CS8509 // switch is exhaustive over the closed hierarchy; the compiler cannot prove it and SuppressMessage cannot reach compiler warnings
     public static Result<TResult> Apply<T, TResult>(Result<Func<T, TResult>> resultFn, Result<T> resultArg) =>
         (resultFn, resultArg) switch
         {
             (Result<Func<T, TResult>>.Success f, Result<T>.Success a) => Success(f.Value(a.Value)),
             (Result<Func<T, TResult>>.Failure f, Result<T>.Success _) => new Result<TResult>.Failure(f.Errors),
             (Result<Func<T, TResult>>.Success _, Result<T>.Failure a) => new Result<TResult>.Failure(a.Errors),
-            (Result<Func<T, TResult>>.Failure f, Result<T>.Failure a) => new Result<TResult>.Failure([.. f.Errors, .. a.Errors]),
+            // fourth row of the truth table, (Failure f, Failure a) => Failure([.. f.Errors, .. a.Errors]),
+            // written as a discard: a final type-pattern would make the compiler synthesize unreachable
+            // type-test/default branches under the switch, which coverlet counts and the branch-coverage
+            // ratchet then fails.
+            _ => new Result<TResult>.Failure(
+                [.. ((Result<Func<T, TResult>>.Failure)resultFn).Errors, .. ((Result<T>.Failure)resultArg).Errors]),
         };
-#pragma warning restore CS8509
 
     /// <summary>
     /// Variadic effect sequencing: combine any number of <see cref="Result{T}"/>s of <see cref="Unit"/>. Succeeds when every input succeeds (and when <paramref name="results"/> is empty — the identity element); otherwise returns a <see cref="Result{T}.Failure"/> whose errors are accumulated across all failed inputs in input order. <c>params ReadOnlySpan</c> keeps the argument list off the heap at every arity, and the single-failure path returns the failing input unchanged rather than copying its errors.
