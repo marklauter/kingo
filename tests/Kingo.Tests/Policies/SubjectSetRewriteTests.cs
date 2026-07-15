@@ -1,8 +1,8 @@
-using Kingo.Namespaces;
+using Kingo.Policies;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Tests.Namespaces;
+namespace Kingo.Tests.Policies;
 
 public sealed class SubjectSetRewriteTests
 {
@@ -11,10 +11,7 @@ public sealed class SubjectSetRewriteTests
     // ---- ThisRewrite ----
 
     [Fact]
-    public void ThisRewrite_Default_ReturnsSameInstanceOnRepeatedAccess()
-    {
-        Assert.Same(ThisRewrite.Default, ThisRewrite.Default);
-    }
+    public void ThisRewrite_Default_ReturnsSameInstanceOnRepeatedAccess() => Assert.Same(ThisRewrite.Default, ThisRewrite.Default);
 
     [Fact]
     public void ThisRewrite_NewInstance_EqualsDefaultByStructuralEquality()
