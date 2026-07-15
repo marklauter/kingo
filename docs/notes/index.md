@@ -14,9 +14,9 @@ Format: Hoplite frontmatter standard — flat Obsidian Properties, wikilinks as 
 
 ## The system
 
-- [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types; `Kingo.Serialization.Sdl` is the SDL document codec; `.Json`/`.Yaml` are value-type converter packs for future REST hosts. No ports project — the first genuine port family (storage, transport) gets its own.
+- [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types; `Kingo.Sdl` is the SDL document codec; `.Json`/`.Yaml` are value-type converter packs for future REST hosts. No ports project — the first genuine port family (storage, transport) gets its own.
 - [[domain-language]] — the ubiquitous language: the relation-tuple grammar in Kingo vocabulary and the mapping from each production to its C# type. The Parse boundary rule lives here.
-- [[sdl-yaml]] — the Schema Definition Language: YAML outer structure, embedded rewrite-expression language. Implemented by the `Kingo.Serialization.Sdl` adapter.
+- [[sdl-yaml]] — the Schema Definition Language: YAML outer structure, embedded rewrite-expression language. Implemented by the `Kingo.Sdl` adapter.
 
 ## Decisions
 
@@ -32,7 +32,7 @@ Queue order: converters → (then, any order) rewrite interpreters, DynamoDbLite
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**; the next work item, unblocked 2026-07-14 by the SDL adapter. `IParse`-keyed converters registered in the adapters.
 - [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
-- [[dissolve-kingo-pdl-under-hexagonal-layout]] — **closed** 2026-07-14: `Kingo.Serialization.Pdl` adapter landed (first port, adapter-layer ArchUnit rules), quarry deleted; the adapter is since renamed `Kingo.Serialization.Sdl` and the port dissolved.
+- [[dissolve-kingo-pdl-under-hexagonal-layout]] — **closed** 2026-07-14: `Kingo.Serialization.Pdl` adapter landed (first port, adapter-layer ArchUnit rules), quarry deleted; the adapter is since renamed `Kingo.Sdl` and the port dissolved.
 
 ## Reference
 

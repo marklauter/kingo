@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace Kingo.Serialization.Sdl;
+namespace Kingo.Sdl;
 
 /// <summary>
 /// The parser-internal syntax tree for rewrite expressions — the shape Superpower produces before identifiers have crossed the trust boundary. Leaves carry raw

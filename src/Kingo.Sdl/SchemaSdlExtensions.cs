@@ -1,7 +1,7 @@
 using Kingo.Schemas;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Serialization.Sdl;
+namespace Kingo.Sdl;
 
 /// <summary>
 /// Renders a <see cref="Schema"/> to its SDL document text — the serialize half of the SDL round trip (<see cref="SdlSerializer.Parse"/> is the other).

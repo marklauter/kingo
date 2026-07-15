@@ -1,7 +1,7 @@
 using Kingo.Schemas;
-using static Kingo.Serialization.Sdl.Tests.TestHelpers;
+using static Kingo.Sdl.Tests.TestHelpers;
 
-namespace Kingo.Serialization.Sdl.Tests;
+namespace Kingo.Sdl.Tests;
 
 public sealed class SchemaSdlExtensionsTests
 {

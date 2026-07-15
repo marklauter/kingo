@@ -2,7 +2,7 @@ using Kingo.Schemas;
 using Results;
 using System.Collections.Immutable;
 
-namespace Kingo.Serialization.Sdl.Tests;
+namespace Kingo.Sdl.Tests;
 
 /// <summary>Shared construction and unwrap helpers for the SDL adapter tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers

@@ -1,6 +1,6 @@
 using Kingo.Schemas;
 
-namespace Kingo.Serialization.Sdl;
+namespace Kingo.Sdl;
 
 /// <summary>
 /// Renders a <c>SubjectSetRewrite</c> tree as rewrite-expression text (grammar: docs/notes/sdl-yaml.md). Parenthesization is decided by grammar position so the

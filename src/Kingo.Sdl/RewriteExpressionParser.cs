@@ -5,7 +5,7 @@ using Superpower.Display;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
 
-namespace Kingo.Serialization.Sdl;
+namespace Kingo.Sdl;
 
 /// <summary>
 /// Parses the rewrite-expression mini-language embedded in SDL relationship values — e.g. <c>(this | editor | (parent, viewer)) ! banned</c> — into the core

@@ -33,6 +33,6 @@ The adapter side, as landed 2026-07-15: `SdlSerializer.Parse(text) → Result<Sc
 - ~~Dissolve `Kingo.Serialization`~~ — done 2026-07-14: project + tests deleted, references replaced (`.Pdl` → Kingo + Results; `.Json`/`.Yaml` → Kingo), removed from `Kingo.slnx`, `SdlSerializer` detached from the interface, `PublicTypesImplementAPort` rule and `portAssemblyName` removed from `AdapterArchitectureTestsBase`. Build/tests deliberately not run yet.
 - ~~Add `Schema`~~ — done 2026-07-14 (`Kingo.Schemas.Schema`; `Create` is the only construction path (private ctor, house Cons): `schema.empty`, `schema.duplicate_namespace`; SchemaTests in Kingo.Tests).
 - ~~Update [[architecture]]~~ — done 2026-07-14 (ports section rewritten; serialization-project jobs corrected).
-- ~~Rework `Kingo.Serialization.Sdl` public surface~~ — done 2026-07-15: `SdlSerializer.Parse(text) → Result<Schema>`, `schema.ToSdl()` extension, `RequireUniqueNames` folded into `Schema.Create`, `SdlDocument` plan dropped.
+- ~~Rework `Kingo.Sdl` public surface~~ — done 2026-07-15: `SdlSerializer.Parse(text) → Result<Schema>`, `schema.ToSdl()` extension, `RequireUniqueNames` folded into `Schema.Create`, `SdlDocument` plan dropped.
 - Rename `SdlSerializer` → `SdlParser` (Mark, queued — the class is now parse-only).
 - Reframe [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] wording: converters don't "implement or hang off ports"; the converter packs are the whole point of those projects.

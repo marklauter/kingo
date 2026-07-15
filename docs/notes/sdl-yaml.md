@@ -1,7 +1,7 @@
 ---
 type: note
 title: SDL — YAML structure with embedded rewrite expressions
-summary: "The Schema Definition Language: a YAML outer structure carrying the namespace map, with each relationship's optional rewrite expression as a small embedded language parsed separately. Implemented by the Kingo.Serialization.Sdl adapter."
+summary: "The Schema Definition Language: a YAML outer structure carrying the namespace map, with each relationship's optional rewrite expression as a small embedded language parsed separately. Implemented by the Kingo.Sdl adapter."
 aliases: [pdl-yaml]
 tags: [note, spec, sdl, yaml]
 created: 2026-05-12
@@ -10,7 +10,7 @@ status: evolving
 
 # SDL — YAML structure with embedded rewrite expressions
 
-The Schema Definition Language defines namespaces and their relationships ([[domain-language]]: the schema-side record is `Relationship`, the algebra is `SubjectSetRewrite`). The outer structure is YAML; each relationship's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower). Implemented by `Kingo.Serialization.Sdl` per [[dissolve-kingo-pdl-under-hexagonal-layout]] — parse errors accumulate as `Result` validation failures, the transform exits through `Namespace.Create`, and the serializer's newline is pinned to `\n`.
+The Schema Definition Language defines namespaces and their relationships ([[domain-language]]: the schema-side record is `Relationship`, the algebra is `SubjectSetRewrite`). The outer structure is YAML; each relationship's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower). Implemented by `Kingo.Sdl` per [[dissolve-kingo-pdl-under-hexagonal-layout]] — parse errors accumulate as `Result` validation failures, the transform exits through `Namespace.Create`, and the serializer's newline is pinned to `\n`.
 
 This split is deliberate. YAML carries the namespace map, comments, indentation, and editor tooling. The rewrite expression — e.g. `(this | editor | (parent, viewer)) ! banned` — would be awkward to encode in pure YAML, so it lives in a string and gets parsed separately.
 
@@ -74,4 +74,4 @@ A bare relationship name (e.g. `owner`, `banned`) has no rewrite — semanticall
 
 ## Prior art
 
-The quarry implementation (`src/Kingo.Pdl/` on the archive branches, see [[sources]]) proved the YamlDotNet + Superpower split and was salvaged as reference for the adapter. It threw `PdlParseException` and flattened parenthesized operands on reparse; both are fixed in `Kingo.Serialization.Sdl`.
+The quarry implementation (`src/Kingo.Pdl/` on the archive branches, see [[sources]]) proved the YamlDotNet + Superpower split and was salvaged as reference for the adapter. It threw `PdlParseException` and flattened parenthesized operands on reparse; both are fixed in `Kingo.Sdl`.
