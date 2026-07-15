@@ -15,14 +15,12 @@ public abstract record Subject
     /// <summary>
     /// Parses the canonical text form: a <see cref="SubjectSet"/> when <paramref name="s"/> contains <c>#</c> (e.g. <c>team:sales#member</c>); otherwise a <see cref="DirectSubject"/> (e.g. <c>user:anne</c>).
     /// </summary>
-    public static Result<Subject> Parse(string s)
-    {
-        return string.IsNullOrWhiteSpace(s)
+    public static Result<Subject> Parse(string s) =>
+        string.IsNullOrWhiteSpace(s)
             ? Result.Failure<Subject>(Error.Validation("subject.empty", "subject cannot be empty or whitespace"))
             : s.Contains('#', StringComparison.Ordinal)
                 ? SubjectSet.Parse(s).Map(Subject (set) => set)
                 : SubjectIdentifier.Parse(s).Map(Subject (id) => new DirectSubject(id));
-    }
 }
 
 /// <summary>

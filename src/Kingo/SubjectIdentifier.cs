@@ -17,14 +17,12 @@ public readonly record struct SubjectIdentifier
     public static SubjectIdentifier Create(string value) => new(value);
 
     /// <inheritdoc/>
-    public static Result<SubjectIdentifier> Parse(string s)
-    {
-        return string.IsNullOrWhiteSpace(s)
+    public static Result<SubjectIdentifier> Parse(string s) =>
+        string.IsNullOrWhiteSpace(s)
             ? Result.Failure<SubjectIdentifier>(Error.Validation("subject_id.empty", "subject identifier cannot be empty or whitespace"))
             : !SubjectIdentifierPatterns.Validation().IsMatch(s)
                 ? Result.Failure<SubjectIdentifier>(Error.Validation("subject_id.invalid", $"subject identifier '{s}' contains invalid characters; expected '^[A-Za-z0-9_][A-Za-z0-9_.:-]*$'"))
                 : Result.Success(new SubjectIdentifier(s));
-    }
 
     private SubjectIdentifier(string value) => Value = value;
 

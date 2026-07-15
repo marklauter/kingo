@@ -22,14 +22,12 @@ public readonly record struct RelationshipIdentifier
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<RelationshipIdentifier> Parse(string s)
-    {
-        return string.IsNullOrWhiteSpace(s)
+    public static Result<RelationshipIdentifier> Parse(string s) =>
+        string.IsNullOrWhiteSpace(s)
             ? Result.Failure<RelationshipIdentifier>(Error.Validation("relationship_id.empty", "relationship identifier cannot be empty or whitespace"))
             : !RelationshipIdentifierPatterns.Validation().IsMatch(s)
             ? Result.Failure<RelationshipIdentifier>(Error.Validation("relationship_id.invalid", $"relationship identifier '{s}' contains invalid characters; expected '^\\.\\.\\.$|^[A-Za-z_][A-Za-z0-9_]*$'"))
             : Result.Success(new RelationshipIdentifier(s.ToLowerInvariant()));
-    }
 
     private RelationshipIdentifier(string value) => Value = value;
 

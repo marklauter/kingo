@@ -17,14 +17,12 @@ public readonly record struct ResourceIdentifier
     public static ResourceIdentifier Create(string value) => new(value);
 
     /// <inheritdoc/>
-    public static Result<ResourceIdentifier> Parse(string s)
-    {
-        return string.IsNullOrWhiteSpace(s)
+    public static Result<ResourceIdentifier> Parse(string s) =>
+        string.IsNullOrWhiteSpace(s)
             ? Result.Failure<ResourceIdentifier>(Error.Validation("resource_id.empty", "resource identifier cannot be empty or whitespace"))
             : !ResourceIdentifierPatterns.Validation().IsMatch(s)
             ? Result.Failure<ResourceIdentifier>(Error.Validation("resource_id.invalid", $"resource identifier '{s}' contains invalid characters; expected '^[A-Za-z0-9_][A-Za-z0-9_.-]*$'"))
             : Result.Success(new ResourceIdentifier(s));
-    }
 
     private ResourceIdentifier(string value) => Value = value;
 

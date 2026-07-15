@@ -19,14 +19,12 @@ public readonly record struct NamespaceIdentifier
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<NamespaceIdentifier> Parse(string s)
-    {
-        return string.IsNullOrWhiteSpace(s)
+    public static Result<NamespaceIdentifier> Parse(string s) =>
+        string.IsNullOrWhiteSpace(s)
             ? Result.Failure<NamespaceIdentifier>(Error.Validation("namespace_id.empty", "namespace identifier cannot be empty or whitespace"))
             : !NamespaceIdentifierPatterns.Validation().IsMatch(s)
                 ? Result.Failure<NamespaceIdentifier>(Error.Validation("namespace_id.invalid", $"namespace identifier '{s}' contains invalid characters; expected '^[A-Za-z_][A-Za-z0-9_]*$'"))
                 : Result.Success(new NamespaceIdentifier(s.ToLowerInvariant()));
-    }
 
     private NamespaceIdentifier(string value) => Value = value;
 
