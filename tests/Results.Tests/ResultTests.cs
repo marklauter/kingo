@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Results.Tests;
 
@@ -284,6 +285,14 @@ public sealed class ResultTests
         var a = Result.Failure<int>(e1, e2);
         var b = Result.Failure<int>(e2, e1);
         Assert.NotEqual(a, b);
+    }
+
+    [Fact]
+    [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "always-false is the behavior under test: pins the null branch of the hand-written Equals")]
+    public void Equals_ReturnsFalse_ForNullFailure()
+    {
+        var failure = Assert.IsType<Result<int>.Failure>(Result.Failure<int>(Error.NotFound("err.x", "msg")));
+        Assert.False(failure.Equals(null));
     }
 
     [Fact]
