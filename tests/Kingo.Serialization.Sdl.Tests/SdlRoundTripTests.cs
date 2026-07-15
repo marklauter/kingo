@@ -1,5 +1,4 @@
 using Kingo.Schemas;
-using System.Collections.Immutable;
 using static Kingo.Serialization.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Serialization.Sdl.Tests;
@@ -20,7 +19,7 @@ public sealed class SdlRoundTripTests
     public void RoundTrip_FromText_PreservesDomainValues(string sdl)
     {
         var original = ParseSuccess(sdl);
-        var roundTripped = ParseSuccess(SdlSerializer.Serialize(original.Namespaces));
+        var roundTripped = ParseSuccess(original.ToSdl());
 
         Assert.Equal(original, roundTripped);
     }
@@ -62,14 +61,14 @@ public sealed class SdlRoundTripTests
     [MemberData(nameof(RewriteCaseKeys))]
     public void RoundTrip_FromDomain_PreservesTreeStructure(string key)
     {
-        ImmutableArray<Namespace> original =
+        var original = MakeSchema(
         [
             MakeNs(Ns("file"), [new Relationship(Rel("viewer"), RewriteCases[key])]),
-        ];
+        ]);
 
-        var roundTripped = ParseSuccess(SdlSerializer.Serialize(original));
+        var roundTripped = ParseSuccess(original.ToSdl());
 
-        Assert.Equal(original, roundTripped.Namespaces);
+        Assert.Equal(original, roundTripped);
     }
 
     [Fact]
@@ -91,7 +90,7 @@ public sealed class SdlRoundTripTests
             """;
 
         var original = ParseSuccess(sdl);
-        var roundTripped = ParseSuccess(SdlSerializer.Serialize(original.Namespaces));
+        var roundTripped = ParseSuccess(original.ToSdl());
 
         Assert.Equal(original, roundTripped);
     }

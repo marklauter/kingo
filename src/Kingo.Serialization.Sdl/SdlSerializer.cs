@@ -3,37 +3,18 @@ using Results;
 using System.Collections.Immutable;
 using YamlDotNet.Core;
 using YamlDotNet.RepresentationModel;
-using YamlDotNet.Serialization;
 
 namespace Kingo.Serialization.Sdl;
 
 /// <summary>
-/// The SDL adapter: converts between Schema Definition Language documents (docs/notes/sdl-yaml.md) and the core schema model. YAML carries the outer namespace
-/// map; each relationship's optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
-/// <see cref="RewriteExpressionRenderer"/>. Parsing exits through the core's validating factories — <c>RelationshipIdentifier.Parse</c>,
-/// <c>NamespaceIdentifier.Parse</c>, <c>Namespace.Create</c>, <c>Schema.Create</c> — accumulating every document-level, identifier-level, and expression-level
-/// error into one <see cref="Result{T}"/> failure.
+/// The parse half of the SDL adapter: Schema Definition Language document text (docs/notes/sdl-yaml.md) to the core schema model
+/// (<see cref="SchemaSdlExtensions.ToSdl"/> renders the other direction). YAML carries the outer namespace map; each relationship's optional rewrite
+/// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionRenderer"/>. Parsing exits through
+/// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>Namespace.Create</c>, <c>Schema.Create</c> —
+/// accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
 public static class SdlSerializer
 {
-    private static readonly ISerializer DocumentSerializer = new SerializerBuilder()
-        .WithNewLine("\n") // the document format owns its line ending, independent of platform
-        .Build();
-
-    /// <summary>
-    /// Emits the SDL document for <paramref name="value"/>, one namespace per mapping key in input order. Document invariants the domain cannot express are the
-    /// caller's defect and throw <see cref="ArgumentException"/>: namespace names must be unique (a YAML mapping cannot express duplicates), and no
-    /// relationship name or rewrite reference may be a reserved word of the rewrite grammar (<c>this</c>, <c>...</c>).
-    /// </summary>
-    public static string Serialize(ImmutableArray<Namespace> value)
-    {
-        OrderedDictionary<string, List<object>> document = new(value.Length);
-        foreach (var ns in value)
-            document.Add(ns.Name.Value, [.. ns.Relationships.Select(RenderRelationship)]);
-
-        return DocumentSerializer.Serialize(document);
-    }
-
     /// <summary>
     /// Parses untrusted SDL text, returning the defined <see cref="Schema"/> or every accumulated validation <see cref="Error"/>: <c>sdl.syntax</c>
     /// (malformed YAML), <c>sdl.document</c> (not a single mapping), <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes),
@@ -114,11 +95,4 @@ public static class SdlSerializer
         RelationshipIdentifier.Parse(name).Bind(relationship => RewriteExpressionRenderer.IsReserved(relationship)
             ? Result.Failure<RelationshipIdentifier>(Error.Validation("sdl.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
             : Result.Success(relationship));
-
-    private static object RenderRelationship(Relationship relationship) =>
-        RewriteExpressionRenderer.IsReserved(relationship.Name)
-            ? throw new ArgumentException($"relationship '{relationship.Name}' cannot be expressed in SDL: '{relationship.Name}' is reserved by the rewrite grammar")
-            : relationship.Rewrite is ThisRewrite
-                ? relationship.Name.Value
-                : new Dictionary<string, string> { [relationship.Name.Value] = RewriteExpressionRenderer.Render(relationship.Rewrite) };
 }

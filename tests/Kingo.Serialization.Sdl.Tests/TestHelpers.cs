@@ -18,6 +18,9 @@ internal static class TestHelpers
     public static Namespace MakeNs(NamespaceIdentifier name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
+    public static Schema MakeSchema(ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Schema>.Success>(Schema.Create(namespaces)).Value;
+
     public static Schema ParseSuccess(string text) =>
         Assert.IsType<Result<Schema>.Success>(SdlSerializer.Parse(text)).Value;
 
