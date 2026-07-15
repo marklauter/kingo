@@ -16,7 +16,7 @@ public readonly record struct RelationshipIdentifier
     public string Value { get; }
 
     /// <summary>
-    /// The <c>...</c> sentinel — Zanzibar's tuple-grammar marker for an unspecified relationship (paper §2.1); a domain concept, not a PDL-ism.
+    /// The <c>...</c> sentinel — Zanzibar's tuple-grammar marker for an unspecified relationship (paper §2.1); a domain concept, not a SDL-ism.
     /// </summary>
     public static RelationshipIdentifier Nothing { get; } = Create("...");
 

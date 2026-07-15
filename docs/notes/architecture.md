@@ -1,7 +1,7 @@
 ---
 type: note
 title: Architecture
-summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds domain types, Kingo.Serialization defines ports, Kingo.Serialization.{Json,Yaml,...} are adapters."
+summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds the domain (Schemas and Graphs), Kingo.Serialization.Sdl is the schema-document codec, .Json/.Yaml are wire-converter packs; no ports project until a genuine port family appears."
 tags: [note, architecture, hexagonal, ddd]
 created: 2026-05-13
 status: evolving
@@ -15,7 +15,7 @@ The project follows hexagonal architecture with a DDD core at the center. Projec
 
 ### Domain core — `Kingo`
 
-The center. Pure types describing the ubiquitous domain per [[domain-language]]: the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Policies` (the config side: the `Policy` root over its `Namespace` entities, plus the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST) and `Statements` (the data side: the `Statement` root with its value objects `Resource`, `Subject`, `SubjectSet`). No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
+The center. Pure types describing the ubiquitous domain per [[domain-language]]: the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Schemas` (the config side: the `Schema` root over its `Namespace` entities, plus the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST) and `Graphs` (the data side: the `Fact` root with its value objects `Resource`, `Subject`, `SubjectSet`). No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
 
 The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry was dissolved and deleted per [[dissolve-kingo-pdl-under-hexagonal-layout]]; it survives only on the archive branches ([[sources]]).
 
@@ -23,13 +23,13 @@ The foundational primitives — `Result<T>` / `Error` (Results project) and `IVa
 
 Interfaces that describe what the core needs from the outside world, without specifying how. A port says "give me something that can store a tuple"; it does not say "give me a DynamoDB client." Ports live close enough to the core that they share its language; the implementations live elsewhere.
 
-No ports project exists today. The first attempt — `Kingo.Serialization` holding `IDocumentSerializer<T>` — was dissolved 2026-07-14 ([[realign-serialization-projects-around-their-real-consumers]]): PDL was its only possible consumer, so it was ceremony, not a port. When a genuine port family appears (storage, transport), it gets its own project. What survives from that slice: `Deserialize`/`Parse` at a trust boundary returns `Result<T>` with accumulated errors, never exceptions, and `AdapterArchitectureTestsBase` still enforces that an adapter defines no exception types.
+No ports project exists today. The first attempt — `Kingo.Serialization` holding `IDocumentSerializer<T>` — was dissolved 2026-07-14 ([[realign-serialization-projects-around-their-real-consumers]]): SDL was its only possible consumer, so it was ceremony, not a port. When a genuine port family appears (storage, transport), it gets its own project. What survives from that slice: `Deserialize`/`Parse` at a trust boundary returns `Result<T>` with accumulated errors, never exceptions, and `AdapterArchitectureTestsBase` still enforces that an adapter defines no exception types.
 
-### Adapters — `Kingo.Serialization.Json`, `Kingo.Serialization.Yaml`, `Kingo.Serialization.Pdl`, future storage adapters, transport adapters, etc.
+### Adapters — `Kingo.Serialization.Json`, `Kingo.Serialization.Yaml`, `Kingo.Serialization.Sdl`, future storage adapters, transport adapters, etc.
 
 Concrete implementations of the ports, using whichever third-party library or platform is appropriate. Adapters know about YamlDotNet, System.Text.Json, DynamoDbLite, ASP.NET Core. Domain code never directly references them; it talks to the port.
 
-The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Serialization.Pdl` is the whole-document PDL codec (YamlDotNet + Superpower; public surface being reworked toward `PdlDocument : IParse<PdlDocument>`); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
+The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Serialization.Sdl` is the whole-document SDL codec (YamlDotNet + Superpower; public surface being reworked toward `SdlDocument : IParse<SdlDocument>`); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
 
 ## Principles
 
@@ -48,4 +48,4 @@ The serialization projects have distinct jobs ([[realign-serialization-projects-
 
 - [[dissolve-kingo-pdl-under-hexagonal-layout]]
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]]
-- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; PDL public-surface rework (`PdlDocument : IParse<PdlDocument>`) still open.
+- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; SDL public-surface rework (`SdlDocument : IParse<SdlDocument>`) still open.

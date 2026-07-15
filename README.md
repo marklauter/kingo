@@ -1,6 +1,6 @@
 # Kingo
 
-Kingo is a Google Zanzibar-inspired ReBAC authorization system, exploring relationship-based access control with policy rewrite rules.
+Kingo is a Google Zanzibar-inspired ReBAC authorization system, exploring relationship-based access control with schema-defined subject-set rewrite rules.
 
 ## Build & test
 

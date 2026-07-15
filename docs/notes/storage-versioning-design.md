@@ -25,7 +25,7 @@ One design, three consumers: the zookie a client holds, the condition a write as
 
 ## Next
 
-- Design session when storage work begins (queued behind the PDL adapter and converters per [[index]]): pick the version representation (per-item version, partition sequence, commit-timestamp table), define zookie encoding as a function of it, and specify the conditional-write patterns the Write adapter uses.
+- Design session when storage work begins (queued behind the SDL adapter and converters per [[index]]): pick the version representation (per-item version, partition sequence, commit-timestamp table), define zookie encoding as a function of it, and specify the conditional-write patterns the Write adapter uses.
 - Validate the design against all three consumers before code: Check's snapshot-pinned reads, Write's CAS, Watch's cursors.
 
 ## Related
