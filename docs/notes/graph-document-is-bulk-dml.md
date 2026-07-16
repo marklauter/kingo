@@ -1,12 +1,13 @@
 ---
 type: todo
 title: The graph document is bulk DML, not a state dump
-summary: "Proposal: the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a FactOperation DU, not a serialized graph — which conflicts with GraphParser as stubbed, empties GraphPrinter of meaning, and puts the Graph value type back in question."
-tags: [note, todo, sdl, graphs, dml]
+summary: "Proposal: the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU — which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
+tags: [note, todo, sdl, graphs, dml, hexagonal]
 created: 2026-07-15
 status: open
 priority: medium
 effort: medium
+blocked_by: "[[storage-versioning-design]]"
 ---
 
 # The graph document is bulk DML, not a state dump
@@ -41,38 +42,46 @@ Each entry is a tuple in the canonical text form the core already owns — `Fact
 
 Sections are the natural fit for a bulk loader — the common document is "here are 400 facts to create" and a per-entry operation tag would be noise on every line. The cost is that operation order becomes *implicit in section order*, which is a real constraint (see open questions).
 
-## `FactOperation` — the type the document parses to
+## `GraphOperation` — and why it is not a domain type
 
-Settled 2026-07-15 (Mark): the operation is a domain type, a closed DU over the three cases, carrying the `Fact` it acts on. Case names follow the house pattern — DU cases suffix with the base's last word, as `ThisRewrite : SubjectSetRewrite` does:
+The document parses to a closed DU over the three cases. Sketch:
 
 ```csharp
-public abstract record FactOperation(Fact Fact)
-{
-    // closed: private protected keeps the case list to this file, as SubjectSetRewrite does
-    private protected FactOperation() : this(null!) { }
-}
+public abstract record GraphOperation(Fact Fact);
 
-public sealed record CreateOperation(Fact Fact) : FactOperation(Fact);
-public sealed record TouchOperation(Fact Fact) : FactOperation(Fact);
-public sealed record DeleteOperation(Fact Fact) : FactOperation(Fact);
+public sealed record CreateOperation(Fact Fact) : GraphOperation(Fact);
+public sealed record TouchOperation(Fact Fact) : GraphOperation(Fact);
+public sealed record DeleteOperation(Fact Fact) : GraphOperation(Fact);
 ```
 
-(`SubjectSetRewrite` closes itself with a bare `private protected SubjectSetRewrite() { }` because it declares no primary constructor. A base that *does* take one cannot also expose a parameterless ctor cleanly — so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention rather than by the compiler. Decide at implementation time; the shape above is the sketch, not the settled code.)
+`Graph` beats `Fact` as the qualifier (Mark, 2026-07-15). `FactOperation(Fact Fact)` promises every operation names exactly one fact — true today, false the moment delete-by-filter lands, since "drop every viewer of `doc:readme`" acts on the graph and names no single fact. `GraphOperation` makes no such promise, so the DU can grow a filter case without the base lying. (Closing the DU is an implementation detail left open: `SubjectSetRewrite` uses a bare `private protected` ctor, which works because it declares no primary constructor. A base that takes one cannot cleanly also expose a parameterless ctor, so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention.)
 
-It belongs in core (`Kingo.Graphs`), not the adapter: an operation against the graph is domain vocabulary that Write speaks regardless of how it arrived — a REST caller posting one operation and a document carrying four hundred are the same concept, and only one of them involves YAML. The DU is what makes the exhaustive `switch` at the apply site total, which is the whole point of modeling it as a type rather than an enum-plus-payload.
+**It does not live in the domain layer** (Mark, 2026-07-15 — correcting this note's first draft, which put it in `Kingo.Graphs`). An operation sits **between two edges**: born at user IO (a document, a REST call), dead at storage IO (a conditional write). The tell is that every rule it carries is storage semantics, not a domain invariant:
 
-The base carrying `Fact` (rather than each case declaring it) says every operation names exactly one fact — the invariant that makes delete-by-filter *not* a member of this DU (see open questions). If filter-deletes ever join, that shape has to give.
+- `create` vs `touch` differ *only* in whether the write carries an if-absent condition — `attribute_not_exists`, nothing more.
+- "Delete of an absent fact — no-op or failure?" is a conditional-write question.
+- "Is the document a transaction?" is a `TransactWriteItems` question.
 
-## Consequences for the stubs
+A type whose entire rule set is storage semantics is not a domain type; it is the vocabulary of the thing that talks to storage. That it *mentions* `Fact` proves nothing — a SQL `INSERT` mentions a row without being part of the business model. The pure core never ranges over a verb: Check evaluates schema plus facts, Expand the same, and neither has any use for one. Zanzibar agrees, and its placement is the evidence: `RelationTupleUpdate` lives in the **Write API proto**, not in the tuple model — request vocabulary, exactly like SpiceDB's `RelationshipUpdate`.
 
-- **`GraphParser` as written conflicts with this.** `Parse(text) → Result<Graph>` assumes the document denotes a *state*; a changeset is not a state, it is a sequence of operations. The return type wants to be `Result<ImmutableArray<FactOperation>>`.
-- **`GraphPrinter` lost its meaning — deleted 2026-07-15.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset — the round-trip tests that pin the schema pair have no analogue here. Printing a `Graph` back out is a *dump*, a different artifact from a changeset that happens to share a vocabulary. Removed immediately rather than left to rot, since nothing about the open questions could save it; if a dump format is ever wanted it comes back under its own name, as its own artifact.
-- **The `Graph` value type goes back in question.** It was added 2026-07-15 at Mark's instruction, and flagged in its own doc comment as contradicting [[domain-language]]'s guardrail ("`Graph` names a concept, not a core type — no invariant spans the fact collection"). On the changeset reading, nothing produces a `Graph`: the parser yields operations, Write consumes operations, and the only thing that would ever want the type is a read-model inside the Check host — which is precisely what the guardrail already says. **The guardrail was right.** If this proposal lands, `Graph` and its tests come out and the note needs no revision after all.
+**This is the port-family trigger.** [[architecture]] has been holding the interface rule for it: *"the interface rule returns when the first genuine port family (storage) arrives."* `IDocumentSerializer` was ceremony because it had one possible adapter forever; a write port has real ones — DynamoDbLite, DynamoDB, an in-memory fake — and `GraphOperation` is its language. So the type wants the ports/application project that does not exist yet: it cannot live in `Kingo.Sdl` (the Write host would depend on a YAML adapter to speak its own commands) and it cannot live in a host (adapters would then depend upward). Placement lands with the storage work — see [[storage-versioning-design]], [[dynamodblite-substrate]].
+
+## Consequences — the stubs are gone
+
+All three fact-side stubs from 2026-07-15 were removed the same day rather than left to rot:
+
+- **`GraphPrinter` — deleted.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset; the round-trip tests that pin the schema pair have no analogue here. Printing a graph back out is a *dump* — a different artifact that merely shares a vocabulary. If a dump format is ever wanted it returns under its own name.
+- **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the tuple grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
+- **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[domain-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
+
+`Kingo.Graphs` is back to `Fact`, `Resource`, `Subject`; `Kingo.Sdl` is back to the schema pair alone.
 
 ## Open questions
 
+These are storage questions, which is why they travel with the ports project rather than blocking anything in core.
+
 - **Delete of an absent fact — no-op or `NotFound`?** `touch` exists because that question has two answers on the create side; the symmetric question deserves an explicit answer rather than a default. Bulk callers usually want the no-op, which would make `delete` the mirror of `touch` and leave `create` the only strict operation. If a strict delete is also wanted, the set grows a fourth case and the symmetry argument gets stronger, not weaker.
-- **Is a document a transaction?** All-or-nothing, applied in order? This decides whether the parse result is an ordered sequence or an unordered set, and it is the difference between the adapter returning a list and returning something with duplicate detection at `Create` (the way `Graph.Create` rejects `graph.duplicate_fact` today).
+- **Is a document a transaction?** All-or-nothing, applied in order? This decides whether the parse result is a bare sequence or a **batch type** carrying invariants — and a batch is the one place a collection of facts genuinely *has* an invariant, unlike stored state: if a document applies atomically, atomicity spans the collection and "no fact appears twice across sections" has a real victim. That is exactly what `Graph` lacked. If the answer is "transaction", a batch type earns its `Create`; if not, `ImmutableArray<GraphOperation>` is the whole story. Naming, if it comes: the changeset framing has stronger priors than `GraphOperations`, since `XOperations` reads as a static helper class in C#.
 - **Section order.** With section blocks, a document cannot interleave: it cannot say "delete X, then create X". Either the sections have a fixed defined order (delete-then-create is the usual choice — it makes a document idempotent-ish and lets a section pair express replacement), or a document that both deletes and creates the same fact is rejected as ambiguous. Worth deciding before the format hardens, because it is unfixable afterward without a breaking change.
 - **Same fact in two sections** — a defect at parse time, or resolved by section order? Follows directly from the question above.
 - **Preconditions.** SpiceDB's `WriteRelationships` carries optional preconditions (must-match / must-not-match filters) so a batch can assert state before applying. Out of scope for a first document format, but worth knowing it is the next thing bulk callers ask for.
@@ -80,9 +89,10 @@ The base carrying `Fact` (rather than each case declaring it) says every operati
 
 ## Next
 
-- ~~Delete `GraphPrinter`~~ — done 2026-07-15: it could not survive any answer to the questions below, so it went now rather than later.
-- Settle the delete semantics and the transaction/ordering questions — they change the parse result's type, not just the docs.
-- Restub `GraphParser` around `Result<ImmutableArray<FactOperation>>` (its stub carries a `known wrong` marker until then); delete `Graph` plus `GraphTests` pending the same.
+- ~~Delete the fact-side stubs~~ — done 2026-07-15: `GraphPrinter`, `GraphParser`, `Graph`, and `GraphTests` all removed. None could survive the changeset reading, and `GraphOperation` has no home until the ports project exists, so there was nothing to restub them *to*. This note is the design record until then.
+- **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[dynamodblite-substrate]].
+- Settle the delete semantics and the transaction question — they decide whether a batch type exists and what `GraphParser` returns.
+- Rebuild `GraphParser` against `GraphOperation` once it has a home. Its home project is worth a second look at that point: `Kingo.Sdl` is named for the *Schema* Definition Language, and a DML document is not SDL.
 - Write the format up properly once settled — likely its own note beside [[schema-definition-language]], since a DML document is a different artifact from the DDL one.
 
 ## Related
