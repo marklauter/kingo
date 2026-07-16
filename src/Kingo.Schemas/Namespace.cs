@@ -9,7 +9,7 @@ namespace Kingo.Schemas;
 /// not a root: its identity is local — <see cref="Name"/> unique (case-insensitive) within its schema, immutable
 /// (there is no rename, only a new namespace). <see cref="Create"/> is the only construction path, so a
 /// <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
-/// concurrency, authorship) is the Write/PAP context's wrapper and never lives in core: if this type ever grows
+/// concurrency, authorship) is the Write context's wrapper and never lives in core: if this type ever grows
 /// a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service
 /// (docs/notes/domain-language.md).
 /// </summary>

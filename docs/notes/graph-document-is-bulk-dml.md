@@ -1,8 +1,8 @@
 ---
 type: todo
 title: The graph document is bulk DML, not a state dump
-summary: "Proposal: the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU — which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
-tags: [note, todo, sdl, graphs, dml, hexagonal]
+summary: "Proposal: FML, the Fact Mutation Language — the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU, which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
+tags: [note, todo, sdl, fml, agl, graphs, dml, hexagonal]
 created: 2026-07-15
 status: open
 priority: medium
@@ -20,7 +20,7 @@ blocked_by: "[[storage-versioning-design]]"
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
 - `delete` — retract.
 
-The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
+The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The language this document is written in is **FML, the Fact Mutation Language** — the DML half of the Authorization Graph Language, as SDL is the DDL half ([[domain-language]] names AGL and its two sublanguages). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
 ## Proposed format
 
@@ -66,6 +66,16 @@ A type whose entire rule set is storage semantics is not a domain type; it is th
 
 **This is the port-family trigger.** [[architecture]] has been holding the interface rule for it: *"the interface rule returns when the first genuine port family (storage) arrives."* `IDocumentSerializer` was ceremony because it had one possible adapter forever; a write port has real ones — DynamoDbLite, DynamoDB, an in-memory fake — and `GraphOperation` is its language. So the type wants the ports/application project that does not exist yet: it cannot live in `Kingo.Sdl` (the Write host would depend on a YAML adapter to speak its own commands) and it cannot live in a host (adapters would then depend upward). Placement lands with the storage work — see [[storage-versioning-design]], [[dynamodblite-substrate]].
 
+## `Kingo.Fml` — the adapter
+
+The document's parser is its own project, **`Kingo.Fml`**, beside `Kingo.Sdl` — one adapter per sublanguage of AGL ([[domain-language]]). The pair mirrors the models: `Kingo.Sdl` → `Kingo.Schemas`, `Kingo.Fml` → `Kingo.Graphs`, so the assembly ban the two test suites already enforce between the models carries into the adapters for free. Nothing about FML wants to live in `Kingo.Sdl`: that project is named for the *Schema* Definition Language, and the two documents share no grammar — only a frame.
+
+It is by far the thinner of the pair, and the asymmetry is the design, not an accident:
+
+- **Parser only, no printer.** `parse ∘ print = id` pins the schema pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
+- **YamlDotNet, no Superpower.** SDL needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. FML has no embedded language at all — every entry is a tuple in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
+- **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so `Kingo.Fml` references ports *and* `Kingo.Graphs`, and travels with the storage work rather than landing next.
+
 ## Consequences — the stubs are gone
 
 All three fact-side stubs from 2026-07-15 were removed the same day rather than left to rot:
@@ -92,8 +102,8 @@ These are storage questions, which is why they travel with the ports project rat
 - ~~Delete the fact-side stubs~~ — done 2026-07-15: `GraphPrinter`, `GraphParser`, `Graph`, and `GraphTests` all removed. None could survive the changeset reading, and `GraphOperation` has no home until the ports project exists, so there was nothing to restub them *to*. This note is the design record until then.
 - **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[dynamodblite-substrate]].
 - Settle the delete semantics and the transaction question — they decide whether a batch type exists and what `GraphParser` returns.
-- Rebuild `GraphParser` against `GraphOperation` once it has a home. Its home project is worth a second look at that point: `Kingo.Sdl` is named for the *Schema* Definition Language, and a DML document is not SDL.
-- Write the format up properly once settled — likely its own note beside [[schema-definition-language]], since a DML document is a different artifact from the DDL one.
+- Rebuild `GraphParser` against `GraphOperation` once it has a home, in `Kingo.Fml` (above) — the project the naming question in this note's first draft was reaching for.
+- Write the format up properly once settled — likely its own note beside [[schema-definition-language]], since an FML document is a different artifact from the SDL one.
 
 ## Related
 

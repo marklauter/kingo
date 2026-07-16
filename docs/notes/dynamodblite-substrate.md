@@ -44,7 +44,7 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 
 - **Zookies / external consistency** — needs an app-layer commit-timestamp protocol. No store gives you this for free.
 - **Leopard-style set-fold caching** — application concern.
-- **Policy authoring (PAP)** — separate from storage. The YAML PDL parser on the `dictionary-encoding` quarry is the closest existing work.
+- **Schema administration** — separate from storage. The YAML PDL parser on the `dictionary-encoding` quarry is the closest existing work.
 
 ## Settled 2026-07-14
 
