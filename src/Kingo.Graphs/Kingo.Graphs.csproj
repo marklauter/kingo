@@ -5,13 +5,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Superpower" />
-		<PackageReference Include="YamlDotNet" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\Kingo.Schemas\Kingo.Schemas.csproj" />
+		<ProjectReference Include="..\Kingo\Kingo.csproj" />
 		<ProjectReference Include="..\Results\Results.csproj" />
+		<ProjectReference Include="..\Values\Values.csproj" />
 	</ItemGroup>
 
 </Project>

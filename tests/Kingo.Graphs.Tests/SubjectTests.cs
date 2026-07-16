@@ -1,7 +1,6 @@
-using Kingo.Graphs;
 using Results;
 
-namespace Kingo.Tests.Graphs;
+namespace Kingo.Graphs.Tests;
 
 public sealed class SubjectTests
 {

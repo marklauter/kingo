@@ -13,7 +13,7 @@
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<!-- CA2225 Provide a named alternate to operator op_Implicit : fights idiomatic value-type operators where ToString()/From(string) already exist -->
 		<!-- IDE0011 Add braces : .editorconfig prefers braceless single-statement blocks; suppression aligns the analyzer with the codebase convention -->
-		<!-- CA1724 Type names should not match namespaces : domain vocabulary (Policy) collides with legacy framework namespaces like System.Security.Policy; the domain word wins -->
+		<!-- CA1724 Type names should not match namespaces : domain vocabulary (Schema) collides with framework namespaces like System.Xml.Schema; the domain word wins -->
 		<!-- CA1716 Identifiers should not match keywords : domain vocabulary (Namespace, Error) matches language keywords; the domain word wins -->
 		<NoWarn>$(NoWarn);CA2225;IDE0011;CA1724;CA1716</NoWarn>
 	</PropertyGroup>

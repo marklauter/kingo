@@ -31,7 +31,7 @@ The adapter side, as landed 2026-07-15: `SdlParser.Parse(text) → Result<Schema
 ## Next
 
 - ~~Dissolve `Kingo.Serialization`~~ — done 2026-07-14: project + tests deleted, references replaced (`.Pdl` → Kingo + Results; `.Json`/`.Yaml` → Kingo), removed from `Kingo.slnx`, `SdlSerializer` detached from the interface, `PublicTypesImplementAPort` rule and `portAssemblyName` removed from `AdapterArchitectureTestsBase`. Build/tests deliberately not run yet.
-- ~~Add `Schema`~~ — done 2026-07-14 (`Kingo.Schemas.Schema`; `Create` is the only construction path (private ctor, house Cons): `schema.empty`, `schema.duplicate_namespace`; SchemaTests in Kingo.Tests).
+- ~~Add `Schema`~~ — done 2026-07-14 (`Kingo.Schemas.Schema`; `Create` is the only construction path (private ctor, house Cons): `schema.empty`, `schema.duplicate_namespace`; SchemaTests in Kingo.Schemas.Tests).
 - ~~Update [[architecture]]~~ — done 2026-07-14 (ports section rewritten; serialization-project jobs corrected).
 - ~~Rework `Kingo.Sdl` public surface~~ — done 2026-07-15: `SdlParser.Parse(text) → Result<Schema>`, `schema.Print()` extension, `RequireUniqueNames` folded into `Schema.Create`, `SdlDocument` plan dropped.
 - ~~Rename `SdlSerializer` → `SdlParser`~~ — done 2026-07-15, with `RewriteExpressionRenderer` → `RewriteExpressionPrinter` (the compiler-lineage parser/printer pair; the round-trip tests pin parse ∘ print = id).

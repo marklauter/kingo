@@ -1,6 +1,4 @@
-using Kingo.Schemas;
-
-namespace Kingo.Tests.Schemas;
+namespace Kingo.Schemas.Tests;
 
 public sealed class RelationshipTests
 {

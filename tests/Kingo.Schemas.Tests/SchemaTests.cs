@@ -1,9 +1,8 @@
-using Kingo.Schemas;
 using Results;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Tests.Schemas;
+namespace Kingo.Schemas.Tests;
 
 public sealed class SchemaTests
 {

@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Policy parser / serializer -->
+		<!-- SDL parser / serializer -->
 		<PackageVersion Include="Superpower" Version="3.1.0" />
 		<PackageVersion Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>

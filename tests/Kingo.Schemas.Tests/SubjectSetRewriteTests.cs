@@ -1,8 +1,7 @@
-using Kingo.Schemas;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Tests.Schemas;
+namespace Kingo.Schemas.Tests;
 
 public sealed class SubjectSetRewriteTests
 {
@@ -62,6 +61,15 @@ public sealed class SubjectSetRewriteTests
         var swapped = new TupleToSubjectSetRewrite(Id("viewer"), Id("parent"));
 
         Assert.NotEqual(a, swapped);
+    }
+
+    [Fact]
+    public void TupleToSubjectSetRewrite_ExposesComponentsInDeclaredOrder()
+    {
+        var rewrite = new TupleToSubjectSetRewrite(Id("parent"), Id("viewer"));
+
+        Assert.Equal(Id("parent"), rewrite.TuplesetRelationship);
+        Assert.Equal(Id("viewer"), rewrite.ComputedRelationship);
     }
 
     // ---- UnionRewrite ----
@@ -208,6 +216,18 @@ public sealed class SubjectSetRewriteTests
         var swapped = new ExclusionRewrite(exclude, include);
 
         Assert.NotEqual(a, swapped);
+    }
+
+    [Fact]
+    public void ExclusionRewrite_ExposesIncludeAndExcludeInDeclaredOrder()
+    {
+        var include = new ComputedSubjectSetRewrite(Id("member"));
+        var exclude = new ComputedSubjectSetRewrite(Id("banned"));
+
+        var rewrite = new ExclusionRewrite(include, exclude);
+
+        Assert.Equal(include, rewrite.Include);
+        Assert.Equal(exclude, rewrite.Exclude);
     }
 
     // ---- Nested composites ----
