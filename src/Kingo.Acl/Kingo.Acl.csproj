@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kingo\Kingo.csproj" />
+		<ProjectReference Include="..\Kingo.Graphs\Kingo.Graphs.csproj" />
+		<ProjectReference Include="..\Kingo.Schemas\Kingo.Schemas.csproj" />
+		<ProjectReference Include="..\Results\Results.csproj" />
+	</ItemGroup>
+
+</Project>
