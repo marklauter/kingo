@@ -7,6 +7,11 @@ namespace Kingo.Sdl;
 /// <see cref="string"/>s; <see cref="RewriteExpressionParser"/> transforms the tree into the core <c>SubjectSetRewrite</c> algebra at its exit, parsing every
 /// identifier through <c>RelationshipIdentifier.Parse</c>. Build-once, transform-once: nodes are never compared, so these are plain sealed classes, not
 /// records.
+/// <para>
+/// Each node is named for its algebra counterpart with a <c>Node</c> suffix — the tier difference is the raw <see cref="string"/> leaves, not the vocabulary, so
+/// the suffix and the property types carry it and the stems match <c>SubjectSetRewrite</c> exactly. Abbreviating the stems here would make
+/// <c>RewriteExpressionParser.Transform</c> a translation table rather than a lift.
+/// </para>
 /// </summary>
 internal abstract class RewriteNode
 {
@@ -22,13 +27,13 @@ internal sealed class ThisNode : RewriteNode
 }
 
 /// <summary>A bare identifier — another relationship on the same resource.</summary>
-internal sealed class ComputedNode(string relationship) : RewriteNode
+internal sealed class ComputedSubjectSetNode(string relationship) : RewriteNode
 {
     public string Relationship { get; } = relationship;
 }
 
 /// <summary>A <c>(tupleset, computed)</c> pair — a walk through a tupleset relationship.</summary>
-internal sealed class TupleToNode(string tuplesetRelationship, string computedSubjectSetRelationship) : RewriteNode
+internal sealed class TupleToSubjectSetNode(string tuplesetRelationship, string computedSubjectSetRelationship) : RewriteNode
 {
     public string TuplesetRelationship { get; } = tuplesetRelationship;
 
