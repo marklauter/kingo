@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Kingo.Tests.Schemas;
 
-public sealed class PolicyTests
+public sealed class SchemaTests
 {
     private static Namespace Ns(string name, params string[] relationships) =>
         Assert.IsType<Result<Namespace>.Success>(
@@ -13,8 +13,12 @@ public sealed class PolicyTests
                 NamespaceIdentifier.Create(name),
                 [.. relationships.Select(r => new Relationship(RelationshipIdentifier.Create(r)))])).Value;
 
-    private static Schema Make(ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Schema>.Success>(Schema.Create(namespaces)).Value;
+    private static SchemaIdentifier Id(string name) => SchemaIdentifier.Create(name);
+
+    private static Schema Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
+
+    private static Schema Make(SchemaIdentifier name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Schema>.Success>(Schema.Create(name, namespaces)).Value;
 
     [Fact]
     public void Equals_ElementWiseEqualNamespaces_AreEqualWithMatchingHashCodes()
@@ -68,6 +72,24 @@ public sealed class PolicyTests
     }
 
     [Fact]
+    public void Equals_DifferentNames_NotEqual()
+    {
+        // the name is the schema's domain key, so it is part of the value's identity
+        var a = Make(Id("acme"), [Ns("doc", "viewer")]);
+        var b = Make(Id("globex"), [Ns("doc", "viewer")]);
+
+        Assert.NotEqual(a, b);
+    }
+
+    [Fact]
+    public void Create_Name_IsCarriedOntoTheSchema()
+    {
+        var schema = Make(Id("acme"), [Ns("doc", "viewer")]);
+
+        Assert.Equal(Id("acme"), schema.Name);
+    }
+
+    [Fact]
     public void With_NoChanges_ProducesEqualValue()
     {
         var a = Make([Ns("doc", "viewer")]);
@@ -94,7 +116,7 @@ public sealed class PolicyTests
     [Fact]
     public void Create_UniqueNamespaceNames_ReturnsSuccessEqualToConstructed()
     {
-        var result = Schema.Create([Ns("doc", "viewer"), Ns("folder", "parent")]);
+        var result = Schema.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
 
         var success = Assert.IsType<Result<Schema>.Success>(result);
         Assert.Equal(Make([Ns("doc", "viewer"), Ns("folder", "parent")]), success.Value);
@@ -103,7 +125,7 @@ public sealed class PolicyTests
     [Fact]
     public void Create_EmptyNamespaces_ReturnsValidationFailure()
     {
-        var result = Schema.Create([]);
+        var result = Schema.Create(Id("test"), []);
 
         var failure = Assert.IsType<Result<Schema>.Failure>(result);
         var error = Assert.Single(failure.Errors);
@@ -114,7 +136,7 @@ public sealed class PolicyTests
     [Fact]
     public void Create_DefaultArray_ReturnsValidationFailure()
     {
-        var result = Schema.Create(default);
+        var result = Schema.Create(Id("test"), default);
 
         var failure = Assert.IsType<Result<Schema>.Failure>(result);
         var error = Assert.Single(failure.Errors);
@@ -124,7 +146,7 @@ public sealed class PolicyTests
     [Fact]
     public void Create_DuplicateNamespaceName_ReturnsValidationFailure()
     {
-        var result = Schema.Create([Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
+        var result = Schema.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
 
         var failure = Assert.IsType<Result<Schema>.Failure>(result);
         var error = Assert.Single(failure.Errors);
@@ -136,7 +158,7 @@ public sealed class PolicyTests
     [Fact]
     public void Create_MultipleDuplicatedNames_AccumulatesOneErrorPerNameInFirstOccurrenceOrder()
     {
-        var result = Schema.Create([Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
+        var result = Schema.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
 
         var failure = Assert.IsType<Result<Schema>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
@@ -151,7 +173,7 @@ public sealed class PolicyTests
         // Uniqueness is ordinal over canonical values. Parsed namespace names are always
         // lowercase; mixed case here is only reachable through the trusted Create path,
         // and Create compares what it is given.
-        var result = Schema.Create([Ns("doc"), Ns("Doc")]);
+        var result = Schema.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
 
         _ = Assert.IsType<Result<Schema>.Success>(result);
     }

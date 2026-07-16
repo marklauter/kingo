@@ -3,7 +3,7 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SdlRoundTripTests
+public sealed class SchemaRoundTripTests
 {
     [Theory]
     [InlineData("file:\n  - owner")]
@@ -19,9 +19,9 @@ public sealed class SdlRoundTripTests
     // 'null' is a legal relationship name; the renderer emits it as unquoted plain text and the parser reads
     // raw scalar text, so the pair stays inverse even where YAML's own typing would read a null
     [InlineData("file:\n  - null\n  - viewer: null")]
-    public void RoundTrip_FromText_PreservesDomainValues(string sdl)
+    public void RoundTrip_FromText_PreservesDomainValues(string namespaceMap)
     {
-        var original = ParseSuccess(sdl);
+        var original = ParseSuccess(Document(namespaceMap));
         var roundTripped = ParseSuccess(original.Print());
 
         Assert.Equal(original, roundTripped);
@@ -78,7 +78,7 @@ public sealed class SdlRoundTripTests
     [Fact]
     public void RoundTrip_ComplexDocument_PreservesDomainValues()
     {
-        const string sdl = """
+        const string namespaceMap = """
             file:
               - owner
               - editor: this | owner
@@ -93,9 +93,21 @@ public sealed class SdlRoundTripTests
               - banned
             """;
 
-        var original = ParseSuccess(sdl);
+        var original = ParseSuccess(Document(namespaceMap));
         var roundTripped = ParseSuccess(original.Print());
 
+        Assert.Equal(original, roundTripped);
+    }
+
+    [Fact]
+    public void RoundTrip_SchemaName_SurvivesTheDocument()
+    {
+        // the name is in the document, so parse ∘ print = id covers the schema's domain key too
+        var original = ParseSuccess(Document("file:\n  - owner", name: "acme"));
+
+        var roundTripped = ParseSuccess(original.Print());
+
+        Assert.Equal(SchemaId("acme"), roundTripped.Name);
         Assert.Equal(original, roundTripped);
     }
 }

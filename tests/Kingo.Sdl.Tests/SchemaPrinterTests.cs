@@ -3,7 +3,7 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SdlPrinterTests
+public sealed class SchemaPrinterTests
 {
     [Fact]
     public void Print_SimpleDocument_EmitsCanonicalSdl()
@@ -20,7 +20,7 @@ public sealed class SdlPrinterTests
                 ]),
         ]);
 
-        Assert.Equal("file:\n- owner\n- editor: this | owner\n", schema.Print());
+        Assert.Equal("schema: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", schema.Print());
     }
 
     [Fact]
@@ -51,6 +51,14 @@ public sealed class SdlPrinterTests
     }
 
     [Fact]
+    public void Print_SchemaName_LeadsTheDocument()
+    {
+        var schema = MakeSchema(SchemaId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
+
+        Assert.StartsWith("schema: acme\nnamespaces:\n", schema.Print(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Print_MultipleNamespaces_EmitsAllInOrder()
     {
         var schema = MakeSchema(
@@ -59,7 +67,7 @@ public sealed class SdlPrinterTests
             MakeNs(Ns("folder"), [Bare("viewer")]),
         ]);
 
-        Assert.Equal("file:\n- owner\nfolder:\n- viewer\n", schema.Print());
+        Assert.Equal("schema: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", schema.Print());
     }
 
     [Fact]
@@ -80,7 +88,7 @@ public sealed class SdlPrinterTests
     {
         var schema = MakeSchema([MakeNs(Ns("file"), [])]);
 
-        Assert.Equal("file: []\n", schema.Print());
+        Assert.Equal("schema: test\nnamespaces:\n  file: []\n", schema.Print());
     }
 
     [Theory]

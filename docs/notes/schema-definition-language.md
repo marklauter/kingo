@@ -1,8 +1,8 @@
 ---
 type: note
 title: SDL — YAML structure with embedded rewrite expressions
-summary: "The Schema Definition Language: a YAML outer structure carrying the namespace map, with each relationship's optional rewrite expression as a small embedded language parsed separately. Implemented by the Kingo.Sdl adapter."
-aliases: [pdl-yaml]
+summary: "The Schema Definition Language: a YAML document carrying the schema's name and its namespace map, with each relationship's optional rewrite expression as a small embedded language parsed separately. Implemented by the Kingo.Sdl adapter."
+aliases: [pdl-yaml, sdl-yaml]
 tags: [note, spec, sdl, yaml]
 created: 2026-05-12
 status: evolving
@@ -10,9 +10,18 @@ status: evolving
 
 # SDL — YAML structure with embedded rewrite expressions
 
-The Schema Definition Language defines namespaces and their relationships ([[domain-language]]: the schema-side record is `Relationship`, the algebra is `SubjectSetRewrite`). The outer structure is YAML; each relationship's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower). Implemented by `Kingo.Sdl` per [[dissolve-kingo-pdl-under-hexagonal-layout]] — parse errors accumulate as `Result` validation failures, the transform exits through `Namespace.Create`, and the serializer's newline is pinned to `\n`.
+The Schema Definition Language names a schema and defines its namespaces and their relationships ([[domain-language]]: the schema-side record is `Relationship`, the algebra is `SubjectSetRewrite`). The outer structure is YAML; each relationship's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower). Implemented by `Kingo.Sdl` per [[dissolve-kingo-pdl-under-hexagonal-layout]] — parse errors accumulate as `Result` validation failures, the transform exits through `Namespace.Create` and `Schema.Create`, and the serializer's newline is pinned to `\n`.
 
-This split is deliberate. YAML carries the namespace map, comments, indentation, and editor tooling. The rewrite expression — e.g. `(this | editor | (parent, viewer)) ! banned` — would be awkward to encode in pure YAML, so it lives in a string and gets parsed separately.
+This split is deliberate. YAML carries the name, the namespace map, comments, indentation, and editor tooling. The rewrite expression — e.g. `(this | editor | (parent, viewer)) ! banned` — would be awkward to encode in pure YAML, so it lives in a string and gets parsed separately.
+
+## Document envelope
+
+A document is a single YAML mapping with exactly two keys (settled 2026-07-15, with `SchemaIdentifier`):
+
+- `schema:` — the schema's name, and its **domain key** (name-as-identity, provisional — see [[domain-language]] open items). Same grammar as a namespace name: `^[A-Za-z_][A-Za-z0-9_]*$`, case-insensitive, normalized to lowercase. Both are authored vocabulary, so they share a rule; a resource id is client-minted and does not.
+- `namespaces:` — the namespace map.
+
+The name lives **in the document** rather than arriving as a parse argument, which is what keeps `parse ∘ print = id` covering the schema whole — the printer can emit every part of the value it was given. Missing or misshapen keys are `sdl.document`; a name that breaks the grammar is `schema_id.empty` / `schema_id.invalid`, since `SchemaIdentifier` owns it.
 
 ## Operator precedence
 
@@ -36,19 +45,22 @@ A structural note the adapter honors: a run of consecutive same-operator applica
 #   & = intersection operator
 #   | = union operator
 
-file:                           # namespace
-  - owner                       # empty relationship - implicit this
-  - editor: this | owner        # relationship with union rewrite
-  - viewer: >                   # relationship with union, tupleset, and exclusion rewrites
-      (this | editor | (parent, viewer)) ! banned
-  - auditor: this & viewer      # relationship with intersection rewrite
-  - banned                      # empty relationship - implicit this
+schema: acme                      # the schema's name, and its domain key
 
-# second namespace defined within same document
-folder:
-  - owner
-  - viewer: (this | (parent, viewer)) ! banned
-  - banned
+namespaces:
+  file:                           # namespace
+    - owner                       # empty relationship - implicit this
+    - editor: this | owner        # relationship with union rewrite
+    - viewer: >                   # relationship with union, tupleset, and exclusion rewrites
+        (this | editor | (parent, viewer)) ! banned
+    - auditor: this & viewer      # relationship with intersection rewrite
+    - banned                      # empty relationship - implicit this
+
+  # second namespace defined within same document
+  folder:
+    - owner
+    - viewer: (this | (parent, viewer)) ! banned
+    - banned
 ```
 
 A bare relationship name (e.g. `owner`, `banned`) has no rewrite — semantically equivalent to `this`. A namespace with no relationships (`file:` alone, or `file: []`) is valid. Identifiers are case-insensitive and normalize to lowercase — that is the core's `Parse` rule, not the adapter's.

@@ -7,9 +7,14 @@ namespace Kingo.Sdl.Tests;
 /// <summary>Shared construction and unwrap helpers for the SDL adapter tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
+    /// <summary>The schema name every fixture document carries unless it is testing the name itself.</summary>
+    public const string DefaultSchemaName = "test";
+
     public static NamespaceIdentifier Ns(string value) => NamespaceIdentifier.Create(value);
 
     public static RelationshipIdentifier Rel(string value) => RelationshipIdentifier.Create(value);
+
+    public static SchemaIdentifier SchemaId(string value) => SchemaIdentifier.Create(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
@@ -19,11 +24,25 @@ internal static class TestHelpers
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
     public static Schema MakeSchema(ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Schema>.Success>(Schema.Create(namespaces)).Value;
+        MakeSchema(SchemaId(DefaultSchemaName), namespaces);
+
+    public static Schema MakeSchema(SchemaIdentifier name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Schema>.Success>(Schema.Create(name, namespaces)).Value;
+
+    /// <summary>
+    /// Wraps a namespace-map fragment in the SDL document envelope — the <c>schema:</c> name plus the <c>namespaces:</c> key — so a
+    /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
+    /// <see cref="ParseFailure"/> directly.
+    /// </summary>
+    public static string Document(string namespaceMap, string name = DefaultSchemaName) =>
+        $"schema: {name}\nnamespaces:\n{Indent(namespaceMap)}";
+
+    private static string Indent(string text) =>
+        string.Join('\n', text.Split('\n').Select(line => line.Length == 0 ? line : $"  {line}"));
 
     public static Schema ParseSuccess(string text) =>
-        Assert.IsType<Result<Schema>.Success>(SdlParser.Parse(text)).Value;
+        Assert.IsType<Result<Schema>.Success>(SchemaParser.Parse(text)).Value;
 
     public static ImmutableArray<Error> ParseFailure(string text) =>
-        Assert.IsType<Result<Schema>.Failure>(SdlParser.Parse(text)).Errors;
+        Assert.IsType<Result<Schema>.Failure>(SchemaParser.Parse(text)).Errors;
 }

@@ -8,16 +8,20 @@ namespace Kingo.Sdl;
 
 /// <summary>
 /// The parse half of the SDL adapter: Schema Definition Language document text (docs/notes/sdl-yaml.md) to the core schema model
-/// (<see cref="SdlPrinter.Print"/> renders the other direction). YAML carries the outer namespace map; each relationship's optional rewrite
+/// (<see cref="SchemaPrinter.Print"/> renders the other direction). YAML carries the schema name and the outer namespace map; each relationship's optional rewrite
 /// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionPrinter"/>. Parsing exits through
-/// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>Namespace.Create</c>, <c>Schema.Create</c> —
-/// accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
+/// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>SchemaIdentifier.Parse</c>, <c>Namespace.Create</c>,
+/// <c>Schema.Create</c> — accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
-public static class SdlParser
+public static class SchemaParser
 {
+    private const string NameKey = "schema";
+    private const string NamespacesKey = "namespaces";
+
     /// <summary>
     /// Parses untrusted SDL text, returning the defined <see cref="Schema"/> or every accumulated validation <see cref="Error"/>: <c>sdl.syntax</c>
-    /// (malformed YAML), <c>sdl.document</c> (not a single mapping), <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
+    /// (malformed YAML), <c>sdl.document</c> (not a single mapping, or missing/misshapen <c>schema:</c> / <c>namespaces:</c> keys),
+    /// <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
     /// <c>sdl.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>sdl.rewrite</c> (bad rewrite expressions), plus whatever
     /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> via <c>Namespace.Create</c>, and <c>schema.empty</c> /
     /// <c>schema.duplicate_namespace</c> via <c>Schema.Create</c> — YAML keys are case-sensitive but namespace identity is not, so case-variant keys collapse
@@ -25,8 +29,24 @@ public static class SdlParser
     /// </summary>
     public static Result<Schema> Parse(string text) =>
         LoadDocument(text)
-            .Bind(document => document.Children.Select(ParseNamespace).Sequence())
-            .Bind(Schema.Create);
+            .Bind(document => Result.Apply(
+                ParseName(document).Map<Func<ImmutableArray<Namespace>, (SchemaIdentifier Name, ImmutableArray<Namespace> Namespaces)>>(
+                    name => namespaces => (name, namespaces)),
+                ParseNamespaces(document)))
+            .Bind(schema => Schema.Create(schema.Name, schema.Namespaces));
+
+    /// <summary>The document's <c>schema:</c> key — the schema's name, and its domain key (<see cref="SchemaIdentifier"/> owns the grammar).</summary>
+    private static Result<SchemaIdentifier> ParseName(YamlMappingNode document) =>
+        // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
+        document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
+            ? SchemaIdentifier.Parse(scalar.Value!)
+            : Result.Failure<SchemaIdentifier>(Error.Validation("sdl.document", $"a SDL document requires a '{NameKey}:' key naming the schema, with a scalar value"));
+
+    /// <summary>The document's <c>namespaces:</c> key — the namespace map. Its emptiness is <c>Schema.Create</c>'s call (<c>schema.empty</c>), not this adapter's.</summary>
+    private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
+        document.Children.TryGetValue(new YamlScalarNode(NamespacesKey), out var namespaces) && namespaces is YamlMappingNode map
+            ? map.Children.Select(ParseNamespace).Sequence()
+            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation("sdl.document", $"a SDL document requires a '{NamespacesKey}:' key mapping namespace name to relationship list"));
 
     private static Result<YamlMappingNode> LoadDocument(string text)
     {
@@ -37,7 +57,7 @@ public static class SdlParser
             stream.Load(reader);
             return stream.Documents is [{ RootNode: YamlMappingNode document }]
                 ? Result.Success(document)
-                : Result.Failure<YamlMappingNode>(Error.Validation("sdl.document", "a SDL document is a single YAML mapping of namespace name to relationship list"));
+                : Result.Failure<YamlMappingNode>(Error.Validation("sdl.document", "a SDL document is a single YAML mapping carrying a 'schema:' name and a 'namespaces:' map"));
         }
         catch (YamlException ex)
         {
