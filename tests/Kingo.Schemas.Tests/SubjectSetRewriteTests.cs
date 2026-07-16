@@ -69,7 +69,7 @@ public sealed class SubjectSetRewriteTests
         var rewrite = new TupleToSubjectSetRewrite(Id("parent"), Id("viewer"));
 
         Assert.Equal(Id("parent"), rewrite.TuplesetRelationship);
-        Assert.Equal(Id("viewer"), rewrite.ComputedRelationship);
+        Assert.Equal(Id("viewer"), rewrite.ComputedSubjectSetRelationship);
     }
 
     // ---- UnionRewrite ----

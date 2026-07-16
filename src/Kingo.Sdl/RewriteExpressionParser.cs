@@ -36,7 +36,7 @@ internal static class RewriteExpressionParser
             TupleToNode tupleTo => Result.Apply(
                 RelationshipIdentifier.Parse(tupleTo.TuplesetRelationship)
                     .Map(Func<RelationshipIdentifier, SubjectSetRewrite> (tupleset) => computed => new TupleToSubjectSetRewrite(tupleset, computed)),
-                RelationshipIdentifier.Parse(tupleTo.ComputedRelationship)),
+                RelationshipIdentifier.Parse(tupleTo.ComputedSubjectSetRelationship)),
             UnionNode union => union.Children.Select(Transform).Sequence()
                 .Map(children => (SubjectSetRewrite)new UnionRewrite(children)),
             IntersectionNode intersection => intersection.Children.Select(Transform).Sequence()
@@ -109,9 +109,9 @@ internal static class RewriteExpressionParser
             from lparen in Token.EqualTo(RewriteExpressionToken.LeftParen)
             from tupleset in identifier
             from comma in Token.EqualTo(RewriteExpressionToken.Comma)
-            from computedRelationship in identifier
+            from computedSubjectSetRelationship in identifier
             from rparen in Token.EqualTo(RewriteExpressionToken.RightParen)
-            select (RewriteNode)new TupleToNode(tupleset, computedRelationship);
+            select (RewriteNode)new TupleToNode(tupleset, computedSubjectSetRelationship);
 
         TokenListParser<RewriteExpressionToken, RewriteNode>? expressionRef = null;
         var term = tupleToSubjectSet.Try().Or(thisTerm.Try()).Or(computed)

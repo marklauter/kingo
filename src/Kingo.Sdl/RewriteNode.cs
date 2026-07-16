@@ -28,11 +28,11 @@ internal sealed class ComputedNode(string relationship) : RewriteNode
 }
 
 /// <summary>A <c>(tupleset, computed)</c> pair — a walk through a tupleset relationship.</summary>
-internal sealed class TupleToNode(string tuplesetRelationship, string computedRelationship) : RewriteNode
+internal sealed class TupleToNode(string tuplesetRelationship, string computedSubjectSetRelationship) : RewriteNode
 {
     public string TuplesetRelationship { get; } = tuplesetRelationship;
 
-    public string ComputedRelationship { get; } = computedRelationship;
+    public string ComputedSubjectSetRelationship { get; } = computedSubjectSetRelationship;
 }
 
 /// <summary>A run of <c>|</c>-joined operands.</summary>

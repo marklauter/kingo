@@ -7,7 +7,7 @@ namespace Kingo.Schemas;
 /// (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a tupleset
 /// (<see cref="TupleToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>,
 /// <see cref="ExclusionRewrite"/>). Parse-agnostic: produced equally by the SDL adapter, other serialization adapters, or the Write API. Authoring syntax and
-/// precedence: docs/notes/sdl-yaml.md.
+/// precedence: docs/notes/schema-definition-language.md.
 /// </summary>
 public abstract record SubjectSetRewrite
 {
@@ -29,12 +29,13 @@ public sealed record ComputedSubjectSetRewrite(
 
 /// <summary>
 /// Walks the statements of <paramref name="TuplesetRelationship"/> on the resource and, for each subject found, evaluates
-/// <paramref name="ComputedRelationship"/> on that subject — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants viewer on
-/// the file").
+/// <paramref name="ComputedSubjectSetRelationship"/> on that subject — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants
+/// viewer on the file"). The second relationship names a computed subject set on each resolved subject — the same construct as
+/// <see cref="ComputedSubjectSetRewrite"/>, applied to the tupleset's subjects rather than to this resource; the name says so.
 /// </summary>
 public sealed record TupleToSubjectSetRewrite(
     RelationshipIdentifier TuplesetRelationship,
-    RelationshipIdentifier ComputedRelationship)
+    RelationshipIdentifier ComputedSubjectSetRelationship)
     : SubjectSetRewrite;
 
 /// <summary>Union of the child rewrites' subject sets. Equality is structural over <see cref="Children"/> (element-wise, order-sensitive).</summary>
