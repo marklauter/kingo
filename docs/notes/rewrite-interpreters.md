@@ -1,7 +1,7 @@
 ---
 type: todo
 title: Rewrite interpreters — Contains and Expand
-summary: "One algebra, two interpreters: Contains (Check's short-circuiting membership predicate) and Expand (full tree materialization) over SubjectSetRewrite — pure core, fact lookup as the first genuine port, DecisionRecord as the result. Requirements only; design clean-room."
+summary: "One algebra, two interpreters: Contains (Check's short-circuiting membership predicate) and Expand (full tree materialization) over SubjectSetRewrite — in Kingo.Acl, fact lookup as the first genuine port, Decision as the result. Requirements only; design clean-room."
 tags: [note, todo, acl, interpreters]
 created: 2026-07-15
 status: open
@@ -17,7 +17,7 @@ Design this in a fresh context from this note, the Zanzibar paper (`5068.pdf` on
 
 ## The work item
 
-Two evaluators over the `SubjectSetRewrite` algebra, pure core code in `Kingo`:
+Two evaluators over the `SubjectSetRewrite` algebra, pure domain code in `Kingo.Acl` — the one project that references both `Kingo.Graphs` and `Kingo.Schemas`, and the home of the fact-lookup port its adapters implement later:
 
 - **Contains** — the membership predicate behind the Check API: subject ∈ subjectset? A short-circuiting boolean walk; the hot path.
 - **Expand** — full materialization of a subjectset's membership tree, nothing skipped; the audit/debug/UI view.
@@ -28,10 +28,26 @@ One algebra, two interpreters. This is the first joint consumer of both aggregat
 
 - The domain predicate is **`Contains`** — set-first: `subjectSet.Contains(subject)` matches the ∋ reading ([[domain-language]]) and carries .NET's strongest prior (`set.Contains(member)`). Not `IsMember`/`IsAMemberOf`, which read member-first and re-invert that reading.
 - **`Check`** stays the service/API-level name — Zanzibar's reach word ([[four-service-split-by-load-profile]]).
+- **`Kookie`** is the Kingo name for the zookie (decided 2026-07-16): an opaque kernel value naming a point in the store's timeline. Request-side it's a *floor* ("no earlier than this snapshot"); Decision-side it's the *pin* ("evaluated at this snapshot"). "Zookie" survives only as the paper-facing alias ([[storage-versioning-design]]).
+
+## Settled — domain-modeling interview, 2026-07-16
+
+Kernels pinned with Mark before the clean-room session; these are constraints, not suggestions.
+
+- <!-- locked --> **`Contains` answers one question: does the graph's derived closure contain this fact.** There is no "deny" concept in the algebra — `!` is set exclusion, just another operator. Membership at a snapshot, nothing else; "authorized" is the Check host's interpretation of the answer, not the interpreter's concern.
+- **The question is a putative `Fact`; everything else is context.** `(SubjectSet, Subject)` is exactly a Fact's content, so the signature is `Contains(Fact fact) → Result<Decision>`: does this statement hold at this snapshot — stored directly or derived through the rewrite algebra (the paper's own modality: check takes a "putative" member). `Fact` now carries `(SubjectSet, Subject)` positionally (reshaped 2026-07-16). The evaluation context — the `Schema` value, the snapshot-pinned fact port, the `TimeProvider` — is construction state, not per-call args. The zookie is consumed at the host edge to pin the port; the interpreter never sees a zookie argument.
+- **A subjectset-valued member means literal element membership, not subset reasoning.** The `Subject` DU admits `SubjectSet` (a stored `doc:x#viewer@group:eng#member` is legal), so `Contains(doc:x#viewer @ group:eng#member)` asks whether that subjectset appears as an element of the closure — value equality at the leaves, no second semantics under `!`. Matches Zanzibar: Expand's leaves are "user IDs or usersets."
+- **`Decision` carries exactly one Fact — the one judged — and none of the facts consulted to judge it.** Decision = the Fact judged, the verdict, the snapshot pin (`Kookie`), the schema version, the wall timestamp. Reproducibility comes from the store's multi-version history, not the payload.
+- **The depth bound is evaluator constructor config** (decided 2026-07-16) — injected context alongside the port and clock, not SDL and not per-call. `DepthExceeded` carries the bound it hit, so audit distinguishes "cycle in data" from "bound too low."
+- **`a ! b` where `b` errors is `Result.Failure` — no Decision** (decided 2026-07-16). Related instinct to honor in design: where a no-answer value is ever needed, prefer a domain `Decision.Empty` (collection-style singleton) over null — carry emptiness in the domain, not in the C# language.
+- **The pinned port exposes its snapshot token.** An opaque value the interpreter copies into the `Decision` without interpreting, so the Decision is complete at birth — no host-side enrichment.
+- **The result channel is `Result<Decision>`.** Undefined namespace/relationship and depth-exceeded are `Result` failures — where no membership answer exists there is no `Decision`, not a Decision wearing an error flag. Fail-closed (error → deny + alarm) is host policy, visible at the edge. Audit covers both channels: success serializes the Decision; failure serializes the error with the request envelope.
+- **`Decision` carries two clocks, distinctly:** the snapshot token (logical time — *which* facts) and the wall timestamp from the injected `TimeProvider` (*when* evaluated).
+- **`Decision` does not carry the proof path.** The witness doesn't survive `!`: a true verdict under `(this | (parent, viewer)) ! banned` embeds a non-membership claim for `banned`, and non-membership has no path — its proof is the exhausted search (a *false* verdict, conversely, can have a concrete path through `banned`). A path also costs hot-path allocation and leaks other subjects' relationships to any caller allowed to ask yes/no questions. "Why" is recomputed on demand: re-run `Contains` or run `Expand` at the Decision's recorded snapshot — reproducibility is a storage property (multi-version tuples), not a payload property ([[storage-versioning-design]]).
 
 ## Requirements
 
-1. The result is a **`DecisionRecord`** (`Kingo.Decisions`, stub exists), not a bare bool: verdict, subject, subjectset, the snapshot evaluated at, schema version, timestamp — the audit event is this value serialized ([[authz-event-logging]]). Expand needs a sibling result type carrying the tree.
+1. The result is a **`Decision`** (`Kingo` kernel, stub exists), not a bare bool: the Fact judged, verdict, the snapshot evaluated at, schema version, timestamp — the audit event is this value serialized ([[authz-event-logging]]). The timestamp comes from an injected `System.TimeProvider` (requirement 9's "a clock it didn't receive" — this is the received one). Expand needs a sibling result type carrying the tree.
 2. Direct membership (`this`) includes **both** direct subject facts **and** the members of subjectset-valued facts stored under the same (resource, relationship) — Zanzibar's userset-expansion clause. A grant to `group:eng#member` must make every member of that set a member here.
 3. The walk is **cycle-safe and depth-bounded with a modeled outcome** (a `Result` error, never a crash). Cycles can exist in the schema (mutual computed subjectsets) and in the graph data (parent loops) — and graph data is user-writable, so an uncrashable hot path is a security property, not a nicety.
 4. Evaluating against an **undefined namespace or relationship is a modeled error**, distinct from a denial. Fail-closed applies to facts, not to schema drift or caller defects.
@@ -39,4 +55,4 @@ One algebra, two interpreters. This is the first joint consumer of both aggregat
 6. The access patterns this work discovers are the **input to the DynamoDB key design** ([[dynamodblite-substrate]]). Expected at minimum: point lookup (does this fact exist?) and range read (all facts under resource#relationship); record what Expand adds.
 7. **Exclusion and intersection get explicit semantics decisions and tests.** Evaluation order within them is a cost choice; the semantics are fixed and must be pinned by tests (the SDL example's `banned` exclusion is the obvious fixture).
 8. **Tupleset traversal** (`TupleToSubjectSet`): make an explicit, tested decision on how a parent fact whose subject carries a real relationship (rather than `...`) is treated.
-9. **Audit emission is an effect at the host edge.** The interpreter returns the `DecisionRecord` and never sees a sink, a logger, or a clock it didn't receive.
+9. **Audit emission is an effect at the host edge.** The interpreter returns the `Decision` and never sees a sink, a logger, or a clock it didn't receive (time is an injected `TimeProvider`, per requirement 1).

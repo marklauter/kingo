@@ -21,6 +21,10 @@ Versioning shows up three ways in the Zanzibar design, and Kingo has settled dec
 
 ## Interpretation
 
+**The snapshot token has two roles, and resolving between them is a service** (2026-07-16, [[rewrite-interpreters]]): request-side the token is a *floor* ("evaluate no earlier than this"); Decision-side it is the *pin* (the exact snapshot evaluated at — the reproducibility ingredient). Floor → pin resolution is performed by a zookie-aware service in the storage layer that applies the induced latency (waits out clock uncertainty, since DynamoDB has no TrueTime) so global order is trustworthy. The host edge resolves the floor, pins the fact port, and the interpreter never sees the mechanism — it copies the pin into the `Decision`. Kingo's name for the token is **`Kookie`**; "zookie" is the paper-facing alias. Working assumption (Mark, 2026-07-16): commit-wait over NTP in place of TrueTime — the same protocol with a wider uncertainty window, paid as added commit latency on the Write path, not on Check.
+
+**Retention is the audit guarantee, not a GC knob** (2026-07-16, [[authz-event-logging]]): a `Decision` + zookie is reproducible only while the store retains the tuple versions at that snapshot. The version-retention window must be at least the audit-replay window — beyond it, old Decisions degrade from reproducible claims to assertions (or periodic snapshot archives extend the horizon, as Zanzibar's offline pipeline does).
+
 One design, three consumers: the zookie a client holds, the condition a write asserts, and the cursor a Watch stream resumes from should all derive from the same versioning scheme. Designing them separately risks three incompatible clocks. The hard part is the commit-timestamp protocol — DynamoDB gives conditional writes, not Spanner's TrueTime, so "snapshot no earlier than zookie" needs an app-layer answer (the paper's §2.2 zookie protocol, reworked for a store without global commit timestamps).
 
 ## Next

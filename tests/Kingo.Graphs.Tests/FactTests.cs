@@ -10,8 +10,8 @@ public sealed class FactTests
         var result = Fact.Parse("doc:readme#viewer@user:anne");
 
         var success = Assert.IsType<Result<Fact>.Success>(result);
-        Assert.Equal("doc:readme", success.Value.Resource.ToString());
-        Assert.Equal("viewer", success.Value.Relationship.Value);
+        Assert.Equal("doc:readme", success.Value.SubjectSet.Resource.ToString());
+        Assert.Equal("viewer", success.Value.SubjectSet.Relationship.Value);
         var direct = Assert.IsType<DirectSubject>(success.Value.Subject);
         Assert.Equal("user:anne", direct.Id.Value);
         Assert.Equal("doc:readme#viewer@user:anne", success.Value.ToString());
@@ -28,11 +28,15 @@ public sealed class FactTests
     }
 
     [Fact]
-    public void SubjectSet_ReflectsResourceAndRelationship()
+    public void Parse_SubjectSet_IsTheStatementsLeftHandSide()
     {
         var fact = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
 
-        Assert.Equal(new SubjectSet(fact.Resource, fact.Relationship), fact.SubjectSet);
+        Assert.Equal(
+            new SubjectSet(
+                new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
+                RelationshipIdentifier.Create("viewer")),
+            fact.SubjectSet);
     }
 
     [Theory]
@@ -87,8 +91,9 @@ public sealed class FactTests
     {
         var left = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
         var right = new Fact(
-            new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
-            RelationshipIdentifier.Create("viewer"),
+            new SubjectSet(
+                new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
+                RelationshipIdentifier.Create("viewer")),
             new DirectSubject(SubjectIdentifier.Create("user:anne")));
 
         Assert.Equal(right, left);
