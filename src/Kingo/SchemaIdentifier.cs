@@ -8,7 +8,7 @@ namespace Kingo;
 /// <summary>
 /// Identifies a <see cref="Schemas.Schema"/> — the config-side aggregate's domain key. Name-as-identity (settled 2026-07-15,
 /// provisionally: no rename, only a new schema; the surrogate-key alternative stays available if admin rename-freedom is worth
-/// more than the identity being legible — see docs/notes/domain-language.md). Shares <see cref="NamespaceIdentifier"/>'s grammar
+/// more than the identity being legible — see [[domain-language]]). Shares <see cref="NamespaceIdentifier"/>'s grammar
 /// and case-insensitivity because it is the same kind of thing: authored vocabulary, not a client-minted reference like
 /// <see cref="ResourceIdentifier"/>. <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
@@ -52,7 +52,7 @@ public readonly record struct SchemaIdentifier
 
 }
 
-/// <summary>Character rules for <see cref="SchemaIdentifier"/> — the terminal owns its grammar (docs/notes/domain-language.md).</summary>
+/// <summary>Character rules for <see cref="SchemaIdentifier"/> — the terminal owns its grammar ([[domain-language]]).</summary>
 internal static partial class SchemaIdentifierPatterns
 {
     private const RegexOptions PatternOptions =

@@ -11,7 +11,7 @@ namespace Kingo.Schemas;
 /// <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
 /// concurrency, authorship) is the Write context's wrapper and never lives in core: if this type ever grows
 /// a version field, a timestamp, or a mutation method, it has crossed the line and belongs to a service
-/// (docs/notes/domain-language.md).
+/// ([[domain-language]]).
 /// </summary>
 public sealed record Namespace
 {
@@ -28,7 +28,7 @@ public sealed record Namespace
     /// <summary>
     /// The only construction path — validating construction for untrusted and trusted callers alike: rejects duplicate relationship names, accumulating one
     /// <see cref="ErrorType.Validation"/> error per duplicated name in first-occurrence order. The schema model has no core <c>Parse</c> — its text forms live
-    /// in serialization adapters, which call this after decoding (docs/notes/domain-language.md).
+    /// in serialization adapters, which call this after decoding ([[domain-language]]).
     /// </summary>
     public static Result<Namespace> Create(NamespaceIdentifier name, ImmutableArray<Relationship> relationships)
     {

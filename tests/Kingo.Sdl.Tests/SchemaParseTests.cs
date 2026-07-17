@@ -36,7 +36,7 @@ public sealed class SchemaParseTests
     [Fact]
     public void Parse_ComplexDocument_ReturnsDefinedNamespaces()
     {
-        // the example document from docs/notes/sdl-yaml.md: comments, a folded block scalar, two namespaces
+        // the example document from [[schema-definition-language]]: comments, a folded block scalar, two namespaces
         const string sdl = """
             # rewrite set operators:
             #   ! = exclusion operator

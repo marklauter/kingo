@@ -4,9 +4,9 @@ namespace Kingo.Testing;
 
 /// <summary>
 /// Architecture rules for serialization-adapter projects, layered on the universal <see cref="ArchitectureTestsBase"/> rules. One invariant defines the adapter
-/// layer today (docs/notes/architecture.md): an adapter defines no exception types, because parse failures at the trust boundary are <c>Result</c> values and
+/// layer today ([[architecture]]): an adapter defines no exception types, because parse failures at the trust boundary are <c>Result</c> values and
 /// substrate faults propagate as the substrate's own exception types. The former public-surface rule ("every public type implements a port") died with the
-/// <c>IDocumentSerializer</c> port; its replacement convention is pending (docs/todos/realign-serialization-projects-around-their-real-consumers.md).
+/// <c>IDocumentSerializer</c> port; its replacement convention is pending ([[realign-serialization-projects-around-their-real-consumers]]).
 /// </summary>
 public abstract class AdapterArchitectureTestsBase(Assembly targetAssembly, string expectedNamespacePattern)
     : ArchitectureTestsBase(targetAssembly, expectedNamespacePattern)

@@ -9,7 +9,7 @@ namespace Kingo.Sdl;
 
 /// <summary>
 /// Parses the rewrite-expression mini-language embedded in SDL relationship values — e.g. <c>(this | editor | (parent, viewer)) ! banned</c> — into the core
-/// <c>SubjectSetRewrite</c> algebra. Grammar and precedence: docs/notes/sdl-yaml.md (<c>!</c> binds tightest; <c>&amp;</c> and <c>|</c> share precedence,
+/// <c>SubjectSetRewrite</c> algebra. Grammar and precedence: [[schema-definition-language]] (<c>!</c> binds tightest; <c>&amp;</c> and <c>|</c> share precedence,
 /// left-associative). The Superpower grammar produces the internal <see cref="RewriteNode"/> tree; the transform at the exit parses every identifier through
 /// <c>RelationshipIdentifier.Parse</c> and accumulates the errors, so bad input surfaces as <see cref="Result{T}"/> validation failures, never exceptions.
 /// </summary>

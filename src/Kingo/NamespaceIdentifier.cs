@@ -6,7 +6,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Identifies a <see cref="Namespace"/> — the <c>&lt;namespace&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). Case-insensitive:
+/// Identifies a <see cref="Namespace"/> — the <c>&lt;namespace&gt;</c> terminal of the tuple grammar (see [[domain-language]]). Case-insensitive:
 /// <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct NamespaceIdentifier
@@ -49,7 +49,7 @@ public readonly record struct NamespaceIdentifier
 
 }
 
-/// <summary>Character rules for <see cref="NamespaceIdentifier"/> — the terminal owns its grammar (docs/notes/domain-language.md).</summary>
+/// <summary>Character rules for <see cref="NamespaceIdentifier"/> — the terminal owns its grammar ([[domain-language]]).</summary>
 internal static partial class NamespaceIdentifierPatterns
 {
     private const RegexOptions PatternOptions =

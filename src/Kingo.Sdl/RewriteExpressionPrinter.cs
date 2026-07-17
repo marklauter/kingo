@@ -3,7 +3,7 @@ using Kingo.Schemas;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// Prints a <c>SubjectSetRewrite</c> tree as rewrite-expression text (grammar: docs/notes/sdl-yaml.md). Parenthesization is decided by grammar position so the
+/// Prints a <c>SubjectSetRewrite</c> tree as rewrite-expression text (grammar: [[schema-definition-language]]). Parenthesization is decided by grammar position so the
 /// emitted text reparses to a structurally equal tree: a union/intersection operand that is itself a union/intersection is parenthesized (the operator chain
 /// would otherwise absorb or regroup it), and the exclude side of <c>!</c> is a <c>&lt;term&gt;</c>, so any compound there is parenthesized. Rewrites
 /// referencing a reserved relationship name (<see cref="IsReserved"/>) cannot be expressed and throw; degenerate trees the grammar cannot express — a

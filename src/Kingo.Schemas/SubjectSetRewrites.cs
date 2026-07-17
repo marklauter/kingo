@@ -7,7 +7,7 @@ namespace Kingo.Schemas;
 /// (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a tupleset
 /// (<see cref="TupleToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>,
 /// <see cref="ExclusionRewrite"/>). Parse-agnostic: produced equally by the SDL adapter, other serialization adapters, or the Write API. Authoring syntax and
-/// precedence: docs/notes/schema-definition-language.md.
+/// precedence: [[schema-definition-language]].
 /// </summary>
 public abstract record SubjectSetRewrite
 {

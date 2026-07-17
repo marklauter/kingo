@@ -7,7 +7,7 @@ using YamlDotNet.RepresentationModel;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// The parse half of the SDL adapter: Schema Definition Language document text (docs/notes/sdl-yaml.md) to the core schema model
+/// The parse half of the SDL adapter: Schema Definition Language document text ([[schema-definition-language]]) to the core schema model
 /// (<see cref="SchemaPrinter.Print"/> renders the other direction). YAML carries the schema name and the outer namespace map; each relationship's optional rewrite
 /// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionPrinter"/>. Parsing exits through
 /// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>SchemaIdentifier.Parse</c>, <c>Namespace.Create</c>,

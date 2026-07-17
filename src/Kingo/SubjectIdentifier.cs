@@ -5,7 +5,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). A subject is the unified identity a
+/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the tuple grammar (see [[domain-language]]). A subject is the unified identity a
 /// set of authn-side principals maps to; it need not be human and need not have authenticated. Character rules are provisional; <c>#</c> and <c>@</c> are
 /// reserved by the tuple grammar.
 /// </summary>
@@ -48,7 +48,7 @@ public readonly record struct SubjectIdentifier
 
 }
 
-/// <summary>Character rules for <see cref="SubjectIdentifier"/> — the terminal owns its grammar (docs/notes/domain-language.md).</summary>
+/// <summary>Character rules for <see cref="SubjectIdentifier"/> — the terminal owns its grammar ([[domain-language]]).</summary>
 internal static partial class SubjectIdentifierPatterns
 {
     private const RegexOptions PatternOptions =
@@ -56,7 +56,7 @@ internal static partial class SubjectIdentifierPatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    // provisional per docs/notes/domain-language.md: an external identity reference (e.g. user:anne);
+    // provisional per [[domain-language]]: an external identity reference (e.g. user:anne);
     // ':' is allowed, '#' and '@' are reserved by the tuple grammar
     [GeneratedRegex(@"^[A-Za-z0-9_][A-Za-z0-9_.:-]*$", PatternOptions)]
     public static partial Regex Validation();

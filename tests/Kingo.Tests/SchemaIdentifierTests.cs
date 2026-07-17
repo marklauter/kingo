@@ -60,7 +60,7 @@ public sealed class SchemaIdentifierTests
     public void Parse_AcceptsTheSameGrammarAsNamespaceIdentifier()
     {
         // schema and namespace names are the same kind of thing — authored vocabulary — and share a grammar
-        // (docs/notes/domain-language.md); this pins that they do not drift apart silently
+        // ([[domain-language]]); this pins that they do not drift apart silently
         string[] inputs = ["acme", "ACME", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 
         foreach (var input in inputs)

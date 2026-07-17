@@ -6,7 +6,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Names a relationship — the <c>&lt;relationship&gt;</c> terminal of the tuple grammar (see docs/notes/domain-language.md). Case-insensitive:
+/// Names a relationship — the <c>&lt;relationship&gt;</c> terminal of the tuple grammar (see [[domain-language]]). Case-insensitive:
 /// <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct RelationshipIdentifier
@@ -54,7 +54,7 @@ public readonly record struct RelationshipIdentifier
 
 }
 
-/// <summary>Character rules for <see cref="RelationshipIdentifier"/> — the terminal owns its grammar (docs/notes/domain-language.md).</summary>
+/// <summary>Character rules for <see cref="RelationshipIdentifier"/> — the terminal owns its grammar ([[domain-language]]).</summary>
 internal static partial class RelationshipIdentifierPatterns
 {
     private const RegexOptions PatternOptions =

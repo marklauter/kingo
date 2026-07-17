@@ -8,7 +8,7 @@ namespace Kingo.Schemas;
 /// structural equality. The config-side aggregate root, replacing <see cref="Namespace"/> (now an entity within it):
 /// namespace-name uniqueness is an intra-aggregate invariant, and the schema is the unit of atomic config
 /// change. <see cref="Create"/> is the only construction path, so a <c>Schema</c> that exists satisfies its
-/// invariants. How schema scope appears in references is still open (docs/notes/domain-language.md).
+/// invariants. How schema scope appears in references is still open ([[domain-language]]).
 /// </summary>
 public sealed record Schema
 {
