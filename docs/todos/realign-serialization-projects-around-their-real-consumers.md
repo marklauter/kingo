@@ -1,5 +1,4 @@
 ---
-type: todo
 title: Realign serialization projects around their real consumers
 summary: "Mark's post-review correction: .Json/.Yaml exist purely as value-type converter packs for future ASP.NET REST hosts — no document ever crosses the wire — so the IDocumentSerializer port and Kingo.Serialization dissolved; final SDL surface is SdlParser.Parse(text) → Result<Schema> plus the schema.Print() extension."
 tags: [note, todo, hexagonal, serialization, sdl]
@@ -28,7 +27,7 @@ The adapter side, as landed 2026-07-15: `SdlParser.Parse(text) → Result<Schema
 - Cost accepted: no instance-level format substitution (callers bind statically) — runtime format choice is exactly the scenario that will never happen.
 - `AdapterArchitectureTestsBase` lost its port anchor ("public adapter types implement a port" rule removed with the port). Decided 2026-07-15: replaced with **nothing**. `SdlParser`/`SdlPrinter` are static pure entry points — no port exists to anchor the rule, and faking a pure parse buys nothing a canned `Schema.Create` doesn't. The interface rule returns when the first genuine port family (storage) arrives; the fake-ability Mark wants lands there (e.g. an `ISchemaSource.Load() → Result<Schema>` host port whose adapter composes I/O + `SdlParser`). Only `NoExceptionTypesAreDefined` remains in the base.
 
-## Next
+## Resolution
 
 - ~~Dissolve `Kingo.Serialization`~~ — done 2026-07-14: project + tests deleted, references replaced (`.Pdl` → Kingo + Results; `.Json`/`.Yaml` → Kingo), removed from `Kingo.slnx`, `SdlSerializer` detached from the interface, `PublicTypesImplementAPort` rule and `portAssemblyName` removed from `AdapterArchitectureTestsBase`. Build/tests deliberately not run yet.
 - ~~Add `Schema`~~ — done 2026-07-14 (`Kingo.Schemas.Schema`; `Create` is the only construction path (private ctor, house Cons): `schema.empty`, `schema.duplicate_namespace`; SchemaTests in Kingo.Schemas.Tests).

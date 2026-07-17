@@ -1,5 +1,4 @@
 ---
-type: todo
 title: Move JsonConverter off identifier types into the JSON adapter
 summary: "The domain half is moot — the fresh-built core carries no serialization attributes; what remains is the IParse-keyed converter registration in Kingo.Serialization.Json. Unblocked 2026-07-14 by the SDL adapter — the next work item."
 tags: [note, todo, hexagonal, serialization]

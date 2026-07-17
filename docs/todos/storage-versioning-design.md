@@ -1,5 +1,4 @@
 ---
-type: todo
 title: Storage versioning design
 summary: "Before storage work lands, design the versioning system: snapshot semantics for zookies, optimistic concurrency for writes, and the changelog — all hand-rolled as conditional writes now that the key/value store style is settled."
 tags: [note, todo, storage, versioning, zookies]

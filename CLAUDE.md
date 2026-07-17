@@ -10,18 +10,14 @@ One repo-level override to that skill: the internal domain and libraries take **
 
 ## Docs and notes
 
-Design docs live under `docs/`; working notes, decisions, and todos live in `docs/notes/`, indexed by `docs/notes/index.md`.
+The docs corpus is owned by the hoplite skills. Before writing anything under `docs/`, load the hoplite skill that owns the artifact's form and follow it — the skills carry the frontmatter standard, file locations, and edge/link syntax:
 
-Notes use the Hoplite frontmatter standard, layered under the Open Knowledge Format (OKF v0.1, spec: https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf). Hoplite is the authority for frontmatter and edges — **read both spec files before editing frontmatter or link structure**:
+- Term — a word plus its smallest phrase → `hoplite-skills:glossary`.
+- Concept — composed from locked terms → `hoplite-skills:spec`.
+- Decision — a hard-to-reverse trade-off → `hoplite-skills:decision`.
+- Note — more than a fleeting thought → `hoplite-skills:taking-notes`.
+- Todo — a task to be completed or a follow-up needed → `hoplite-skills:todo`.
+- Journal entry — what happened and why, immutable and dated → `hoplite-skills:journaling`.
+- Designing or sharpening the domain model itself → `hoplite-skills:domain-modeling`.
 
-- `D:\projects\hoplite\hoplite\docs\hoplite\frontmatter.md` — flat Obsidian Properties; four special keys (`title`, `summary`, `aliases`, `tags`), all else open vocabulary; a key's value decides what it is: scalar = claim, quoted wikilink = typed edge with the key as predicate.
-- `D:\projects\hoplite\hoplite\docs\hoplite\expressing-edges.md` — every inline link is an edge (`links-to` by default, typed by an adjacent `<!--predicate-->` comment); frontmatter wikilink values must be quoted; `aliases` keeps `[[old-name]]` resolving after a rename.
-
-Kingo-specific conventions on top:
-
-- `type` is always present (`note`, `decision`, `todo`, `index`) — it's OKF's one required key.
-- `summary` is one quoted sentence; `created` is a date set once. No `updated`/`timestamp` key and no `log.md` — git history is the modification record.
-- Todo lifecycle lives in frontmatter properties (`status`, `priority`, `effort`, `blocked_by`), never in tags.
-- When you add, rename, close, or delete a note, update its frontmatter *and* its entry in `docs/notes/index.md` in the same change — the index is the progressive-disclosure entry point and must not drift from the files.
-
-Where OKF and Hoplite disagree, Hoplite wins — do not "normalize" toward the OKF spec: `summary` not `description`, `created` not `timestamp`, wikilinks over bundle-relative markdown links, and our `index.md` carries frontmatter.
+Any prose artifact gets a `hoplite-skills:proofreading` pass before it's committed or presented.

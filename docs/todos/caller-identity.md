@@ -1,5 +1,4 @@
 ---
-type: todo
 title: Caller identity
 summary: "Open question: what 'caller identity' means at the Check host edge — network context, principal claims, and on-behalf-of chains — and the three distinct authorization decisions an OBO call implies, including whether the caller may call Kingo at all."
 tags: [note, todo, hosts, identity, audit]

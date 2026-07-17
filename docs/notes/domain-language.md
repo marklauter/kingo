@@ -1,5 +1,4 @@
 ---
-type: note
 title: Domain language — the tuple grammar and its types
 summary: "The ubiquitous language of the whole system: the relation-tuple grammar in Kingo vocabulary (Subject, SubjectSet, Resource, Relationship) and the mapping from each production to its C# type — the contract Kingo (the domain core) implements."
 tags: [note, spec, ddd, vocabulary]

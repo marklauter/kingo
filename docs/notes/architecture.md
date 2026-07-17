@@ -1,5 +1,4 @@
 ---
-type: note
 title: Architecture
 summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds the domain (Schemas and Graphs), Kingo.Sdl is the schema-document codec, .Json/.Yaml are wire-converter packs; no ports project until a genuine port family appears."
 tags: [note, architecture, hexagonal, ddd]

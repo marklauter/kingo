@@ -1,16 +1,15 @@
 ---
-type: index
 title: Kingo notes
-summary: "Index of docs/notes/ — current-state notes, decisions, and todos for the Kingo reboot."
+summary: "Index of the docs corpus — current-state notes (docs/notes/), decisions (docs/decisions/), and todos (docs/todos/) for the Kingo reboot."
 tags: [note, index]
 created: 2026-07-14
 ---
 
 # Kingo notes
 
-Repo memory that outlives the context window. A **note** is a mutable snapshot of present belief — rewrite it freely as understanding moves. A **decision** is an ADR-equivalent: hard to reverse, surprising without context, a real trade-off. A **todo** is a note whose lifecycle lives in frontmatter properties (`status`, `priority`, `effort`, `blocked_by`), never in tags.
+Repo memory that outlives the context window. A **note** (`docs/notes/`) is a mutable snapshot of present belief; rewrite it freely as understanding moves. A **decision** (`docs/decisions/`) is an ADR-equivalent: hard to reverse, surprising without context, a real trade-off. A **todo** (`docs/todos/`) is a note tagged `todo` whose lifecycle lives in the frontmatter properties `status`, `priority`, `effort`, and `blocked-by`, never in tags.
 
-Format: Hoplite frontmatter standard — flat Obsidian Properties, wikilinks as edges (`hoplite` repo: `docs/hoplite/frontmatter.md`, `docs/hoplite/expressing-edges.md`). No `updated` key; git history is the modification record.
+Format and authoring rules live in the hoplite skills (see CLAUDE.md, "Docs and notes"): flat Obsidian Properties, wikilinks as edges. No `updated` key; git history is the modification record.
 
 ## The system
 
@@ -37,6 +36,7 @@ Queue order: rewrite interpreters first (selected 2026-07-15 — the consumer th
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**; queued behind the rewrite interpreters (unblocked 2026-07-14 by the SDL adapter). `IParse`-keyed converters registered in the adapters.
 - [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[caller-identity]] — **open**; what "caller identity" means at the Check host edge (network context, principal, OBO chain) and the three authorization decisions an OBO call implies, including Kingo authorizing calls to itself.
+- [[pin-sdk-10.0.204]] — **open**; pin `global.json` to SDK 10.0.204 with `rollForward: disable`; CI becomes hermetic and fail-loud.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
 - [[dissolve-kingo-pdl-under-hexagonal-layout]] — **closed** 2026-07-14: `Kingo.Serialization.Pdl` adapter landed (first port, adapter-layer ArchUnit rules), quarry deleted; the adapter is since renamed `Kingo.Sdl` and the port dissolved.
 

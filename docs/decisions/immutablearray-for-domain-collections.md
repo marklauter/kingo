@@ -1,8 +1,7 @@
 ---
-type: decision
 title: ImmutableArray for domain collections
 summary: "Domain values carry their collections as ImmutableArray<T>: schema values are build-once/read-many snapshots and mutation never touches these types — with custom structural equality and the default-instance trap riding along as mandatory caveats."
-tags: [note, decision, ddd, performance]
+tags: [decision, ddd, performance]
 created: 2026-07-14
 status: locked
 ---

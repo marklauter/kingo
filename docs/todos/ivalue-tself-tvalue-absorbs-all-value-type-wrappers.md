@@ -1,5 +1,4 @@
 ---
-type: todo
 title: IValue<TSelf, TValue> absorbs all value-type wrappers
 summary: "Closed by fresh construction: every identifier in Kingo core implements IValue<TSelf, string>; IStringConvertible survives only in the Kingo.Pdl quarry and dies with it."
 tags: [note, todo, hexagonal]

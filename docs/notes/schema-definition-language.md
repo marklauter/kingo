@@ -1,5 +1,4 @@
 ---
-type: note
 title: SDL — YAML structure with embedded rewrite expressions
 summary: "The Schema Definition Language: a YAML document carrying the schema's name and its namespace map, with each relationship's optional rewrite expression as a small embedded language parsed separately. Implemented by the Kingo.Sdl adapter."
 aliases: [pdl-yaml, sdl-yaml]

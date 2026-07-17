@@ -1,5 +1,4 @@
 ---
-type: todo
 title: The graph document is bulk DML, not a state dump
 summary: "Proposal: FML, the Fact Mutation Language — the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU, which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
 tags: [note, todo, sdl, fml, agl, graphs, dml, hexagonal]
@@ -7,7 +6,7 @@ created: 2026-07-15
 status: open
 priority: medium
 effort: medium
-blocked_by: "[[storage-versioning-design]]"
+blocked-by: "[[storage-versioning-design]]"
 ---
 
 # The graph document is bulk DML, not a state dump

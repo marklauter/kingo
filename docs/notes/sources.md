@@ -1,5 +1,4 @@
 ---
-type: reference
 title: Quarries — prior work preserved on other branches
 summary: "The reboot branch is an orphan; main-archive and dictionary-encoding remain on the remote as reference material. Cherry-pick files as needed; do not merge."
 tags: [note, reference, quarry]
