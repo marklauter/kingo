@@ -1,5 +1,4 @@
 using Results;
-using Values;
 
 namespace Kingo.Graphs;
 
@@ -9,18 +8,18 @@ namespace Kingo.Graphs;
 /// context — a subject is the unified identity a set of authn-side principals maps to, referenced by <see cref="SubjectIdentifier"/>.
 /// </summary>
 public abstract record Subject
-    : IParse<Subject>
 {
     private protected Subject() { }
 
     /// <summary>
-    /// Parses the canonical text form: a <see cref="SubjectSet"/> when <paramref name="s"/> contains <c>#</c> (e.g. <c>team:sales#member</c>); otherwise a
-    /// <see cref="DirectSubject"/> (e.g. <c>user:anne</c>).
+    /// Dismisses empty or whitespace input, then dispatches on <c>#</c> to the owning case — <see cref="SubjectSet"/> when present
+    /// (e.g. <c>team:sales#member</c>), otherwise <see cref="DirectSubject"/> (e.g. <c>user:anne</c>). Each case owns its own format validation; this method
+    /// only routes.
     /// </summary>
     public static Result<Subject> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
             ? Result.Failure<Subject>(Error.Validation("subject.empty", "subject cannot be empty or whitespace"))
             : s.Contains('#', StringComparison.Ordinal)
                 ? SubjectSet.Parse(s).Map(Subject (set) => set)
-                : SubjectIdentifier.Parse(s).Map(Subject (id) => new DirectSubject(id));
+                : DirectSubject.Parse(s).Map(Subject (d) => d);
 }
