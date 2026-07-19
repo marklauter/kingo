@@ -5,8 +5,8 @@ namespace Kingo.Graphs;
 
 /// <summary>
 /// The <c>&lt;subject&gt;</c> production of the tuple grammar — a discriminated union: either a direct subject reference (<see cref="DirectSubject"/>) or a set
-/// of subjects reachable through a relationship (<see cref="SubjectSet"/>). The hierarchy is closed; pattern-match to consume. The subject aggregate root's
-/// domain key is <see cref="SubjectIdentifier"/> — the unified identity a set of authn-side principals maps to.
+/// of subjects reachable through a relationship (<see cref="SubjectSet"/>). The hierarchy is closed; pattern-match to consume. A value object of the fact
+/// context — a subject is the unified identity a set of authn-side principals maps to, referenced by <see cref="SubjectIdentifier"/>.
 /// </summary>
 public abstract record Subject
     : IParse<Subject>

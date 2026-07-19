@@ -14,7 +14,7 @@ public abstract record SubjectSetRewrite
     private protected SubjectSetRewrite() { }
 }
 
-/// <summary>Direct membership: the subjects written in statements for this relationship.</summary>
+/// <summary>Direct membership: the subjects written in facts for this relationship.</summary>
 public sealed record ThisRewrite
     : SubjectSetRewrite
 {
@@ -28,7 +28,7 @@ public sealed record ComputedSubjectSetRewrite(
     : SubjectSetRewrite;
 
 /// <summary>
-/// Walks the statements of <paramref name="TuplesetRelationship"/> on the resource and, for each subject found, evaluates
+/// Walks the facts of <paramref name="TuplesetRelationship"/> on the resource and, for each subject found, evaluates
 /// <paramref name="ComputedSubjectSetRelationship"/> on that subject — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants
 /// viewer on the file"). The second relationship names a computed subject set on each resolved subject — the same construct as
 /// <see cref="ComputedSubjectSetRewrite"/>, applied to the tupleset's subjects rather than to this resource; the name says so.

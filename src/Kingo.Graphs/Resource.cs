@@ -5,8 +5,8 @@ namespace Kingo.Graphs;
 
 /// <summary>
 /// A namespaced resource — the <c>&lt;resource&gt;</c> production of the tuple grammar: <c>&lt;namespace&gt;:&lt;resource-id&gt;</c> (e.g. <c>doc:readme</c>).
-/// An aggregate root; its domain key is the composite value itself. Resources have no stored state of their own — they exist as the anchor facts attach
-/// to.
+/// A value object of the fact context: no stored state of its own — a resource exists as the anchor facts attach to, and carries
+/// <see cref="Namespace"/> as a reference-by-identity.
 /// </summary>
 public sealed record Resource(
     NamespaceIdentifier Namespace,
