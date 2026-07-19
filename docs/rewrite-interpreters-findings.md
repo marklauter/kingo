@@ -68,7 +68,7 @@ The Kleene ruling legitimizes "cancelling its in-flight parallel evaluation," wh
 
 ### F12 — the `Decision` stub contradicts the settled shape
 
-`src/Kingo.Acl/Decision.cs:5` said the value is "expected to identify … the caller." The note settles caller identity as envelope-only (2026-07-17). The clean-room's instructions say to read the current domain code; the code disagreed with the note it's read beside. Resolved (2026-07-18): the stub — now `src/Kingo.Closures/Decision.cs` — states the settled shape (Fact judged, verdict, snapshot pin, schema version, wall timestamp; caller identity envelope-only).
+`src/Kingo.Acl/Decision.cs:5` said the value is "expected to identify … the caller." The note settles caller identity as envelope-only (2026-07-17). The clean-room's instructions say to read the current domain code; the code disagreed with the note it's read beside. Resolved (2026-07-18): the stub — now `src/Kingo.Closures/Decision.cs` — states the settled shape (the question judged, verdict, snapshot pin, schema version, wall timestamp; caller identity envelope-only; "the question judged" superseded "the Fact judged" on 2026-07-19, and the stub tracks that too).
 
 ### F13 — [[authz-event-logging]] puts caller identity and correlation id inside the serialized `Decision`
 
