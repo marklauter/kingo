@@ -1,4 +1,4 @@
-namespace Kingo.Acl;
+namespace Kingo.Closures;
 
 /// <summary>
 /// The result of an Expand evaluation — the full subject-set rewrite tree materialized for a <see cref="Kingo.Graphs.SubjectSet"/>, as opposed to

@@ -1,4 +1,4 @@
-namespace Kingo.Acl;
+namespace Kingo.Closures;
 
 /// <summary>
 /// The outcome of an authorization evaluation — the value Check returns and the audit event carries (CloudTrail-style).

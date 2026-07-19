@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Kingo/Kingo.csproj" />
-    <Project Path="src/Kingo.Acl/Kingo.Acl.csproj" />
+    <Project Path="src/Kingo.Closures/Kingo.Closures.csproj" />
     <Project Path="src/Kingo.Graphs/Kingo.Graphs.csproj" />
     <Project Path="src/Kingo.Schemas/Kingo.Schemas.csproj" />
     <Project Path="src/Kingo.Sdl/Kingo.Sdl.csproj" />
@@ -11,7 +11,7 @@
     <Project Path="src/Values/Values.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Kingo.Acl.Tests/Kingo.Acl.Tests.csproj" />
+    <Project Path="tests/Kingo.Closures.Tests/Kingo.Closures.Tests.csproj" />
     <Project Path="tests/Kingo.Graphs.Tests/Kingo.Graphs.Tests.csproj" />
     <Project Path="tests/Kingo.Schemas.Tests/Kingo.Schemas.Tests.csproj" />
     <Project Path="tests/Kingo.Sdl.Tests/Kingo.Sdl.Tests.csproj" />

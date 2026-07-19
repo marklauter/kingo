@@ -1,7 +1,0 @@
-using Kingo.Testing;
-using System.Reflection;
-
-namespace Kingo.Acl.Tests.Architecture;
-
-public sealed class ArchitectureTests()
-    : ArchitectureTestsBase(Assembly.Load("Kingo.Acl"), @"^Kingo\.Acl(\..*)?$");
