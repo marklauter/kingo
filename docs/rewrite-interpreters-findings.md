@@ -46,7 +46,7 @@ The note calls `Kookie` "an opaque kernel value," but no type existed and its en
 
 ### F7 — subjectset-valued questions: literal facts only, or the derived closure?
 
-Two rulings pull against each other when the question's subject is itself a `SubjectSet`. "`Contains` answers: does the graph's *derived closure* contain this fact" says yes to derivation; "a subjectset-valued member means *literal element membership* … value equality at the leaves" can be read as stored-facts-only. The discriminating fixture: facts `doc:x#viewer@team:sales#member` and `team:sales#member@group:eng#member` — is `Contains(doc:x#viewer@group:eng#member)` true? Requirement 2's userset-expansion clause makes every member of `team:sales#member` a member of `doc:x#viewer`, and `group:eng#member` is literally an element of `team:sales#member` — so the closure reading says true. The value-equality-at-the-leaves reading says false (no stored fact matches). Pin it with exactly this test.
+Two rulings pulled against each other when the question's subject is itself a `SubjectSet`. "`Contains` answers: does the graph's *derived closure* contain this fact" says yes to derivation; "a subjectset-valued member means *literal element membership* … value equality at the leaves" can be read as stored-facts-only. The discriminating fixture: facts `doc:x#viewer@team:sales#member` and `team:sales#member@group:eng#member` — is `Contains(doc:x#viewer@group:eng#member)` true? Ruled (Mark, 2026-07-19): neither reading — the question is dissolved. "Does subjectset A contain subjectset B" has no meaning in ReBAC, and the paper's check takes a putative *user*; the signature narrows to `Contains(SubjectSet, DirectSubject)`, making a subjectset-valued question unrepresentable rather than choosing its semantics. The narrowing is closed under recursion (internal re-entries put stored subjectset members on the *set* side), the `Subject` DU's `SubjectSet` arm stays as storage vocabulary, and both settled bullets are amended in the note.
 
 ### F8 — undefined *namespace* mid-walk has no condition
 
@@ -54,7 +54,7 @@ Condition 4 covers a relationship removed by drift; a namespace can be removed t
 
 ### F9 — is the subject side of the putative Fact schema-validated at all?
 
-Family 1 validates the question's resource namespace and relationship — the `SubjectSet` side of the `Fact`. Nothing says whether the *subject* side is checked when it's a `SubjectSet` (`Contains(doc:x#viewer@grup:eng#member)` — typo'd namespace on the subject). Under literal-element semantics the evaluation never needs the subject side's schema, so the check would come back false (no such element) rather than a modeled error. A subject-side typo would then silently behave differently from a resource-side typo — the outage-that-looks-like-policy family 1 exists to prevent. Deliberate or an oversight; state which.
+Family 1 validates the question's resource namespace and relationship — the `SubjectSet` side of the `Fact`. Nothing said whether the *subject* side is checked when it's a `SubjectSet` (`Contains(doc:x#viewer@grup:eng#member)` — typo'd namespace on the subject). Dissolved by the F7 ruling (2026-07-19): the question's subject side is a `DirectSubject`, which carries nothing schema-addressable — subjects are opaque identifiers, identity lives with authn — so family 1 correctly validates the set side only, and the silent-typo hazard can no longer be expressed.
 
 ### F10 — `ComputedSubjectSetRewrite` under Expand: leaf or inline?
 
