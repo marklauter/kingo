@@ -1,4 +1,5 @@
 using Results;
+using static Kingo.Graphs.Subject;
 
 namespace Kingo.Graphs.Tests;
 

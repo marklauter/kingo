@@ -1,5 +1,6 @@
 using Kingo.Graphs;
 using Results;
+using static Kingo.Graphs.Subject;
 
 namespace Kingo.Closures.Tests;
 

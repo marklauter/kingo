@@ -6,14 +6,14 @@ namespace Kingo.Closures;
 
 /// <summary>
 /// The question Contains answers — the <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c> shape (e.g. <c>doc:readme#viewer@user:anne</c>):
-/// the <see cref="Graphs.SubjectSet"/> asked about paired with the <see cref="DirectSubject"/> sought. Narrower by construction than a
+/// the <see cref="Graphs.Subject.SubjectSet"/> asked about paired with the <see cref="Graphs.Subject.DirectSubject"/> sought. Narrower by construction than a
 /// <see cref="Fact"/>, whose subject seat is the wide <see cref="Graphs.Subject"/> union: storage needs subjectset members for userset
 /// expansion; a question never does — "does subjectset A contain subjectset B" has no meaning in ReBAC, so the shape is unrepresentable
 /// here. <see cref="Decision"/> carries the Query judged.
 /// </summary>
 public sealed record Query(
-    SubjectSet SubjectSet,
-    DirectSubject Subject)
+    Subject.SubjectSet SubjectSet,
+    Subject.DirectSubject Subject)
     : IParse<Query>
 {
     private const char Separator = '@';
@@ -31,14 +31,14 @@ public sealed record Query(
         return separator < 0
             ? Result.Failure<Query>(Error.Validation("query.format", $"query '{s}' is malformed; expected '<namespace>:<resource-id>#<relationship>@<subject-id>'"))
             : Result.Apply(
-                SubjectSet.Parse(s[..separator]).Map<Func<DirectSubject, Query>>(set => subject => new Query(set, subject)),
+                Subject.SubjectSet.Parse(s[..separator]).Map<Func<Subject.DirectSubject, Query>>(set => subject => new Query(set, subject)),
                 ParseSubject(s[(separator + 1)..]));
     }
 
-    private static Result<DirectSubject> ParseSubject(string s) =>
+    private static Result<Subject.DirectSubject> ParseSubject(string s) =>
         s.Contains('#', StringComparison.Ordinal)
-            ? Result.Failure<DirectSubject>(Error.Validation("query.subject", $"query subject '{s}' is a subjectset; a query's subject is always a direct subject"))
-            : SubjectIdentifier.Parse(s).Map(id => new DirectSubject(id));
+            ? Result.Failure<Subject.DirectSubject>(Error.Validation("query.subject", $"query subject '{s}' is a subjectset; a query's subject is always a direct subject"))
+            : SubjectIdentifier.Parse(s).Map(id => new Subject.DirectSubject(id));
 
     /// <summary>Canonical text form: <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c>.</summary>
     public override string ToString() => $"{SubjectSet}{Separator}{Subject}";

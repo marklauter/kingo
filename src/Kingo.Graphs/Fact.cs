@@ -7,7 +7,7 @@ namespace Kingo.Graphs;
 /// A stored fact — the <c>&lt;tuple&gt;</c> production of the tuple grammar:
 /// <c>&lt;subjectset&gt;@&lt;subject&gt;</c> (e.g. <c>doc:readme#viewer@user:anne</c>).
 /// A set-membership assertion, and an RDF triple read set-first: the RDF-subject is the
-/// <see cref="SubjectSet"/>, the predicate is membership itself (∋), and the RDF-object is the
+/// <see cref="Subject.SubjectSet"/>, the predicate is membership itself (∋), and the RDF-object is the
 /// <see cref="Subject"/> being asserted into the set — which is why the parameter order mirrors
 /// the text form, and why the pair is exactly the question a membership check asks. An aggregate
 /// root: created and deleted atomically, never mutated; its domain key is the whole value. Covers
@@ -16,7 +16,7 @@ namespace Kingo.Graphs;
 /// <c>Kingo.Schemas.Relationship</c>, the schema-side definition.
 /// </summary>
 public sealed record Fact(
-    SubjectSet SubjectSet,
+    Subject.SubjectSet SubjectSet,
     Subject Subject)
     : IParse<Fact>
 {
@@ -34,7 +34,7 @@ public sealed record Fact(
         return separator < 0
             ? Result.Failure<Fact>(Error.Validation("fact.format", $"fact '{s}' is malformed; expected '<namespace>:<resource-id>#<relationship>@<subject>'"))
             : Result.Apply(
-                SubjectSet.Parse(s[..separator]).Map<Func<Subject, Fact>>(set => subject => new Fact(set, subject)),
+                Subject.SubjectSet.Parse(s[..separator]).Map<Func<Subject, Fact>>(set => subject => new Fact(set, subject)),
                 Subject.Parse(s[(separator + 1)..]));
     }
 
