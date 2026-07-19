@@ -1,37 +1,39 @@
 using Results;
-using static Kingo.Graphs.Subject;
+using static Kingo.Graphs.Fact;
 
 namespace Kingo.Graphs.Tests;
 
 public sealed class FactTests
 {
     [Fact]
-    public void Parse_DirectSubject_SucceedsAndRoundTrips()
+    public void Parse_SubjectFact_SucceedsAndRoundTrips()
     {
         var result = Fact.Parse("doc:readme#viewer@user:anne");
 
         var success = Assert.IsType<Result<Fact>.Success>(result);
-        Assert.Equal("doc:readme", success.Value.SubjectSet.Resource.ToString());
-        Assert.Equal("viewer", success.Value.SubjectSet.Relationship.Value);
-        var direct = Assert.IsType<DirectSubject>(success.Value.Subject);
-        Assert.Equal("user:anne", direct.Id.Value);
-        Assert.Equal("doc:readme#viewer@user:anne", success.Value.ToString());
+        var fact = Assert.IsType<SubjectFact>(success.Value);
+        Assert.Equal("doc:readme", fact.SubjectSet.Resource.ToString());
+        Assert.Equal("viewer", fact.SubjectSet.Relationship.Value);
+        Assert.Equal("user:anne", fact.Subject.Id.Value);
+        Assert.Equal("doc:readme#viewer@user:anne", fact.ToString());
     }
 
     [Fact]
-    public void Parse_SubjectSetSubject_SucceedsAndRoundTrips()
+    public void Parse_SubjectSetFact_SucceedsAndRoundTrips()
     {
         var result = Fact.Parse("doc:readme#viewer@team:sales#member");
 
         var success = Assert.IsType<Result<Fact>.Success>(result);
-        _ = Assert.IsType<SubjectSet>(success.Value.Subject);
-        Assert.Equal("doc:readme#viewer@team:sales#member", success.Value.ToString());
+        var fact = Assert.IsType<SubjectSetFact>(success.Value);
+        Assert.Equal("team:sales#member", fact.Subject.ToString());
+        Assert.Equal("doc:readme#viewer@team:sales#member", fact.ToString());
     }
 
     [Fact]
-    public void Parse_SubjectSet_IsTheStatementsLeftHandSide()
+    public void Parse_SubjectSet_IsTheLeftHandSide()
     {
-        var fact = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
+        var success = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne"));
+        var fact = Assert.IsType<SubjectFact>(success.Value);
 
         Assert.Equal(
             new SubjectSet(
@@ -63,7 +65,7 @@ public sealed class FactTests
     [Fact]
     public void Parse_SecondAtInSubject_ReturnsSingleSubjectIdInvalidError()
     {
-        // split at the FIRST '@' leaves "a@b" as the subject; no '#', so SubjectIdentifier rejects '@'
+        // split at the FIRST '@' leaves "a@b" as the subject; no '#', so Subject rejects '@'
         var result = Fact.Parse("doc:x#viewer@a@b");
 
         var failure = Assert.IsType<Result<Fact>.Failure>(result);
@@ -82,20 +84,20 @@ public sealed class FactTests
     [Fact]
     public void Parse_MixedCase_CanonicalizesThroughToString()
     {
-        var fact = Assert.IsType<Result<Fact>.Success>(Fact.Parse("DOC:x#VIEWER@user:anne")).Value;
+        var success = Assert.IsType<Result<Fact>.Success>(Fact.Parse("DOC:x#VIEWER@user:anne"));
 
-        Assert.Equal("doc:x#viewer@user:anne", fact.ToString());
+        Assert.Equal("doc:x#viewer@user:anne", success.Value.ToString());
     }
 
     [Fact]
     public void Parse_EqualInputs_ProduceEqualValues()
     {
         var left = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
-        var right = new Fact(
+        var right = new SubjectFact(
             new SubjectSet(
                 new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
                 RelationshipIdentifier.Create("viewer")),
-            new DirectSubject(SubjectIdentifier.Create("user:anne")));
+            new Subject(SubjectIdentifier.Create("user:anne")));
 
         Assert.Equal(right, left);
     }

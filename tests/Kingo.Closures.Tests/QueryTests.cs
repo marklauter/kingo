@@ -1,13 +1,12 @@
 using Kingo.Graphs;
 using Results;
-using static Kingo.Graphs.Subject;
 
 namespace Kingo.Closures.Tests;
 
 public sealed class QueryTests
 {
     [Fact]
-    public void Parse_DirectSubject_SucceedsAndRoundTrips()
+    public void Parse_Subject_SucceedsAndRoundTrips()
     {
         var result = Query.Parse("doc:readme#viewer@user:anne");
 
@@ -83,7 +82,7 @@ public sealed class QueryTests
             new SubjectSet(
                 new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
                 RelationshipIdentifier.Create("viewer")),
-            new DirectSubject(SubjectIdentifier.Create("user:anne")));
+            new Subject(SubjectIdentifier.Create("user:anne")));
 
         Assert.Equal(right, left);
     }

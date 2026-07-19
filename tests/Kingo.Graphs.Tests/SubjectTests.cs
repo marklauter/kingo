@@ -1,46 +1,32 @@
 using Results;
-using static Kingo.Graphs.Subject;
 
 namespace Kingo.Graphs.Tests;
 
 public sealed class SubjectTests
 {
     [Fact]
-    public void Parse_DirectSubjectWithColon_SucceedsAndRoundTrips()
+    public void Parse_WithColon_SucceedsAndRoundTrips()
     {
         var result = Subject.Parse("user:anne");
 
         var success = Assert.IsType<Result<Subject>.Success>(result);
-        var direct = Assert.IsType<DirectSubject>(success.Value);
-        Assert.Equal("user:anne", direct.Id.Value);
-        Assert.Equal("user:anne", direct.ToString());
-    }
-
-    [Fact]
-    public void Parse_HashDispatchesToSubjectSet_SucceedsAndRoundTrips()
-    {
-        var result = Subject.Parse("team:sales#member");
-
-        var success = Assert.IsType<Result<Subject>.Success>(result);
-        var set = Assert.IsType<SubjectSet>(success.Value);
-        Assert.Equal("team:sales", set.Resource.ToString());
-        Assert.Equal("member", set.Relationship.Value);
-        Assert.Equal("team:sales#member", set.ToString());
+        Assert.Equal("user:anne", success.Value.Id.Value);
+        Assert.Equal("user:anne", success.Value.ToString());
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void Parse_EmptyOrWhitespace_ReturnsSingleEmptyError(string input)
+    public void Parse_EmptyOrWhitespace_ReturnsSubjectIdEmptyError(string input)
     {
         var result = Subject.Parse(input);
 
         var failure = Assert.IsType<Result<Subject>.Failure>(result);
-        Assert.Equal("subject.empty", Assert.Single(failure.Errors).Code);
+        Assert.Equal("subject_id.empty", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
-    public void Parse_InvalidDirectSubject_ReturnsSubjectIdInvalidError()
+    public void Parse_InvalidCharacters_ReturnsSubjectIdInvalidError()
     {
         var result = Subject.Parse("an@ne");
 
@@ -49,21 +35,12 @@ public sealed class SubjectTests
     }
 
     [Fact]
-    public void DirectSubject_EqualInputs_AreEqual()
+    public void EqualInputs_AreEqual()
     {
-        var left = Assert.IsType<DirectSubject>(Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:anne")).Value);
-        var right = new DirectSubject(SubjectIdentifier.Create("user:anne"));
+        var left = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:anne")).Value;
+        var right = new Subject(SubjectIdentifier.Create("user:anne"));
 
         Assert.Equal(right, left);
-    }
-
-    [Fact]
-    public void DirectSubject_NeverEqualsSubjectSet()
-    {
-        var direct = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:anne")).Value;
-        var set = Assert.IsType<Result<Subject>.Success>(Subject.Parse("team:sales#member")).Value;
-
-        Assert.NotEqual(direct, set);
     }
 }
 
