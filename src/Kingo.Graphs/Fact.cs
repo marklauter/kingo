@@ -13,6 +13,7 @@ namespace Kingo.Graphs;
 /// mutated; its domain key is the whole value. Covers permission edges, memberships, and structural edges (e.g. <c>folder:a#parent@folder:b</c>) alike —
 /// access semantics come from the rewrite rules, not the fact itself. Not to be confused with <c>Kingo.Schemas.Relationship</c>, the schema-side definition.
 /// </summary>
+[SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Fact is a discriminated union; SubjectFact and SubjectSetFact are its cases, nested under the closed base and deliberately public — Fact.SubjectFact reads as the case it is.")]
 public abstract record Fact
     : IParse<Fact>
 {
@@ -49,7 +50,6 @@ public abstract record Fact
     /// A <see cref="Fact"/> whose subject is a <see cref="Subject"/> — <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c>
     /// (e.g. <c>doc:readme#viewer@user:anne</c>).
     /// </summary>
-    [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Discriminated-union case nested under its closed base; Fact.SubjectFact reads as the case of the union it belongs to.")]
     public sealed record SubjectFact(
         SubjectSet SubjectSet,
         Subject Subject)
@@ -63,7 +63,6 @@ public abstract record Fact
     /// A <see cref="Fact"/> whose subject is a <see cref="SubjectSet"/> (a userset) — <c>&lt;subjectset&gt;@&lt;subjectset&gt;</c>
     /// (e.g. <c>doc:readme#viewer@team:sales#member</c>).
     /// </summary>
-    [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Discriminated-union case nested under its closed base; Fact.SubjectSetFact reads as the case of the union it belongs to.")]
     public sealed record SubjectSetFact(
         SubjectSet SubjectSet,
         SubjectSet Subject)
