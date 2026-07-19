@@ -1,9 +1,15 @@
 ---
 title: putative-fact
-summary: "The question Contains answers — a (subject set, subject) pair, hypothesized rather than stored."
+summary: "The question Contains answers — a SubjectFact held putatively: hypothesized rather than stored."
 tags: [glossary, evaluation]
 created: 2026-07-18
 status: evolving
+contrast:
+  - "[[fact]]"
 ---
 
-The question Contains answers — a (subject set, subject) pair, hypothesized rather than stored: does the closure contain it at this snapshot? Narrower than a fact: a fact's member may be a subject set; the question's subject is always direct.
+The question Contains answers — a SubjectFact held putatively, hypothesized rather than stored: does the closure contain it at this snapshot? The subject is always direct; a subject-set member has no place in a question.
+
+## Contrasts
+
+- `fact` — a stored assertion with a lifecycle; a putative fact is the same shape held as a hypothesis. The difference is stance, not structure.
