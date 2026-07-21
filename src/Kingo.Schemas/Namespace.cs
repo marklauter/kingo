@@ -55,10 +55,16 @@ public sealed record Namespace
         if (!duplicates.IsEmpty)
             return Result.Failure<Namespace>(duplicates);
 
+        // one tree walk per relationship: the references materialize here and both remaining stages consume them
+        var references = relationships.ToImmutableDictionary(
+            relationship => relationship.Name,
+            relationship => IntraNamespaceReferences(relationship.Rewrite).Distinct().ToImmutableArray());
+
         var defined = relationships.Select(relationship => relationship.Name).ToImmutableHashSet();
         var dangling = relationships
-            .SelectMany(relationship => IntraNamespaceReferences(relationship.Rewrite)
+            .SelectMany(relationship => references[relationship.Name]
                 .Select(reference => reference.Target)
+                // not redundant with the tuple-level Distinct above: one target can appear under both edge kinds
                 .Distinct()
                 .Where(target => !defined.Contains(target))
                 .Select(target => Error.Validation(
@@ -68,7 +74,7 @@ public sealed record Namespace
         if (!dangling.IsEmpty)
             return Result.Failure<Namespace>(dangling);
 
-        var cycles = DetectCycles(name, relationships);
+        var cycles = DetectCycles(name, relationships, references);
         return cycles.IsEmpty
             ? Result.Success(new Namespace(name, relationships))
             : Result.Failure<Namespace>(cycles);
@@ -131,14 +137,16 @@ public sealed record Namespace
     /// explicit frame stack rather than an expression pipeline or recursion: the path that makes the error message is inherently stateful, and this runs on
     /// untrusted input, so input shape must not pick the stack depth.
     /// </summary>
-    private static ImmutableArray<Error> DetectCycles(NamespaceIdentifier name, ImmutableArray<Relationship> relationships)
+    private static ImmutableArray<Error> DetectCycles(
+        NamespaceIdentifier name,
+        ImmutableArray<Relationship> relationships,
+        ImmutableDictionary<RelationshipIdentifier, ImmutableArray<(RelationshipIdentifier Target, bool IsZeroFactEdge)>> references)
     {
-        var edges = relationships.ToImmutableDictionary(
-            relationship => relationship.Name,
-            relationship => IntraNamespaceReferences(relationship.Rewrite)
+        var edges = references.ToImmutableDictionary(
+            entry => entry.Key,
+            entry => entry.Value
                 .Where(reference => reference.IsZeroFactEdge)
                 .Select(reference => reference.Target)
-                .Distinct()
                 .ToImmutableArray());
 
         var errors = ImmutableArray.CreateBuilder<Error>();

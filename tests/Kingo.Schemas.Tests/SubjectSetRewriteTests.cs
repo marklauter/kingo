@@ -296,6 +296,60 @@ public sealed class SubjectSetRewriteTests
         Assert.NotEqual(a, b);
     }
 
+    // ---- Depth bound ----
+
+    [Fact]
+    public void Depth_Leaves_AreDepthOne()
+    {
+        Assert.Equal(1, ThisRewrite.Default.Depth);
+        Assert.Equal(1, Computed("editor").Depth);
+        Assert.Equal(1, FactTo("parent", "viewer").Depth);
+    }
+
+    [Fact]
+    public void Depth_OperatorNodes_AreOneMoreThanTheirDeepestChild()
+    {
+        var exclusion = Exclusion(ThisRewrite.Default, Computed("banned"));
+
+        Assert.Equal(2, exclusion.Depth);
+        Assert.Equal(3, Union([ThisRewrite.Default, exclusion]).Depth);
+        Assert.Equal(3, Intersection([exclusion, ThisRewrite.Default]).Depth);
+    }
+
+    [Fact]
+    public void ExclusionRewrite_Create_PastTheDepthBound_ReturnsValidationFailure()
+    {
+        var result = ExclusionRewrite.Create(NestedToTheBound(), ThisRewrite.Default);
+
+        var failure = Assert.IsType<Result<ExclusionRewrite>.Failure>(result);
+        var error = Assert.Single(failure.Errors);
+        Assert.Equal(ErrorType.Validation, error.Type);
+        Assert.Equal("rewrite.depth", error.Code);
+    }
+
+    [Fact]
+    public void UnionRewrite_Create_PastTheDepthBound_ReturnsValidationFailure()
+    {
+        var result = UnionRewrite.Create([NestedToTheBound()]);
+
+        var failure = Assert.IsType<Result<UnionRewrite>.Failure>(result);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+    }
+
+    [Fact]
+    public void IntersectionRewrite_Create_PastTheDepthBound_ReturnsValidationFailure()
+    {
+        var result = IntersectionRewrite.Create([NestedToTheBound()]);
+
+        var failure = Assert.IsType<Result<IntersectionRewrite>.Failure>(result);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+    }
+
+    /// <summary>The deepest constructible tree — an exclusion chain whose <c>Depth</c> is exactly <see cref="SubjectSetRewrite.MaxDepth"/>.</summary>
+    private static SubjectSetRewrite NestedToTheBound() =>
+        Enumerable.Range(0, SubjectSetRewrite.MaxDepth - 1)
+            .Aggregate((SubjectSetRewrite)ThisRewrite.Default, (accumulated, _) => Exclusion(accumulated, ThisRewrite.Default));
+
     // ---- Exhaustive pattern match ----
 
     [Fact]

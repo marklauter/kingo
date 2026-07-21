@@ -398,12 +398,14 @@ public sealed class NamespaceTests
     }
 
     [Fact]
-    public void Create_DeeplyNestedOperatorTree_DoesNotOverflowTheStack()
+    public void Create_OperatorTreeAtTheDepthBound_Validates()
     {
-        const int depth = 20_000;
-        var rewrite = Enumerable.Range(0, depth)
+        // trees past MaxDepth are unrepresentable — the factories refuse them — so the deepest
+        // constructible nest is the worst case the validation traversals can ever meet
+        var rewrite = Enumerable.Range(0, SubjectSetRewrite.MaxDepth - 1)
             .Aggregate((SubjectSetRewrite)ThisRewrite.Default, (accumulated, _) => Exclusion(accumulated, ThisRewrite.Default));
 
+        Assert.Equal(SubjectSetRewrite.MaxDepth, rewrite.Depth);
         _ = Assert.IsType<Result<Namespace>.Success>(Namespace.Create(Ns("doc"), [Def("viewer", rewrite)]));
     }
 

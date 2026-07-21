@@ -1,9 +1,9 @@
 ---
 title: Rewrite equality recurses unbounded
-summary: "Equality and hashing over the rewrite algebra recurse per nesting level (operator SequenceEqual into children, synthesized record Equals, RewriteHash.OfSequence), so a tree tens of thousands of levels deep overflows the stack on Equals or GetHashCode. Deferred: the SDL token budget keeps untrusted text from minting such a tree, so the exposure is a trusted caller building one deliberately."
+summary: "Equality and hashing over the rewrite algebra recurse per nesting level, so a tree tens of thousands of levels deep would overflow the stack on Equals or GetHashCode. Closed: depth is tracked at construction and the operator factories refuse trees past SubjectSetRewrite.MaxDepth, so a tree deep enough to matter is unrepresentable."
 tags: [note, todo, schemas]
 created: 2026-07-21
-status: open
+status: closed
 priority: low
 effort: medium
 ---
@@ -12,6 +12,8 @@ effort: medium
 
 Raised by code review, 2026-07-21, after `Namespace.Create`'s traversals went iterative ([[namespace-create-validation]]). The validation gate no longer recurses, but structural equality still does: `UnionRewrite`/`IntersectionRewrite` `SequenceEqual` into children, `ExclusionRewrite`'s synthesized record `Equals` into `Include`/`Exclude`, and `RewriteHash.OfSequence` into each child — all in `src/Kingo.Schemas/SubjectSetRewrites.cs`, and reachable through `Namespace`/`Schema` equality.
 
-Deferred rather than fixed because the untrusted path is closed: `RewriteExpressionParser`'s token budget (200 tokens per expression) bounds every tree SDL can produce, so an overflow needs a trusted caller iteratively assembling a tree tens of thousands of levels deep through the public factories — its own defect today.
+The exposure was the trusted path: the SDL parser's guard bounds every tree untrusted text can produce, but a trusted caller could assemble an arbitrarily deep tree through the public factories.
 
-Becomes real work if a service edge ever compares or hashes rewrite trees it did not construct (cache keys, config diffing on the Write path). The fix shapes: iterative structural equality with an explicit stack, or a depth tracked at construction and refused past a bound.
+## Resolution
+
+Closed 2026-07-21, branch `namespace-parse-invariants`, by the fix shape this note named: depth tracked at construction and refused past a bound. `SubjectSetRewrite` carries `Depth` (structural height, 1 at a leaf) and `MaxDepth` (100); the operator factories compute each node's depth from its operands in O(1) and refuse past the bound with `rewrite.depth` — `ExclusionRewrite.Create` became `Result`-returning to carry the refusal. No constructible tree can drive equality, hashing, or any other recursion over the algebra deep enough to exhaust a stack. The SDL parse edge carries two guards against the same constant: a parenthesis-nesting counter bounds the grammar's own recursion before it runs (parens are its only recursion — operator chains fold iteratively), and an iterative height gate on the parsed tree refuses too-deep shapes with the same `rewrite.depth` error before the transform recurses; breadth (wide flat operator chains) passes freely. Pinned by `SubjectSetRewriteTests` (depth-bound section) and `RewriteExpressionParserTests` (paren-scan and tree-height boundary tests).

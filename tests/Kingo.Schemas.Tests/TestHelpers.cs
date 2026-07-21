@@ -20,5 +20,5 @@ internal static class TestHelpers
         Assert.IsType<Result<IntersectionRewrite>.Success>(IntersectionRewrite.Create(children)).Value;
 
     public static ExclusionRewrite Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
-        ExclusionRewrite.Create(include, exclude);
+        Assert.IsType<Result<ExclusionRewrite>.Success>(ExclusionRewrite.Create(include, exclude)).Value;
 }
