@@ -12,9 +12,9 @@ effort: high
 
 ## Clean-room constraint
 
-Design this in a fresh context from this note, the Zanzibar paper (`docs/5068.pdf`), and the current domain code. **Do not read the archive branches' ACL implementation** (`src/Kingo.Acl/` on `main-archive` / `dictionary-encoding`) before or during design — it is incomplete, and its lessons are already encoded below as requirements (Mark, 2026-07-15).
+Design this in a fresh context from this note and the current domain code. The Zanzibar paper is inspiration, not an input (amended 2026-07-20): Kingo is its own system, and everything the design needs from the paper — the tuple grammar, check's question shape, Expand's tree shape, the `...` sentinel — is inlined below where it's used; section citations (§2.4.5 and kin) are provenance, not reading assignments. **Do not read the archive branches' ACL implementation** (`src/Kingo.Acl/` on `main-archive` / `dictionary-encoding`) before or during design — it is incomplete, and its lessons are already encoded below as requirements (Mark, 2026-07-15).
 
-The input closure (decided 2026-07-20; [[rewrite-interpreters-findings]] F14): the three artifacts above plus, one hop from this note, the wikilinked docs of settled kind — glossary terms, decision records, and spec-tagged notes ([[domain-language]], [[schema-definition-language]]). Open todos are out of bounds: a wikilink to one is a jurisdiction marker — the question is assigned there — never an invitation to read it. No transitive expansion. Where an input disagrees with this note, the note wins; report the conflict as a finding.
+The input closure (decided 2026-07-20; [[rewrite-interpreters-findings]] F14): the two artifacts above plus, one hop from this note, the wikilinked docs of settled kind — glossary terms, decision records, and spec-tagged notes ([[domain-language]], [[schema-definition-language]]). Open todos are out of bounds: a wikilink to one is a jurisdiction marker — the question is assigned there — never an invitation to read it. No transitive expansion. Where an input disagrees with this note, the note wins; report the conflict as a finding.
 
 ## The work item
 
