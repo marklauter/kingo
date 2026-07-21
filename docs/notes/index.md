@@ -18,6 +18,7 @@ Format and authoring rules live in the hoplite skills (see CLAUDE.md, "Docs and 
 - [[schema-definition-language]] — the Schema Definition Language: the `schema:` name plus `namespaces:` map envelope, embedded rewrite-expression language. Implemented by the `Kingo.Sdl` adapter.
 - [[the-first-consumer-forges-the-domain]] — building the SDL codec pressure-tested the core: the renames, the aggregate collapse, and the port dissolution all fell out of one real consumer; put one on a young domain early.
 - [[authz-event-logging]] — CloudTrail-style audit: writes are management events (the changelog already is that record), Check decisions are data events shipped asynchronously as serialized `Decision`s; buffer-full policy open.
+- [[clean-room-procedure]] — how a work item reaches a clean-room design session: self-sufficient handoff note, input closure by settled kind, dry-run critique, findings ledger driven empty before the session runs. Distilled from the rewrite-interpreters run.
 
 ## Decisions
 
