@@ -16,6 +16,10 @@ Design this in a fresh context from this note and the current domain code. The Z
 
 The input closure (decided 2026-07-20; dry-run finding F14): the two artifacts above plus, one hop from this note, the wikilinked docs of settled kind — glossary terms, decision records, and spec-tagged notes ([[domain-language]], [[schema-definition-language]]). Settled means kind, not status flag: most of the glossary sits at `status: evolving`, so a locked-only rule would silently drop the vocabulary the note is written in. Open todos are out of bounds: a wikilink to one is a jurisdiction marker — the question is assigned there — never an invitation to read it. So is the findings ledger, since retired from the corpus (its narrative is the journal entry [[2026-07-20-2355-first-clean-room-dry-run]]): the dry-run finding citations below are provenance for the rulings, never input; everything it decided is restated here in full. No transitive expansion. Where an input disagrees with this note, the note wins; report the conflict as a finding.
 
+## Deliverable (ruled 2026-07-21)
+
+The design session's output is a set of specs, not code. Each concept the session settles — the evaluation-context shape, the fact-lookup port's operations, `Contains`, `Expand`, and the `Expansion` tree — lands as its own spec artifact (`hoplite-skills:spec`, composed from locked terms), and implementation follows in a second pass against the locked set. The session also seeds [[fact-store-access-patterns]] (requirement 6's named deliverable) and closes with a journal entry. This todo stays open until the implementation pass lands; the spec set is its first milestone.
+
 ## The work item
 
 Two evaluators over the `SubjectSetRewrite` algebra, pure domain code in `Kingo.Closures` — the one project that references both `Kingo.Graphs` and `Kingo.Schemas`, and the home of the fact-lookup port its adapters implement later:
