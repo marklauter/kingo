@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kingo logo: a Swahili carved door with brass studs">
+  <style>
+    .line { stroke: #171a24; }
+    .stud { fill: #b8923a; }
+    @media (prefers-color-scheme: dark) {
+      .line { stroke: #e8e6df; }
+      .stud { fill: #cfa64a; }
+    }
+  </style>
+  <g class="line" fill="none" stroke-width="4" stroke-linecap="round">
+    <path d="M18 54 V28 A14 14 0 0 1 46 28 V54"/>
+    <path d="M32 15.5 V54" stroke-width="3"/>
+    <path d="M12 54 H52"/>
+  </g>
+  <g class="stud">
+    <circle cx="25" cy="30" r="1.9"/><circle cx="39" cy="30" r="1.9"/>
+    <circle cx="25" cy="38" r="1.9"/><circle cx="39" cy="38" r="1.9"/>
+    <circle cx="25" cy="46" r="1.9"/><circle cx="39" cy="46" r="1.9"/>
+  </g>
+</svg>
