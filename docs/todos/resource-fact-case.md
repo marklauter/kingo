@@ -3,7 +3,7 @@ title: ResourceFact — a third Fact case replaces the ... sentinel
 summary: "Ruled 2026-07-21: `...` is not a relationship. The exactly-specified tupleset member `folder:y#...` is the resource itself, carried by a third Fact case — Fact.ResourceFact, resource-only — and RelationshipIdentifier loses the Nothing sentinel. The three tupleset member shapes become the three Fact cases."
 tags: [note, todo, graphs, domain]
 created: 2026-07-21
-status: open
+status: closed
 priority: high
 effort: medium
 supports: "[[rewrite-interpreters]]"
@@ -52,3 +52,7 @@ Docs:
 - [x] Seat name resolved: `Subject` in every case; the `Subject` class dissolved instead of the word changing, and the grammar stands as written (2026-07-21).
 - [x] Live docs swept for `Subject`-as-class references: [[domain-language]] (mapping row, case signatures, value-object list), [[rewrite-interpreters]] (Contains signature, F9, leaf matching, condition 9, Decision seats), [[subject]] glossary (member shapes) (2026-07-21).
 - [x] Long-tail doc sweep (2026-07-21): [[architecture]] (value-objects list), [[authz-event-logging]] (Decision payload), [[graph-document-is-bulk-dml]] (Graphs contents line) updated; [[sources]] and [[dissolve-kingo-pdl-under-hexagonal-layout]] stand as history.
+
+## Resolution
+
+Landed in commit `f23f9c8` (branch `reboot`, 2026-07-21): `Fact.ResourceFact` added and `Fact.Parse` dispatches the `#...` member (`src/Kingo.Graphs/Fact.cs`); `src/Kingo.Graphs/Subject.cs` deleted, `SubjectFact` seats `SubjectIdentifier Subject`; `RelationshipIdentifier` name-only (`src/Kingo/RelationshipIdentifier.cs`); `IsReserved` reduced to `this` (`src/Kingo.Sdl/RewriteExpressionPrinter.cs`); tests moved (`FactTests`, new `SubjectSetTests` with the F18-superseding named test, `RelationshipIdentifierTests` refusal tests, four SDL test files). Build gate green, 100% line and branch. Independent code review kept four findings: three applied in the same commit (tupleset reserved coverage restored, `SubjectSet.Parse` hoisted, duplicate `...` theory row dropped), one deferred to [[reserved-words-live-with-the-tokenizer]]. Doc amendments across [[rewrite-interpreters]], [[domain-language]], [[rewrite-interpreters-findings]], and the glossary landed with the rulings through the day; the "not yet in code" markers were swept when the code landed.
