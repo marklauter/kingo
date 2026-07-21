@@ -5,7 +5,6 @@ tags: [note, todo, schemas, validation]
 created: 2026-07-18
 status: open
 priority: high
-effort: medium
 supports: "[[rewrite-interpreters]]"
 ---
 
