@@ -1,4 +1,8 @@
-<img src="images/kingo-logo.svg" alt="Kingo logo: a Swahili carved door with brass studs" width="96" align="right">
+[![.NET Tests](https://github.com/marklauter/kingo/actions/workflows/dotnet.tests.yml/badge.svg)](https://github.com/marklauter/kingo/actions/workflows/dotnet.tests.yml)
+[![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0/)
+
+![Kingo logo: a Swahili carved door with brass studs](https://raw.githubusercontent.com/marklauter/kingo/main/images/kingo-logo.svg "Kingo")
+![MSL Armory](https://raw.githubusercontent.com/marklauter/kingo/main/images/msl.armory.tx.png "MSL Armory")
 
 # Kingo
 
