@@ -17,7 +17,7 @@ blocked-by: "[[storage-versioning-design]]"
 
 - `create` — assert, conflict if the fact already exists.
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
-- `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal ([[rewrite-interpreters-findings]] F8); the operation vocabulary is unchanged by that.
+- `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal (dry-run finding F8); the operation vocabulary is unchanged by that.
 
 The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The language this document is written in is **FML, the Fact Mutation Language** — the DML half of the Authorization Graph Language, as SDL is the DDL half ([[domain-language]] names AGL and its two sublanguages). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
@@ -61,7 +61,7 @@ public sealed record DeleteOperation(Fact Fact) : GraphOperation(Fact);
 - "Delete of an absent fact — no-op or failure?" is a conditional-write question.
 - "Is the document a transaction?" is a `TransactWriteItems` question.
 
-One guard sits upstream of all three and changes none of them: every fact write first passes the Write service's schema validation — facts can't lead the schema (2026-07-20, [[rewrite-interpreters-findings]] F8). That is the service's invariant at its edge, not a rule the operation type carries, so the storage-semantics argument stands.
+One guard sits upstream of all three and changes none of them: every fact write first passes the Write service's schema validation — facts can't lead the schema (2026-07-20, dry-run finding F8). That is the service's invariant at its edge, not a rule the operation type carries, so the storage-semantics argument stands.
 
 A type whose entire rule set is storage semantics is not a domain type; it is the vocabulary of the thing that talks to storage. That it *mentions* `Fact` proves nothing — a SQL `INSERT` mentions a row without being part of the business model. The pure core never ranges over a verb: Check evaluates schema plus facts, Expand the same, and neither has any use for one. Zanzibar agrees, and its placement is the evidence: `RelationTupleUpdate` lives in the **Write API proto**, not in the tuple model — request vocabulary, exactly like SpiceDB's `RelationshipUpdate`.
 

@@ -6,14 +6,15 @@ namespace Kingo.Sdl;
 /// Prints a <c>SubjectSetRewrite</c> tree as rewrite-expression text (grammar: [[schema-definition-language]]). Parenthesization is decided by grammar position so the
 /// emitted text reparses to a structurally equal tree: a union/intersection operand that is itself a union/intersection is parenthesized (the operator chain
 /// would otherwise absorb or regroup it), and the exclude side of <c>!</c> is a <c>&lt;term&gt;</c>, so any compound there is parenthesized. Rewrites
-/// referencing the reserved relationship name (<see cref="IsReserved"/>) cannot be expressed and throw; degenerate trees the grammar cannot express — a
-/// union/intersection with zero or one child — render as their children and reparse to the simpler shape; constructing either is the caller's defect.
+/// referencing the reserved relationship name (<see cref="IsReserved"/>) cannot be expressed and throw; the one degenerate tree the grammar cannot express —
+/// a single-child union/intersection (the empty shape is unrepresentable; its <c>Create</c> refuses it) — renders as its child and reparses to the simpler
+/// shape; constructing it is the caller's defect.
 /// </summary>
 internal static class RewriteExpressionPrinter
 {
     /// <summary>
     /// The rewrite grammar's reserved word: <c>this</c> always lexes as the direct-membership keyword — emitting it as an identifier would silently reparse a
-    /// computed reference into <c>ThisRewrite</c>. Case-insensitive because the tokenizer matches the keyword case-insensitively while <c>Create</c> performs
+    /// computed reference into <c>ThisRewrite</c>. Case-insensitive because the tokenizer matches the keyword case-insensitively while <c>Unchecked</c> performs
     /// no normalization. (<c>...</c> is no longer here: it is not a relationship — it is the <c>#...</c> marker of the <c>Fact.ResourceFact</c> member
     /// production — so it cannot be a <see cref="RelationshipIdentifier"/> at all.)
     /// </summary>

@@ -8,13 +8,13 @@ public sealed class SchemaRoundTripTests
     [Theory]
     [InlineData("file:\n  - owner")]
     [InlineData("file:\n  - owner\n  - editor: this")]
-    [InlineData("file:\n  - viewer: this | owner")]
-    [InlineData("file:\n  - viewer: this & owner")]
-    [InlineData("file:\n  - viewer: this ! owner")]
-    [InlineData("file:\n  - viewer: (parent, child)")]
-    [InlineData("file:\n  - viewer: (this | editor | (parent, viewer)) ! banned")]
-    [InlineData("file:\n  - viewer: this | (parent, child) & owner ! banned")]
-    [InlineData("file:\n  - owner\nfolder:\n  - viewer: (this | (parent, viewer)) ! banned")]
+    [InlineData("file:\n  - owner\n  - viewer: this | owner")]
+    [InlineData("file:\n  - owner\n  - viewer: this & owner")]
+    [InlineData("file:\n  - owner\n  - viewer: this ! owner")]
+    [InlineData("file:\n  - parent\n  - viewer: (parent, child)")]
+    [InlineData("file:\n  - editor\n  - parent\n  - banned\n  - viewer: (this | editor | (parent, viewer)) ! banned")]
+    [InlineData("file:\n  - owner\n  - parent\n  - banned\n  - viewer: this | (parent, child) & owner ! banned")]
+    [InlineData("file:\n  - owner\nfolder:\n  - parent\n  - banned\n  - viewer: (this | (parent, viewer)) ! banned")]
     [InlineData("file:")]
     // 'null' is a legal relationship name; the renderer emits it as unquoted plain text and the parser reads
     // raw scalar text, so the pair stays inverse even where YAML's own typing would read a null
@@ -33,28 +33,28 @@ public sealed class SchemaRoundTripTests
         ["this"] = ThisRewrite.Default,
         ["computed"] = Computed("owner"),
         ["computed null"] = Computed("null"), // rendered unquoted; survives because the parser treats scalar text as expression source
-        ["fact-to-subjectset"] = new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
-        ["flat union"] = new UnionRewrite([ThisRewrite.Default, Computed("owner")]),
-        ["flat intersection"] = new IntersectionRewrite([Computed("a"), Computed("b"), Computed("c")]),
-        ["exclusion"] = new ExclusionRewrite(ThisRewrite.Default, Computed("banned")),
+        ["fact-to-subjectset"] = FactTo("parent", "viewer"),
+        ["flat union"] = Union([ThisRewrite.Default, Computed("owner")]),
+        ["flat intersection"] = Intersection([Computed("a"), Computed("b"), Computed("c")]),
+        ["exclusion"] = Exclusion(ThisRewrite.Default, Computed("banned")),
         // nested compounds exercise the renderer's parenthesization: each shape below is
         // structurally distinct from its flattened or re-associated reading
-        ["intersection in union"] = new UnionRewrite([new IntersectionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
-        ["union in intersection"] = new IntersectionRewrite([new UnionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
-        ["right-nested union"] = new UnionRewrite([Computed("a"), new UnionRewrite([Computed("b"), Computed("c")])]),
-        ["left-nested union"] = new UnionRewrite([new UnionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
-        ["left-nested intersection"] = new IntersectionRewrite([new IntersectionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
-        ["exclusion in union"] = new UnionRewrite([new ExclusionRewrite(Computed("a"), Computed("b")), Computed("c")]),
-        ["union include side"] = new ExclusionRewrite(new UnionRewrite([Computed("a"), Computed("b")]), Computed("c")),
-        ["union exclude side"] = new ExclusionRewrite(Computed("a"), new UnionRewrite([Computed("b"), Computed("c")])),
-        ["left-chained exclusion"] = new ExclusionRewrite(new ExclusionRewrite(Computed("a"), Computed("b")), Computed("c")),
-        ["right-nested exclusion"] = new ExclusionRewrite(Computed("a"), new ExclusionRewrite(Computed("b"), Computed("c"))),
-        ["kitchen sink"] = new ExclusionRewrite(
-            new UnionRewrite(
+        ["intersection in union"] = Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
+        ["union in intersection"] = Intersection([Union([Computed("a"), Computed("b")]), Computed("c")]),
+        ["right-nested union"] = Union([Computed("a"), Union([Computed("b"), Computed("c")])]),
+        ["left-nested union"] = Union([Union([Computed("a"), Computed("b")]), Computed("c")]),
+        ["left-nested intersection"] = Intersection([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
+        ["exclusion in union"] = Union([Exclusion(Computed("a"), Computed("b")), Computed("c")]),
+        ["union include side"] = Exclusion(Union([Computed("a"), Computed("b")]), Computed("c")),
+        ["union exclude side"] = Exclusion(Computed("a"), Union([Computed("b"), Computed("c")])),
+        ["left-chained exclusion"] = Exclusion(Exclusion(Computed("a"), Computed("b")), Computed("c")),
+        ["right-nested exclusion"] = Exclusion(Computed("a"), Exclusion(Computed("b"), Computed("c"))),
+        ["kitchen sink"] = Exclusion(
+            Union(
             [
                 ThisRewrite.Default,
                 Computed("editor"),
-                new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                FactTo("parent", "viewer"),
             ]),
             Computed("banned")),
     };
@@ -65,9 +65,22 @@ public sealed class SchemaRoundTripTests
     [MemberData(nameof(RewriteCaseKeys))]
     public void RoundTrip_FromDomain_PreservesTreeStructure(string key)
     {
+        // every relationship the rewrite cases reference, defined bare so the namespace gate passes
         var original = MakeSchema(
         [
-            MakeNs(Ns("file"), [new Relationship(Rel("viewer"), RewriteCases[key])]),
+            MakeNs(
+                Ns("file"),
+                [
+                    Bare("owner"),
+                    Bare("parent"),
+                    Bare("editor"),
+                    Bare("banned"),
+                    Bare("null"),
+                    Bare("a"),
+                    Bare("b"),
+                    Bare("c"),
+                    new Relationship(Rel("viewer"), RewriteCases[key]),
+                ]),
         ]);
 
         var roundTripped = ParseSuccess(original.Print());
@@ -81,6 +94,7 @@ public sealed class SchemaRoundTripTests
         const string namespaceMap = """
             file:
               - owner
+              - parent
               - editor: this | owner
               - viewer: >
                   (this | editor | (parent, viewer)) ! banned
@@ -89,6 +103,7 @@ public sealed class SchemaRoundTripTests
 
             folder:
               - owner
+              - parent
               - viewer: (this | (parent, viewer)) ! banned
               - banned
             """;

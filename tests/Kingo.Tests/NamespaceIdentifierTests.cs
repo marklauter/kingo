@@ -59,24 +59,24 @@ public sealed class NamespaceIdentifierTests
     }
 
     [Fact]
-    public void Create_BypassesValidation_AcceptsRejectedInput()
+    public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = NamespaceIdentifier.Create("0-not.valid:");
+        var id = NamespaceIdentifier.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
-    public void Create_DoesNotLowercase()
+    public void Unchecked_DoesNotLowercase()
     {
-        var id = NamespaceIdentifier.Create("DOC");
+        var id = NamespaceIdentifier.Unchecked("DOC");
         Assert.Equal("DOC", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = NamespaceIdentifier.Create("doc");
-        var b = NamespaceIdentifier.Create("doc");
+        var a = NamespaceIdentifier.Unchecked("doc");
+        var b = NamespaceIdentifier.Unchecked("doc");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -87,8 +87,8 @@ public sealed class NamespaceIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = NamespaceIdentifier.Create("doc");
-        var b = NamespaceIdentifier.Create("user");
+        var a = NamespaceIdentifier.Unchecked("doc");
+        var b = NamespaceIdentifier.Unchecked("user");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -98,8 +98,8 @@ public sealed class NamespaceIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = NamespaceIdentifier.Create("a");
-        var b = NamespaceIdentifier.Create("b");
+        var a = NamespaceIdentifier.Unchecked("a");
+        var b = NamespaceIdentifier.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -116,7 +116,7 @@ public sealed class NamespaceIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = NamespaceIdentifier.Create("doc");
+        var id = NamespaceIdentifier.Unchecked("doc");
         Assert.Equal("doc", id.ToString());
     }
 }

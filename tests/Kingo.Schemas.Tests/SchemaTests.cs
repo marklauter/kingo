@@ -9,10 +9,10 @@ public sealed class SchemaTests
     private static Namespace Ns(string name, params string[] relationships) =>
         Assert.IsType<Result<Namespace>.Success>(
             Namespace.Create(
-                NamespaceIdentifier.Create(name),
-                [.. relationships.Select(r => new Relationship(RelationshipIdentifier.Create(r)))])).Value;
+                NamespaceIdentifier.Unchecked(name),
+                [.. relationships.Select(r => new Relationship(RelationshipIdentifier.Unchecked(r)))])).Value;
 
-    private static SchemaIdentifier Id(string name) => SchemaIdentifier.Create(name);
+    private static SchemaIdentifier Id(string name) => SchemaIdentifier.Unchecked(name);
 
     private static Schema Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
 
@@ -170,7 +170,7 @@ public sealed class SchemaTests
     public void Create_NamesDifferingOnlyByCase_AreDistinct()
     {
         // Uniqueness is ordinal over canonical values. Parsed namespace names are always
-        // lowercase; mixed case here is only reachable through the trusted Create path,
+        // lowercase; mixed case here is only reachable through the trusted Unchecked path,
         // and Create compares what it is given.
         var result = Schema.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
 

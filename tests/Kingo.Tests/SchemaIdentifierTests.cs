@@ -72,24 +72,24 @@ public sealed class SchemaIdentifierTests
     }
 
     [Fact]
-    public void Create_BypassesValidation_AcceptsRejectedInput()
+    public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SchemaIdentifier.Create("0-not.valid:");
+        var id = SchemaIdentifier.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
-    public void Create_DoesNotLowercase()
+    public void Unchecked_DoesNotLowercase()
     {
-        var id = SchemaIdentifier.Create("ACME");
+        var id = SchemaIdentifier.Unchecked("ACME");
         Assert.Equal("ACME", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SchemaIdentifier.Create("acme");
-        var b = SchemaIdentifier.Create("acme");
+        var a = SchemaIdentifier.Unchecked("acme");
+        var b = SchemaIdentifier.Unchecked("acme");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -100,8 +100,8 @@ public sealed class SchemaIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SchemaIdentifier.Create("acme");
-        var b = SchemaIdentifier.Create("globex");
+        var a = SchemaIdentifier.Unchecked("acme");
+        var b = SchemaIdentifier.Unchecked("globex");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -111,8 +111,8 @@ public sealed class SchemaIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = SchemaIdentifier.Create("a");
-        var b = SchemaIdentifier.Create("b");
+        var a = SchemaIdentifier.Unchecked("a");
+        var b = SchemaIdentifier.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -129,7 +129,7 @@ public sealed class SchemaIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SchemaIdentifier.Create("acme");
+        var id = SchemaIdentifier.Unchecked("acme");
         Assert.Equal("acme", id.ToString());
     }
 }

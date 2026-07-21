@@ -23,7 +23,8 @@ public static class SchemaParser
     /// (malformed YAML), <c>sdl.document</c> (not a single mapping, or missing/misshapen <c>schema:</c> / <c>namespaces:</c> keys),
     /// <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
     /// <c>sdl.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>sdl.rewrite</c> (bad rewrite expressions), plus whatever
-    /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> via <c>Namespace.Create</c>, and <c>schema.empty</c> /
+    /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> / <c>namespace.dangling_reference</c> /
+    /// <c>namespace.rewrite_cycle</c> via <c>Namespace.Create</c>, and <c>schema.empty</c> /
     /// <c>schema.duplicate_namespace</c> via <c>Schema.Create</c> — YAML keys are case-sensitive but namespace identity is not, so case-variant keys collapse
     /// to one identity after lowercase normalization and fail as duplicates.
     /// </summary>

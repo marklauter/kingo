@@ -65,17 +65,17 @@ public sealed class ResourceIdentifierTests
     }
 
     [Fact]
-    public void Create_BypassesValidation_AcceptsRejectedInput()
+    public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = ResourceIdentifier.Create("a:b#c@d");
+        var id = ResourceIdentifier.Unchecked("a:b#c@d");
         Assert.Equal("a:b#c@d", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = ResourceIdentifier.Create("readme.md");
-        var b = ResourceIdentifier.Create("readme.md");
+        var a = ResourceIdentifier.Unchecked("readme.md");
+        var b = ResourceIdentifier.Unchecked("readme.md");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -86,8 +86,8 @@ public sealed class ResourceIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = ResourceIdentifier.Create("readme.md");
-        var b = ResourceIdentifier.Create("license.txt");
+        var a = ResourceIdentifier.Unchecked("readme.md");
+        var b = ResourceIdentifier.Unchecked("license.txt");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -97,8 +97,8 @@ public sealed class ResourceIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_CaseSensitive_UppercaseBeforeLowercase()
     {
-        var upper = ResourceIdentifier.Create("A");
-        var lower = ResourceIdentifier.Create("a");
+        var upper = ResourceIdentifier.Unchecked("A");
+        var lower = ResourceIdentifier.Unchecked("a");
 
         // ordinal ordering: 'A' (0x41) < 'a' (0x61)
         Assert.True(upper.CompareTo(lower) < 0);
@@ -111,7 +111,7 @@ public sealed class ResourceIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = ResourceIdentifier.Create("readme.md");
+        var id = ResourceIdentifier.Unchecked("readme.md");
         Assert.Equal("readme.md", id.ToString());
     }
 }

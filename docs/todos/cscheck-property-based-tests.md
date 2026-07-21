@@ -14,7 +14,7 @@ One line tests the whole class: a property quantifies over the input space where
 
 ## Targets
 
-- **Identifier grammars** (`tests/Kingo.Tests`, five identifier types): generate strings over and around the grammar alphabets; assert `Parse` accepts iff the pattern matches, rejects anything carrying a reserved delimiter (`:`, `#`, `@`) in a reserved position, and that `Create`/`Parse` agree on accepted input.
+- **Identifier grammars** (`tests/Kingo.Tests`, five identifier types): generate strings over and around the grammar alphabets; assert `Parse` accepts iff the pattern matches, rejects anything carrying a reserved delimiter (`:`, `#`, `@`) in a reserved position, and that `Unchecked`/`Parse` agree on accepted input.
 - **Graphs round-trips** (`tests/Kingo.Graphs.Tests`): `Parse(x.ToString()) == x` for `Resource`, `SubjectSet`, `Fact` over generated valid values.
 - **SDL round-trips** (`tests/Kingo.Sdl.Tests`): generate schemas, assert print→parse identity — the existing `SchemaRoundTripTests` enumerate cases by hand; a generator walks the space between them.
 - **Result algebra** (`tests/Results.Tests`): `ResultLawTests` pin functor/applicative/monad laws at fixed points; quantify them over generated values and functions.

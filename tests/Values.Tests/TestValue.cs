@@ -11,7 +11,7 @@ public readonly record struct TestValue
 
     public string Value => value;
 
-    public static TestValue Create(string value) => new(value);
+    public static TestValue Unchecked(string value) => new(value);
 
     public static Result<TestValue> Parse(string s) =>
         !string.IsNullOrEmpty(s) && s.All(char.IsAsciiLetterLower)

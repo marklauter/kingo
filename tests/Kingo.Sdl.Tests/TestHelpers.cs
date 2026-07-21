@@ -10,15 +10,27 @@ internal static class TestHelpers
     /// <summary>The schema name every fixture document carries unless it is testing the name itself.</summary>
     public const string DefaultSchemaName = "test";
 
-    public static NamespaceIdentifier Ns(string value) => NamespaceIdentifier.Create(value);
+    public static NamespaceIdentifier Ns(string value) => NamespaceIdentifier.Unchecked(value);
 
-    public static RelationshipIdentifier Rel(string value) => RelationshipIdentifier.Create(value);
+    public static RelationshipIdentifier Rel(string value) => RelationshipIdentifier.Unchecked(value);
 
-    public static SchemaIdentifier SchemaId(string value) => SchemaIdentifier.Create(value);
+    public static SchemaIdentifier SchemaId(string value) => SchemaIdentifier.Unchecked(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
-    public static ComputedSubjectSetRewrite Computed(string name) => new(Rel(name));
+    public static ComputedSubjectSetRewrite Computed(string name) => ComputedSubjectSetRewrite.Create(Rel(name));
+
+    public static FactToSubjectSetRewrite FactTo(string factset, string computed) =>
+        FactToSubjectSetRewrite.Create(Rel(factset), Rel(computed));
+
+    public static UnionRewrite Union(ImmutableArray<SubjectSetRewrite> children) =>
+        Assert.IsType<Result<UnionRewrite>.Success>(UnionRewrite.Create(children)).Value;
+
+    public static IntersectionRewrite Intersection(ImmutableArray<SubjectSetRewrite> children) =>
+        Assert.IsType<Result<IntersectionRewrite>.Success>(IntersectionRewrite.Create(children)).Value;
+
+    public static ExclusionRewrite Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
+        Assert.IsType<Result<ExclusionRewrite>.Success>(ExclusionRewrite.Create(include, exclude)).Value;
 
     public static Namespace MakeNs(NamespaceIdentifier name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;

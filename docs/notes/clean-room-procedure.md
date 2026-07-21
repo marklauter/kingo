@@ -8,7 +8,7 @@ status: evolving
 
 # Clean-room procedure
 
-Distilled from the first run: [[rewrite-interpreters]] and its dry-run, [[rewrite-interpreters-findings]] (2026-07-15 through 2026-07-20).
+Distilled from the first run: [[rewrite-interpreters]] and its dry-run (2026-07-15 through 2026-07-20), journaled as [[2026-07-20-2355-first-clean-room-dry-run]]. The findings ledger itself is retired: the handoff carries its own reasoning, and history is outside the closure.
 
 ## What the room is clean of
 

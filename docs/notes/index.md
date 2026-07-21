@@ -45,4 +45,3 @@ Queue order: rewrite interpreters first (selected 2026-07-15 — the consumer th
 ## Reference
 
 - [[sources]] — the quarry branches (`main-archive`, `dictionary-encoding`): what they hold and how to lift files from them.
-- [[rewrite-interpreters-findings]] — **locked** historical record of the first clean-room dry-run: twenty findings against the [[rewrite-interpreters]] handoff, every one driven to a terminal state (2026-07-18 through 2026-07-20). The narrative is journaled; the method is [[clean-room-procedure]].

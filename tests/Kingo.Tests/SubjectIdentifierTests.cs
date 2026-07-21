@@ -65,17 +65,17 @@ public sealed class SubjectIdentifierTests
     }
 
     [Fact]
-    public void Create_BypassesValidation_AcceptsRejectedInput()
+    public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SubjectIdentifier.Create("a#b@c");
+        var id = SubjectIdentifier.Unchecked("a#b@c");
         Assert.Equal("a#b@c", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SubjectIdentifier.Create("user:anne");
-        var b = SubjectIdentifier.Create("user:anne");
+        var a = SubjectIdentifier.Unchecked("user:anne");
+        var b = SubjectIdentifier.Unchecked("user:anne");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -86,8 +86,8 @@ public sealed class SubjectIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SubjectIdentifier.Create("user:anne");
-        var b = SubjectIdentifier.Create("user:bob");
+        var a = SubjectIdentifier.Unchecked("user:anne");
+        var b = SubjectIdentifier.Unchecked("user:bob");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -97,8 +97,8 @@ public sealed class SubjectIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_CaseSensitive_UppercaseBeforeLowercase()
     {
-        var upper = SubjectIdentifier.Create("A");
-        var lower = SubjectIdentifier.Create("a");
+        var upper = SubjectIdentifier.Unchecked("A");
+        var lower = SubjectIdentifier.Unchecked("a");
 
         // ordinal ordering: 'A' (0x41) < 'a' (0x61)
         Assert.True(upper.CompareTo(lower) < 0);
@@ -111,7 +111,7 @@ public sealed class SubjectIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SubjectIdentifier.Create("user:anne");
+        var id = SubjectIdentifier.Unchecked("user:anne");
         Assert.Equal("user:anne", id.ToString());
     }
 }

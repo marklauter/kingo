@@ -50,7 +50,7 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 - **DynamoDbLite is production-ready** (Mark's call as its author) — the previously recommended go/no-go spike is moot; storage work proceeds directly against the substrate.
 - **Key/value store style, not the ORM.** Storage access uses the low-level (PK, SK) item operations with hand-mapped `Dictionary<string, AttributeValue>` in the storage adapter — not `DynamoDBContext` with `[DynamoDBHashKey]`-attributed POCOs. This keeps DynamoDB attributes off every record in the system (persistence-ignorance all the way down: the earlier ORM preference would have required attribute-carrying storage POCOs) and gives the adapter direct control of the item shape the Zanzibar mapping table above depends on.
 
-## Refined 2026-07-20 — the drift ruling ([[rewrite-interpreters-findings]] F8)
+## Refined 2026-07-20 — the drift ruling (dry-run finding F8)
 
 The decision stands; three rows of the picture above gained specifics:
 
