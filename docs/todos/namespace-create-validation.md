@@ -19,7 +19,7 @@ Ruled (Mark, 2026-07-18): an unhealthy schema is detected at construction, so `C
 2. **Dangling references.** Every `ComputedSubjectSetRewrite.Relationship` and every `TupleToSubjectSetRewrite.TuplesetRelationship` names a relationship defined in this namespace.
 3. **Empty operator nodes** (ruled Mark, 2026-07-19). `UnionRewrite`/`IntersectionRewrite` with empty operand lists are refused. The SDL grammar cannot produce the shape; the Write API path can, and the conventional reading of an empty intersection is the universal set — everyone a member — so the shape is refused rather than given semantics.
 
-Not validatable here: `TupleToSubjectSetRewrite.ComputedSubjectSetRelationship`. Its target namespace is unknown until facts resolve the tupleset's subjects, so an undefined relationship there stays condition 4 (undefined relationship mid-walk) in the interpreter's taxonomy.
+Not validatable here: `TupleToSubjectSetRewrite.ComputedSubjectSetRelationship`. Its target namespace is unknown until facts resolve the tupleset's subjects, so an undefined relationship there stays condition 4 (undefined namespace or relationship mid-walk — broadened and demoted to a never-in-practice backstop by the drift ruling, 2026-07-20; [[rewrite-interpreters-findings]] F8) in the interpreter's taxonomy.
 
 ## Why construction, not SDL parse
 
