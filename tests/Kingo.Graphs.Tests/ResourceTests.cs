@@ -101,7 +101,7 @@ public sealed class ResourceTests
         var right = Assert.IsType<Result<Resource>.Success>(Resource.Parse("doc:readme")).Value;
 
         Assert.Equal(left, right);
-        Assert.Equal(new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")), left);
+        Assert.Equal(new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")), left);
     }
 
     [Fact]

@@ -83,24 +83,24 @@ public sealed class RelationshipIdentifierTests
     }
 
     [Fact]
-    public void Create_BypassesValidation_AcceptsRejectedInput()
+    public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = RelationshipIdentifier.Create("0-not.valid:");
+        var id = RelationshipIdentifier.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
-    public void Create_DoesNotLowercase()
+    public void Unchecked_DoesNotLowercase()
     {
-        var id = RelationshipIdentifier.Create("OWNER");
+        var id = RelationshipIdentifier.Unchecked("OWNER");
         Assert.Equal("OWNER", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = RelationshipIdentifier.Create("owner");
-        var b = RelationshipIdentifier.Create("owner");
+        var a = RelationshipIdentifier.Unchecked("owner");
+        var b = RelationshipIdentifier.Unchecked("owner");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -111,8 +111,8 @@ public sealed class RelationshipIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = RelationshipIdentifier.Create("owner");
-        var b = RelationshipIdentifier.Create("editor");
+        var a = RelationshipIdentifier.Unchecked("owner");
+        var b = RelationshipIdentifier.Unchecked("editor");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -122,8 +122,8 @@ public sealed class RelationshipIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = RelationshipIdentifier.Create("a");
-        var b = RelationshipIdentifier.Create("b");
+        var a = RelationshipIdentifier.Unchecked("a");
+        var b = RelationshipIdentifier.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -140,7 +140,7 @@ public sealed class RelationshipIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = RelationshipIdentifier.Create("owner");
+        var id = RelationshipIdentifier.Unchecked("owner");
         Assert.Equal("owner", id.ToString());
     }
 }

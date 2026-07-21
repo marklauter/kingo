@@ -15,11 +15,22 @@ namespace Kingo.Sdl;
 /// </summary>
 internal static class RewriteExpressionParser
 {
+    /// <summary>
+    /// Upper bound on tokens per expression — generous against real rewrite expressions (tens of tokens), small against the stack. The recursion it must
+    /// contain runs one grammar frame per nesting level at ~2-3KB each, and the worst case is two tokens per level (nested parentheses, exclusion links), so
+    /// 200 tokens caps the depth near 100 — safe even on a 1MB ASP.NET thread-pool stack, where a 1,000-token budget demonstrably was not.
+    /// </summary>
+    private const int MaxExpressionTokens = 200;
+
     public static Result<SubjectSetRewrite> Parse(string expression)
     {
         var tokens = Tokenizer.TryTokenize(expression);
         if (!tokens.HasValue)
             return Result.Failure<SubjectSetRewrite>(Error.Validation("sdl.rewrite", $"invalid rewrite expression '{expression}': {tokens}"));
+
+        if (WouldOverflowTheParserStack(tokens.Value))
+            return Result.Failure<SubjectSetRewrite>(
+                Error.Validation("sdl.rewrite", $"invalid rewrite expression: exceeds the {MaxExpressionTokens}-token budget"));
 
         var parsed = Expression.AtEnd().TryParse(tokens.Value);
         return parsed.HasValue
@@ -27,20 +38,28 @@ internal static class RewriteExpressionParser
             : Result.Failure<SubjectSetRewrite>(Error.Validation("sdl.rewrite", $"invalid rewrite expression '{expression}': {parsed}"));
     }
 
+    /// <summary>
+    /// The stack-depth guard: the grammar recurses per parenthesis and <see cref="Transform"/> per exclusion nesting level, so on untrusted text the token
+    /// count must stay small enough that no recursion it feeds can exhaust the stack. The probe stops one past the budget rather than counting an oversized
+    /// list.
+    /// </summary>
+    private static bool WouldOverflowTheParserStack(Superpower.Model.TokenList<RewriteExpressionToken> tokens) =>
+        tokens.Skip(MaxExpressionTokens).Any();
+
     private static Result<SubjectSetRewrite> Transform(RewriteNode node) =>
         node switch
         {
             ThisNode => Result.Success<SubjectSetRewrite>(ThisRewrite.Default),
             ComputedSubjectSetNode computed => RelationshipIdentifier.Parse(computed.Relationship)
-                .Map(SubjectSetRewrite (relationship) => new ComputedSubjectSetRewrite(relationship)),
+                .Map(SubjectSetRewrite (relationship) => ComputedSubjectSetRewrite.Create(relationship)),
             FactToSubjectSetNode factTo => Result.Apply(
                 RelationshipIdentifier.Parse(factTo.FactsetRelationship)
-                    .Map(Func<RelationshipIdentifier, SubjectSetRewrite> (factset) => computed => new FactToSubjectSetRewrite(factset, computed)),
+                    .Map(Func<RelationshipIdentifier, SubjectSetRewrite> (factset) => computed => FactToSubjectSetRewrite.Create(factset, computed)),
                 RelationshipIdentifier.Parse(factTo.ComputedSubjectSetRelationship)),
             UnionNode union => union.Children.Select(Transform).Sequence()
-                .Map(children => (SubjectSetRewrite)new UnionRewrite(children)),
+                .Bind(children => UnionRewrite.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             IntersectionNode intersection => intersection.Children.Select(Transform).Sequence()
-                .Map(children => (SubjectSetRewrite)new IntersectionRewrite(children)),
+                .Bind(children => IntersectionRewrite.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             // the last inhabitant of the closed hierarchy: a discard arm (rather than a type pattern)
             // keeps the compiler from synthesizing an unreachable default branch under the switch
             _ => TransformExclusion((ExclusionNode)node),
@@ -49,7 +68,7 @@ internal static class RewriteExpressionParser
     private static Result<SubjectSetRewrite> TransformExclusion(ExclusionNode exclusion) =>
         Result.Apply(
             Transform(exclusion.Include)
-                .Map(Func<SubjectSetRewrite, SubjectSetRewrite> (include) => exclude => new ExclusionRewrite(include, exclude)),
+                .Map(Func<SubjectSetRewrite, SubjectSetRewrite> (include) => exclude => ExclusionRewrite.Create(include, exclude)),
             Transform(exclusion.Exclude));
 
     private enum RewriteExpressionToken

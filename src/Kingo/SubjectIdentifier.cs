@@ -16,7 +16,7 @@ public readonly record struct SubjectIdentifier
     public string Value { get; }
 
     /// <inheritdoc/>
-    public static SubjectIdentifier Create(string value) => new(value);
+    public static SubjectIdentifier Unchecked(string value) => new(value);
 
     /// <inheritdoc/>
     public static Result<SubjectIdentifier> Parse(string s) =>

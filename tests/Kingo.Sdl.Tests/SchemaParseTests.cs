@@ -26,7 +26,7 @@ public sealed class SchemaParseTests
                     Bare("owner"),
                     new Relationship(
                         Rel("editor"),
-                        new UnionRewrite([ThisRewrite.Default, Computed("owner")])),
+                        Union([ThisRewrite.Default, Computed("owner")])),
                 ]),
         ];
 
@@ -48,6 +48,7 @@ public sealed class SchemaParseTests
             namespaces:
               file:                           # namespace
                 - owner                       # empty relationship - implicit this
+                - parent                      # the factset relationship the viewer rewrite walks
                 - editor: this | owner        # relationship with union rewrite
                 - viewer: >                   # relationship with union, factset, and exclusion rewrites
                     (this | editor | (parent, viewer)) ! banned
@@ -57,6 +58,7 @@ public sealed class SchemaParseTests
               # second namespace defined within same document
               folder:
                 - owner
+                - parent
                 - viewer: (this | (parent, viewer)) ! banned
                 - banned
             """;
@@ -65,22 +67,23 @@ public sealed class SchemaParseTests
             Ns("file"),
             [
                 Bare("owner"),
+                Bare("parent"),
                 new Relationship(
                     Rel("editor"),
-                    new UnionRewrite([ThisRewrite.Default, Computed("owner")])),
+                    Union([ThisRewrite.Default, Computed("owner")])),
                 new Relationship(
                     Rel("viewer"),
-                    new ExclusionRewrite(
-                        new UnionRewrite(
+                    Exclusion(
+                        Union(
                         [
                             ThisRewrite.Default,
                             Computed("editor"),
-                            new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                            FactTo("parent", "viewer"),
                         ]),
                         Computed("banned"))),
                 new Relationship(
                     Rel("auditor"),
-                    new IntersectionRewrite([ThisRewrite.Default, Computed("viewer")])),
+                    Intersection([ThisRewrite.Default, Computed("viewer")])),
                 Bare("banned"),
             ]);
 
@@ -88,13 +91,14 @@ public sealed class SchemaParseTests
             Ns("folder"),
             [
                 Bare("owner"),
+                Bare("parent"),
                 new Relationship(
                     Rel("viewer"),
-                    new ExclusionRewrite(
-                        new UnionRewrite(
+                    Exclusion(
+                        Union(
                         [
                             ThisRewrite.Default,
-                            new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                            FactTo("parent", "viewer"),
                         ]),
                         Computed("banned"))),
                 Bare("banned"),
@@ -106,13 +110,13 @@ public sealed class SchemaParseTests
     [Theory]
     [InlineData("file:\n  - owner")]
     [InlineData("file:\n  - owner\n  - editor: this")]
-    [InlineData("file:\n  - viewer: this | owner")]
-    [InlineData("file:\n  - viewer: this & owner")]
-    [InlineData("file:\n  - viewer: this ! owner")]
+    [InlineData("file:\n  - owner\n  - viewer: this | owner")]
+    [InlineData("file:\n  - owner\n  - viewer: this & owner")]
+    [InlineData("file:\n  - owner\n  - viewer: this ! owner")]
     [InlineData("file:\n  - viewer: (this)")]
     [InlineData("file:\n  - viewer: this # comment")]
-    [InlineData("file:\n  - viewer: (parent, child)")]
-    [InlineData("file:\n  - viewer: this | (parent, child) & owner ! banned")]
+    [InlineData("file:\n  - parent\n  - viewer: (parent, child)")]
+    [InlineData("file:\n  - owner\n  - parent\n  - banned\n  - viewer: this | (parent, child) & owner ! banned")]
     [InlineData("base: &shared\n  - owner\nfile: *shared")] // anchor reuse is plain YAML; both namespaces get the shared relationship list
     public void Parse_ValidNamespaceMaps_Succeeds(string namespaceMap) =>
         _ = ParseSuccess(Document(namespaceMap));
@@ -159,6 +163,10 @@ public sealed class SchemaParseTests
     [InlineData("file:\n  - this: owner", "sdl.relationship.reserved")]
     [InlineData("file:\n  - '...'", "relationship_id.invalid")]
     [InlineData("file:\n  - '...': owner", "relationship_id.invalid")]
+    [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")] // the namespace gate runs on the parse path too
+    [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")] // a factset's first element resolves here; its second does not
+    [InlineData("file:\n  - viewer: viewer", "namespace.rewrite_cycle")]
+    [InlineData("file:\n  - editor: viewer\n  - viewer: editor", "namespace.rewrite_cycle")]
     public void Parse_InvalidNamespaceMaps_FailsWithExpectedCode(string namespaceMap, string expectedCode)
     {
         var errors = ParseFailure(Document(namespaceMap));
@@ -311,7 +319,7 @@ public sealed class SchemaParseTests
                     Bare("owner"),
                     new Relationship(
                         Rel("editor"),
-                        new UnionRewrite([ThisRewrite.Default, Computed("owner")])),
+                        Union([ThisRewrite.Default, Computed("owner")])),
                 ]),
         ];
 

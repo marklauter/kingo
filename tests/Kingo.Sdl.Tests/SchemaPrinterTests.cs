@@ -16,7 +16,7 @@ public sealed class SchemaPrinterTests
                     Bare("owner"),
                     new Relationship(
                         Rel("editor"),
-                        new UnionRewrite([ThisRewrite.Default, Computed("owner")])),
+                        Union([ThisRewrite.Default, Computed("owner")])),
                 ]),
         ]);
 
@@ -31,12 +31,16 @@ public sealed class SchemaPrinterTests
             MakeNs(
                 Ns("test"),
                 [
+                    Bare("owner"),
+                    Bare("parent"),
+                    Bare("viewer"),
+                    Bare("banned"),
                     Bare("direct"),
                     new Relationship(Rel("computed"), Computed("owner")),
-                    new Relationship(Rel("factset"), new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer"))),
-                    new Relationship(Rel("union"), new UnionRewrite([ThisRewrite.Default, Computed("owner")])),
-                    new Relationship(Rel("intersection"), new IntersectionRewrite([ThisRewrite.Default, Computed("viewer")])),
-                    new Relationship(Rel("exclusion"), new ExclusionRewrite(ThisRewrite.Default, Computed("banned"))),
+                    new Relationship(Rel("factset"), FactTo("parent", "viewer")),
+                    new Relationship(Rel("union"), Union([ThisRewrite.Default, Computed("owner")])),
+                    new Relationship(Rel("intersection"), Intersection([ThisRewrite.Default, Computed("viewer")])),
+                    new Relationship(Rel("exclusion"), Exclusion(ThisRewrite.Default, Computed("banned"))),
                 ]),
         ]);
 
@@ -93,7 +97,7 @@ public sealed class SchemaPrinterTests
 
     [Theory]
     [InlineData("this")]
-    [InlineData("THIS")] // Create performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
+    [InlineData("THIS")] // Unchecked performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
     public void Print_ReservedRelationshipName_IsCallerDefect(string name)
     {
         // SDL cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
@@ -110,7 +114,7 @@ public sealed class SchemaPrinterTests
         // instead of a relationship reference — so emitting it is corruption, not serialization
         var schema = MakeSchema(
         [
-            MakeNs(Ns("file"), [new Relationship(Rel("viewer"), Computed("this"))]),
+            MakeNs(Ns("file"), [Bare("this"), new Relationship(Rel("viewer"), Computed("this"))]),
         ]);
 
         _ = Assert.Throws<ArgumentException>(schema.Print);
@@ -124,7 +128,7 @@ public sealed class SchemaPrinterTests
         [
             MakeNs(
                 Ns("file"),
-                [new Relationship(Rel("viewer"), new FactToSubjectSetRewrite(Rel("this"), Rel("member")))]),
+                [Bare("this"), new Relationship(Rel("viewer"), FactTo("this", "member"))]),
         ]);
 
         _ = Assert.Throws<ArgumentException>(schema.Print);

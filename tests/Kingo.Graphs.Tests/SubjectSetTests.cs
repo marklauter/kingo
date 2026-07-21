@@ -89,8 +89,8 @@ public sealed class SubjectSetTests
     {
         var left = Assert.IsType<Result<SubjectSet>.Success>(SubjectSet.Parse("doc:readme#viewer")).Value;
         var right = new SubjectSet(
-            new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
-            RelationshipIdentifier.Create("viewer"));
+            new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")),
+            RelationshipIdentifier.Unchecked("viewer"));
 
         Assert.Equal(right, left);
     }

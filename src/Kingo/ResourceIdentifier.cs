@@ -15,7 +15,7 @@ public readonly record struct ResourceIdentifier
     public string Value { get; }
 
     /// <inheritdoc/>
-    public static ResourceIdentifier Create(string value) => new(value);
+    public static ResourceIdentifier Unchecked(string value) => new(value);
 
     /// <inheritdoc/>
     public static Result<ResourceIdentifier> Parse(string s) =>

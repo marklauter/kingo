@@ -17,7 +17,7 @@ The pre-reboot value-type wrappers (`NamespaceIdentifier`, `RelationIdentifier` 
 `IValue<TSelf, TValue>` (in `Values`) is the canonical contract for value-type wrappers:
 
 - `TValue Value { get; }` — public access to the wrapped primitive.
-- `static abstract TSelf Create(TValue)` — trusted path, no validation.
+- `static abstract TSelf Unchecked(TValue)` — trusted path, no validation.
 - `static abstract Result<TSelf> Parse(string)` — untrusted path, full validation, returns `Result<TSelf>`.
 - Inherits `IComparable<TSelf>`, `IEquatable<TSelf>`, `IComparisonOperators<TSelf, TSelf, bool>`.
 

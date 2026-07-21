@@ -60,8 +60,8 @@ public sealed class FactTests
 
         Assert.Equal(
             new SubjectSet(
-                new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
-                RelationshipIdentifier.Create("viewer")),
+                new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")),
+                RelationshipIdentifier.Unchecked("viewer")),
             fact.SubjectSet);
     }
 
@@ -146,9 +146,9 @@ public sealed class FactTests
         var left = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
         var right = new SubjectFact(
             new SubjectSet(
-                new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
-                RelationshipIdentifier.Create("viewer")),
-            SubjectIdentifier.Create("user:anne"));
+                new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")),
+                RelationshipIdentifier.Unchecked("viewer")),
+            SubjectIdentifier.Unchecked("user:anne"));
 
         Assert.Equal(right, left);
     }

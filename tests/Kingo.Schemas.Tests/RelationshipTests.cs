@@ -1,8 +1,10 @@
+using static Kingo.Schemas.Tests.TestHelpers;
+
 namespace Kingo.Schemas.Tests;
 
 public sealed class RelationshipTests
 {
-    private static RelationshipIdentifier Id(string value) => RelationshipIdentifier.Create(value);
+    private static RelationshipIdentifier Id(string value) => RelationshipIdentifier.Unchecked(value);
 
     [Fact]
     public void SecondaryCtor_DefaultsRewriteToThisRewriteDefaultSingleton()
@@ -25,8 +27,8 @@ public sealed class RelationshipTests
     [Fact]
     public void Equals_SameNameAndRewrite_AreEqual()
     {
-        var a = new Relationship(Id("viewer"), new ComputedSubjectSetRewrite(Id("editor")));
-        var b = new Relationship(Id("viewer"), new ComputedSubjectSetRewrite(Id("editor")));
+        var a = new Relationship(Id("viewer"), Computed("editor"));
+        var b = new Relationship(Id("viewer"), Computed("editor"));
 
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
@@ -45,7 +47,7 @@ public sealed class RelationshipTests
     public void Equals_DifferentRewrite_NotEqual()
     {
         var a = new Relationship(Id("viewer"), ThisRewrite.Default);
-        var b = new Relationship(Id("viewer"), new ComputedSubjectSetRewrite(Id("editor")));
+        var b = new Relationship(Id("viewer"), Computed("editor"));
 
         Assert.NotEqual(a, b);
     }

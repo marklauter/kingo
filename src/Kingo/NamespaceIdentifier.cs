@@ -16,7 +16,7 @@ public readonly record struct NamespaceIdentifier
     public string Value { get; }
 
     /// <inheritdoc/>
-    public static NamespaceIdentifier Create(string value) => new(value);
+    public static NamespaceIdentifier Unchecked(string value) => new(value);
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]

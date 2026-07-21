@@ -29,42 +29,42 @@ public sealed class RewriteExpressionParserTests
     [InlineData("(parent,\nviewer)")]
     [InlineData("(PARENT, Viewer)")]
     public void Parse_FactToSubjectSet_ReturnsBothRelationships(string expression) =>
-        Assert.Equal(new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")), ParseSuccess(expression));
+        Assert.Equal(FactTo("parent", "viewer"), ParseSuccess(expression));
 
     [Fact]
     public void Parse_UnionChain_FlattensToOneNode() =>
         Assert.Equal(
-            new UnionRewrite([Computed("a"), Computed("b"), Computed("c")]),
+            Union([Computed("a"), Computed("b"), Computed("c")]),
             ParseSuccess("a | b | c"));
 
     [Fact]
     public void Parse_IntersectionChain_FlattensToOneNode() =>
         Assert.Equal(
-            new IntersectionRewrite([Computed("a"), Computed("b"), Computed("c")]),
+            Intersection([Computed("a"), Computed("b"), Computed("c")]),
             ParseSuccess("a & b & c"));
 
     [Fact]
     public void Parse_ParenthesizedOperand_KeepsItsNestedShape() =>
         // a parenthesized group is opaque to the operator chain: (a | b) | c is not the same tree as a | b | c
         Assert.Equal(
-            new UnionRewrite([new UnionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
+            Union([Union([Computed("a"), Computed("b")]), Computed("c")]),
             ParseSuccess("(a | b) | c"));
 
     [Fact]
     public void Parse_MixedOperators_GroupsConsecutiveRunsLeftToRight() =>
         // & and | share precedence, left-associative: a & b | c parses as (a & b) | c
         Assert.Equal(
-            new UnionRewrite([new IntersectionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
+            Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
             ParseSuccess("a & b | c"));
 
     [Fact]
     public void Parse_ExclusionBindsTighterThanBinaryOperators() =>
         // ! is highest: a & b | c & d ! e parses as ((a & b) | c) & (d ! e)
         Assert.Equal(
-            new IntersectionRewrite(
+            Intersection(
             [
-                new UnionRewrite([new IntersectionRewrite([Computed("a"), Computed("b")]), Computed("c")]),
-                new ExclusionRewrite(Computed("d"), Computed("e")),
+                Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
+                Exclusion(Computed("d"), Computed("e")),
             ]),
             ParseSuccess("a & b | c & d ! e"));
 
@@ -72,18 +72,18 @@ public sealed class RewriteExpressionParserTests
     public void Parse_ChainedExclusions_AssociateLeft() =>
         // matches mathematical set difference: users ! banned ! deleted is (users ! banned) ! deleted
         Assert.Equal(
-            new ExclusionRewrite(new ExclusionRewrite(Computed("users"), Computed("banned")), Computed("deleted")),
+            Exclusion(Exclusion(Computed("users"), Computed("banned")), Computed("deleted")),
             ParseSuccess("users ! banned ! deleted"));
 
     [Fact]
     public void Parse_ComplexExpression_ReturnsExpectedTree() =>
         Assert.Equal(
-            new ExclusionRewrite(
-                new UnionRewrite(
+            Exclusion(
+                Union(
                 [
                     ThisRewrite.Default,
                     Computed("editor"),
-                    new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                    FactTo("parent", "viewer"),
                 ]),
                 Computed("banned")),
             ParseSuccess("(this | editor | (parent, viewer)) ! banned"));
@@ -133,6 +133,54 @@ banned")]
 
         Assert.Equal(2, failure.Errors.Length);
         Assert.All(failure.Errors, error => Assert.Equal("relationship_id.invalid", error.Code));
+    }
+
+    [Fact]
+    public void Parse_DeeplyNestedParentheses_FailsWithRewriteCode_NotStackOverflow()
+    {
+        // untrusted text must not pick the parser's stack depth: the token budget refuses the
+        // expression before the grammar's per-parenthesis recursion can run
+        var expression = new string('(', 20_000) + "this" + new string(')', 20_000);
+
+        var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
+
+        Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
+    }
+
+    [Fact]
+    public void Parse_NestingJustInsideTheTokenBudget_FailsWithRewriteCode_NotStackOverflow()
+    {
+        // the budget must refuse every depth the grammar's recursion cannot survive: 499 nested
+        // parentheses is 999 tokens, so a budget that admits it admits the overflow
+        var expression = new string('(', 499) + "this" + new string(')', 499);
+
+        var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
+
+        Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
+    }
+
+    [Fact]
+    public void Parse_DeepestNestingTheTokenBudgetAdmits_ParsesWithoutOverflow()
+    {
+        // the budget's contract from the other side: what it admits must be safe to parse —
+        // 99 nested parentheses is 199 tokens, the deepest shape inside a 200-token budget
+        var expression = new string('(', 99) + "this" + new string(')', 99);
+
+        var success = Assert.IsType<Result<SubjectSetRewrite>.Success>(RewriteExpressionParser.Parse(expression));
+
+        Assert.Same(ThisRewrite.Default, success.Value);
+    }
+
+    [Fact]
+    public void Parse_LongExclusionChain_FailsWithRewriteCode_NotStackOverflow()
+    {
+        // a flat '!' chain needs no parentheses to nest: it left-associates into one node per link,
+        // so the transform would recurse per link — the token budget bounds it
+        var expression = string.Join(" ! ", Enumerable.Repeat("a", 20_000));
+
+        var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
+
+        Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
