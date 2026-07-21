@@ -10,7 +10,7 @@ Kingo is a Google Zanzibar-inspired ReBAC authorization system, exploring relati
 
 Kingo is a work in progress: the domain model and rewrite engine are under active design, and APIs, schemas, and storage formats change without notice.
 
-The name is Swahili — plural of *ukingo*: edges, borders. The logo is a Swahili carved door, the emblem of the coast Zanzibar sits on: the guarded boundary that decides who's inside.
+The name is Swahili — plural of *ukingo*: edges, borders. The logo is a Swahili carved door, the emblem of the coast where Zanzibar is located. It is a symbol of access control.
 
 ## Build & test
 
