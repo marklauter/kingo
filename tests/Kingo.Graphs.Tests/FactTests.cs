@@ -14,8 +14,31 @@ public sealed class FactTests
         var fact = Assert.IsType<SubjectFact>(success.Value);
         Assert.Equal("doc:readme", fact.SubjectSet.Resource.ToString());
         Assert.Equal("viewer", fact.SubjectSet.Relationship.Value);
-        Assert.Equal("user:anne", fact.Subject.Id.Value);
+        Assert.Equal("user:anne", fact.Subject.Value);
         Assert.Equal("doc:readme#viewer@user:anne", fact.ToString());
+    }
+
+    [Fact]
+    public void Parse_ResourceFact_SucceedsAndRoundTrips()
+    {
+        var result = Fact.Parse("folder:x#parent@folder:y#...");
+
+        var success = Assert.IsType<Result<Fact>.Success>(result);
+        var fact = Assert.IsType<ResourceFact>(success.Value);
+        Assert.Equal("folder:x", fact.SubjectSet.Resource.ToString());
+        Assert.Equal("parent", fact.SubjectSet.Relationship.Value);
+        Assert.Equal("folder:y", fact.Subject.ToString());
+        Assert.Equal("folder:x#parent@folder:y#...", fact.ToString());
+    }
+
+    [Fact]
+    public void Parse_ResourceFact_RoundTripsThroughToStringToParseStructurally()
+    {
+        var parsed = Assert.IsType<Result<Fact>.Success>(Fact.Parse("folder:x#parent@folder:y#...")).Value;
+        var reparsed = Assert.IsType<Result<Fact>.Success>(Fact.Parse(parsed.ToString())).Value;
+
+        Assert.Equal(parsed, reparsed);
+        _ = Assert.IsType<ResourceFact>(reparsed);
     }
 
     [Fact]
@@ -100,6 +123,16 @@ public sealed class FactTests
     }
 
     [Fact]
+    public void Parse_ResourceFactBothSidesInvalid_AccumulatesRelationshipThenNamespaceIdInvalid()
+    {
+        // '#...' routes to ResourceFact; set side rejects '-' in the relationship, resource side rejects '-' in the namespace
+        var result = Fact.Parse("doc:x#vie-wer@fol-der:y#...");
+
+        var failure = Assert.IsType<Result<Fact>.Failure>(result);
+        Assert.Equal(["relationship_id.invalid", "namespace_id.invalid"], failure.Errors.Select(e => e.Code));
+    }
+
+    [Fact]
     public void Parse_MixedCase_CanonicalizesThroughToString()
     {
         var success = Assert.IsType<Result<Fact>.Success>(Fact.Parse("DOC:x#VIEWER@user:anne"));
@@ -115,7 +148,7 @@ public sealed class FactTests
             new SubjectSet(
                 new Resource(NamespaceIdentifier.Create("doc"), ResourceIdentifier.Create("readme")),
                 RelationshipIdentifier.Create("viewer")),
-            new Subject(SubjectIdentifier.Create("user:anne")));
+            SubjectIdentifier.Create("user:anne"));
 
         Assert.Equal(right, left);
     }

@@ -16,8 +16,8 @@ public static class SchemaPrinter
     /// <summary>
     /// Emits the SDL document for <paramref name="schema"/>: the <c>schema:</c> name, then one namespace per key under <c>namespaces:</c> in schema order.
     /// The schema's own invariants make the mapping well-formed by construction (namespace names are unique); the one document invariant the domain cannot
-    /// express is the caller's defect and throws <see cref="ArgumentException"/>: no relationship name or rewrite reference may be a reserved word of the
-    /// rewrite grammar (<c>this</c>, <c>...</c>).
+    /// express is the caller's defect and throws <see cref="ArgumentException"/>: no relationship name or rewrite reference may be the reserved word of the
+    /// rewrite grammar (<c>this</c>).
     /// </summary>
     public static string Print(this Schema schema)
     {

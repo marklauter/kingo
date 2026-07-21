@@ -157,8 +157,8 @@ public sealed class SchemaParseTests
     [InlineData("file:\n  - this", "sdl.relationship.reserved")]
     [InlineData("file:\n  - THIS", "sdl.relationship.reserved")]
     [InlineData("file:\n  - this: owner", "sdl.relationship.reserved")]
-    [InlineData("file:\n  - '...'", "sdl.relationship.reserved")]
-    [InlineData("file:\n  - '...': owner", "sdl.relationship.reserved")]
+    [InlineData("file:\n  - '...'", "relationship_id.invalid")]
+    [InlineData("file:\n  - '...': owner", "relationship_id.invalid")]
     public void Parse_InvalidNamespaceMaps_FailsWithExpectedCode(string namespaceMap, string expectedCode)
     {
         var errors = ParseFailure(Document(namespaceMap));

@@ -2,57 +2,6 @@ using Results;
 
 namespace Kingo.Graphs.Tests;
 
-public sealed class SubjectTests
-{
-    [Fact]
-    public void Parse_WithColon_SucceedsAndRoundTrips()
-    {
-        var result = Subject.Parse("user:anne");
-
-        var success = Assert.IsType<Result<Subject>.Success>(result);
-        Assert.Equal("user:anne", success.Value.Id.Value);
-        Assert.Equal("user:anne", success.Value.ToString());
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Parse_EmptyOrWhitespace_ReturnsSubjectIdEmptyError(string input)
-    {
-        var result = Subject.Parse(input);
-
-        var failure = Assert.IsType<Result<Subject>.Failure>(result);
-        Assert.Equal("subject_id.empty", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void Parse_InvalidCharacters_ReturnsSubjectIdInvalidError()
-    {
-        var result = Subject.Parse("an@ne");
-
-        var failure = Assert.IsType<Result<Subject>.Failure>(result);
-        Assert.Equal("subject_id.invalid", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void EqualInputs_AreEqual()
-    {
-        var left = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:anne")).Value;
-        var right = new Subject(SubjectIdentifier.Create("user:anne"));
-
-        Assert.Equal(right, left);
-    }
-
-    [Fact]
-    public void DifferentInputs_AreUnequal()
-    {
-        var left = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:anne")).Value;
-        var right = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:bob")).Value;
-
-        Assert.NotEqual(left, right);
-    }
-}
-
 public sealed class SubjectSetTests
 {
     [Fact]
@@ -99,6 +48,18 @@ public sealed class SubjectSetTests
     {
         // split at the FIRST '#' leaves "member#extra" as the relationship, which rejects '#'
         var result = SubjectSet.Parse("team:sales#member#extra");
+
+        var failure = Assert.IsType<Result<SubjectSet>.Failure>(result);
+        Assert.Equal("relationship_id.invalid", Assert.Single(failure.Errors).Code);
+    }
+
+    [Fact]
+    public void Parse_DotsMarkerAsRelationship_IsRefused_TheDotsAreStorageOnlyVocabularyNotARelationship()
+    {
+        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, tuple-grammar
+        // punctuation and storage-only vocabulary. As a relationship it fails the identifier grammar, so a subjectset
+        // question spelled 'folder:y#...' dies at the parse edge (supersedes the F18 condition-2-by-contract test).
+        var result = SubjectSet.Parse("folder:y#...");
 
         var failure = Assert.IsType<Result<SubjectSet>.Failure>(result);
         Assert.Equal("relationship_id.invalid", Assert.Single(failure.Errors).Code);

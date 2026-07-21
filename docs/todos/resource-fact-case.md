@@ -34,13 +34,13 @@ Nothing. The seat is **`Subject`** in every case (ruled Mark, 2026-07-21, resolv
 
 Code (`Kingo`, `Kingo.Graphs`, `Kingo.Sdl`):
 
-- [ ] `Fact.ResourceFact(SubjectSet SubjectSet, Resource Subject)` — third case; `Fact.Parse` dispatches a member ending in `#...` to it; `ToString` emits the `#...` form.
-- [ ] Delete `Subject.cs` and its tests; `SubjectFact`'s seat becomes `SubjectIdentifier Subject`, and every consumer follows — `Contains(SubjectSet, SubjectIdentifier)` included.
-- [ ] `RelationshipIdentifier`: delete `Nothing`; the regex drops the `...` alternative; parsing `...` fails as `relationship_id.invalid`.
-- [ ] `RewriteExpressionPrinter.IsReserved` reduces to `this`.
-- [ ] Sweep `Kingo.Sdl` for any other `...` handling (tokenizer, parser).
-- [ ] Sweep the solution for `Fact` consumers — every match over the union gains the third case. Switch expressions fail the build when non-exhaustive (`TreatWarningsAsErrors`); statement-form switches and `is`-chains need the manual pass.
-- [ ] Tests: the `RelationshipIdentifierTests` sentinel tests become refusal tests; `Fact.Parse` covers all three cases and round-trips `#...`; a named test pins the `...`-question parse refusal (supersedes the F18 condition-2 test).
+- [x] `Fact.ResourceFact(SubjectSet SubjectSet, Resource Subject)` — third case; `Fact.Parse` dispatches a member ending in `#...` to it; `ToString` emits the `#...` form.
+- [x] Delete `Subject.cs` and its tests; `SubjectFact`'s seat becomes `SubjectIdentifier Subject`, and every consumer follows — `Contains(SubjectSet, SubjectIdentifier)` included.
+- [x] `RelationshipIdentifier`: delete `Nothing`; the regex drops the `...` alternative; parsing `...` fails as `relationship_id.invalid`.
+- [x] `RewriteExpressionPrinter.IsReserved` reduces to `this`.
+- [x] Sweep `Kingo.Sdl` for any other `...` handling (tokenizer, parser).
+- [x] Sweep the solution for `Fact` consumers — every match over the union gains the third case. Switch expressions fail the build when non-exhaustive (`TreatWarningsAsErrors`); statement-form switches and `is`-chains need the manual pass.
+- [x] Tests: the `RelationshipIdentifierTests` sentinel tests become refusal tests; `Fact.Parse` covers all three cases and round-trips `#...`; a named test pins the `...`-question parse refusal (supersedes the F18 condition-2 test).
 
 Docs:
 
@@ -51,4 +51,4 @@ Docs:
 - [x] Rule the `this`-expansion question — condition 9, folded into [[rewrite-interpreters]] (2026-07-21).
 - [x] Seat name resolved: `Subject` in every case; the `Subject` class dissolved instead of the word changing, and the grammar stands as written (2026-07-21).
 - [x] Live docs swept for `Subject`-as-class references: [[domain-language]] (mapping row, case signatures, value-object list), [[rewrite-interpreters]] (Contains signature, F9, leaf matching, condition 9, Decision seats), [[subject]] glossary (member shapes) (2026-07-21).
-- [ ] Long-tail doc sweep for stale `Subject`-class mentions in secondary notes: [[architecture]], [[sources]], [[authz-event-logging]], [[graph-document-is-bulk-dml]], [[dissolve-kingo-pdl-under-hexagonal-layout]] — historical passages may stand as history; only present-tense claims change.
+- [x] Long-tail doc sweep (2026-07-21): [[architecture]] (value-objects list), [[authz-event-logging]] (Decision payload), [[graph-document-is-bulk-dml]] (Graphs contents line) updated; [[sources]] and [[dissolve-kingo-pdl-under-hexagonal-layout]] stand as history.

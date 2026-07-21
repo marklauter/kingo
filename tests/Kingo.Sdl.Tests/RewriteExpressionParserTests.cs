@@ -114,7 +114,7 @@ banned")]
     [InlineData("()")]
     [InlineData("(this, viewer)")] // a tupleset relationship is an identifier; 'this' lexes as the keyword
     [InlineData("this ! ! banned")]
-    [InlineData("...")] // the tuple grammar's sentinel cannot lex in a rewrite expression
+    [InlineData("...")] // the tuple grammar's '#...' marker punctuation cannot lex in a rewrite expression
     public void Parse_InvalidExpressions_FailsWithRewriteCode(string expression)
     {
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));

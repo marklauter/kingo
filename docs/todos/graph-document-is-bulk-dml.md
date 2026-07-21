@@ -85,7 +85,7 @@ All three fact-side stubs from 2026-07-15 were removed the same day rather than 
 - **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the tuple grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
 - **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[domain-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
 
-`Kingo.Graphs` is back to `Fact`, `Resource`, `Subject`; `Kingo.Sdl` is back to the schema pair alone.
+`Kingo.Graphs` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Sdl` is back to the schema pair alone.
 
 ## Open questions
 

@@ -59,14 +59,14 @@ public sealed class RelationshipIdentifierTests
     }
 
     [Fact]
-    public void Nothing_Value_IsThreeDots() => Assert.Equal("...", RelationshipIdentifier.Nothing.Value);
-
-    [Fact]
-    public void Parse_NothingSentinel_SucceedsAndEqualsNothing()
+    public void Parse_DotsMarker_IsRefused()
     {
-        var s = Assert.IsType<Result<RelationshipIdentifier>.Success>(RelationshipIdentifier.Parse("..."));
-        Assert.Equal("...", s.Value.Value);
-        Assert.Equal(RelationshipIdentifier.Nothing, s.Value);
+        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, tuple-grammar
+        // punctuation. The identifier grammar is name-only, so '...' fails Parse rather than naming a sentinel relationship.
+        var f = Assert.IsType<Result<RelationshipIdentifier>.Failure>(RelationshipIdentifier.Parse("..."));
+        var error = Assert.Single(f.Errors);
+        Assert.Equal(ErrorType.Validation, error.Type);
+        Assert.Equal("relationship_id.invalid", error.Code);
     }
 
     [Theory]

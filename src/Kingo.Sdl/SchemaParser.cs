@@ -126,7 +126,8 @@ public static class SchemaParser
 
     /// <summary>
     /// A relationship name in SDL must survive the rewrite grammar: <c>this</c> always lexes as the keyword (a relationship so named could never be referenced
-    /// — or worse, a reference would silently mean direct membership) and <c>...</c> cannot lex at all, so both are reserved.
+    /// — or worse, a reference would silently mean direct membership), so it is reserved. (<c>...</c> needs no guard here: it is not a relationship name — it is
+    /// the <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production — so it fails <see cref="RelationshipIdentifier.Parse"/> upstream.)
     /// </summary>
     private static Result<RelationshipIdentifier> ParseRelationshipName(string name) =>
         RelationshipIdentifier.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)

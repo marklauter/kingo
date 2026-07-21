@@ -7,18 +7,14 @@ namespace Kingo;
 
 /// <summary>
 /// Names a relationship — the <c>&lt;relationship&gt;</c> terminal of the tuple grammar (see [[domain-language]]). Case-insensitive:
-/// <see cref="Parse"/> normalizes to lowercase, the canonical form.
+/// <see cref="Parse"/> normalizes to lowercase, the canonical form. The grammar is name-only: <c>...</c> is not a relationship — it is the
+/// <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production (tuple-grammar punctuation, not a relationship concept), so it fails to parse here.
 /// </summary>
 public readonly record struct RelationshipIdentifier
     : IValue<RelationshipIdentifier, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
-
-    /// <summary>
-    /// The <c>...</c> sentinel — Zanzibar's tuple-grammar marker for an unspecified relationship (paper §2.1); a domain concept, not a SDL-ism.
-    /// </summary>
-    public static RelationshipIdentifier Nothing { get; } = Create("...");
 
     /// <inheritdoc/>
     public static RelationshipIdentifier Create(string value) => new(value);
@@ -29,7 +25,7 @@ public readonly record struct RelationshipIdentifier
         string.IsNullOrWhiteSpace(s)
             ? Result.Failure<RelationshipIdentifier>(Error.Validation("relationship_id.empty", "relationship identifier cannot be empty or whitespace"))
             : !RelationshipIdentifierPatterns.Validation().IsMatch(s)
-                ? Result.Failure<RelationshipIdentifier>(Error.Validation("relationship_id.invalid", $"relationship identifier '{s}' contains invalid characters; expected '^\\.\\.\\.$|^[A-Za-z_][A-Za-z0-9_]*$'"))
+                ? Result.Failure<RelationshipIdentifier>(Error.Validation("relationship_id.invalid", $"relationship identifier '{s}' contains invalid characters; expected '^[A-Za-z_][A-Za-z0-9_]*$'"))
                 : Result.Success(new RelationshipIdentifier(s.ToLowerInvariant()));
 
     private RelationshipIdentifier(string value) => Value = value;
@@ -62,7 +58,7 @@ internal static partial class RelationshipIdentifierPatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    // allows the ... literal used by RelationshipIdentifier.Nothing
-    [GeneratedRegex(@"^\.\.\.$|^[A-Za-z_][A-Za-z0-9_]*$", PatternOptions)]
+    // name-only: '...' is not a relationship — it is the '#...' marker of the ResourceFact member production ([[domain-language]])
+    [GeneratedRegex(@"^[A-Za-z_][A-Za-z0-9_]*$", PatternOptions)]
     public static partial Regex Validation();
 }

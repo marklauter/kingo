@@ -65,9 +65,8 @@ public sealed class RewriteExpressionPrinterTests
     [Theory]
     [InlineData("this")]
     [InlineData("This")] // Create performs no normalization, but the tokenizer matches the keyword case-insensitively
-    [InlineData("...")]
     public void Print_ReservedReference_IsCallerDefect(string name) =>
-        // 'this' would silently reparse as the keyword (direct membership); '...' cannot lex at all
+        // 'this' would silently reparse as the keyword (direct membership)
         _ = Assert.Throws<ArgumentException>(() => RewriteExpressionPrinter.Print(Computed(name)));
 
     [Fact]

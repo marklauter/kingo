@@ -94,26 +94,23 @@ public sealed class SchemaPrinterTests
     [Theory]
     [InlineData("this")]
     [InlineData("THIS")] // Create performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
-    [InlineData("...")]
     public void Print_ReservedRelationshipName_IsCallerDefect(string name)
     {
-        // SDL cannot express a relationship named by a rewrite-grammar reserved word: 'this' could
-        // never be referenced (a reference lexes as the keyword) and '...' cannot lex at all.
+        // SDL cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
+        // never be referenced (a reference lexes as the keyword).
         var schema = MakeSchema([MakeNs(Ns("file"), [Bare(name)])]);
 
         _ = Assert.Throws<ArgumentException>(schema.Print);
     }
 
-    [Theory]
-    [InlineData("this")]
-    [InlineData("...")]
-    public void Print_ReservedReferenceInRewrite_IsCallerDefect(string name)
+    [Fact]
+    public void Print_ReservedReferenceInRewrite_IsCallerDefect()
     {
         // a computed reference to 'this' would silently reparse as ThisRewrite — direct membership
         // instead of a relationship reference — so emitting it is corruption, not serialization
         var schema = MakeSchema(
         [
-            MakeNs(Ns("file"), [new Relationship(Rel("viewer"), Computed(name))]),
+            MakeNs(Ns("file"), [new Relationship(Rel("viewer"), Computed("this"))]),
         ]);
 
         _ = Assert.Throws<ArgumentException>(schema.Print);
@@ -122,11 +119,12 @@ public sealed class SchemaPrinterTests
     [Fact]
     public void Print_ReservedReferenceInTupleset_IsCallerDefect()
     {
+        // pins that the tupleset arm routes both components through the reserved-word gate
         var schema = MakeSchema(
         [
             MakeNs(
                 Ns("file"),
-                [new Relationship(Rel("viewer"), new TupleToSubjectSetRewrite(Rel("parent"), Rel("...")))]),
+                [new Relationship(Rel("viewer"), new TupleToSubjectSetRewrite(Rel("this"), Rel("member")))]),
         ]);
 
         _ = Assert.Throws<ArgumentException>(schema.Print);
