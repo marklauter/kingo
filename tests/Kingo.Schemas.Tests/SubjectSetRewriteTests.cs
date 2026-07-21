@@ -42,6 +42,14 @@ public sealed class SubjectSetRewriteTests
         Assert.NotEqual(a, b);
     }
 
+    [Fact]
+    public void ComputedSubjectSetRewrite_ExposesRelationship()
+    {
+        var rewrite = new ComputedSubjectSetRewrite(Id("editor"));
+
+        Assert.Equal(Id("editor"), rewrite.Relationship);
+    }
+
     // ---- TupleToSubjectSetRewrite ----
 
     [Fact]

@@ -28,12 +28,14 @@ public sealed class NamespaceIdentifierTests
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("\t")]
-    public void Parse_EmptyOrWhitespace_ReturnsEmptyValidationFailure(string input)
+    public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        var f = Assert.IsType<Result<NamespaceIdentifier>.Failure>(NamespaceIdentifier.Parse(input));
+        // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
+        var f = Assert.IsType<Result<NamespaceIdentifier>.Failure>(NamespaceIdentifier.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("namespace_id.empty", error.Code);

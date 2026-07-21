@@ -24,7 +24,7 @@ public abstract record Fact
     /// <summary>
     /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;#&lt;relationship&gt;@&lt;subject&gt;</c>. Dismisses empty or whitespace input,
     /// then dispatches on the subject's shape — a <c>#</c> in the subject builds a <see cref="SubjectSetFact"/>, otherwise a <see cref="SubjectFact"/> — with
-    /// each side self-guarding and errors accumulating across the set and subject.
+    /// each side self-guarding and errors accumulating across the set and subject in left-to-right order.
     /// </summary>
     public static Result<Fact> Parse(string s)
     {

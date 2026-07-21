@@ -16,7 +16,8 @@ public sealed record Resource(
     private const char Separator = ':';
 
     /// <summary>
-    /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;</c> with full validation, accumulating errors across both parts.
+    /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;</c> with full validation, accumulating errors across both parts in
+    /// left-to-right order.
     /// </summary>
     public static Result<Resource> Parse(string s)
     {

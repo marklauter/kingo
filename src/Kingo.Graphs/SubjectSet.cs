@@ -17,7 +17,7 @@ public sealed record SubjectSet(
 
     /// <summary>
     /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;#&lt;relationship&gt;</c> with full validation, accumulating errors across both
-    /// parts.
+    /// parts in left-to-right order.
     /// </summary>
     public static Result<SubjectSet> Parse(string s)
     {

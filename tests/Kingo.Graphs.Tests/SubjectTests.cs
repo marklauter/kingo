@@ -42,6 +42,15 @@ public sealed class SubjectTests
 
         Assert.Equal(right, left);
     }
+
+    [Fact]
+    public void DifferentInputs_AreUnequal()
+    {
+        var left = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:anne")).Value;
+        var right = Assert.IsType<Result<Subject>.Success>(Subject.Parse("user:bob")).Value;
+
+        Assert.NotEqual(left, right);
+    }
 }
 
 public sealed class SubjectSetTests
@@ -123,5 +132,22 @@ public sealed class SubjectSetTests
             RelationshipIdentifier.Create("viewer"));
 
         Assert.Equal(right, left);
+    }
+
+    [Fact]
+    public void Parse_DifferentRelationship_ProducesUnequalValues()
+    {
+        var left = Assert.IsType<Result<SubjectSet>.Success>(SubjectSet.Parse("doc:readme#viewer")).Value;
+        var right = Assert.IsType<Result<SubjectSet>.Success>(SubjectSet.Parse("doc:readme#editor")).Value;
+
+        Assert.NotEqual(left, right);
+    }
+
+    [Fact]
+    public void Parse_Valid_RoundTripsThroughToString()
+    {
+        var success = Assert.IsType<Result<SubjectSet>.Success>(SubjectSet.Parse("doc:readme#viewer"));
+
+        Assert.Equal("doc:readme#viewer", success.Value.ToString());
     }
 }

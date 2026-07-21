@@ -29,6 +29,17 @@ public sealed class NamespaceTests
     }
 
     [Fact]
+    public void Create_NameAndRelationships_AreCarriedOntoTheNamespace()
+    {
+        ImmutableArray<Relationship> relationships = [Rel("viewer"), Rel("editor")];
+
+        var ns = Make(Ns("doc"), relationships);
+
+        Assert.Equal(Ns("doc"), ns.Name);
+        Assert.Equal(relationships, ns.Relationships);
+    }
+
+    [Fact]
     public void Equals_DifferentName_NotEqual()
     {
         var a = Make(Ns("doc"), [Rel("viewer")]);

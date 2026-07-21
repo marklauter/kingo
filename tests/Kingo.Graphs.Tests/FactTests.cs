@@ -63,6 +63,24 @@ public sealed class FactTests
     }
 
     [Fact]
+    public void Parse_EmptySubjectSet_ReturnsSingleSubjectSetEmptyError()
+    {
+        var result = Fact.Parse("@user:anne");
+
+        var failure = Assert.IsType<Result<Fact>.Failure>(result);
+        Assert.Equal("subjectset.empty", Assert.Single(failure.Errors).Code);
+    }
+
+    [Fact]
+    public void Parse_SubjectSetMissingHash_ReturnsSingleSubjectSetFormatError()
+    {
+        var result = Fact.Parse("doc:readme@user:anne");
+
+        var failure = Assert.IsType<Result<Fact>.Failure>(result);
+        Assert.Equal("subjectset.format", Assert.Single(failure.Errors).Code);
+    }
+
+    [Fact]
     public void Parse_SecondAtInSubject_ReturnsSingleSubjectIdInvalidError()
     {
         // split at the FIRST '@' leaves "a@b" as the subject; no '#', so Subject rejects '@'

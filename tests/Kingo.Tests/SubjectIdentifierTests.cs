@@ -13,6 +13,9 @@ public sealed class SubjectIdentifierTests
     [InlineData("a.b")]
     [InlineData("a-b")]
     [InlineData("0abc")]
+    [InlineData("a:")]
+    [InlineData("a.")]
+    [InlineData("a-")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
         var s = Assert.IsType<Result<SubjectIdentifier>.Success>(SubjectIdentifier.Parse(input));
@@ -30,12 +33,14 @@ public sealed class SubjectIdentifierTests
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("\t")]
-    public void Parse_EmptyOrWhitespace_ReturnsEmptyValidationFailure(string input)
+    public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        var f = Assert.IsType<Result<SubjectIdentifier>.Failure>(SubjectIdentifier.Parse(input));
+        // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
+        var f = Assert.IsType<Result<SubjectIdentifier>.Failure>(SubjectIdentifier.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("subject_id.empty", error.Code);

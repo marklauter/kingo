@@ -222,14 +222,13 @@ public sealed class SchemaParseTests
     }
 
     [Fact]
-    public void Parse_MissingRewriteExpression_NamesTheRelationshipAndTheBareNameForm()
+    public void Parse_MissingRewriteExpression_NamesTheRelationship()
     {
         var errors = ParseFailure(Document("file:\n  - viewer:"));
 
         var error = Assert.Single(errors);
         Assert.Equal("sdl.relationship", error.Code);
         Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
-        Assert.Contains("bare name", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]

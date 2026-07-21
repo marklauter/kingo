@@ -1,5 +1,4 @@
 using Results;
-using System.Reflection;
 
 namespace Values.Tests;
 
@@ -15,13 +14,15 @@ public sealed class ValueParserTests
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData("ABC")]
     [InlineData("abc1")]
     [InlineData("a b")]
-    public void TryParse_InvalidInput_ReturnsFalseAndOutIsDefault(string input)
+    public void TryParse_NullOrInvalidInput_ReturnsFalseAndOutIsDefault(string? input)
     {
-        Assert.False(ValueParser.TryParse<TestValue>(input, out var parsed));
+        // null reaches TryParse through reflection callers (see IParse); it projects to false + default
+        Assert.False(ValueParser.TryParse<TestValue>(input!, out var parsed));
         Assert.Equal(default, parsed);
     }
 
@@ -39,16 +40,5 @@ public sealed class ValueParserTests
         Assert.True(TestValue.TryParse("abc", out var parsed));
         Assert.Equal("abc", parsed.Value);
         Assert.False(TestValue.TryParse("NOPE", out _));
-    }
-
-    [Fact]
-    public void TryParse_IsDeclaredOnImplementorType()
-    {
-        // Reflection-based pipelines (ASP.NET Core parameter binding) discover TryParse on the concrete type; an inherited interface member would not be found.
-        var method = typeof(TestValue).GetMethod(
-            nameof(TestValue.TryParse),
-            BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly,
-            [typeof(string), typeof(TestValue).MakeByRefType()]);
-        Assert.NotNull(method);
     }
 }

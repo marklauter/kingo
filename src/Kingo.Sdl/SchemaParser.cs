@@ -19,7 +19,7 @@ public static class SchemaParser
     private const string NamespacesKey = "namespaces";
 
     /// <summary>
-    /// Parses untrusted SDL text, returning the defined <see cref="Schema"/> or every accumulated validation <see cref="Error"/>: <c>sdl.syntax</c>
+    /// Parses untrusted SDL text, returning the defined <see cref="Schema"/> or every accumulated validation <see cref="Error"/> in document order: <c>sdl.syntax</c>
     /// (malformed YAML), <c>sdl.document</c> (not a single mapping, or missing/misshapen <c>schema:</c> / <c>namespaces:</c> keys),
     /// <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
     /// <c>sdl.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>sdl.rewrite</c> (bad rewrite expressions), plus whatever
