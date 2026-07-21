@@ -35,10 +35,10 @@ Queue order: rewrite interpreters first (selected 2026-07-15 — the consumer th
 
 - [[realign-serialization-projects-around-their-real-consumers]] — **closed** 2026-07-15: ports project dissolved, `Schema` landed, SDL surface reworked to `SdlParser.Parse(text) → Result<Schema>` + `schema.Print()`. The lost "public types implement a port" arch rule is replaced with nothing — no port exists to anchor it; it returns with the first genuine port family (storage).
 - [[graph-document-is-bulk-dml]] — **open**, blocked on the first ports project; proposal 2026-07-15: the fact-side document is a list of `create`/`touch`/`delete` operations in YAML section blocks, parsing to a `GraphOperation` DU that lives *between the edges*, not in the domain — every rule it carries is storage semantics. The `Graph`/`GraphParser`/`GraphPrinter` stubs were deleted; the `Graph`-is-not-a-type guardrail held.
-- [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **open**; queued behind the rewrite interpreters (unblocked 2026-07-14 by the SDL adapter). `IParse`-keyed converters registered in the adapters.
+- [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **deferred** until the first wire consumer (the REST hosts); retitled "IParse-keyed converters for the JSON and YAML adapters" — the leak half is dead, the constructive half waits.
 - [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[caller-identity]] — **open**; what "caller identity" means at the Check host edge (network context, principal, OBO chain) and the three authorization decisions an OBO call implies, including Kingo authorizing calls to itself.
-- [[pin-sdk-10.0.204]] — **open**; pin `global.json` to SDK 10.0.204 with `rollForward: disable`; CI becomes hermetic and fail-loud.
+- [[pin-sdk-10.0.204]] — **closed** 2026-07-21; `global.json` pins 10.0.204 with `rollForward: disable` — CI hermetic and fail-loud.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
 - [[dissolve-kingo-pdl-under-hexagonal-layout]] — **closed** 2026-07-14: `Kingo.Serialization.Pdl` adapter landed (first port, adapter-layer ArchUnit rules), quarry deleted; the adapter is since renamed `Kingo.Sdl` and the port dissolved.
 
