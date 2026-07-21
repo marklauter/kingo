@@ -6,9 +6,7 @@ created: 2026-07-15
 status: open
 priority: high
 effort: high
-blocked-by:
-  - "[[namespace-create-validation]]"
-  - "[[resource-fact-case]]"
+blocked-by: "[[namespace-create-validation]]"
 ---
 
 # Rewrite interpreters — Contains and Expand

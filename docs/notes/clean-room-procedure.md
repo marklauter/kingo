@@ -10,6 +10,10 @@ status: evolving
 
 Distilled from the first run: [[rewrite-interpreters]] and its dry-run, [[rewrite-interpreters-findings]] (2026-07-15 through 2026-07-20).
 
+## What the room is clean of
+
+Prior implementations of the same feature — the designer's own earlier attempts above all. The first run's exclusion was `src/Kingo.Acl/` on the archive branches (`main-archive`, `dictionary-encoding`), Kingo's incomplete first ACL implementation. Its lessons arrive encoded as requirements in the handoff, never by reading the code: an unfinished design read directly exerts pressure the requirements were written to filter, and the room exists so the designer inherits the lessons without inheriting the design. External sources are the lesser exclusion — inspiration, not inputs (see the closure).
+
 ## The handoff note
 
 One note carries the work item: requirements and settled rulings, never design. Rulings are dated and attributed; a superseded ruling names what replaced it. The note is self-sufficient — every ruling's substance *and its reasoning* lives in the note. Reasoning stranded in another doc is invisible to the designer, and a constraint without its why invites being improved away.
