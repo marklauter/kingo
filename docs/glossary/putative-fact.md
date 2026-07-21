@@ -3,7 +3,7 @@ title: putative-fact
 summary: "The question Contains answers — a SubjectFact held putatively: hypothesized rather than stored."
 tags: [glossary, evaluation]
 created: 2026-07-18
-status: evolving
+status: locked
 contrast:
   - "[[fact]]"
 ---

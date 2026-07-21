@@ -1,9 +1,9 @@
 ---
 title: check
-summary: "The authorization query at the host edge — does a subject reach a subject set — wrapping the Contains interpreter."
+summary: "The authorization query at the host edge — does a subject set contain a subject — wrapping the Contains interpreter."
 tags: [glossary, evaluation]
 created: 2026-07-18
-status: evolving
+status: locked
 ---
 
-The authorization query at the host edge — does a subject reach a subject set — wrapping the Contains interpreter.
+The authorization query at the host edge — does a subject set contain a subject — wrapping the Contains interpreter.

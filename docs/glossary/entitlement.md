@@ -1,9 +1,9 @@
 ---
 title: entitlement
-summary: "The derived grant produced by evaluation — rules plus facts entail entitlements; the output of Expand, not a stored fact."
+summary: "A derived membership — one that holds in the closure without being stored; rules plus facts entail entitlements."
 tags: [glossary, evaluation]
 created: 2026-07-18
-status: evolving
+status: locked
 ---
 
-The derived grant produced by evaluation — rules plus facts entail entitlements; the output of Expand, not a stored fact.
+A derived membership — one that holds in the closure without being stored; rules plus facts entail entitlements. A stored fact is a premise; an entitlement is a conclusion.

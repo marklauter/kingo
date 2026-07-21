@@ -3,7 +3,7 @@ title: fact
 summary: "A stored set-membership assertion — the triple resource#relationship@member, read set-first: the subject set contains the member, a subject or another subject set."
 tags: [glossary, data]
 created: 2026-07-18
-status: evolving
+status: locked
 contrast:
   - "[[putative-fact]]"
 ---
