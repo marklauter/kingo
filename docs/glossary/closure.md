@@ -10,8 +10,8 @@ The set of facts derivable from the stored facts under the schema's rewrite rule
 
 ## Examples
 
-- `Contains(doc:x#viewer@user:anne)` asks whether the closure contains that fact — stored directly, or derived through userset expansion, computed subject sets, or tupleset traversal.
-- `Kingo.Closures` is the interpreter project: both evaluators answer questions about the closure. "Authorized" is the Check host's reading of the verdict.
+- Contains asks whether the closure holds `doc:x#viewer@user:anne` — stored directly, or derived through userset expansion, computed subject sets, or tupleset traversal.
+- Both interpreters, Contains and Expand, answer questions about the closure. "Authorized" is the Check host's reading of the verdict.
 
 ## Contrasts
 
