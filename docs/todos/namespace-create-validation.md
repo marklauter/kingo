@@ -25,6 +25,9 @@ Not validatable here: `FactToSubjectSetRewrite.ComputedSubjectSetRelationship`. 
 
 The Write API builds `Schema` values without touching `Kingo.Sdl`; a parse-time guard leaves that path open. Guarding `Namespace.Create` covers every producer, and SDL inherits it.
 
-## Open
+## Ruled at implementation (Mark, 2026-07-21)
 
-- Which factory owns the checks — a `Result`-returning `Parse` beside a trusted `Create`, or validation folded into the existing factory — follows the house boundary rule; decide at implementation. Check 3 may belong on the operator constructors themselves rather than on `Namespace.Create`; same decision point.
+- **Factory shape.** `Namespace.Create` is already the `Result`-returning, error-accumulating only-construction-path; checks 1 and 2 fold into it. No `Parse` beside it.
+- **Check 3 home: the rewrites themselves.** Every domain entity is responsible for its own integrity. `UnionRewrite` and `IntersectionRewrite` move to private constructors with static `Create` methods returning `Result`, and the empty-operand refusal lives there. Changing the construction pattern for two rewrites changes it for all: every rewrite type moves to the same private-constructor-plus-`Create` shape.
+- **Check ordering: staged, not accumulated.** Duplicates make reference resolution ambiguous, and dangling references make the cycle graph ill-defined. The checks stage: duplicates, then dangling references, then cycles.
+- **Cycle errors carry the full cycle path**, so a defective schema is diagnosable from the user's chair without re-deriving the graph.
