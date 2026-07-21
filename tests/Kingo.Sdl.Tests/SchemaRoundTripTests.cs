@@ -33,7 +33,7 @@ public sealed class SchemaRoundTripTests
         ["this"] = ThisRewrite.Default,
         ["computed"] = Computed("owner"),
         ["computed null"] = Computed("null"), // rendered unquoted; survives because the parser treats scalar text as expression source
-        ["tuple-to-subjectset"] = new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+        ["fact-to-subjectset"] = new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
         ["flat union"] = new UnionRewrite([ThisRewrite.Default, Computed("owner")]),
         ["flat intersection"] = new IntersectionRewrite([Computed("a"), Computed("b"), Computed("c")]),
         ["exclusion"] = new ExclusionRewrite(ThisRewrite.Default, Computed("banned")),
@@ -54,7 +54,7 @@ public sealed class SchemaRoundTripTests
             [
                 ThisRewrite.Default,
                 Computed("editor"),
-                new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
             ]),
             Computed("banned")),
     };

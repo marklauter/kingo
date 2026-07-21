@@ -25,7 +25,7 @@ internal static class RewriteExpressionPrinter
         {
             ThisRewrite => "this",
             ComputedSubjectSetRewrite computed => PrintIdentifier(computed.Relationship),
-            TupleToSubjectSetRewrite tupleTo => $"({PrintIdentifier(tupleTo.TuplesetRelationship)}, {PrintIdentifier(tupleTo.ComputedSubjectSetRelationship)})",
+            FactToSubjectSetRewrite factTo => $"({PrintIdentifier(factTo.FactsetRelationship)}, {PrintIdentifier(factTo.ComputedSubjectSetRelationship)})",
             UnionRewrite union => string.Join(" | ", union.Children.Select(PrintOperand)),
             IntersectionRewrite intersection => string.Join(" & ", intersection.Children.Select(PrintOperand)),
             // the last inhabitant of the closed hierarchy: a discard arm (rather than a type pattern)

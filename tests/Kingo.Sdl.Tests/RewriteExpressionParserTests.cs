@@ -28,8 +28,8 @@ public sealed class RewriteExpressionParserTests
     [InlineData("(parent, viewer)")]
     [InlineData("(parent,\nviewer)")]
     [InlineData("(PARENT, Viewer)")]
-    public void Parse_TupleToSubjectSet_ReturnsBothRelationships(string expression) =>
-        Assert.Equal(new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")), ParseSuccess(expression));
+    public void Parse_FactToSubjectSet_ReturnsBothRelationships(string expression) =>
+        Assert.Equal(new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")), ParseSuccess(expression));
 
     [Fact]
     public void Parse_UnionChain_FlattensToOneNode() =>
@@ -83,7 +83,7 @@ public sealed class RewriteExpressionParserTests
                 [
                     ThisRewrite.Default,
                     Computed("editor"),
-                    new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                    new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
                 ]),
                 Computed("banned")),
             ParseSuccess("(this | editor | (parent, viewer)) ! banned"));
@@ -112,9 +112,9 @@ banned")]
     [InlineData("a ! (b !")]
     [InlineData("a b")] // two terms with no operator between them
     [InlineData("()")]
-    [InlineData("(this, viewer)")] // a tupleset relationship is an identifier; 'this' lexes as the keyword
+    [InlineData("(this, viewer)")] // a factset relationship is an identifier; 'this' lexes as the keyword
     [InlineData("this ! ! banned")]
-    [InlineData("...")] // the tuple grammar's '#...' marker punctuation cannot lex in a rewrite expression
+    [InlineData("...")] // the fact grammar's '#...' marker punctuation cannot lex in a rewrite expression
     public void Parse_InvalidExpressions_FailsWithRewriteCode(string expression)
     {
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));

@@ -50,33 +50,33 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(Id("editor"), rewrite.Relationship);
     }
 
-    // ---- TupleToSubjectSetRewrite ----
+    // ---- FactToSubjectSetRewrite ----
 
     [Fact]
-    public void TupleToSubjectSetRewrite_SameComponents_AreEqual()
+    public void FactToSubjectSetRewrite_SameComponents_AreEqual()
     {
-        var a = new TupleToSubjectSetRewrite(Id("parent"), Id("viewer"));
-        var b = new TupleToSubjectSetRewrite(Id("parent"), Id("viewer"));
+        var a = new FactToSubjectSetRewrite(Id("parent"), Id("viewer"));
+        var b = new FactToSubjectSetRewrite(Id("parent"), Id("viewer"));
 
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
 
     [Fact]
-    public void TupleToSubjectSetRewrite_SwappedComponents_NotEqual()
+    public void FactToSubjectSetRewrite_SwappedComponents_NotEqual()
     {
-        var a = new TupleToSubjectSetRewrite(Id("parent"), Id("viewer"));
-        var swapped = new TupleToSubjectSetRewrite(Id("viewer"), Id("parent"));
+        var a = new FactToSubjectSetRewrite(Id("parent"), Id("viewer"));
+        var swapped = new FactToSubjectSetRewrite(Id("viewer"), Id("parent"));
 
         Assert.NotEqual(a, swapped);
     }
 
     [Fact]
-    public void TupleToSubjectSetRewrite_ExposesComponentsInDeclaredOrder()
+    public void FactToSubjectSetRewrite_ExposesComponentsInDeclaredOrder()
     {
-        var rewrite = new TupleToSubjectSetRewrite(Id("parent"), Id("viewer"));
+        var rewrite = new FactToSubjectSetRewrite(Id("parent"), Id("viewer"));
 
-        Assert.Equal(Id("parent"), rewrite.TuplesetRelationship);
+        Assert.Equal(Id("parent"), rewrite.FactsetRelationship);
         Assert.Equal(Id("viewer"), rewrite.ComputedSubjectSetRelationship);
     }
 
@@ -284,7 +284,7 @@ public sealed class SubjectSetRewriteTests
         [
             ThisRewrite.Default,
             new ComputedSubjectSetRewrite(Id("editor")),
-            new TupleToSubjectSetRewrite(Id("parent"), Id("viewer")),
+            new FactToSubjectSetRewrite(Id("parent"), Id("viewer")),
             new UnionRewrite([ThisRewrite.Default]),
             new IntersectionRewrite([ThisRewrite.Default]),
             new ExclusionRewrite(ThisRewrite.Default, ThisRewrite.Default),
@@ -294,14 +294,14 @@ public sealed class SubjectSetRewriteTests
         {
             ThisRewrite => "this",
             ComputedSubjectSetRewrite => "computed",
-            TupleToSubjectSetRewrite => "tuple-to",
+            FactToSubjectSetRewrite => "fact-to",
             UnionRewrite => "union",
             IntersectionRewrite => "intersection",
             ExclusionRewrite => "exclusion",
             _ => throw new InvalidOperationException("unreachable: the union is closed"),
         }).ToList();
 
-        string[] expected = ["this", "computed", "tuple-to", "union", "intersection", "exclusion"];
+        string[] expected = ["this", "computed", "fact-to", "union", "intersection", "exclusion"];
         Assert.Equal(expected, labels);
     }
 }

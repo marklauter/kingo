@@ -14,10 +14,10 @@ public sealed class RewriteExpressionPrinterTests
         Assert.Equal("owner", RewriteExpressionPrinter.Print(Computed("owner")));
 
     [Fact]
-    public void Print_TupleToSubjectSet_EmitsPair() =>
+    public void Print_FactToSubjectSet_EmitsPair() =>
         Assert.Equal(
             "(parent, viewer)",
-            RewriteExpressionPrinter.Print(new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer"))));
+            RewriteExpressionPrinter.Print(new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer"))));
 
     [Fact]
     public void Print_FlatChains_EmitBareOperands()

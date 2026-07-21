@@ -14,7 +14,7 @@ Format and authoring rules live in the hoplite skills (see CLAUDE.md, "Docs and 
 ## The system
 
 - [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types; `Kingo.Sdl` is the SDL document codec; `.Json`/`.Yaml` are value-type converter packs for future REST hosts. No ports project — the first genuine port family (storage, transport) gets its own.
-- [[domain-language]] — the ubiquitous language: the relation-tuple grammar in Kingo vocabulary and the mapping from each production to its C# type. The Parse boundary rule lives here.
+- [[domain-language]] — the ubiquitous language: the fact grammar in Kingo vocabulary and the mapping from each production to its C# type. The Parse boundary rule lives here.
 - [[schema-definition-language]] — the Schema Definition Language: the `schema:` name plus `namespaces:` map envelope, embedded rewrite-expression language. Implemented by the `Kingo.Sdl` adapter.
 - [[the-first-consumer-forges-the-domain]] — building the SDL codec pressure-tested the core: the renames, the aggregate collapse, and the port dissolution all fell out of one real consumer; put one on a young domain early.
 - [[authz-event-logging]] — CloudTrail-style audit: writes are management events (the changelog already is that record), Check decisions are data events shipped asynchronously as serialized `Decision`s; buffer-full policy open.

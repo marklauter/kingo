@@ -56,7 +56,7 @@ public sealed class SubjectSetTests
     [Fact]
     public void Parse_DotsMarkerAsRelationship_IsRefused_TheDotsAreStorageOnlyVocabularyNotARelationship()
     {
-        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, tuple-grammar
+        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, fact-grammar
         // punctuation and storage-only vocabulary. As a relationship it fails the identifier grammar, so a subjectset
         // question spelled 'folder:y#...' dies at the parse edge (supersedes the F18 condition-2-by-contract test).
         var result = SubjectSet.Parse("folder:y#...");

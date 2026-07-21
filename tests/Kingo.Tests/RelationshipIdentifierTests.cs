@@ -61,7 +61,7 @@ public sealed class RelationshipIdentifierTests
     [Fact]
     public void Parse_DotsMarker_IsRefused()
     {
-        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, tuple-grammar
+        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, fact-grammar
         // punctuation. The identifier grammar is name-only, so '...' fails Parse rather than naming a sentinel relationship.
         var f = Assert.IsType<Result<RelationshipIdentifier>.Failure>(RelationshipIdentifier.Parse("..."));
         var error = Assert.Single(f.Errors);

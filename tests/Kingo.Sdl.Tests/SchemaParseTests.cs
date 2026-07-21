@@ -49,7 +49,7 @@ public sealed class SchemaParseTests
               file:                           # namespace
                 - owner                       # empty relationship - implicit this
                 - editor: this | owner        # relationship with union rewrite
-                - viewer: >                   # relationship with union, tupleset, and exclusion rewrites
+                - viewer: >                   # relationship with union, factset, and exclusion rewrites
                     (this | editor | (parent, viewer)) ! banned
                 - auditor: this & viewer      # relationship with intersection rewrite
                 - banned                      # empty relationship - implicit this
@@ -75,7 +75,7 @@ public sealed class SchemaParseTests
                         [
                             ThisRewrite.Default,
                             Computed("editor"),
-                            new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                            new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
                         ]),
                         Computed("banned"))),
                 new Relationship(
@@ -94,7 +94,7 @@ public sealed class SchemaParseTests
                         new UnionRewrite(
                         [
                             ThisRewrite.Default,
-                            new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
+                            new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer")),
                         ]),
                         Computed("banned"))),
                 Bare("banned"),
@@ -151,7 +151,7 @@ public sealed class SchemaParseTests
     [InlineData("file:\n  - viewer: this |", "sdl.rewrite")]
     [InlineData("file:\n  - viewer: this & & owner", "sdl.rewrite")]
     [InlineData("file:\n  - viewer: invalid-identifier", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: (incomplete tuple", "sdl.rewrite")]
+    [InlineData("file:\n  - viewer: (incomplete factset", "sdl.rewrite")]
     [InlineData("file:\n  - viewer: (parent, child, extra)", "sdl.rewrite")]
     [InlineData("file:\n  - viewer: 123invalid", "sdl.rewrite")]
     [InlineData("file:\n  - this", "sdl.relationship.reserved")]

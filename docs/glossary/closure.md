@@ -10,7 +10,7 @@ The set of facts derivable from the stored facts under the schema's rewrite rule
 
 ## Examples
 
-- Contains asks whether the closure holds `doc:x#viewer@user:anne` — stored directly, or derived through userset expansion, computed subject sets, or tupleset traversal.
+- Contains asks whether the closure holds `doc:x#viewer@user:anne` — stored directly, or derived through userset expansion, computed subject sets, or factset traversal.
 - Both interpreters, Contains and Expand, answer questions about the closure. "Authorized" is the Check host's reading of the verdict.
 
 ## Contrasts

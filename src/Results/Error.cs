@@ -13,7 +13,7 @@ public readonly record struct Error
     private const string UninitializedMessage = "uninitialized Error: valid instances come from the Error factories";
 
     /// <summary>
-    /// Stable, machine-readable identifier for the specific failure (e.g. "tuple.not_found"). Throws <see cref="InvalidOperationException"/> on an
+    /// Stable, machine-readable identifier for the specific failure (e.g. "fact.not_found"). Throws <see cref="InvalidOperationException"/> on an
     /// uninitialized (default) instance.
     /// </summary>
     public string Code => field ?? throw new InvalidOperationException(UninitializedMessage);

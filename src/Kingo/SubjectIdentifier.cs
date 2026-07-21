@@ -5,9 +5,9 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the tuple grammar (see [[domain-language]]). A subject is the unified identity a
+/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). A subject is the unified identity a
 /// set of authn-side principals maps to; it need not be human and need not have authenticated. Character rules are provisional; <c>#</c> and <c>@</c> are
-/// reserved by the tuple grammar.
+/// reserved by the fact grammar.
 /// </summary>
 public readonly record struct SubjectIdentifier
     : IValue<SubjectIdentifier, string>
@@ -57,7 +57,7 @@ internal static partial class SubjectIdentifierPatterns
         RegexOptions.CultureInvariant;
 
     // provisional per [[domain-language]]: an external identity reference (e.g. user:anne);
-    // ':' is allowed, '#' and '@' are reserved by the tuple grammar
+    // ':' is allowed, '#' and '@' are reserved by the fact grammar
     [GeneratedRegex(@"^[A-Za-z0-9_][A-Za-z0-9_.:-]*$", PatternOptions)]
     public static partial Regex Validation();
 }

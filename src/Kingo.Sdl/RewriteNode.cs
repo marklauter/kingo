@@ -32,10 +32,10 @@ internal sealed class ComputedSubjectSetNode(string relationship) : RewriteNode
     public string Relationship { get; } = relationship;
 }
 
-/// <summary>A <c>(tupleset, computed)</c> pair — a walk through a tupleset relationship.</summary>
-internal sealed class TupleToSubjectSetNode(string tuplesetRelationship, string computedSubjectSetRelationship) : RewriteNode
+/// <summary>A <c>(factset, computed)</c> pair — a walk through a factset relationship.</summary>
+internal sealed class FactToSubjectSetNode(string factsetRelationship, string computedSubjectSetRelationship) : RewriteNode
 {
-    public string TuplesetRelationship { get; } = tuplesetRelationship;
+    public string FactsetRelationship { get; } = factsetRelationship;
 
     public string ComputedSubjectSetRelationship { get; } = computedSubjectSetRelationship;
 }

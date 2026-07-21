@@ -5,11 +5,11 @@ using Values;
 namespace Kingo.Graphs;
 
 /// <summary>
-/// A stored fact — the <c>&lt;tuple&gt;</c> production of the tuple grammar: <c>&lt;subjectset&gt;@&lt;subject&gt;</c>
+/// A stored fact — the <c>&lt;fact&gt;</c> production of the fact grammar: <c>&lt;subjectset&gt;@&lt;subject&gt;</c>
 /// (e.g. <c>doc:readme#viewer@user:anne</c>). A closed discriminated union over the shape of its member (the seat the grammar names <c>&lt;subject&gt;</c>,
 /// the RDF-object): <see cref="SubjectFact"/> when the member is a bare <see cref="SubjectIdentifier"/>, <see cref="SubjectSetFact"/> when it is a
 /// <see cref="SubjectSet"/> (a userset), and <see cref="ResourceFact"/> when it is a <see cref="Resource"/> carried in canonical text by the <c>#...</c> marker
-/// (e.g. <c>folder:x#parent@folder:y#...</c>, the object-object edge — Table 1's <c>doc:readme#parent@folder:A#...</c>). The <c>#...</c> is tuple-grammar
+/// (e.g. <c>folder:x#parent@folder:y#...</c>, the object-object edge — Table 1's <c>doc:readme#parent@folder:A#...</c>). The <c>#...</c> is fact-grammar
 /// punctuation, not a relationship. The hierarchy is closed; pattern-match to consume. A set-membership assertion read set-first: the RDF-subject is the
 /// left-hand <see cref="SubjectSet"/>, the predicate is membership itself (∋), and the RDF-object is the member asserted into the set. An aggregate root:
 /// created and deleted atomically, never mutated; its domain key is the whole value. Covers permission edges, memberships, and structural edges alike —
@@ -83,7 +83,7 @@ public abstract record Fact
 
     /// <summary>
     /// A <see cref="Fact"/> whose member is a <see cref="Resource"/> — the resource itself, the object-object edge — carried in canonical text by the
-    /// <c>#...</c> marker: <c>&lt;subjectset&gt;@&lt;resource&gt;#...</c> (e.g. <c>folder:x#parent@folder:y#...</c>). The <c>#...</c> is tuple-grammar
+    /// <c>#...</c> marker: <c>&lt;subjectset&gt;@&lt;resource&gt;#...</c> (e.g. <c>folder:x#parent@folder:y#...</c>). The <c>#...</c> is fact-grammar
     /// punctuation that keeps a resource member distinct from a bare <see cref="SubjectFact"/> member in text; it is not a relationship.
     /// </summary>
     public sealed record ResourceFact(

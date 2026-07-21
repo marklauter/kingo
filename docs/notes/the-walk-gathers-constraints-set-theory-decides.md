@@ -8,12 +8,12 @@ status: evolving
 
 # The walk gathers constraints; set theory decides
 
-[[contains]] reads as a graph walk, but the traversal never answers the membership question — it assembles it. Subject sets are traversable because stored subjectset members and tupleset hops re-enter the evaluation (the private recursive variant behind the public `Contains`); each re-entry discovers another instantiated set expression, a [[computed-subject-set]] rooted at a resolved resource. When the constraints are in hand, the verdict is [[kleene-absorption]] applied to the assembled expression, not a property of any path.
+[[contains]] reads as a graph walk, but the traversal never answers the membership question — it assembles it. Subject sets are traversable because stored subjectset members and factset hops re-enter the evaluation (the private recursive variant behind the public `Contains`); each re-entry discovers another instantiated set expression, a [[computed-subject-set]] rooted at a resolved resource. When the constraints are in hand, the verdict is [[kleene-absorption]] applied to the assembled expression, not a property of any path.
 
 The recursion therefore has two sources, one per theory, and each has its own guard:
 
 - **Set-theoretic recursion lives in the schema**: `ComputedSubjectSetRewrite` crossings. Finite, made acyclic at `Namespace.Create` ([[namespace-create-validation]]), and free in the depth accounting.
-- **Graph-theoretic recursion lives in the facts**: tupleset hops and subjectset-valued member expansions. User-writable, unbounded, and exactly what the [[depth-bound]] meters.
+- **Graph-theoretic recursion lives in the facts**: factset hops and subjectset-valued member expansions. User-writable, unbounded, and exactly what the [[depth-bound]] meters.
 
 The graph is literally the object-object notation: `Fact.ResourceFact` — `folder:x#parent@folder:y#...` — is the edge the walk traverses, and the walkable pointer is the only member encoding that is graph rather than set ([[resource-fact-case]]). The other two encodings denote sets (a subject-id its singleton, a subjectset its derived set), and a fact asserts inclusion between sets ([[domain-language]]) — so the walk is confined to the pointer encoding, and the rest is set algebra.
 

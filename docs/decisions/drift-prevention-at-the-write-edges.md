@@ -10,7 +10,7 @@ status: locked
 
 Facts and the schema are separately writable artifacts that reference each other. Drift — a stored fact naming a namespace or relationship the schema no longer defines — has exactly two producers, and the Write service, as sole writer of both artifacts ([[four-service-split-by-load-profile]]), closes both:
 
-1. **Facts can't lead the schema.** Every fact write is validated against the current schema: the namespace is defined, the relationship is defined, and tupleset-consumed members have the exactly-specified shape.
+1. **Facts can't lead the schema.** Every fact write is validated against the current schema: the namespace is defined, the relationship is defined, and factset-consumed members have the exactly-specified shape.
 2. **The schema can't abandon facts.** A schema write that removes a namespace or relationship is refused while live facts reference it. The check is a reverse existence query — do any live facts reference this name — at schema-write time, cold path. Removal becomes a two-step migration: migrate the facts, then land the removal. Whole-namespace and whole-schema deletion are the limiting case of the same ceremony.
 
 A third element makes the invariants hold at read time as well as write time: evaluation and replay always read a coherent ([[kookie]], schema version) pair, both artifacts versioned on the one store timeline ([[storage-versioning-design]]). The two invariants make every moment coherent; the coupled read makes every evaluation see one moment.

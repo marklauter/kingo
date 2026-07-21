@@ -4,8 +4,8 @@ namespace Kingo.Schemas;
 
 /// <summary>
 /// The rewrite algebra — a closed discriminated union describing how a relationship's effective subject set is computed: direct membership
-/// (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a tupleset
-/// (<see cref="TupleToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>,
+/// (<see cref="ThisRewrite"/>), another relationship on the same resource (<see cref="ComputedSubjectSetRewrite"/>), a walk through a factset
+/// (<see cref="FactToSubjectSetRewrite"/>), and the set operators (<see cref="UnionRewrite"/>, <see cref="IntersectionRewrite"/>,
 /// <see cref="ExclusionRewrite"/>). Parse-agnostic: produced equally by the SDL adapter, other serialization adapters, or the Write API. Authoring syntax and
 /// precedence: [[schema-definition-language]].
 /// </summary>
@@ -28,13 +28,14 @@ public sealed record ComputedSubjectSetRewrite(
     : SubjectSetRewrite;
 
 /// <summary>
-/// Walks the facts of <paramref name="TuplesetRelationship"/> on the resource and, for each subject found, evaluates
-/// <paramref name="ComputedSubjectSetRelationship"/> on that subject — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants
-/// viewer on the file"). The second relationship names a computed subject set on each resolved subject — the same construct as
-/// <see cref="ComputedSubjectSetRewrite"/>, applied to the tupleset's subjects rather than to this resource; the name says so.
+/// Walks the facts of <paramref name="FactsetRelationship"/> on the resource and, for each resource found, evaluates
+/// <paramref name="ComputedSubjectSetRelationship"/> on that resource — Zanzibar's mechanism for inherited permissions (e.g. "viewer on the parent folder grants
+/// viewer on the file"). Only <c>Fact.ResourceFact</c> members traverse — subject- and subjectset-shaped members are modeled errors ([[rewrite-interpreters]]
+/// conditions 5–6). The second relationship names a computed subject set on each resolved resource — the same construct as
+/// <see cref="ComputedSubjectSetRewrite"/>, applied to the factset's resources rather than to this resource; the name says so.
 /// </summary>
-public sealed record TupleToSubjectSetRewrite(
-    RelationshipIdentifier TuplesetRelationship,
+public sealed record FactToSubjectSetRewrite(
+    RelationshipIdentifier FactsetRelationship,
     RelationshipIdentifier ComputedSubjectSetRelationship)
     : SubjectSetRewrite;
 

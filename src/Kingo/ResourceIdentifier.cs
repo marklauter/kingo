@@ -5,8 +5,8 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the tuple grammar (see [[domain-language]]). Character rules
-/// are provisional; the terminal must never contain the tuple delimiters <c>:</c>, <c>#</c>, or <c>@</c>.
+/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). Character rules
+/// are provisional; the terminal must never contain the fact-grammar delimiters <c>:</c>, <c>#</c>, or <c>@</c>.
 /// </summary>
 public readonly record struct ResourceIdentifier
     : IValue<ResourceIdentifier, string>
@@ -56,7 +56,7 @@ internal static partial class ResourceIdentifierPatterns
         RegexOptions.CultureInvariant;
 
     // provisional per [[domain-language]]: resource ids need dots (e.g. readme.md);
-    // must never contain the tuple delimiters ':' '#' '@'
+    // must never contain the fact-grammar delimiters ':' '#' '@'
     [GeneratedRegex(@"^[A-Za-z0-9_][A-Za-z0-9_.-]*$", PatternOptions)]
     public static partial Regex Validation();
 }

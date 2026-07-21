@@ -14,10 +14,10 @@ public sealed class ErrorTests
     [Fact]
     public void NotFound_CreatesErrorWithNotFoundType()
     {
-        var error = Error.NotFound("err.tuple.not_found", "tuple not found");
+        var error = Error.NotFound("err.fact.not_found", "fact not found");
         Assert.Equal(ErrorType.NotFound, error.Type);
-        Assert.Equal("err.tuple.not_found", error.Code);
-        Assert.Equal("tuple not found", error.Message);
+        Assert.Equal("err.fact.not_found", error.Code);
+        Assert.Equal("fact not found", error.Message);
     }
 
     [Fact]

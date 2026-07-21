@@ -33,7 +33,7 @@ public sealed class SchemaPrinterTests
                 [
                     Bare("direct"),
                     new Relationship(Rel("computed"), Computed("owner")),
-                    new Relationship(Rel("tuple"), new TupleToSubjectSetRewrite(Rel("parent"), Rel("viewer"))),
+                    new Relationship(Rel("factset"), new FactToSubjectSetRewrite(Rel("parent"), Rel("viewer"))),
                     new Relationship(Rel("union"), new UnionRewrite([ThisRewrite.Default, Computed("owner")])),
                     new Relationship(Rel("intersection"), new IntersectionRewrite([ThisRewrite.Default, Computed("viewer")])),
                     new Relationship(Rel("exclusion"), new ExclusionRewrite(ThisRewrite.Default, Computed("banned"))),
@@ -44,7 +44,7 @@ public sealed class SchemaPrinterTests
 
         Assert.Contains("- direct", sdl, StringComparison.Ordinal);
         Assert.Contains("computed: owner", sdl, StringComparison.Ordinal);
-        Assert.Contains("tuple: (parent, viewer)", sdl, StringComparison.Ordinal);
+        Assert.Contains("factset: (parent, viewer)", sdl, StringComparison.Ordinal);
         Assert.Contains("union: this | owner", sdl, StringComparison.Ordinal);
         Assert.Contains("intersection: this & viewer", sdl, StringComparison.Ordinal);
         Assert.Contains("exclusion: this ! banned", sdl, StringComparison.Ordinal);
@@ -117,14 +117,14 @@ public sealed class SchemaPrinterTests
     }
 
     [Fact]
-    public void Print_ReservedReferenceInTupleset_IsCallerDefect()
+    public void Print_ReservedReferenceInFactset_IsCallerDefect()
     {
-        // pins that the tupleset arm routes both components through the reserved-word gate
+        // pins that the factset arm routes both components through the reserved-word gate
         var schema = MakeSchema(
         [
             MakeNs(
                 Ns("file"),
-                [new Relationship(Rel("viewer"), new TupleToSubjectSetRewrite(Rel("this"), Rel("member")))]),
+                [new Relationship(Rel("viewer"), new FactToSubjectSetRewrite(Rel("this"), Rel("member")))]),
         ]);
 
         _ = Assert.Throws<ArgumentException>(schema.Print);

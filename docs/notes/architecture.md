@@ -20,7 +20,7 @@ The foundational primitives — `Result<T>` / `Error` (Results project) and `IVa
 
 ### Ports — future `Kingo.Storage`, etc.
 
-Interfaces that describe what the core needs from the outside world, without specifying how. A port says "give me something that can store a tuple"; it does not say "give me a DynamoDB client." Ports live close enough to the core that they share its language; the implementations live elsewhere.
+Interfaces that describe what the core needs from the outside world, without specifying how. A port says "give me something that can store a fact"; it does not say "give me a DynamoDB client." Ports live close enough to the core that they share its language; the implementations live elsewhere.
 
 No ports project exists today. The first attempt — `Kingo.Serialization` holding `IDocumentSerializer<T>` — was dissolved 2026-07-14 ([[realign-serialization-projects-around-their-real-consumers]]): SDL was its only possible consumer, so it was ceremony, not a port. When a genuine port family appears (storage, transport), it gets its own project. What survives from that slice: `Deserialize`/`Parse` at a trust boundary returns `Result<T>` with accumulated errors, never exceptions, and `AdapterArchitectureTestsBase` still enforces that an adapter defines no exception types.
 

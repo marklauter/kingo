@@ -33,10 +33,10 @@ internal static class RewriteExpressionParser
             ThisNode => Result.Success<SubjectSetRewrite>(ThisRewrite.Default),
             ComputedSubjectSetNode computed => RelationshipIdentifier.Parse(computed.Relationship)
                 .Map(SubjectSetRewrite (relationship) => new ComputedSubjectSetRewrite(relationship)),
-            TupleToSubjectSetNode tupleTo => Result.Apply(
-                RelationshipIdentifier.Parse(tupleTo.TuplesetRelationship)
-                    .Map(Func<RelationshipIdentifier, SubjectSetRewrite> (tupleset) => computed => new TupleToSubjectSetRewrite(tupleset, computed)),
-                RelationshipIdentifier.Parse(tupleTo.ComputedSubjectSetRelationship)),
+            FactToSubjectSetNode factTo => Result.Apply(
+                RelationshipIdentifier.Parse(factTo.FactsetRelationship)
+                    .Map(Func<RelationshipIdentifier, SubjectSetRewrite> (factset) => computed => new FactToSubjectSetRewrite(factset, computed)),
+                RelationshipIdentifier.Parse(factTo.ComputedSubjectSetRelationship)),
             UnionNode union => union.Children.Select(Transform).Sequence()
                 .Map(children => (SubjectSetRewrite)new UnionRewrite(children)),
             IntersectionNode intersection => intersection.Children.Select(Transform).Sequence()
@@ -105,16 +105,16 @@ internal static class RewriteExpressionParser
 
         var computed = identifier.Select(name => (RewriteNode)new ComputedSubjectSetNode(name));
 
-        var tupleToSubjectSet =
+        var factToSubjectSet =
             from lparen in Token.EqualTo(RewriteExpressionToken.LeftParen)
-            from tupleset in identifier
+            from factset in identifier
             from comma in Token.EqualTo(RewriteExpressionToken.Comma)
             from computedSubjectSetRelationship in identifier
             from rparen in Token.EqualTo(RewriteExpressionToken.RightParen)
-            select (RewriteNode)new TupleToSubjectSetNode(tupleset, computedSubjectSetRelationship);
+            select (RewriteNode)new FactToSubjectSetNode(factset, computedSubjectSetRelationship);
 
         TokenListParser<RewriteExpressionToken, RewriteNode>? expressionRef = null;
-        var term = tupleToSubjectSet.Try().Or(thisTerm.Try()).Or(computed)
+        var term = factToSubjectSet.Try().Or(thisTerm.Try()).Or(computed)
             .Or(Superpower.Parse.Ref(() => expressionRef!)
                 .Between(Token.EqualTo(RewriteExpressionToken.LeftParen), Token.EqualTo(RewriteExpressionToken.RightParen)));
 

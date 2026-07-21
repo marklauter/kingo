@@ -6,9 +6,9 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Names a relationship — the <c>&lt;relationship&gt;</c> terminal of the tuple grammar (see [[domain-language]]). Case-insensitive:
+/// Names a relationship — the <c>&lt;relationship&gt;</c> terminal of the fact grammar (see [[domain-language]]). Case-insensitive:
 /// <see cref="Parse"/> normalizes to lowercase, the canonical form. The grammar is name-only: <c>...</c> is not a relationship — it is the
-/// <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production (tuple-grammar punctuation, not a relationship concept), so it fails to parse here.
+/// <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production (fact-grammar punctuation, not a relationship concept), so it fails to parse here.
 /// </summary>
 public readonly record struct RelationshipIdentifier
     : IValue<RelationshipIdentifier, string>
