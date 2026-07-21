@@ -3,7 +3,7 @@ title: Rewrite interpreters — clean-room critique findings
 summary: "Findings from a dry-run of the [[rewrite-interpreters]] clean-room handoff: gaps that block the design, semantics left ambiguous, and contradictions between the note and the other clean-room inputs (domain code, linked corpus docs)."
 tags: [note, acl, interpreters, review]
 created: 2026-07-18
-status: evolving
+status: locked
 critiques: "[[rewrite-interpreters]]"
 ---
 
