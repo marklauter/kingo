@@ -31,6 +31,7 @@ One design, three consumers: the zookie a client holds, the condition a write as
 ## Next
 
 - Design session when storage work begins (queued behind the SDL adapter and converters per [[index]]): encode the settled shapes — the interval-stamp attributes on fact items, the schema changelog's item form — define `Kookie` and `SchemaVersion` encodings as functions of them, and specify the conditional-write patterns the Write adapter uses, including the schema-write reverse existence query and the schema-at-K lookup.
+- Rule the schema storage format. Grammar as storage (schema changelog entries persisted as SDL text) is the leaning ([[namespace-create-validation]], 2026-07-21) but not yet ruled. If ruled in, hydration is parsing, and one constructible shape does not survive the trip: a single-child union/intersection prints as its bare child and reparses to the simpler tree (`RewriteExpressionPrinter` documents it as the caller's defect), so a stored `Union([x])` hydrates structurally unequal to what was written. Either the operator factories refuse or normalize the single-child shape, or round-trip equality is scoped to printable trees; decide with the format.
 - Validate the design against all three consumers before code: Check's snapshot-pinned reads, Write's CAS, Watch's cursors.
 
 ## Related
