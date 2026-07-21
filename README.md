@@ -8,6 +8,8 @@
 
 Kingo is a Google Zanzibar-inspired ReBAC authorization system, exploring relationship-based access control with schema-defined subject-set rewrite rules.
 
+Kingo is a work in progress: the domain model and rewrite engine are under active design, and APIs, schemas, and storage formats change without notice.
+
 The name is Swahili — plural of *ukingo*: edges, borders. The logo is a Swahili carved door, the emblem of the coast Zanzibar sits on: the guarded boundary that decides who's inside.
 
 ## Build & test
