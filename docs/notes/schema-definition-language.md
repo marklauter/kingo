@@ -44,7 +44,7 @@ A structural note the adapter honors: a run of consecutive same-operator applica
 #   & = intersection operator
 #   | = union operator
 
-schema: acme                      # the schema's name, and its domain key
+schema: io                      # the schema's name, and its domain key
 
 namespaces:
   file:                           # namespace

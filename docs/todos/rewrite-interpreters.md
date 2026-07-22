@@ -6,6 +6,7 @@ created: 2026-07-15
 status: open
 priority: high
 effort: high
+blocked-by: "[[dissolve-schema-into-administration]]"
 ---
 
 # Rewrite interpreters — Contains and Expand
@@ -18,7 +19,7 @@ The input closure (decided 2026-07-20; dry-run finding F14): the two artifacts a
 
 ## Deliverable (ruled 2026-07-21)
 
-The design session's output is a set of specs, not code. Each concept the session settles — the evaluation-context shape, the fact-lookup port's operations, `Contains`, `Expand`, and the `Expansion` tree — lands as its own spec artifact (`hoplite-skills:spec`, composed from locked terms), and implementation follows in a second pass against the locked set. The session also seeds [[fact-store-access-patterns]] (requirement 6's named deliverable) and closes with a journal entry. This todo stays open until the implementation pass lands; the spec set is its first milestone.
+The design session's output is a set of specs, not code. Each concept the session settles — the evaluation-context shape, the fact-lookup port's operations, `Contains`, `Expand`, and the `Expansion` tree — lands as its own spec artifact (`hoplite-skills:spec`, composed from locked terms), and implementation follows in a second pass against the locked set. The session also seeds [[fact-store-access-patterns]] (requirement 6's named deliverable) and closes with a journal entry. This todo stays open until the implementation pass lands; the spec set is its first milestone. The block applies to the implementation pass only (added 2026-07-21): the specs design against the post-dissolution model ([[schema-dissolves-into-administration]]), so implementation waits on [[dissolve-schema-into-administration]]; the design session proceeds.
 
 ## The work item
 
