@@ -1,7 +1,7 @@
 ---
 title: The graph document is bulk DML, not a state dump
 summary: "Proposal: FML, the Fact Mutation Language — the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU, which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
-tags: [note, todo, sdl, fml, agl, graphs, dml, hexagonal]
+tags: [note, todo, sdl, fml, kwf, graphs, dml, hexagonal]
 created: 2026-07-15
 status: open
 priority: medium
@@ -19,7 +19,7 @@ blocked-by: "[[storage-versioning-design]]"
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
 - `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal (dry-run finding F8); the operation vocabulary is unchanged by that.
 
-The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The language this document is written in is **FML, the Fact Mutation Language** — the DML half of the Authorization Graph Language, as SDL is the DDL half ([[domain-language]] names AGL and its two sublanguages). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
+The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. This document is the **fact document**, the DML kind of the Kingo Wire Format, as the namespace document is the DDL kind ([[kingo-wire-format]]; the FML name retired with AGL, 2026-07-22). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
 **Update 2026-07-22** ([[dissolve-schema-into-administration]] session): the operation vocabulary is ruled `apply`/`drop`, aligning with the config side's verbs — `apply` is the upsert (`touch`'s semantics), `drop` the delete. Whether a strict `create` (conflict-if-exists) survives as a third block is open; the three-operation analysis below predates the ruling and stands as the design record.
 
@@ -71,7 +71,7 @@ A type whose entire rule set is storage semantics is not a domain type; it is th
 
 ## `Kingo.Fml` — the adapter
 
-The document's parser is its own project, **`Kingo.Fml`**, beside `Kingo.Sdl` — one adapter per sublanguage of AGL ([[domain-language]]). The pair mirrors the models: `Kingo.Sdl` → `Kingo.Schemas`, `Kingo.Fml` → `Kingo.Graphs`, so the assembly ban the two test suites already enforce between the models carries into the adapters for free. Nothing about FML wants to live in `Kingo.Sdl`: that project is named for the *Schema* Definition Language, and the two documents share no grammar — only a frame.
+The document's parser is its own project, **`Kingo.Fml`**, beside `Kingo.Sdl` — one adapter per KWF document kind ([[kingo-wire-format]]). The pair mirrors the models: `Kingo.Sdl` → `Kingo.Schemas`, `Kingo.Fml` → `Kingo.Graphs`, so the assembly ban the two test suites already enforce between the models carries into the adapters for free. Nothing about FML wants to live in `Kingo.Sdl`: that project is named for the *Schema* Definition Language, and the two documents share no grammar — only a frame.
 
 It is by far the thinner of the pair, and the asymmetry is the design, not an accident:
 

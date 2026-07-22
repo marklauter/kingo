@@ -22,7 +22,8 @@ Execute the remodel [[schema-dissolves-into-administration]] decided. The rewrit
 
 ## Corpus
 
-- [[domain-language]]: revert the config side of the aggregate table; update the envelope note and terminals table.
+- Naming ruling (2026-07-22): the format umbrella is **KWF, the Kingo Wire Format** ([[kingo-wire-format]]); its document kinds are the **namespace document** and the **fact document**; the embedded expression grammar is the **rewrite language**. AGL, SDL, and FML retired as names — none of the documents is a language. Assembly names (`Kingo.Sdl`, planned `Kingo.Fml`) are a decide-at-execution question like the `Kingo.Schemas` rename. Prose sweep for leftover SDL/FML rides with the reframes below; journals and superseded notes keep theirs.
+- [[domain-language]]: revert the config side of the aggregate table; update the envelope note and terminals table (naming paragraph reframed to KWF 2026-07-22).
 - [[schema-definition-language]]: reframe the envelope (`schema:` as ownership label); keep the namespace map.
 - [[drift-prevention-at-the-write-edges]]: amend the coherent (`Kookie`, `SchemaVersion`) pair to the one-pin model — namespace configs version on the store timeline and the kookie pins both facts and config.
 - [[storage-versioning-design]]: the versioned config artifact is the namespace; whole-namespace deletion is the terminal marker; schema-version encoding questions retire.
