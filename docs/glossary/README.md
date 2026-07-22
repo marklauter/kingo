@@ -38,7 +38,7 @@ One file per term, each reduced to the word plus the smallest phrase that unpack
 - [[schema]]
 - [[subject]]
 - [[subject-set]]
-- [[subject-set-rewrite]]
+- [[subjectset-rewrite]]
 - [[this]]
 - [[union]]
 - [[verdict]]

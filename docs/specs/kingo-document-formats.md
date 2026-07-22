@@ -9,7 +9,7 @@ cites:
   - "[[namespace]]"
   - "[[relationship]]"
   - "[[fact]]"
-  - "[[subject-set-rewrite]]"
+  - "[[subjectset-rewrite]]"
   - "[[union]]"
   - "[[intersection]]"
   - "[[exclusion]]"
@@ -32,7 +32,7 @@ supersedes: "[[schema-definition-language]]"
 Kingo accepts three kinds of documents: single namespaces, namespace blocks, and fact apply blocks.
 The kinds split the way DDL and DML split SQL — definitions on one side, data on the other.
 
-The naming follows Zanzibar's precedent: its namespace configs are protobuf text format — a serialization, never a branded language. These are document formats the same way. No document kind is a language; the one language among them is the **rewrite language**, the [[subject-set-rewrite]] expression grammar embedded in namespace documents. (Renamed 2026-07-22 from AGL, the Authorization Graph Language — its SDL and FML sublanguages and the interim KWF name retired with it; [[domain-language]] records why.)
+The naming follows Zanzibar's precedent: its namespace configs are protobuf text format — a serialization, never a branded language. These are document formats the same way. No document kind is a language; the one language among them is the **rewrite language**, the [[subjectset-rewrite]] expression grammar embedded in namespace documents. (Renamed 2026-07-22 from AGL, the Authorization Graph Language — its SDL and FML sublanguages and the interim KWF name retired with it; [[domain-language]] records why.)
 
 Both document kinds share one semantic frame:
 
@@ -43,7 +43,7 @@ Both document kinds share one semantic frame:
 
 A namespace document declares namespaces. It is pure declaration: upsert only, create-or-replace per namespace, and absence means nothing — a namespace missing from a document is untouched, never deleted. Removal is not expressible in a namespace document; it is the Write API's explicit `DELETE /namespaces/{name}`, refused while live facts reference the namespace.
 
-The unit of declaration is the **namespace body**: a YAML sequence of [[relationship]] definitions, each a bare name (direct membership) or a name with a rewrite expression ([[subject-set-rewrite]]).
+The unit of declaration is the **namespace body**: a YAML sequence of [[relationship]] definitions, each a bare name (direct membership) or a name with a rewrite expression ([[subjectset-rewrite]]).
 
 ```yaml
 - owner

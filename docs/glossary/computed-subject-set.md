@@ -4,7 +4,7 @@ summary: "A rewrite that references another relationship on the same resource, a
 tags: [glossary, rewrite]
 created: 2026-07-18
 status: locked
-is-a: "[[subject-set-rewrite]]"
+is-a: "[[subjectset-rewrite]]"
 ---
 
 A rewrite that references another relationship on the same resource, adopting its effective subject set.
