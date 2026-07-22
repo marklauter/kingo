@@ -1,8 +1,8 @@
 ---
-title: KWF — the Kingo Wire Format
-summary: "The wire format Kingo's endpoints accept: namespace documents declare what edges may exist, fact documents mutate the edges that do — both YAML, both unordered atomic batches versioned by the store timeline."
-aliases: [kwf, agl, authorization-graph-language]
-tags: [spec, kwf]
+title: Kingo document formats
+summary: "The documents Kingo's endpoints accept: single namespaces and namespace blocks declare what edges may exist, fact apply blocks mutate the edges that do — all YAML, all unordered atomic batches versioned by the store timeline."
+aliases: [kingo-wire-format, kwf, agl, authorization-graph-language]
+tags: [spec, documents]
 created: 2026-07-22
 status: evolving
 cites:
@@ -20,19 +20,19 @@ cites:
 supersedes: "[[schema-definition-language]]"
 ---
 
-# KWF — the Kingo Wire Format
+# Kingo document formats
 
-- [KWF — the Kingo Wire Format](#kwf--the-kingo-wire-format)
+- [Kingo document formats](#kingo-document-formats)
   - [Namespace documents](#namespace-documents)
     - [The rewrite language](#the-rewrite-language)
   - [Fact documents](#fact-documents)
   - [Open](#open)
   - [Related](#related)
 
-KWF is Kingo's wire format. It's composed of three kinds of documents: single namespaces, namespace blocks and fact apply blocs.
+Kingo accepts three kinds of documents: single namespaces, namespace blocks, and fact apply blocks.
 The kinds split the way DDL and DML split SQL — definitions on one side, data on the other.
 
-The name follows Zanzibar's precedent: its namespace configs are protobuf text format — a serialization, never a branded language. KWF is the same kind of name. Neither document kind is a language; the one language in the format is the **rewrite language**, the [[subject-set-rewrite]] expression grammar embedded in namespace documents. (Renamed 2026-07-22 from AGL, the Authorization Graph Language, whose SDL and FML sublanguages retired with it — [[domain-language]] records why AGL lost.)
+The naming follows Zanzibar's precedent: its namespace configs are protobuf text format — a serialization, never a branded language. These are document formats the same way. No document kind is a language; the one language among them is the **rewrite language**, the [[subject-set-rewrite]] expression grammar embedded in namespace documents. (Renamed 2026-07-22 from AGL, the Authorization Graph Language — its SDL and FML sublanguages and the interim KWF name retired with it; [[domain-language]] records why.)
 
 Both document kinds share one semantic frame:
 
@@ -129,7 +129,7 @@ The adapter owns only the envelope; the fact grammar stays in core ([[domain-lan
 
 - The block push's endpoint spelling.
 - FML's envelope details: whether the `facts:` root key stays now that no document-kind discrimination is needed, and the open questions above.
-- Whether a query document kind joins KWF — the format is sized for it, since Check is a reachability query over the same graph the other two halves feed.
+- Whether a query document kind joins the family — Check is a reachability query over the same graph the other kinds feed.
 
 ## Related
 
