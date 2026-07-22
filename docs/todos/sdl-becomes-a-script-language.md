@@ -1,11 +1,11 @@
 ---
 title: SDL becomes a script language
-summary: "Design SDL's script shape: envelope-free definition documents as the degenerate all-upsert script, explicit drop grammar, ordered flyway-style series folded through the changelog, per-namespace SDL blobs as the stored version states."
+summary: "Closed 2026-07-22 without landing: the script language is superseded by per-namespace config pushes (PUT/DELETE with the namespace body as payload) — the flyway machinery served non-idempotent scripts, and the design's documents came out idempotent."
 tags: [todo, sdl, schemas, write]
 created: 2026-07-21
 priority: high
 effort: high
-status: open
+status: closed
 blocked-by: "[[dissolve-schema-into-administration]]"
 ---
 
@@ -27,3 +27,7 @@ Under [[schema-dissolves-into-administration]], SDL is the only config-mutation 
 - Whether an operations-document kind exists beside the definition kind, or one grammar carries both.
 - Whether a migration file can sequence FML and SDL steps together ([[graph-document-is-bulk-dml]]) — fact migration before a drop wants both in one series.
 - Script identity and ordering metadata (flyway's version numbering equivalent) — filename convention, in-document key, or Write-side sequence.
+
+## Resolution
+
+Closed 2026-07-22 without landing the grammar. The script shape was designed to a working spelling: kind-discriminated documents, `apply`/`drop` blocks, unordered atomic batches. The exercise exposed its own premise. The flyway apparatus (script identity, run history, series ordering) exists to make non-idempotent scripts safe, but the documents had come out idempotent upserts with no-op drops, so the apparatus had nothing to protect. The 2026-07-21 documents-only ruling is superseded: config mutation is per-namespace pushes. `PUT /namespaces/{name}` takes the namespace body (the relationship list) as payload; `DELETE /namespaces/{name}` is refused while live facts reference the namespace. Git-storability survives as one `<namespace>.yaml` per namespace whose wire body is the stored artifact. Details and remaining execution work live in [[dissolve-schema-into-administration]]. The design questions above retire with the script language: no drop marker, no operations-document kind, no script identity. The fact-side document survives on its own track — [[graph-document-is-bulk-dml]] — with `apply`/`drop` as its operation vocabulary (ruled 2026-07-22).

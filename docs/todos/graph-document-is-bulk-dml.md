@@ -21,6 +21,8 @@ blocked-by: "[[storage-versioning-design]]"
 
 The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The language this document is written in is **FML, the Fact Mutation Language** — the DML half of the Authorization Graph Language, as SDL is the DDL half ([[domain-language]] names AGL and its two sublanguages). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
+**Update 2026-07-22** ([[dissolve-schema-into-administration]] session): the operation vocabulary is ruled `apply`/`drop`, aligning with the config side's verbs — `apply` is the upsert (`touch`'s semantics), `drop` the delete. Whether a strict `create` (conflict-if-exists) survives as a third block is open; the three-operation analysis below predates the ruling and stands as the design record.
+
 ## Proposed format
 
 YAML again, with **section blocks keyed by operation** — Mark's shape:
