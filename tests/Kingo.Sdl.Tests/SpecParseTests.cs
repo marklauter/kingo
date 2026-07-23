@@ -207,7 +207,7 @@ public sealed class SpecParseTests
     {
         var spec = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
-        Assert.Equal(SpecId("acme"), spec.Name);
+        Assert.Equal(SpecId("acme"), spec.Path);
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public sealed class SpecParseTests
     {
         var spec = ParseSuccess(Document("file:\n  - owner", name: "ACME"));
 
-        Assert.Equal(SpecId("acme"), spec.Name);
+        Assert.Equal(SpecId("acme"), spec.Path);
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public sealed class SpecParseTests
     {
         var ns = Assert.Single(ParseSuccess(Document(namespaceMap)).Namespaces);
 
-        Assert.Equal(Ns("file"), ns.Name);
+        Assert.Equal(Ns("file"), ns.Path);
         Assert.Empty(ns.Relationships);
     }
 }

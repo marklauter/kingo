@@ -122,7 +122,7 @@ public sealed class SpecRoundTripTests
 
         var roundTripped = ParseSuccess(original.Print());
 
-        Assert.Equal(SpecId("acme"), roundTripped.Name);
+        Assert.Equal(SpecId("acme"), roundTripped.Path);
         Assert.Equal(original, roundTripped);
     }
 }

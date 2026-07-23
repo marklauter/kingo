@@ -85,7 +85,7 @@ public sealed class SpecTests
     {
         var spec = Make(Id("acme"), [Ns("doc", "viewer")]);
 
-        Assert.Equal(Id("acme"), spec.Name);
+        Assert.Equal(Id("acme"), spec.Path);
     }
 
     [Fact]

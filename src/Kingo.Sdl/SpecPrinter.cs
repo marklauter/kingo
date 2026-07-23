@@ -23,20 +23,20 @@ public static class SpecPrinter
     {
         OrderedDictionary<string, List<object>> namespaces = new(spec.Namespaces.Length);
         foreach (var ns in spec.Namespaces)
-            namespaces.Add(ns.Name.Value, [.. ns.Relationships.Select(PrintRelationship)]);
+            namespaces.Add(ns.Path.Value, [.. ns.Relationships.Select(PrintRelationship)]);
 
         return DocumentSerializer.Serialize(
             new OrderedDictionary<string, object>
             {
-                ["spec"] = spec.Name.Value,
+                ["spec"] = spec.Path.Value,
                 ["namespaces"] = namespaces,
             });
     }
 
     private static object PrintRelationship(Relationship relationship) =>
-        RewriteExpressionPrinter.IsReserved(relationship.Name)
-            ? throw new ArgumentException($"relationship '{relationship.Name}' cannot be expressed in SDL: '{relationship.Name}' is reserved by the rewrite grammar")
+        RewriteExpressionPrinter.IsReserved(relationship.Path)
+            ? throw new ArgumentException($"relationship '{relationship.Path}' cannot be expressed in SDL: '{relationship.Path}' is reserved by the rewrite grammar")
             : relationship.Rewrite is ThisRewrite
-                ? relationship.Name.Value
-                : new Dictionary<string, string> { [relationship.Name.Value] = RewriteExpressionPrinter.Print(relationship.Rewrite) };
+                ? relationship.Path.Value
+                : new Dictionary<string, string> { [relationship.Path.Value] = RewriteExpressionPrinter.Print(relationship.Rewrite) };
 }

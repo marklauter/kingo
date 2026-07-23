@@ -6,7 +6,7 @@ namespace Kingo.Schemas;
 /// <summary>
 /// A namespace's definition <b>as a value</b> — an immutable snapshot of its relationships and their rewrites,
 /// with structural equality. Parse-agnostic and storable. An entity within the <see cref="Spec"/> aggregate,
-/// not a root: its identity is local — <see cref="Name"/> unique within its spec (names arrive canonical lowercase
+/// not a root: its identity is local — <see cref="Path"/> unique within its spec (names arrive canonical lowercase
 /// through <c>Parse</c>; the comparison here is ordinal), immutable
 /// (there is no rename, only a new namespace). <see cref="Create"/> is the only construction path, so a
 /// <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
@@ -16,13 +16,13 @@ namespace Kingo.Schemas;
 /// </summary>
 public sealed record Namespace
 {
-    public NamespacePath Name { get; }
+    public NamespacePath Path { get; }
 
     public ImmutableArray<Relationship> Relationships { get; }
 
-    private Namespace(NamespacePath name, ImmutableArray<Relationship> relationships)
+    private Namespace(NamespacePath path, ImmutableArray<Relationship> relationships)
     {
-        Name = name;
+        Path = path;
         Relationships = relationships;
     }
 
@@ -39,44 +39,44 @@ public sealed record Namespace
     /// bound, not this check; [[rewrite-interpreters]]). The spec model has no core <c>Parse</c> — its text forms live in serialization adapters, which call
     /// this after decoding ([[domain-language]]).
     /// </summary>
-    public static Result<Namespace> Create(NamespacePath name, ImmutableArray<Relationship> relationships)
+    public static Result<Namespace> Create(NamespacePath path, ImmutableArray<Relationship> relationships)
     {
         // a default array is the empty namespace: normalized here so construction is total and the stored value always enumerates
         if (relationships.IsDefault)
             relationships = [];
 
         var duplicates = relationships
-            .GroupBy(relationship => relationship.Name)
+            .GroupBy(relationship => relationship.Path)
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
                 "namespace.duplicate_relationship",
-                $"relationship '{group.Key}' is defined more than once in namespace '{name}'"))
+                $"relationship '{group.Key}' is defined more than once in namespace '{path}'"))
             .ToImmutableArray();
         if (!duplicates.IsEmpty)
             return Result.Failure<Namespace>(duplicates);
 
         // one tree walk per relationship: the references materialize here and both remaining stages consume them
         var references = relationships.ToImmutableDictionary(
-            relationship => relationship.Name,
+            relationship => relationship.Path,
             relationship => IntraNamespaceReferences(relationship.Rewrite).Distinct().ToImmutableArray());
 
-        var defined = relationships.Select(relationship => relationship.Name).ToImmutableHashSet();
+        var defined = relationships.Select(relationship => relationship.Path).ToImmutableHashSet();
         var dangling = relationships
-            .SelectMany(relationship => references[relationship.Name]
+            .SelectMany(relationship => references[relationship.Path]
                 .Select(reference => reference.Target)
                 // not redundant with the tuple-level Distinct above: one target can appear under both edge kinds
                 .Distinct()
                 .Where(target => !defined.Contains(target))
                 .Select(target => Error.Validation(
                     "namespace.dangling_reference",
-                    $"relationship '{relationship.Name}' references '{target}', which is not defined in namespace '{name}'")))
+                    $"relationship '{relationship.Path}' references '{target}', which is not defined in namespace '{path}'")))
             .ToImmutableArray();
         if (!dangling.IsEmpty)
             return Result.Failure<Namespace>(dangling);
 
-        var cycles = DetectCycles(name, relationships, references);
+        var cycles = DetectCycles(path, relationships, references);
         return cycles.IsEmpty
-            ? Result.Success(new Namespace(name, relationships))
+            ? Result.Success(new Namespace(path, relationships))
             : Result.Failure<Namespace>(cycles);
     }
 
@@ -157,12 +157,12 @@ public sealed record Namespace
 
         foreach (var relationship in relationships)
         {
-            if (finished.Contains(relationship.Name))
+            if (finished.Contains(relationship.Path))
                 continue;
 
-            frames.Push((relationship.Name, 0));
-            _ = onPath.Add(relationship.Name);
-            path.Add(relationship.Name);
+            frames.Push((relationship.Path, 0));
+            _ = onPath.Add(relationship.Path);
+            path.Add(relationship.Path);
 
             while (frames.Count > 0)
             {
@@ -201,8 +201,8 @@ public sealed record Namespace
 
     public bool Equals(Namespace? other) =>
         other is not null
-        && Name.Equals(other.Name)
+        && Path.Equals(other.Path)
         && Relationships.AsSpan().SequenceEqual(other.Relationships.AsSpan());
 
-    public override int GetHashCode() => HashCode.Combine(Name, RewriteHash.OfSequence(Relationships));
+    public override int GetHashCode() => HashCode.Combine(Path, RewriteHash.OfSequence(Relationships));
 }

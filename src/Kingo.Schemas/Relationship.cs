@@ -6,10 +6,10 @@ namespace Kingo.Schemas;
 /// only.
 /// </summary>
 public sealed record Relationship(
-    RelationshipPath Name,
+    RelationshipPath Path,
     SubjectSetRewrite Rewrite)
 {
     /// <summary>Constructs a definition with the implicit <see cref="ThisRewrite"/> — direct membership only.</summary>
-    public Relationship(RelationshipPath name)
-        : this(name, ThisRewrite.Default) { }
+    public Relationship(RelationshipPath path)
+        : this(path, ThisRewrite.Default) { }
 }

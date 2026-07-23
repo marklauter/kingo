@@ -38,7 +38,7 @@ public sealed class NamespaceTests
 
         var ns = Make(Ns("doc"), relationships);
 
-        Assert.Equal(Ns("doc"), ns.Name);
+        Assert.Equal(Ns("doc"), ns.Path);
         Assert.Equal(relationships, ns.Relationships);
     }
 
