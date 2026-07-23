@@ -1,0 +1,2061 @@
+ ▐▛███▜▌   Claude Code v2.1.217
+▝▜█████▛▘  Opus 4.8 · Claude Max
+  ▘▘ ▝▝    D:\projects\kingo\kingo
+
+ ▎ Fable 5 is now a standard part of your Max plan
+ ▎ You can use up to 50% of your weekly usage limit on Fable 5. If you hit your limit, you can continue on Fable 5 with usage credits. Fable 5 draws down usage faster than Opus 4.8. Run /model and select Fable to use it. Learn more: https://support.claude.com/en/articles/15424964-claude-fable-5-promotional-access
+
+> /clear                                                                        
+
+> /hoplite-skills:domain-modeling                                               
+
+● What are we sharpening? The branch is rewrite-interpreters and the working
+  tree shows kingo-document-formats.md split into fact-documents.md and
+  namespace-documents.md — so I'm guessing this is about the document format
+  model, but tell me the concept you want to reduce and I'll start interviewing.
+
+✻ Baked for 9s
+
+> for the rest of the session you're output should match the style of Martin    
+  Fowler.                                                                       
+
+● Understood. I'll write the way Fowler does: plain, measured prose that
+  explains the reasoning rather than just stating conclusions, concrete examples
+  over abstraction, and a willingness to say "I think" when a judgment is mine
+  rather than a fact.
+
+  That said, one honest caveat. Fowler earns his length by being expansive — he
+  circles a concept, shows it from two sides, then lands it. Your standing house
+  style is the opposite: answer first, no preamble. When those two pull against
+  each other during this design work, I'll favour clarity of explanation, since
+  that's what you've asked for, but I won't pad. If a question has a one-line
+  answer, it gets one line.
+
+  So — which concept do we sharpen first?
+
+✻ Worked for 10s
+
+> yes, that's how you'll communicate with me. then you'll write into the        
+  document in the style of Brian Kernighan                                      
+
+● Good — that's a clean division, and it happens to suit the two audiences. When
+  I talk to you I'm reasoning aloud, weighing one reading against another, so
+  Fowler's discursive manner fits: it shows the work. But a spec doesn't want
+  the work shown. It wants the conclusion, stated once, plainly enough that
+  there's nothing to misread. That's Kernighan — every word load-bearing, no
+  throat-clearing, examples chosen so precisely they do the explaining. The
+  interview is where we argue; the document is where we stop arguing.
+
+  I'll note too that Kernighan's economy and your own house style for the corpus
+  pull the same direction, so there's no tension there — only in how I speak to
+  you.
+
+  Which concept first?
+
+✻ Churned for 7s
+
+> we're reviewing @docs/specs/namespace-documents.md                            
+  ⎿  Read docs\specs\namespace-documents.md (104 lines)
+
+● Let me start where the document argues with itself, because I think there's a
+  real crack there and it's worth widening before we touch anything else.
+
+  The spec says three things in quick succession: the batch is
+  "create-or-replace per namespace," then "absence means nothing," then "Removal
+  is not expressible in a namespace document." My trouble is that the first and
+  third can't both be true at the same granularity. If pushing a folder body
+  replaces the namespace, then dropping viewer from that body removes the viewer
+  relationship — that's a removal, and I expressed it in a namespace document
+  simply by leaving a line out. So "removal is not expressible" seems to hold
+  only for whole namespaces, not for the relationships inside one.
+
+  And that distinction actually matters for safety, not just tidiness. You guard
+  the namespace-level DELETE because live facts might still reference the
+  namespace — you refuse it while it's in use. But relationship-level
+  removal-by-omission has exactly the same hazard: replace folder, drop viewer,
+  and now every folder#viewer fact dangles. If that path has no guard, then the
+  quiet way to strand facts is the one the spec doesn't mention, while the loud,
+  explicit DELETE is the one you protected.
+
+  So my question is about which semantics you actually intend for the namespace
+  body. I can see two clean readings and I lean toward the first:
+
+  - Replace — the body is the whole truth for that namespace; omitting a
+  relationship deletes it, and that deletion needs the same live-facts guard the
+  namespace DELETE has. Then the honest statement is "namespace removal isn't
+  expressible; relationship removal is, by omission."
+  - Merge — the body only adds or updates relationships, omission is a no-op,
+  and removing a relationship also needs an explicit administrative call. Then
+  "removal is not expressible" is true as written, but "create-or-replace" is
+  the wrong name — it's create-or-update.
+
+  Which did you mean the body to be — the whole truth, or an additive patch?
+
+✻ Sautéed for 36s
+
+> that's a great observation. hold that for a moment.                           
+
+● Held. Ready when you are.
+
+✻ Churned for 4s
+
+> you've read the document. you more or less understand the idea, but the       
+  document is a mess. I want to socratic method the problem and see if it       
+  helps. so you'll run the domain-modeling skill with me. we'll start from      
+  first princples. i'm ready to start when  you are.                            
+
+  Searched for 1 pattern, read 4 files (ctrl+o to expand)
+
+● Grounded now — I've reread the locked terms. namespace is "the stored,
+  versioned unit of configuration"; relationship is "a named subjectset-rewrite
+  scoped to a namespace"; schema is explicitly not a stored thing, just the
+  human grouping. So those four are settled ground we build on, not things we
+  relitigate.
+
+  Here's how I'd like to run it. We're modelling the namespace document — a
+  different thing from the namespace itself. The namespace is what's stored; the
+  document is what you hand the Write endpoint. The current spec's mess, I
+  suspect, comes from braiding four separate concerns together — what the
+  document is, what it does to the store, what forms it takes on the wire, and
+  the rewrite grammar it happens to carry. First principles means pulling those
+  apart and finding the one each reduces to.
+
+  So the first question, and the most irreducible one:
+
+  What is a namespace document's single job?
+
+  My recommended answer: it declares the intended configuration of one or more 
+  namespaces, such that pushing it makes the store's configuration match the 
+  declaration. Nothing about forms, nothing about YAML, nothing about the
+  rewrite operators yet — just: it's a statement of intended state, and the push
+  reconciles the store to it.
+
+  I phrase it as "match the declaration" deliberately, because that word is
+  where your held question lives — whether "match" means the store becomes equal
+  to the declaration or merely absorbs it is exactly the replace-versus-merge
+  fork. But before we go there: is "a statement of intended configuration state,
+  reconciled by the push" the right kernel, or is the document doing something
+  more (or less) than that in your mind?
+
+✻ Sautéed for 42s
+
+> in C# source code, is a class a declaration or a definition? a delcaration is 
+  `int x;` a definition is struct int {...}                                     
+
+● Both, and the tension between them is exactly your point.
+
+  In C and C++ the distinction is sharp because the language forces it: a
+  declaration introduces a name and its type without committing storage or a
+  body — extern int x;, a function prototype, a forward struct Foo; — while a
+  definition supplies the whole thing, struct Foo { ... };. You can declare
+  without defining, and the linker cares about the difference.
+
+  C# collapses that. The grammar production is literally class_declaration, so
+  the language calls it a declaration — but there's no such thing as a class
+  declaration without its body. You can't forward-declare a type and define it
+  elsewhere; the nearest thing, partial, is still just the one definition
+  written across several files. So a C# class is spelled "declaration" but is
+  always, semantically, a definition. The word survived from C++; the
+  distinction didn't.
+
+  And I take your point about my framing. I called the namespace document "pure
+  declaration," but by the C/C++ meaning that's wrong. A body like viewer: (this
+  | editor) ! banned doesn't merely announce that viewer exists — it supplies
+  the whole rewrite. That's a definition. The glossary already knows this:
+  namespace is "a named grouping of relationship definitions," and relationship
+  "a named subjectset-rewrite" — the body is the point. The only genuinely
+  declaration-shaped thing in the document is a forward reference to a namespace
+  that doesn't exist yet: a name used before it's defined, which is precisely
+  the C++ declaration-without-definition case, and precisely the one the spec
+  says Write tolerates.
+
+  So I'd correct the kernel: the namespace document is a definition of one or
+  more namespaces. Is that the word you want me steering toward — and should I
+  stop saying "declaration" except for that one forward-reference case?
+✻ Sautéed for 27s
+
+> "a namespace document defines one or more namespaces."                        
+
+● That's the kernel. Plain, and it already carries more than it says.
+
+  Because "defines" isn't additive. A definition is total — struct Foo { ... }
+  is Foo, the whole of it; you don't accrete a struct across several
+  definitions, and a second definition of the same name doesn't merge with the
+  first, it replaces it (or, in C++, is an error). So the moment we say the
+  document defines a namespace, we've quietly answered the question you told me
+  to hold. If the body defines folder, then folder becomes exactly what the body
+  says — and a relationship you left out isn't "left untouched," it's not in 
+  the definition, therefore gone. Replace falls out of the word. Merge would
+  require a different verb — "amends," "patches" — and you didn't reach for one.
+
+  So my next question is really just asking you to confirm the granularity that
+  "defines" implies:
+
+  Is the unit of definition the whole namespace — so the body is the entire 
+  truth for it, and omitting a relationship removes that relationship?
+
+  My recommendation is yes, because it's what "defines" means and it's the
+  simpler model to hold in your head: one namespace, one definition, what you
+  push is what exists. The cost is the safety point from earlier — dropping a
+  relationship that live facts still reference has to be caught somewhere, the
+  same way the namespace DELETE is guarded. But that's a consequence to handle,
+  not a reason to weaken the verb. Do you accept namespace-granularity
+  definition, with relationship-removal-by-omission as its honest consequence?
+
+✻ Churned for 23s
+
+> correct. a namespace is a single unit. when writing we apply - it's always an 
+  upsert.                                                                       
+  ⎿  Interrupted · What should Claude do instead?
+
+> sorry to interupt. please continue.                                           
+
+● No need to apologise — picking straight back up.
+
+  So we've nailed three bricks: the document defines; the unit is the whole
+  namespace; the write is always an upsert — create it if absent, replace it
+  wholesale if present. Upsert and replace are the same fact seen from two
+  sides, which is a good sign the model's coherent.
+
+  Now the next brick is the "or more." A namespace is a single unit, but a
+  document can carry several. So I want to ask what binds them, because the
+  current spec makes a strong claim there — it calls the block "one atomic
+  batch," all-or-nothing.
+
+  Here's why I think that claim is worth interrogating rather than inheriting.
+  Atomicity would be forced if namespaces had to land together to be correct —
+  if a reference from one to another had to resolve at write time. But the spec
+  says the opposite: a rewrite may name a namespace that doesn't exist yet, and
+  Write tolerates the dangling reference; only evaluation fails closed on it. If
+  forward references are legal, then no two namespaces need to arrive in the
+  same push — I could always split a block into N separate single-namespace
+  upserts and get the same end state. Which means atomicity across the block
+  isn't a correctness requirement. It's either an operational nicety or nothing.
+
+  So the question:
+
+  When a document defines several namespaces, is that one atomic transaction, or
+  a batch of independent upserts that happen to travel together?
+
+  My recommendation is to be honest that the kernel is one document defines one 
+  namespace — the single form is the primitive — and the block is a convenience
+  envelope carrying several independent upserts. I'd still offer all-or-nothing
+  as an operational guarantee ("a rejected push changes nothing"), because
+  operators genuinely value a deploy that can't half-apply — but I'd frame it as
+  a deliberate choice we grant, not a necessity the model imposes. Do you want
+  the block to be genuinely atomic, or just a bag of independent upserts — and
+  if atomic, is that for operators' sake or is there a correctness reason I'm
+  not seeing?
+
+✻ Crunched for 34s
+
+> there are two forms of the namespace document. a single namespace will only   
+  carry the relationships collection. the name is written on the PUT endpoint.  
+  the second form carries a namespaces: block and allows a batch.               
+
+● Right — and notice the two forms share a single shape underneath, which keeps
+  the model small. The relationships collection is the definition of one
+  namespace. The single form is that collection alone, with the name supplied by
+  the endpoint (PUT /namespaces/folder). The block form is a map from name to
+  that same collection — each value under namespaces: is exactly what a single
+  form would carry on its own. So we don't have two document types; we have one
+  namespace definition and two envelopes for it: name-outside (endpoint) or
+  name-inside (map key). I'd want the spec to say that explicitly, because it's
+  the thing that makes the two forms feel like one idea instead of two.
+
+  But you've told me what the block carries — a batch — without yet telling me
+  what "batch" is worth as a guarantee, and that's still the open fork. So let
+  me put just that one question:
+
+  When the block carries several namespaces and one of them is rejected — say a 
+  rewrite cycle in folder — does the whole push fail and nothing changes, or do 
+  the valid ones (file) still land?
+
+  My recommendation is all-or-nothing: the block validates every namespace, and
+  a single failure rejects the entire push so the store is untouched. Not
+  because correctness demands it — we already agreed forward references make the
+  namespaces independent — but because an operator deploying a block wants a
+  push that either fully succeeds or fully no-ops, never a half-applied config
+  they have to reason about. Do you want that guarantee, or is the block a
+  best-effort bag where the good ones commit and the bad ones report errors?
+
+✻ Sautéed for 23s
+
+> all or nothing for sure. the batch is atomic                                  
+
+● Locked: the block is atomic, all-or-nothing. Good.
+
+  Now I want to collect the debt we set aside, because what we just locked makes
+  it come due. We agreed a definition is total, so omitting a relationship
+  removes it — and removing a relationship that live facts still point at is the
+  hazard. The reason it's due now is that the spec already takes a stance on
+  dangling references, and it takes two opposite stances that I don't think can
+  both stand:
+
+  - Config pointing at missing config — a rewrite naming a namespace that
+  doesn't exist yet. The spec is permissive: Write tolerates it, evaluation
+  fails closed later.
+  - Facts pointing at missing config — the namespace DELETE. The spec is strict:
+  refused while live facts reference the namespace.
+
+  Those are contradictory reflexes unless there's a principle underneath them.
+  And I think there is one, a clean one: config may dangle; facts may not.
+  Config is edited iteratively — you name folder today and define it tomorrow,
+  so a permissive Write with fail-closed evaluation is right. But a fact is data
+  asserting something about config; a fact pointing at a relationship that
+  isn't there is corruption, not a work-in-progress, so Write refuses to create
+  the danglement.
+
+  If that principle holds, it decides our removal case for us. Removing
+  folder#viewer by omission, while facts on folder#viewer are live, is the
+  fact→config case — so it must be refused, exactly like DELETE. And because the
+  batch is atomic and facts live in a separate document, the operator's path
+  is: clear the facts first (a fact document), then re-push the namespace
+  without viewer. You can't do both in one namespace push.
+
+  So the question:
+
+  Is that the invariant — config references may dangle, fact references may not 
+  — and does relationship-removal-by-omission therefore get refused whenever 
+  live facts reference the removed relationship?
+
+  My recommendation is yes to both; it's the only reading that makes the
+  forward-reference tolerance and the DELETE guard stop contradicting each
+  other. Do you buy the "config may dangle, facts may not" principle as the
+  governing rule?
+
+✻ Sautéed for 45s
+
+> "Now I want to collect the debt we set aside, because what we just locked     
+  makes it come due." - please avoid this kind of slop. i don't give a fuck     
+  what your priors are. do better, please.                                      
+
+● Understood.
+
+  The spec takes two opposite stances on dangling references, and I don't think
+  both can stand:
+
+  - Config → missing config (a rewrite naming a namespace not yet defined):
+  permissive. Write tolerates it; evaluation fails closed.
+  - Fact → missing config (the namespace DELETE): strict. Refused while live
+  facts reference the namespace.
+
+  The principle that reconciles them: config may dangle, facts may not. Config
+  is edited iteratively, so a forward reference is a work-in-progress, caught at
+  evaluation. A fact pointing at a relationship that isn't there is corruption,
+  so Write refuses to create it.
+
+  That principle decides the removal case. Dropping folder#viewer by omission
+  while facts on folder#viewer are live is fact → missing config, so Write
+  refuses the push — same as DELETE. The operator clears the facts first (a fact
+  document), then re-pushes the namespace without viewer. One namespace push
+  can't do both.
+
+  Is that the invariant, and does relationship-removal-by-omission get refused
+  whenever live facts reference the removed relationship?
+
+✻ Churned for 8s
+
+> what you're asking is already settled. you can't delete a namespace if a fact 
+  still uses it. the act of authoring namespaces and facts is always            
+  internally consistent.                                                        
+
+● Settled, then — the consistency invariant already covers it, and
+  removal-by-omission is just another face of "you can't strand a fact." I'll
+  drop it.
+
+  Descending into what a definition contains. A namespace definition is a
+  collection of relationship definitions, and a relationship definition is a
+  name bound to a subjectset-rewrite. The bare form - owner is not a separate
+  kind of thing — it's owner: this, with this as the default rewrite. So there's
+  one shape, name-plus-rewrite, and one piece of sugar: an omitted rewrite
+  means this.
+
+  That gives exactly two legal spellings and one illegal one:
+
+  - - owner → owner: this
+  - - viewer: (this | editor) ! banned → explicit
+  - - viewer: (key, empty value) → rejected, because an empty rewrite reads as a
+  forgotten expression, not as this
+
+  Is a relationship definition exactly "a name bound to a rewrite, bare name
+  meaning this" — one shape, one sugar — or is there a case that doesn't fit
+  that mould?
+
+✻ Brewed for 20s
+
+> removal by omission? - just to be clear, you're talkig about relationships?   
+
+● Yes — relationships, inside a namespace.
+
+  Namespace-level omission and relationship-level omission are opposite, and
+  that's the thing worth keeping straight:
+
+  - A namespace left out of a document is untouched. The document only defines
+  the namespaces it names; silence about file doesn't remove file.
+  - A relationship left out of a namespace's body is gone. The body is the whole
+  definition of that namespace, so omitting viewer removes viewer.
+
+  So "removal by omission" only ever means relationships. A namespace is never
+  removed by a document at all — that's the explicit DELETE endpoint, and the
+  one case the fact-consistency invariant guards.
+
+✻ Crunched for 7s
+
+> yes, removal by omission. if the relationship is named on a fact, then it     
+  can't be removed. but that is probably wrong.                                 
+● Say more about why it's wrong — I think you're onto something, and here's the
+  version of it I'd argue.
+
+  The rule leans on "consistent" meaning referential integrity: every fact's
+  relationship must be defined, so removing a referenced relationship has to be
+  refused. But Kingo is fail-closed, and fail-closed gives you a weaker, cheaper
+  kind of consistency: a dangling reference never grants access, it denies. If
+  those are two different guarantees, the question is which one you actually
+  need — and I think you only need the second.
+
+  Under fail-closed consistency, removing viewer while facts on folder:X#viewer
+  are live doesn't corrupt anything. It makes those facts inert: a check against
+  viewer fails closed because there's no rewrite to evaluate, exactly as a
+  forward reference to an undefined namespace fails closed. The fact isn't a lie
+  waiting to grant something — it's dead weight that denies. Re-add viewer and
+  it lights back up; that's the same permissive Write / strict evaluation model
+  we already accepted for config → missing config. Refusing the removal is the
+  only place Write becomes strict and order-dependent, and it's the one that
+  clashes with everything else.
+
+  If that's right, then the namespace DELETE guard isn't a consistency law at
+  all — it's an operator safety interlock. Deleting a whole namespace out from
+  under live facts is a big destructive act you want to be hard to do by
+  accident, so you gate it. Removing one relationship during iterative authoring
+  is routine, so you don't. The two behaviours differ not because one strands
+  facts and the other doesn't — both do — but because one is a dangerous admin
+  operation and the other is normal editing.
+
+  So: is "consistent" for you referential integrity, or is it fail-closed
+  safety? If it's fail-closed safety, relationship-removal-by-omission should
+  just be allowed, the facts go inert, and the DELETE guard survives only as a
+  deliberate interlock — not as the rule that governs removal.
+
+✻ Brewed for 59s
+
+> imagine trying to remove a set of facts related to a relationship with        
+  complex rewrite rules. i think we should just cascade the deletes             
+
+● Before that locks, run the rename case through it, because rename is the
+  common edit and it's where cascade turns nasty.
+
+  An operator renames viewer to reader: drop the viewer line, add a reader line,
+  one push. With cascade, that push silently deletes every viewer fact in the
+  store. reader starts empty, so every viewer loses access the instant the YAML
+  lands — and the facts are gone, unrecoverable. A rename, which should be a
+  metadata change, becomes irreversible mass data loss triggered by editing a
+  config file. That's badly out of character with a system that guards DELETE,
+  batches atomically, and fails closed everywhere else.
+
+  Now compare the two non-cascade options against that same rename:
+
+  - Inert (fail-closed): viewer facts stay in the store but go dead — no
+  definition to evaluate, so every check denies. Viewers lose access identically
+  to cascade. The difference is the facts are still there: re-add viewer and
+  access is restored. Recoverable.
+  - Cascade: same access outcome, facts destroyed, not recoverable.
+
+  The access semantics are the same; the only thing cascade buys over inert is a
+  smaller store, and the thing it costs is reversibility. That's a bad trade
+  for authorization data.
+
+  And it answers your actual pain point better. You reached for cascade because
+  working out which facts to remove under complex rewrites is miserable. With
+  inert, you never work it out — fail-closed makes an orphaned fact harmless, so
+  there's nothing to hand-clean. Reclaiming the dead weight becomes a separate,
+  explicit prune/GC operation: find facts whose predicate has no current
+  definition and delete them. That job can be as aggressive as you like because 
+  it's a deliberate maintenance act, not a silent side effect of an author
+  dropping a line.
+
+  My recommendation: don't cascade on the config push. Let removed-relationship
+  facts go inert, and reclaim them with an explicit prune. The one footgun of
+  inert — re-using a removed relationship's exact name later resurrects its old
+  facts — is rarer and less destructive than cascade's, and a prompt prune
+  closes it.
+
+  The counter I'd want you to answer: is there a reason a dead fact sitting in
+  the store is actually harmful — not just untidy — given fail-closed already
+  denies on it? If it can't grant anything, what does destroying it immediately
+  buy you that a prune doesn't?
+
+✻ Cooked for 1m 7s
+
+> the facts aren't "gone" they're tombstoned, but you're point is still valid.  
+  okay, fuck my cascade idea, but you know you say "rename" - there is no       
+  "rename" feature. the facts will be stored as packed integers, so you are     
+  abandoning them anyway. god damn it, I do NOT want to write a fucking DDL for 
+  this.                                                                         
+
+● Right — tombstoned, not gone. And the packed-integer point kills "rename" as a
+  category, which is the good news here.
+
+  Relationship identity is the name, interned to an int at first definition. So
+  there's nothing to rename: drop viewer, add reader, and viewer's int retires
+  while reader mints a fresh one. The old facts are keyed on viewer's int, so
+  they're abandoned by construction — tombstoned, reclaimable by prune. That's
+  the inert model falling out of the storage, not a feature you have to build.
+  My "rename" was the wrong word for what is really just remove-plus-add.
+
+  And that's exactly why there's no DDL to write. DDL exists to alter a stored
+  thing in place — ADD COLUMN, RENAME, ALTER TYPE — because the identity
+  persists and you're mutating it. You don't have that problem. You always
+  restate the whole namespace and the store diffs it by name:
+
+  - name still present → keeps its int
+  - name new → gets an int
+  - name gone → int retired, its facts tombstoned
+
+  Upsert-plus-diff covers every case DDL would. There is no in-place alter, so
+  there's no alter language to design.
+
+  The only line I'd draw: the namespace document never says a word about facts
+  or tombstones. It states the desired set of relationship names and their
+  rewrites, full stop. What happens to the retired int and its tombstoned facts
+  is the store's business and the prune's — not something the document
+  expresses. Agreed that the document stays fact-blind, and prune lives entirely
+  on the other side?
+
+✻ Cooked for 35s
+
+> the very act of defining the namespace and fact documents is forcing me to    
+  deal with life cycle and i'm not ready to do that yet.                        
+
+● Then we stop at the seam and don't cross it. There's a clean cut here, and
+  it's one the spec already gestures at: the document describes an end state —
+  validated on its end state, it says — not a transition. Everything you're not
+  ready for is transition: what becomes of a removed relationship's facts,
+  tombstone versus prune, retired ints, the DELETE guard. All of that is "what
+  happens to displaced data during the change," and none of it is needed to say
+  what a namespace is after a push.
+
+  So the namespace-document spec can lock the definitional half
+  ⎿  Interrupted · What should Claude do instead?
+
+> sorry to interupt, what you said "You don't have that problem. You always     
+  restate the whole namespace and the store diffs it by name" is strictly       
+  false. the namespace is not the boundary of the relationships. it is mearly a 
+  named collection of relationships. the relationships must be self             
+  consistent, and GLOBALLY consistent against all other namespaces, and all     
+  other facts.                                                                  
+
+● You're right, and my sentence was wrong. Let me correct it rather than paper
+  over it.
+
+  A namespace is a naming scope, not a consistency boundary. It's a
+  globally-unique grouping of relationships and nothing more — it doesn't wall
+  those relationships off. Relationships reach outward: a fact-to-subjectset
+  walks into whatever namespace the walked-to resources live in, and facts
+  anywhere in the store name relationships as their predicate. So a
+  relationship's correctness is a property of the whole graph — self-consistent
+  within its body, and consistent against every other namespace and every fact.
+
+  That means "diff it by name" describes only the mechanical bookkeeping — which
+  names entered and left the restated body — and I wrongly let it stand in for
+  the scope of consequence, which is global. Changing one relationship in folder
+  can invalidate file, whose rewrite walks parent into folder and evaluates
+  viewer there. The blast radius isn't the namespace; it's everything that can
+  reach the relationship.
+
+  So the honest split is: the document expresses something local — one
+  namespace's relationship set, or a block of them — but what makes that
+  expression valid is global. Locality of content, globality of validity.
+
+  And that sharpens why you're right to stop at lifecycle. Where global
+  consistency is enforced — refused at write, or tolerated and failed-closed at
+  evaluation, or held by an invariant maintained elsewhere — is itself a
+  lifecycle question, because it's about what a change does to the rest of the
+  store, not about what a namespace is. So it stays on the far side of the seam
+  with the rest.
+
+  What's the local, steady-state half you are ready to lock — the shape of the
+  document and the rewrite grammar — or do you want to stop here entirely for
+  now?
+
+✻ Sautéed for 49s
+
+> you confused the "name" of the relationship with a mutable label. it is not   
+  mutable. you cannot rename one of these. once you name it the identifier is   
+  <namespace>:<relation> understand?                                            
+
+● Understood. The identifier is <namespace>:<relation> — folder:viewer — and
+  it's immutable. That's the atom: the thing a fact names as its predicate and
+  the thing a cross-namespace rewrite resolves to. There is no label sitting on
+  top of it to change.
+
+  So "rename" was never a real operation I could decompose. folder:reader isn't
+  folder:viewer under a new name — it's a different identifier with no
+  connection to the first. Dropping viewer from folder's body retires the
+  identity folder:viewer; adding reader mints folder:reader. Two atoms,
+  unrelated. I should have said that instead of reaching for a rename that can't
+  exist.
+
+  That's the correction absorbed. Where do you want to take it?
+
+✻ Sautéed for 25s
+
+> you probably don't know this, but this is part of the schema disolution task. 
+  disolving the concept of schema is forcing me to try to redesign the whole    
+  fucking mess.                                                                 
+
+● That context helps a lot — let me get properly grounded in the dissolution
+  decision instead of reconstructing it wrong. Let me read the source.
+
+  Searched for 3 patterns, read 4 files (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+> don't ground too hard. disolving the schema might collapse in on itself.      
+  look, the namespaces are analogous to database tables. each name is unique    
+  across the schema. then there are the relations. those are like columns in    
+  the table. you cannot remove a database table column while other tables       
+  reference it as a foreign key. a database DDL is internally consistent, but   
+  ONLY within a given schema. a schema is a set of tables. a schema is          
+  internally consistent. every DDL mutation is required to maintain schema      
+  consistency.                                                                  
+
+● The analogy holds where it counts: namespace ≈ table, relation ≈ column, a
+  rewrite naming another relation ≈ a foreign key, and "you can't drop a column
+  another table's FK points at" is the exact removal hazard we've been circling.
+
+  But test the claim the whole thing turns on — "consistent only within a
+  schema." A real database doesn't enforce FK consistency at the schema line.
+  Foreign keys cross schemas freely; drop a table and Postgres checks every FK
+  pointing at it, in whatever schema it lives. The consistency boundary isn't
+  the schema — it's the transitive closure of declared references. And the
+  shared group is the case that proves it: org.groups in one schema, referenced
+  by FKs from app1 and app2. A database serves that by letting the FK cross the
+  schema, not by copying the table into each one — which is the exact argument
+  dissolution won on. So the analogy, followed all the way down, doesn't
+  collapse the dissolution. It backs it: schema is naming and ownership,
+  consistency runs along the declared edges wherever they go.
+
+  Here's what actually bites, and I think it's the real source of the pain. A
+  database is strict: the FK is enforced at mutation, RESTRICT refuses the drop.
+  Kingo ruled the opposite for config — a rewrite may reference a namespace
+  that doesn't exist yet, tolerated at write, failed-closed at evaluation.
+  You're feeling the cost of wanting DB-grade "the DDL is internally consistent"
+  as a property while having ruled references permissive. It can't be a
+  property if the write edge doesn't enforce it.
+
+  But going fully strict has a cost you already bought your way out of once: it
+  makes deploys order-dependent. Strict means you can't create file (whose
+  viewer walks into folder) before folder exists — which kills "deploy is a loop
+  of PUTs in any order," the thing the forward-reference ruling was for.
+
+  So the kernel is probably asymmetric, and it matches the fact invariant you
+  already called settled:
+
+  - Referencing forward — a rewrite naming something not yet defined — stays
+  permissive. Order-free deploy survives; the gap fails closed until filled.
+  - Removing something currently referenced — a relation a live rewrite or a
+  live fact points at — is refused, DB-style RESTRICT.
+
+  The invariant that leaves you with isn't "every reference resolves." It's "no 
+  existing reference is ever stranded by a mutation." That's exactly your "can't
+  drop a namespace facts use," generalized from facts to config edges. Strict
+  on destroy, permissive on create.
+
+  Does that asymmetric cut feel like the kernel — or do you see the thing that
+  actually makes it collapse in on itself?
+
+✻ Brewed for 2m 26s
+
+> instead of giving me a 5 paragraph essay, you should have asked me if I am    
+  talking about Oracle or a toy like posgress. In Oracle a schema ~ a SQL       
+  Server database. The Oracle server does not maintain consistency across       
+  schema. and don't tell me what "kingo ruled" kingo didn't rule jack shit. I'm 
+  the one who rules and I never made any such ruling. kingo is under design.    
+  nothing is settled. And you're wrong about order mattering. order does not    
+  matter on atomic batch. don't be retarded. you just treat the document like   
+  the name is forward declared and expect the document to resolve it. that's    
+  part of the parser. if it doesn't resolve, then the parser says so. it's      
+  fucking language design 101.                                                  
+● Taking the corrections. Oracle: schema is the consistency boundary, no
+  cross-schema integrity — so "consistent only within a schema" is exactly
+  right, and I reached for the wrong database. The batch is a compilation unit:
+  forward-declared names, resolved in a pass against the batch plus the existing
+  store, parser errors on whatever won't resolve — order can't matter, and I
+  invented a per-PUT ordering problem that doesn't apply to a batch. And
+  nothing's settled; you rule, not the corpus. I'll stop quoting prior rulings
+  at you as if they bind the design.
+
+  One question, then: is the schema the consistency boundary — the Oracle-style 
+  scope that references must resolve within and that every DDL mutation must 
+  keep internally consistent — with a batch scoped to exactly one schema?
+
+✻ Cooked for 51s
+
+> you can quote prior rulings, but you need to soften it. you say "kingo works  
+  like xyz" like it's a 10 year brownfield project. we're barely through the    
+  domain language.                                                              
+
+● Got it — I'll frame it as provisional: "the note sketches," "we'd leaned
+  toward," not "Kingo does." Early days, nothing load-bearing.
+
+  Question still stands: is the schema the consistency boundary — the scope
+  references resolve within and each mutation keeps consistent — with a batch
+  scoped to one schema?
+
+✻ Crunched for 7s
+
+> if the schema is the consistency boundary, which is how the project on the    
+  main branch treats it, then a document is literally a schema document.        
+  namespaces are guaranteed to be internally consistent within the schema       
+  boundary. the schema is the versioned artifact and the unit of adminstrative  
+  management. but this creates many problems. for example, facts, as I have     
+  defined them so far, are schema agnostic. this means namespaces must still be 
+  globally unique. this means the schema is not a super-namespace. namespaces   
+  may refernce namespaces in other schemas, so namespaces must be internally    
+  consistent globally. the schema ends up being nothing but a conventient way   
+  to add/remove namespaces, and even then it's problematic since there is no    
+  concept of schema ownership of namespaces anywhere, there is no way to        
+  prevent a namepaces from being defined in multiple schemas. long story short, 
+  using SQL as an analogy fell flat. but I can explain my reasoning - or at     
+  least why my brain is warped. in my day job i am rewriting an RBAC service.   
+  it's unit of containership is the "system". each system has a set of "roles"  
+  and "privileges". when you pair a role and privilege with a resource, you get 
+  a grant. when you pair a grant with a user you get an entitlement. there are  
+  over 10,000 systems spread across maybe 100 teams in the organization. my     
+  thought for schema was to clump namespaces by organizational unit. but i know 
+  now that can be handled purely with namespace naming convention. of course    
+  using an opinionated naming scheme will fuck everyone because humans are so   
+  fucking lazy.                                                                 
+
+● Your two reasons are decisive on their own: facts are schema-agnostic so
+  namespaces must be globally unique, and a namespace in one schema may
+  reference one in another — so consistency is global no matter what, and a
+  boundary that doesn't bound consistency isn't a boundary. What's left of
+  "schema" is a convenience for add/remove, and you've already caught that it
+  can't even own that job: nothing stops the same namespace being declared in
+  two schemas. SQL fell flat because a real SQL schema does wall off references,
+  and yours structurally can't.
+
+  The RBAC "system" is the better lens, and it names what you actually wanted
+  schema for: containership for ownership, not for consistency. 10k systems, 100
+  teams — that's an ownership tree, not a reference wall. And ownership doesn't
+  need a container type; it needs an enforced answer to "who may mutate this
+  name."
+
+  That's also where "humans are lazy" stops being fatal — you don't make it a
+  convention. A naming scheme people are asked to honor rots. A prefix they must
+  own to write doesn't: claim youtube., and PUT youtube.group is refused unless
+  you hold the claim. Collision and squatting die because ownership is checked
+  at the write edge, not printed in a style guide. References stay global and
+  ungated — anyone may point at youtube.group, so shared groups just work — only
+  mutation is gated. My hunch is that ownership then wants to be Kingo's own
+  facts (a claim on a prefix is an edge; the Write edge does a Check before
+  admitting the mutation), so schema dissolves with nothing left to mint.
+
+  So the question: does administration reduce to enforced prefix ownership, 
+  checked at the Write edge — with the schema gone entirely — or is there a job
+  you still need a real container to do that a prefix claim can't?
+
+✻ Sautéed for 1m 17s
+
+> " And ownership doesn't need a container type; it needs an enforced answer to 
+  "who may mutate this name." - right! and that is already expressible purely   
+  in the schema rewrite + facts! ... as for the container - it's not required.  
+  but if we want some way to smooth the organizational shit show that managing  
+  20,000 namespaces will become, we could convert schema into a                 
+  super-namespace.                                                              
+
+● Yes — "who may mutate this name" is a Check. The Write edge asks Kingo about
+  itself before admitting the mutation: ownership is rewrite + facts, no new
+  type. That's the whole enforcement story, and it's clean.
+
+  Super-namespace is a real idea, but it commits you to one specific move:
+  namespaces become resources. The schema-namespace's resources would be the
+  namespaces themselves — schemas:youtube.group becomes an addressable object
+  you can write edges about (owner, part-of, deprecated), and "a schema" is just
+  a grouping in that namespace with namespaces as its members. Organizational
+  structure becomes ordinary edges over a meta-level where config objects are
+  data objects. It buys real tooling nearly for free — Expand a schema to
+  enumerate its namespaces, Check to gate edits — at the price of one bootstrap:
+  the admin namespace has to exist and be owned before anything else can, so
+  there's a root grant that necessarily lives outside the graph.
+
+  The question: in this super-namespace, is the resource the namespace itself —
+  namespaces promoted to first-class objects you can assert facts about — or
+  were you picturing the schema grouping something else? (My read is it sits
+  beside the prefix idea, not replacing it: the prefix enforces the unique name
+  and write-gate, the super-namespace groups for humans and tooling. But I want
+  your picture of what the resource actually is first.)
+
+✻ Cogitated for 59s
+
+> think of this. i have two teams, each team wants to own a "documents"         
+  namespace with "view", "edit", "audit" - i mean that's a shit show. we have   
+  to have something like a schema that allows teams to split up by system       
+
+● That case is the whole argument, and it rescues the half of the SQL analogy
+  that didn't fall flat. "Schema" bundles two jobs: a naming scope (hr.documents
+  and sales.documents coexist) and a consistency wall (references resolve
+  inside it). The wall died on your two reasons. The naming scope didn't — and
+  two teams both wanting documents is exactly why it can't. You were right that
+  we need "something like a schema"; the something is the naming scope, stripped
+  of the wall.
+
+  So it comes back as a pure qualifier: the namespace identity goes two-part,
+  <system>.<documents>, where the system is the owned scope and the local name
+  is the team's to choose. TeamA authors documents inside their system, TeamB
+  inside theirs, and teamA.documents / teamB.documents never collide. Nobody
+  obeys a convention — it's structural. There's no system-less place to write a
+  bare documents, so laziness can't produce a collision; the worst a lazy human
+  does is pick a boring local name inside a scope that's already theirs.
+  Ownership is the claim on the system; consistency and references stay global,
+  so shared groups still work by fully-qualified reference.
+
+  Note what this isn't: it's not the super-namespace from last turn. Nothing
+  gets promoted to a resource. It's Oracle's schema.object naming without
+  Oracle's cross-schema wall — the lighter move. Promoting namespaces to
+  resources is a separate, heavier thing you'd only reach for if you also want
+  graph-queryable grouping and discovery, which your collision case doesn't
+  require.
+
+  Question: is the namespace identity now two-part — <system>.<name>, system
+  owned, local name team-chosen — with the system doing only naming and
+  ownership and never touching consistency?
+
+✻ Cooked for 1m 11s
+
+> look at my other session: ❯ how does Google manage many products across a     
+  single Zanzibar? does youtube and google docs use the same zanzibar           
+  "instance" (i know it's a distributed system, so don't get snarky on me)      
+                                                                                
+  One instance, shared. Zanzibar is a single globally-distributed service that  
+  Google runs as internal infrastructure, and hundreds of client applications — 
+  Drive, Docs, YouTube, Photos, Calendar, Cloud, Maps, etc. — are all tenants   
+  of that same system. The paper reports it storing on the order of trillions   
+  of tuples across 1,500+ namespaces serving those clients.                     
+                                                                                
+  The isolation boundary between products is the namespace, not a separate      
+  deployment. Each product defines its own namespaces (object types + relation  
+  configs + rewrite rules), and object IDs live within a namespace, so          
+  doc:readme#viewer and a YouTube video:xyz#viewer never collide even though    
+  they share storage and the same eval/serving path. A namespace is essentially 
+  the per-client config plus its slice of the tuple keyspace.                   
+                                                                                
+  So YouTube and Docs share the instance, the storage substrate (Spanner), and  
+  the check/expand machinery — but each sees only its own namespaces, with      
+  per-namespace sharding and config so one product's load or schema doesn't     
+  bleed into another's. Cross-product references are still possible when        
+  intended (a tuple in one namespace can point at a subject in another), which  
+  is how "share this Doc with a Google Group" works across product lines.       
+                                                                                
+  Worth noting for your own design: Kingo's four-service split and pure rewrite 
+  core mirror Zanzibar's separation of concerns, but "one instance, many        
+  namespaces" is the multi-tenancy model you'd be replicating if you wanted the 
+  same product-sharing property.                                                
+                                                                                
+  ✻ Brewed for 15s                                                              
+                                                                                
+  ❯ the isolation boundary is the namespace. so there is literally a "youtube"  
+  namespace. you have refernce for ath claim?                                   
+                                                                                
+  No, and I overstated it — there's no citation for a literal youtube           
+  namespace, and I shouldn't have written it that way.                          
+                                                                                
+  What the Zanzibar paper (Pang et al., USENIX ATC 2019) actually supports:     
+  - YouTube is named as one of Zanzibar's client services (§1/§2 list Calendar, 
+  Cloud, Drive, Maps, Photos, YouTube as clients).                              
+  - A namespace is the per-object-type config + storage unit, and it's the      
+  isolation/sharding boundary (§2.3, §3).                                       
+                                                                                
+  What it does not say: that each product maps to a single namespace named      
+  after itself. In practice a product defines many namespaces — one per object  
+  type (documents, folders, comments, …) — so "the youtube namespace" is not a  
+  thing the paper claims and almost certainly isn't how it works. The accurate  
+  statement is: products are clients that each own a set of namespaces, and the 
+  namespace is the isolation boundary. My "literally a youtube namespace" was   
+  wrong.                                                                        
+                                                                                
+  Want me to pull the paper and quote the exact namespace/client passages so    
+  you're working from the primary text rather than my paraphrase?               
+                                                                                
+  ✻ Churned for 14s                                                             
+                                                                                
+  ❯ at my company we have 5 different products that manage their own document   
+  types. who                                                                    
+    gets to own "doc" ????                                                      
+                                                                                
+  Nobody owns bare doc — that'sidentifier is under-qualified.In Zanzibar        
+  namespace names are just client-chosen strings, and Google's answer to        
+  exactly this is that the stri't register doc, you registersomething qualified 
+  like productA/doc (or drive_document-style prefixing). The                    
+  product/team is the naming authe string space, so all fiveproducts get a doc  
+  and none of them collide.                                                     
+                                                                                
+  So the real question isn't "who wins doc" — it's "what's the qualifier above  
+  the object                                                                    
+  type." Two shapes:                                                            
+                                                                                
+  - Flat, prefixed strings — nas is closest to raw Zanzibar;the namespace is    
+  the isolation boundary and the prefix is pure convention.                     
+  - An explicit product/tenant  tuple key becomes (product,namespace,           
+  id)#relation@subject, and doc is only ever resolved within a product. This    
+  makes the boundary a first-cl of a naming convention nobodycan enforce.       
+                                                                                
+  For Kingo I'd lean toward the second if these five products are a permanent   
+  fact of the                                                                   
+  system — because "the qualifias no teeth: nothing stopsproduct B from         
+  typo'ing product A's prefix and reading its tuples. Making the product a      
+  real coordinate lets you enfosystem and in the rewriteevaluator, which is     
+  exactly the kind of thing your pure core is good at.                          
+                                                                                
+  This is a genuine hard-to-reverse decision (it's in your tuple identity, so   
+  it's baked into storage). Want to talk i record it as a decision doc?         
+
+● That session, Zanzibar, and this interview all converge: the qualifier is real
+  and owned, not convention. But the other session hands you a false fork, and
+  it's on the hard-to-reverse axis — worth catching before it bakes in.
+
+  It frames "prefixed string = no teeth" versus "separate (product, namespace, 
+  id) coordinate = teeth." The teeth don't come from the coordinate. They come
+  from enforced ownership of the prefix. A prefix is toothless only while it's
+  convention; the moment the write edge refuses PUT productA.doc unless you hold
+  the claim on productA., product B can't typo into A's names, because it can't
+  write under A's prefix at all. Same teeth, no new coordinate.
+
+  And Zanzibar itself doesn't have that coordinate. Its tuple is
+  namespace:id#relation@subject — no product field. Products are clients that
+  own sets of prefixed namespaces; the doc collision dies by naming
+  (drive_document), and one product owns many namespaces, one per object type.
+  So the separate-coordinate shape isn't the faithful one — it's heavier, and it
+  bakes "product" into storage identity, which is precisely the reversal you'd
+  regret.
+
+  So it lands lighter than the fork implies: namespace identity is
+  <system>.<local>; the whole string is the namespace for storage, evaluation,
+  and references (consistency and references stay global, fully-qualified); and
+  <system> gets special treatment in exactly one place — the write edge, as the
+  owned claim that gates who may mutate under it. The genuinely hard-to-reverse
+  call then shrinks to one thing: does <system> get a real separator in the
+  namespace grammar, so the write edge can parse owner from name? I'd say yes.
+  That's the piece worth a decision doc when you're ready to call it — not
+  before.
+
+✻ Cooked for 1m 29s
+
+> okay, but i'm not going to call it system. this is what schema is.            
+  <schema>/<namespace> or something.                                            
+
+● Schema it is — and reusing the word is right, because this doesn't reverse the
+  dissolution, it gives teeth to the half that survived. The dissolution kept
+  schema as "the administrative unit of ownership" but left the how as naming
+  convention. <schema>/<namespace> is that same ownership made structural: the
+  qualifier lives in the identity, and the write edge enforces it. Schema stays
+  dead as a domain type and as a consistency wall; it returns as the owned
+  coordinate that scopes local names and gates mutation.
+
+  That does move the kernel out from under the locked glossary entry, so the
+  term needs re-kerneling:
+
+  - Old sense: schema is a purely human grouping, "nothing stored under it," no
+  structural presence.
+  - New sense: schema is structural — a segment of every namespace's identity —
+  and its ownership is stored as facts. Still not a stored aggregate, still not
+  a consistency boundary, but "nothing stored under it" no longer holds.
+
+  That's a glossary re-kernel plus a one-line amendment to the dissolution
+  decision (its "hierarchical organization is naming convention" clause becomes
+  "an enforced schema qualifier"). I'd flag both, not touch them now.
+
+  To pin the new kernel: is schema exactly the owned qualifier segment of a 
+  namespace's identity — scoping local names and gating who may mutate them — 
+  and nothing more?
+
+✻ Cogitated for 1m 6s
+
+> hey, this solves some problems. now a namespace can't "be in two schemas"     
+  because each namespace, even if they share the name, are indepent of each     
+  other. that's interesting                                                     
+
+● Right — and it's cleaner than just "can't be in two schemas." The problem
+  can't even be stated anymore. There's no documents that gets placed into
+  schemas; there's a/documents and b/documents, two independent namespaces that
+  happen to share a local name. Membership isn't a relation you maintain — it's
+  definitional, baked into identity the moment you name the thing.
+
+  Two consequences fall straight out of that:
+
+  - No membership list to corrupt. A schema doesn't hold namespaces; its members
+  are simply every namespace whose identity starts with its prefix — derived,
+  never stored, never out of sync. There's no "add namespace to schema"
+  operation, so there's nothing that could double-add.
+  - You can't move a namespace between schemas. b/documents isn't a/documents
+  relocated; it's a different namespace with a different identity — same shape
+  as "rename isn't a thing." A move is copy-migrate-drop, not an operation.
+
+  Which raises the natural next question: does a schema exist at all apart from
+  its namespaces? It looks like a schema is nothing but the ownership claim on a
+  prefix — no body, no record, no Schema row. "Create a schema" reduces to
+  "claim the prefix"; everything else is just namespaces that share it. Is that
+  the whole of it, or does a schema need to carry something of its own —
+  metadata, config, an existence independent of whether any namespace uses it
+  yet?
+
+✻ Baked for 32s
+
+※ recap: Redesigning the namespace-document model as part of dissolving "schema." We've landed schema as an owned qualifier in the namespace identity (`<schema>/<namespace>`), not a consistency boundary. Next: decide whether a schema exists at all beyond the ownership claim on its prefix.
+
+> does a schema exist at all. yes, it would be a row in storage that contains   
+  the namespaces document                                                       
+● Then Model B — and it's a real fork from a turn ago, worth marking, because it
+  swings back through the dissolution.
+
+  Last turn I had the namespace as the stored unit and the schema as a derived
+  prefix. You're flipping the aggregate: the schema is the stored, versioned
+  row, and it contains its namespaces — the namespaces: document. The namespace
+  becomes a part inside the schema, not an independently stored root. That's the
+  block form we discussed; it turns out the block document is the schema.
+
+  The property you just liked survives and gets stronger. "A namespace can't be
+  in two schemas" is no longer derived — it's physical: the definition literally
+  lives inside exactly one schema row, so it can't be anywhere else.
+
+  But this reverses the dissolution's central move — "Namespace returns to
+  config aggregate root, Schema retires as a type" — and drags its consequences
+  back into play: the one-pin, the retired SchemaIdentifier/SchemaVersion, which
+  thing versions on the timeline. That's a genuine reopening. Flag, not touch.
+
+  And here's the question that decides whether the reopening is safe. The
+  dissolution's real prize was never "namespace is the root" — it was references
+  stay global, no wall, shared groups work flat. Model B is fine as long as the
+  schema row is only a storage-and-ownership-and-atomic-write aggregate, never 
+  a reference boundary: a rewrite in a/ can still name b/docs, consistency stays
+  global, the schema just happens to be the unit you write, version, and own.
+  The trap is that putting namespaces physically inside a schema row tempts
+  resolution back to within-the-schema — and that's the wall that lost last
+  time.
+
+  So: is the schema row purely storage + ownership + atomic write, with
+  references and consistency still global across schemas — or does containing
+  the namespaces pull resolution inward?
+
+✻ Cooked for 1m 38s
+
+> i don't know dude. i'm concerned that i'm thrashing/churning here. does the   
+  disolution document contradict with force - i mean does it disprove - any of  
+  our assumptions and new assertions?                                           
+
+● Direct answer: it hard-contradicts exactly one of our moves — the last one —
+  and it endorses the rest. So you're not thrashing across the board; you took
+  one step past solid ground, and it's cleanly reversible.
+
+  What the dissolution endorses (we've been re-deriving it, not fighting it):
+
+  - Schema as owned naming/ownership, not a wall — the decision says this
+  outright: "purely administrative — the unit of ownership," "team boundaries
+  are edit permissions over name prefixes, not referential walls." Our only
+  change is upgrading its word "convention" to "enforced qualifier." That's a
+  sharpening, not a contradiction.
+  - References global, consistency global, shared groups flat — this is the
+  decision's central win; it's the whole reason it rejected the walled-schema
+  alternative. Total agreement.
+  - <schema>/<namespace> qualified identity — the decision already anticipated
+  it ("hierarchical org is naming convention, youtube.group, requires adding .
+  to the namespace rule"). We made the separator load-bearing; same idea.
+
+  Where it contradicts with force: Model B — schema as a stored row that 
+  contains the namespaces. That is, almost word for word, an alternative the
+  decision names and rejects: "Schema as curation with the class retained... a
+  retained Schema root either versions things it doesn't own or dwindles to a
+  container earning no aggregate status." Its reason is substantive, not taste:
+  evaluation and replay operate at namespace granularity, so the namespace is
+  the versioned artifact and a schema aggregate earns no keep. Model B walks
+  straight back into that rejected box.
+
+  And here's the part that should stop the churn: the thing that tempted you
+  into Model B — "a namespace can't be in two schemas" — doesn't need Model B at
+  all. That property comes from the qualified identity, not from physical
+  containment. a/documents and b/documents are distinct identities whether the
+  stored root is the schema or the namespace. So Model B costs you a whole
+  reversed decision to buy a property you already have for free.
+
+  So back out only the last step. The stable resting point is the dissolution
+  itself, plus our one upgrade: the namespace (identity schema/namespace) is the
+  stored, versioned, globally-unique root; the schema is the enforced owned 
+  qualifier; references and consistency stay global. Nothing there contradicts
+  the locked decision — it is the locked decision, sharpened. That's your
+  ground.
+
+✻ Churned for 1m 13s
+
+※ recap: Redesigning the schema/namespace model for Kingo's write documents. We landed on: namespace (identity `schema/namespace`) is the stored versioned root, schema is the enforced owned qualifier, references stay global. Next: back out the schema-as-stored-aggregate idea and confirm that resting point.
+
+> yeah, but that hard contradiction falls apart with our new framing. all this  
+  came about as I was trying to design the rewrite interpreter and discovered   
+  that facts are schema agnostic. i mean really the simple idea is make a       
+  schema internally consistent, then make the facts carry schema as the         
+  mandatory namespace prefix and we're almost through the woods.                
+
+● You're right, and it's worth being precise about why, because it also tells
+  you you're not thrashing.
+
+  My "hard contradiction" was real — but only under the dissolution's premise.
+  Read the decision's own words: it retired schema because "namespaces are
+  schema-agnostic, as facts already are." That single premise is the keystone.
+  It's what forces bare global-unique names, which is what leaves schema owning
+  nothing structural, which is what makes it "a container earning no aggregate
+  status," which is what retires it. Every link in the dissolution's chain hangs
+  off facts are schema-agnostic.
+
+  The qualified identity we built — schema/namespace — already pulled that
+  keystone. Once a fact's namespace is schema/namespace, the fact carries the
+  schema. Facts are no longer schema-agnostic. So the premise the dissolution
+  reasoned from is already false in our framing, and the chain that retired
+  schema collapses with it. That's not churn — it's you finding the load-bearing
+  assumption and removing it deliberately.
+
+  And here's the part that clears the woods: your framing isn't either option
+  the dissolution rejected. It rejected "schema as a wall" because that walled
+  both config and facts — "cross-schema facts are unrepresentable" — which kills
+  shared groups. It rejected "keep the class" because facts were agnostic, so
+  schema earned nothing. You're proposing a third shape it didn't weigh: wall 
+  the config, free the facts. Config resolves within the schema, so the schema
+  is internally consistent and earns real aggregate status; but a fact carries
+  qualified prefixes on both ends, so drive/doc#viewer@org/group:eng#member
+  spans schemas freely. org/group:eng is defined once and referenced everywhere
+  as a cross-schema subject — no membership copies, which was the exact cost the
+  dissolution feared. The prize survives.
+
+  So the one invariant you must protect, and the thing to confirm before this
+  locks: the wall is config-only; facts are never confined by it. Write-time
+  consistency stays schema-internal (every reference the parser checks is
+  within-namespace, hence within-schema); all cross-schema reach happens at
+  evaluation, through facts — the fact-walk for a factset's second identifier,
+  and cross-schema subjects for shared groups. Your rewrite interpreter already
+  does exactly that: the factset's second identifier "resolves in the namespaces
+  of the resources the facts name," deferred to eval. That's the mechanism
+  already sitting in the grammar.
+
+  Is that the line — config walled per schema, facts free to span, cross-schema
+  reach only ever at eval-time via facts?
+
+✻ Cogitated for 2m 48s
+
+> yeah, i'd say that you can define cross schema facts. i'd say that schema     
+  names are unqiue. namepaces names are only unique in the schema. schema +     
+  namespace = globaly unique. now, of course schemas may reference each other,  
+  so there is still a globaly consistency requirement across the "config" (i    
+  hate that word for this), but i'm going to let facts dangle. if you delete a  
+  relation in a namespace or a namespace within a schema, the only thing that   
+  matters is the global consistency of other schema/namespaces.                 
+
+● Let me mirror back what you just locked, because it's a clean, stable set and
+  worth seeing as solid ground:
+
+  - Schema names are globally unique; namespace names are unique only within
+  their schema; schema/namespace is therefore globally unique.
+  - Facts may be cross-schema — resource in one schema, subject in another
+  (drive/doc#viewer@org/group:eng#member).
+  - Rules may reference across schemas, so there's a genuine global consistency
+  requirement over them.
+  - Facts may dangle. Deleting a relation, or a namespace within a schema, is
+  gated only on the global consistency of other schemas' rules — never on facts.
+
+  Two things to name. First, an honest flag: "facts may dangle" reverses what
+  you called settled earlier — "you can't delete a namespace if a fact still
+  uses it." But it's not churn; it lands exactly on the inert / fail-closed
+  model we'd already reasoned toward, and it's strictly simpler: no
+  fact-consistency check on delete, no cascade, no tombstone-gating — a fact
+  pointing at a deleted relation just goes inert and denies. You've dropped
+  machinery, not added it.
+
+  Second, the word you hate. The clean contrast to "facts" is rules — Kingo is
+  Datalog-shaped (rewrite rules evaluated over facts), and "facts and rules" is
+  that world's native pairing. It's more legible than "config" and it names
+  exactly the thing that carries the global consistency requirement: the rule
+  reference graph. I'd put it to the glossary.
+
+  And the one question left to make the deletion model exact. Facts dangle
+  freely — settled. But when you delete a/documents#viewer and a rule in another
+  schema b/ references it, which happens:
+
+  - Strict (FK RESTRICT): the delete is refused while any other schema's rule
+  references it — the global consistency requirement is a hard write-time gate,
+  enforced by scanning the rule graph.
+  - Permissive: the delete lands, that rule reference dangles too, and
+  evaluation fails closed on it — same treatment as facts, and "global
+  consistency" means it's your job to not break it, not the system's job to stop
+  you.
+
+  Your phrasing — "the only thing that matters is the global consistency of
+  other schemas" — reads as strict for rules, loose for facts. Is that the cut:
+  rules get RESTRICT on delete, facts get fail-closed?
+
+✻ Sautéed for 1m 59s
+
+> i might have a solution to "config" - maybe schema is the global space and    
+  "spec" is the namespace collection.                                           
+
+● Good instinct — "spec" as the specification of the rules, with facts as what
+  populates them, is legible and Datalog-clean. But your sentence admits two
+  mappings, and they differ a lot in churn, so let me narrow it before you
+  commit:
+
+  Reading 1 — schema stays the container. Schema is the globally-unique named
+  handle; <schema>/<namespace> stands unchanged. Spec is a schema's contents —
+  its namespace collection, the artifact you push. "Config" becomes "spec."
+  You'd say "push the spec for schema drive," and evaluation checks facts
+  against a spec.
+
+  Reading 2 — schema becomes the universe. Schema is the whole global rule space
+  (singular) — that's the word replacing "config" — and spec is the owned,
+  globally-unique container we've been calling "schema" all session. The
+  identity re-letters to <spec>/<namespace>.
+
+  I'd take Reading 1. It kills the word you hated with "spec" and keeps
+  everything we locked — <schema>/<namespace>, "schema names globally unique,"
+  the deletion model — untouched. Reading 2 buys a slightly nicer "schema = the
+  model" ring, but at the price of re-lettering the identity and renaming this
+  whole session's "schema" — churn you don't need right now.
+
+  (One small flag either way: "spec" collides with the docs corpus's
+  docs/specs/, but that's tooling, not the domain — livable.)
+
+  Which did you mean — schema the container with spec as its contents, or schema
+  the universe with spec as the container?
+
+✻ Cooked for 1m 52s
+
+> "a fact pointing at deleted relation denies" - wrong framing. kingo doesn't   
+  deny anything. it performs set algebra. the deleted relation is impossible to 
+  satisfy, so the set of all possible sets that may contain the fact goes to    
+  zero. there is no relation traversal path that leads to containership. but    
+  yes, they dangle freely. perhaps there's an orphan tool to help the user find 
+  them one day. what ever. now the question - strict or permissive across the   
+  schema (probably now named spec) - i say strict. if you publish a schema,     
+  it's a public contract for other teams to use. you may be familiar with the   
+  literature on how a public contract is more unbreakable than a roman          
+  building.                                                                     
+
+● Framing taken, and it changes how I'll describe all of this. Kingo doesn't
+  deny — it computes containership as set algebra. A deleted relation removes a
+  traversal path, so that path contributes the empty set; a fact stranded on it
+  is simply on no satisfiable path, and a union of nothing is nothing. Not
+  "denied" — unreachable. (An orphan-finder someday, sure. Not now.)
+
+  Strict is the right call, and the contract framing nails it — a published spec
+  is Hyrum's-Law territory; you can't take back what others build on. But
+  here's the catch, worth catching now: strict can only bite on references that 
+  are static — and with today's grammar, none cross a spec.
+
+  Look at what a rule can reference. A computed-subjectset is a bare identifier
+  — same namespace, same spec. A factset's first identifier — same spec. The
+  only cross-spec reach is a factset's second identifier, and that resolves at
+  eval in whatever spec the walked-to facts land in. It's dynamic — not a static
+  reference to a named spec. Nothing in a spec statically says "I depend on
+  drive/documents#viewer." So "strict across spec" currently has nothing
+  cross-spec to enforce; it collapses to intra-spec integrity — which the atomic
+  push already gives you — while every real cross-spec dependency rides on
+  facts, and you've just said facts dangle freely.
+
+  So the contract needs something to bind to. That's the fork:
+
+  - Add static qualified references — let a rule name drive/documents#viewer as
+  a term, an explicit import. The dependency becomes visible, checked at publish
+  (target must exist), protected on delete (RESTRICT). The contract gets teeth
+  — but a spec can no longer be validated in isolation; it needs the specs it
+  imports.
+  - Keep cross-spec coupling all-dynamic — no qualified references; cross-spec
+  reach stays fact-driven and eval-resolved. Specs stay independently checkable,
+  but the "unbreakable contract" is soft: A deletes a relation, B's paths
+  silently go empty. Strict then honestly means intra-spec only.
+
+  You can't have a hard cross-spec contract without static references to hang it
+  on. Given how strongly you mean "unbreakable," I lean toward qualified
+  references — but it's a real grammar decision with a coupling cost. Which way?
+
+✻ Cogitated for 2m 27s
+
+> we need to record this - even if it's in a scratch note                       
+
+● Skill(hoplite-skills:taking-notes)
+  ⎿  Successfully loaded skill
+
+  Read 2 files (ctrl+o to expand)
+
+● Write(docs\notes\schema-as-owned-qualifier.md)
+  ⎿  Wrote 55 lines to docs\notes\schema-as-owned-qualifier.md
+       1 ---
+       3 summary: "Reframing from the rewrite-interpreters clean room: sc
+         hema returns as the owned qualifier segment of a namespace ident
+         istency wall. Rules stay globally consistent (strict, a publishe
+          by finding facts are schema-agnostic — the keystone the schema 
+         dissolution rested on."
+       5 created: 2026-07-22
+       6 status: evolving
+       8 ---
+      10 # Schema as owned qualifier, not a wall
+     … +120 lines (ctrl+o to expand)
+
+> omg, we rescued this thing                                                    
+● We did — and the thing that rescued it was mechanical, not lucky: the whole
+  tangle was hanging off one premise (facts are schema-agnostic), and once you
+  named it, everything downstream either fell out or fell away. Let me proofread
+  the note before I hand it over.
+
+● Skill(hoplite-skills:proofreading)
+  ⎿  Successfully loaded skill
+  ⎿  Interrupted · What should Claude do instead?
+
+> but now i have a minor problem. this branch was supposed to be the rewrite    
+  design and implementation. we discovered the problems with schema and         
+  realized certain things would not work as intended, we leaned too heavily on  
+  zanzibar                                                                      
+  ⎿  Interrupted · What should Claude do instead?
+
+> > but now i have a minor problem. this branch was supposed to be the rewrite  
+  design and implementation. we discovered the problems with schema and         
+  realized certain things would not work as intended, we leaned too heavily on  
+  zanzibar + sql analogy, and i became concerned that we could not reliabliy    
+  design the rewrite interpreter (contains) until after the domain was settled. 
+  so now this branch is a real hodge podge of good and bad ideas. some work on  
+  glossary legit better. fuck, I guess I need to PR this branch just to review  
+  the diff and figure out what is worth cherry picking. I'm sorry for           
+  interupting your proof reading operation, please continue before replying to  
+  my concern about noising up the branch so badly.                              
+
+● Update(docs\notes\schema-as-owned-qualifier.md)
+  ⎿  Added 1 line, removed 1 line
+      15  
+      16  [[schema-dissolves-into-administration]] retired `Schema` as a 
+          domain type *because* facts were schema-agnostic — that premise
+           forces globally-unique bare namespace names, which leaves sche
+          ma owning nothing structural, which is why it "earns no aggrega
+          te status." Every link in that chain hangs off the one premise.
+      17  
+      18 -Making the namespace identity `<schema>/<namespace>` puts the s
+         -chema into every fact's namespace, so facts are no longer schem
+         -a-agnostic. The keystone is gone, and schema is legitimately ba
+         -ck — not as the walled boundary the dissolution rejected, but a
+         -s a third shape it did not weigh: **wall the rules, free the fa
+         -cts.**                                                         
+      18 +Making the namespace identity `<schema>/<namespace>` puts the s
+         +chema into every fact's namespace, so facts are no longer schem
+         +a-agnostic. The keystone is gone, and schema returns in a shape
+         + the dissolution never weighed: **wall the rules, free the fact
+         +s.** The boundary it rejected walled facts too; this one does n
+         +ot.                                                            
+      19  
+      20  ## Settled this session
+      21  
+
+● Proofread done — the sweep caught one real tell (an empty "not X but Y"
+  contrast in the keystone paragraph, now stated positively); the rest read
+  clean. The note is at docs/notes/schema-as-owned-qualifier.md.
+
+  Now let me look at the branch before I answer, so I'm advising on the actual
+  diff and not in the abstract.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Proofreading's done, so let me answer the branch — and the diff changes the
+  shape of the worry.
+
+  Every one of those 24 files is under docs/. Zero lines of src/. The thing you
+  were afraid of — a rewrite interpreter built on a domain that turned out wrong
+  — doesn't exist, because you stopped before writing it. That's not the branch
+  failing at its job; that's the branch doing the one thing a design spike is
+  for: it made the domain fail cheaply, in prose, before any code had to pay for
+  it. The contains interpreter you couldn't reliably design until the domain
+  settled is still unwritten, which is exactly correct.
+
+  So the mess is cheap. It's all rewritable text.
+
+  But here's where I'd correct your instinct: don't cherry-pick by commit. The
+  good and the bad aren't in separate commits you can pluck apart — they run
+  through the same files. schema.md, the schema-dissolves-into-administration
+  decision, namespace-documents.md each contain both the Zanzibar-and-SQL-heavy
+  thinking and the better thinking that replaced it. A commit-level cherry-pick
+  can't separate what's braided inside a single file, so you'd spend the effort
+  and still land something half-wrong.
+
+  The right instrument is the reconciliation the note already scopes: re-kernel
+  schema, amend the dissolution decision's "naming convention" clause, reframe
+  namespace-documents (its "removal is not expressible" and "can't delete a
+  namespace a fact uses" are now backwards), and settle the spec/rules
+  terminology. That converts the hodgepodge into one coherent corpus state on 
+  this branch — you're not extracting good from bad, you're finishing the job of
+  turning the bad into good, which is nearly free because it's docs.
+
+  Then PR the whole reconciled branch as what it honestly became: a
+  domain-settling pass, not rewrite implementation. Reviewing the diff in a PR
+  is worth doing — and main is PR-protected anyway, so a PR is your review
+  surface regardless. Implementation starts fresh from settled ground, on a new
+  branch, once the two open forks (terminology, and static cross-schema
+  references) close.
+
+  One option if you want main pristine sooner: the glossary surgery and the
+  subject-set-rewrite → subjectset-rewrite rename are unambiguously good and
+  independent of the schema flux. Those could land now as their own small PR,
+  leaving the schema/spec work to converge on this branch.
+
+  Want me to run the reconciliation sweep, or first triage the diff file-by-file
+  into keep / reframe / drop so you can see the split before I touch anything?
+
+✻ Churned for 2m 24s
+
+> my thought is to PR over main just so I can read the DIFF                     
+
+● That works — a PR against main is the natural surface to read on, and since
+  main is PR-protected, branch-plus-PR is the only route onto it anyway.
+  Nothing's lost by using it just to look.
+
+  Two practical things before I push anything:
+
+  - A PR shows only committed diff. You've got uncommitted work that won't
+  appear in it: the new note (schema-as-owned-qualifier.md), the staged deletion
+  of kingo-document-formats.md, and the untracked fact-documents.md /
+  namespace-documents.md. If you want those in the diff you're reading, they
+  need to be committed first.
+  - You don't strictly need the PR to read the diff — git diff main...HEAD
+  prints the whole thing locally in a second. The PR earns its keep here only
+  because it's a 24-file read and the per-file GitHub review UI is easier to
+  move through. Real, just worth naming so you're choosing it, not defaulting to
+  it.
+
+  So two things and I'll set it up: do you want me to commit the current working
+  tree onto the branch first so it's included in the diff, or PR only what's
+  already committed? And I'll need your explicit go-ahead to push the branch and
+  open the PR — neither is authorized yet.
+
+✻ Crunched for 38s
+
+> oh, i see. please commit and push everything that is not already committed    
+  and pushed.                                                                   
+
+  Ran 1 shell command (ctrl+o to expand)
+
+> don't PR yet. i'll do it in the morning.                                      
+
+● Got it — commit and push, no PR. It's yours to open in the morning.
+
+  The working tree only has the one new note uncommitted; the document-format
+  surgery is already committed in the unpushed commits. So this commits the note
+  and pushes it along with the four commits already sitting ahead of
+  origin/rewrite-interpreters.
+
+  Committed b344d0f, pushed to rewrite-interpreters (ctrl+o to expand)
+
+● Pushed. origin/rewrite-interpreters is now current — the note plus the five
+  previously-unpushed commits are all up. No PR opened; it's waiting for you in
+  the morning, base main, and the diff you'll read is the full 24-file corpus
+  change plus the note.
+
+  One thing to have in mind when you review it: the diff is a corpus
+  mid-transition, so parts of it (the walled-schema thinking,
+  namespace-documents' "removal is not expressible") are the superseded side of
+  this session's reframing. The note is the map of what still needs reconciling
+  against it.
+
+✻ Cogitated for 48s
+
+> so we invented spec. that's a minor change a spec is a set of namespaces. the 
+  spec gives me the ability to clump namespaces by domain context (as in DDD)   
+
+● Good — and "a spec is a set of namespaces, clumped by bounded context" is a
+  better handle than schema ever was, because it names the intent (a domain
+  grouping you own and author together) instead of borrowing a word that dragged
+  SQL's consistency wall in behind it.
+
+  The DDD lens reinforces what we already locked, guardrail included. A bounded
+  context isn't isolated — it relates to its neighbors through a published
+  language or shared kernel, and consumers depend on that published surface.
+  That's exactly your strict cross-spec contract: a spec publishes a stable
+  interface, other specs build on it, and you can't quietly break it. So DDD has
+  cross-context references; it just makes them deliberate. The one thing it
+  must not do is talk you back into a reference wall — a spec clumps, owns, and
+  publishes; it does not isolate resolution. That's the trap "schema" fell into,
+  and "bounded context" can re-import it if you're not watching for it.
+
+  One thing to pin so I can fold it into the note: does "schema" survive as a
+  word — say, the global space of all specs — or does spec fully replace it, the
+  identity re-lettering to <spec>/<namespace>?
+
+✻ Sautéed for 1m 2s
+
+> interesting. is a spec really a context?                                        ⎿  Interrupted · What should Claude do instead?
+
+> "and "bounded context" can re-import it if you're not watching for it." oh,   
+  you're saying avoid the bounded context?                                      
+
+● Partly — and separating the half that fits from the half that doesn't is worth
+  it, because it's the same split we already made once.
+
+  A spec matches a bounded context on name scoping: the same local name means
+  different things in different specs — sales/documents and support/documents —
+  exactly as "Customer" means different things in Sales and Support. That half
+  fits well.
+
+  It breaks on the defining property. A bounded context is a model-isolation
+  boundary: the model is walled, and you translate at the edge through an
+  anti-corruption layer. A spec walls nothing — references cross freely. So on
+  the thing that actually makes a bounded context a bounded context, a spec is
+  the opposite.
+
+  Which is the schema move again. Schema bundled naming-scope with a consistency
+  wall; you kept the scope, dropped the wall. A bounded context bundles
+  naming-scope with model-isolation; the spec keeps the scope, drops the
+  isolation. A bounded context minus its wall is, in DDD's own vocabulary, just
+  a module — a package that groups and scopes for organization without
+  isolating. That's your spec.
+
+  So to your question: I'm not saying drop the grouping idea — it's exactly
+  right, and it's why "spec" is a good word. I'm saying don't lean on "context"
+  as the name for it, because isolation is baked into that term and it'll keep
+  tugging you toward the wall. If you want a DDD anchor, it's "module." But the
+  spec stands without one: an owned set of namespaces, names local to it,
+  interface published.
+
+✻ Worked for 1m 1s
+
+※ recap: Redesigning Kingo's domain: schema dissolves into "spec," an owned set of namespaces that scopes names but doesn't wall references. State is captured in docs/notes/schema-as-owned-qualifier.md and pushed. Next: settle whether "schema" survives as a word or spec fully replaces it.
+
+> thank you for helping me. so spec is probably the exact right term            
+
+● Glad it helped — this was a good one to think through. "Spec" is right for the
+  reason the last two words weren't: it names what the thing does — it
+  specifies the rules — without smuggling in a boundary it doesn't have. Schema
+  carried SQL's consistency wall; context carries DDD's isolation. Spec carries
+  neither. It just clumps, owns, and publishes.
+
+  When you're ready, the reframing note and the glossary still say "schema" with
+  spec held open — I can fold "spec" through cleanly (rename, not alias)
+  whenever you want it locked. No rush; it'll keep till morning.
+
+✻ Churned for 15s
+
+> fold spec in please                                                           
+
+● Skill(hoplite-skills:glossary)
+  ⎿  Successfully loaded skill
+
+● Before I sweep, let me see the exact blast radius of the rename and re-read
+  the two files I'll rewrite.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Blast radius: [[schema]] lives in 5 files. Two are in scope for this fold (the
+  note, and the glossary — its README index and namespace's contrast edge);
+  three (dissolve-schema-into-administration, evaluation-context, and the
+  dissolution decision) are the broader reconciliation I'll leave flagged, not
+  sweep. Let me read the glossary index, then do the rename.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+● Now the content. Writing the re-kernelled glossary term and the rewritten
+  note:
+
+● Write(docs\glossary\spec.md)
+  ⎿  Error writing file
+
+  Read 2 files (ctrl+o to expand)
+
+● Now I'll write both files with the spec framing:
+
+● Write(docs\glossary\spec.md)
+  ⎿  Added 8 lines, removed 8 lines
+       1  ---
+       2 -title: schema                                                  
+       3 -summary: "The body of namespace definitions authored or adminis
+         -tered together — an authoring and ownership word, not a stored 
+         -thing; the stored, versioned unit is the namespace."           
+       2 +title: spec                                                    
+       3 +summary: "An owned set of namespaces, grouped by domain and sco
+         +ping their local names — the unit of ownership, authoring, and 
+         +atomic change. A naming and ownership scope, never a consistenc
+         +y boundary."                                                   
+       4  tags: [glossary, schema]
+       5 -created: 2026-07-18                                            
+       6 -status: locked                                                 
+       5 +created: 2026-07-22                                            
+       6 +status: evolving                                               
+       7  contrast:
+       8    - "[[namespace]]"
+       9  ---
+      10  
+      11 -The body of namespace definitions authored or administered toge
+         -ther — an authoring and ownership word, not a stored thing; the
+         - stored, versioned unit is the [[namespace]].                  
+      11 +An owned set of namespaces, grouped by domain and scoping their
+         + local names — the unit of ownership, authoring, and atomic cha
+         +nge. A naming and ownership scope, never a consistency boundary
+         +.                                                              
+      12  
+      13  ## Examples
+      14  
+      15 -- A definition document declares two namespaces; the schema is 
+         -what that document declares, the way a database schema is what 
+         -DDL declares.                                                  
+      16 -- One team owns the schema for the `file` and `folder` namespac
+         -es — ownership names who may edit them, nothing stored.        
+      15 +- Two teams each define a `documents` namespace. `sales/documen
+         +ts` and `support/documents` are distinct, because the spec scop
+         +es the local name.                                             
+      16 +- A spec publishes an interface other specs build on. Its rules
+         + resolve globally, so a reference may cross into another spec. 
+      17  
+      18  ## Contrasts
+      19  
+      20 -- `namespace` — the stored, versioned unit of configuration; a 
+         -schema is only the human grouping over namespaces.             
+      20 +- `namespace` — the stored unit within a spec; a spec is the se
+         +t that owns and names them.                                    
+
+● Write(docs\notes\spec-as-owned-qualifier.md)
+  ⎿  Added 22 lines, removed 25 lines
+       1  ---
+       2 -title: Schema as owned qualifier, not a wall                   
+       3 -summary: "Reframing from the rewrite-interpreters clean room: s
+         -chema returns as the owned qualifier segment of a namespace ide
+         -ntity (schema/namespace), enforced at the write edge, never a c
+         -onsistency wall. Rules stay globally consistent (strict, a publ
+         -ished contract); facts roam across schemas and may dangle. Trig
+         -gered by finding facts are schema-agnostic — the keystone the s
+         -chema dissolution rested on."                                  
+       2 +title: Spec as owned qualifier, not a wall                     
+       3 +summary: "Reframing from the rewrite-interpreters clean room: a
+         + spec (an owned set of namespaces) is the qualifier segment of 
+         +a namespace identity (spec/namespace), enforced at the write ed
+         +ge, never a consistency wall. Rules stay globally consistent (s
+         +trict, a published contract); facts roam across specs and may d
+         +angle. Triggered by finding facts were schema-agnostic — the ke
+         +ystone the schema dissolution rested on."                      
+       4  tags: [note, schemas, evaluation, write]
+       5  created: 2026-07-22
+       6  status: evolving
+       7  revisits: "[[schema-dissolves-into-administration]]"
+       8  ---
+       9  
+      10 -# Schema as owned qualifier, not a wall                        
+      10 +# Spec as owned qualifier, not a wall                          
+      11  
+      12 -State of an in-flight redesign, opened while designing the rewr
+         -ite interpreter ([[rewrite-interpreters]]) and finding that fac
+         -ts are schema-agnostic. Terminology is unsettled (`schema` vs `
+         -spec`, below); this note uses `schema` throughout.             
+      12 +State of an in-flight redesign, opened while designing the rewr
+         +ite interpreter ([[rewrite-interpreters]]) and finding that fac
+         +ts were schema-agnostic. The owned grouping of namespaces is no
+         +w the [[spec]]; this note uses it throughout, and keeps "schema
+         +" only for the dissolved domain type and the [[schema-dissolves
+         +-into-administration]] decision that retired it.               
+      13  
+      14  ## The keystone
+      15  
+      16 -[[schema-dissolves-into-administration]] retired `Schema` as a 
+         -domain type *because* facts were schema-agnostic — that premise
+         - forces globally-unique bare namespace names, which leaves sche
+         -ma owning nothing structural, which is why it "earns no aggrega
+         -te status." Every link in that chain hangs off the one premise.
+      16 +[[schema-dissolves-into-administration]] retired `Schema` as a 
+         +domain type *because* facts were schema-agnostic — that premise
+         + forces globally-unique bare namespace names, which leaves the 
+         +grouping owning nothing structural, which is why it "earns no a
+         +ggregate status." Every link in that chain hangs off the one pr
+         +emise.                                                         
+      17  
+      18 -Making the namespace identity `<schema>/<namespace>` puts the s
+         -chema into every fact's namespace, so facts are no longer schem
+         -a-agnostic. The keystone is gone, and schema returns in a shape
+         - the dissolution never weighed: **wall the rules, free the fact
+         -s.** The boundary it rejected walled facts too; this one does n
+         -ot.                                                            
+      18 +Making the namespace identity `<spec>/<namespace>` puts the spe
+         +c into every fact's namespace, so facts are no longer agnostic 
+         +to it. The keystone is gone, and the grouping returns — as a sp
+         +ec — in a shape the dissolution never weighed: **wall the rules
+         +, free the facts.** The boundary it rejected walled facts too; 
+         +this one does not.                                             
+      19  
+      20  ## Settled this session
+      21  
+      22  - A namespace body *defines* a namespace (not declares); defini
+          tion is total. The write is always an upsert, create-or-replace
+           of the whole namespace. Omitting a relationship removes it.
+      23  - Two envelopes, one shape: a single body (name out of band, on
+           the endpoint) and a block (`namespaces:` map). A block is one 
+          atomic batch, order-free — names are forward-declared and resol
+          ved against the batch plus the store, unresolved is a parse err
+          or.
+      24 -- Schema is the **owned qualifier segment** of the identity: `<
+         -schema>/<namespace>`. Schema names are globally unique; namespa
+         -ce names are unique only within their schema; `schema/namespace
+         -` is globally unique. Two teams can each own a `documents` name
+         -space. A namespace cannot be in two schemas — the qualifier is 
+         -part of identity, so `a/documents` and `b/documents` are simply
+         - distinct.                                                     
+      25 -- The qualifier is enforced, not convention: the write edge ref
+         -uses a mutation under a schema the caller does not own. Ownersh
+         -ip is expressible in Kingo itself — a claim on the schema is a 
+         -fact; the write edge does a [[check]] before admitting the muta
+         -tion. No new domain type.                                      
+      26 -- References and consistency stay **global**. Schema is naming 
+         -and ownership only, never a reference wall. A rule in `a/` may 
+         -name `b/…`; a fact may cross schemas (resource in one, subject 
+         -in another), which is how a shared group works: `org/group:eng#
+         -member` is defined once and referenced everywhere as a subject,
+         - no per-schema copy.                                           
+      24 +- A **spec** is an owned set of namespaces, and its name is the
+         + qualifier segment of the identity: `<spec>/<namespace>`. Spec 
+         +names are globally unique; namespace names are unique only with
+         +in their spec; `spec/namespace` is globally unique. Two teams c
+         +an each own a `documents` namespace. A namespace cannot be in t
+         +wo specs — the qualifier is part of identity, so `a/documents` 
+         +and `b/documents` are simply distinct.                         
+      25 +- The qualifier is enforced, not convention: the write edge ref
+         +uses a mutation under a spec the caller does not own. Ownership
+         + is expressible in Kingo itself — a claim on the spec is a fact
+         +; the write edge does a [[check]] before admitting the mutation
+         +. No new domain type.                                          
+      26 +- References and consistency stay **global**. A spec is naming 
+         +and ownership only, never a reference wall. A rule in `a/` may 
+         +name `b/…`; a fact may cross specs (resource in one, subject in
+         + another), which is how a shared group works: `org/group:eng#me
+         +mber` is defined once and referenced everywhere as a subject, n
+         +o per-spec copy.                                               
+      27  - **Facts may dangle freely.** No cascade, no tombstone-gating 
+          on delete. Kingo does not "deny" — it computes containership as
+           set algebra; a deleted relation removes a traversal path, so t
+          hat path contributes the empty set and a stranded fact is on no
+           satisfiable path. An orphan-finder tool is a possible later co
+          nvenience, not a requirement.
+      28 -- Deletion is gated on the **rule** consistency of *other* sche
+         -mas, not on facts. Strict, because a published schema is a publ
+         -ic contract others build on and cannot be quietly broken.      
+      28 +- Deletion is gated on the **rule** consistency of *other* spec
+         +s, not on facts. Strict, because a published spec is a public c
+         +ontract others build on and cannot be quietly broken.          
+      29  
+      30 -## Terminology (open)                                          
+      30 +## Terminology                                                 
+      31  
+      32 -`config` is the wrong word for the rule layer. Two candidates: 
+      32 +- `spec` — the owned set of namespaces. A DDD *module* (a group
+         +ing that scopes and organizes without isolating), not a bounded
+         + context, which would wall the model. It clumps namespaces by d
+         +omain and scopes their local names; it does not isolate referen
+         +ces.                                                           
+      33 +- `rules` — the definitional content a spec holds: the relation
+         +ships and their rewrites, the Datalog pairing against facts. Wo
+         +rking replacement for `config`, which named nothing precise. No
+         +t yet locked.                                                  
+      34 +- Open: whether a spec is a stored aggregate (its row holds the
+         + namespace collection) or the namespace is the independent stor
+         +ed root.                                                       
+      35  
+      34 -- `rules` — the Datalog pairing (rules evaluated over facts); n
+         -ames exactly the reference graph that carries the global consis
+         -tency requirement.                                             
+      35 -- `spec` — Mark's proposal. Two mappings, undecided:           
+      36 -  - *Reading 1 (low churn):* schema stays the container (`<sche
+         -ma>/<namespace>` unchanged); `spec` is a schema's contents, its
+         - namespace collection, the artifact pushed.                    
+      37 -  - *Reading 2:* `schema` becomes the whole global rule space (
+         -the word replacing `config`); `spec` is the owned container, an
+         -d the identity re-letters to `<spec>/<namespace>`.             
+      38 -  - Leaning Reading 1. Minor collision either way with the docs
+         - corpus `docs/specs/`.                                         
+      39 -                                                               
+      36  ## The open fork — a contract needs something static to bind to
+      37  
+      42 -Strict cross-schema consistency can only bite on references tha
+         -t are **static**, and the current rewrite grammar has none cros
+         -sing a schema. A [[computed-subject-set]] is a bare identifier,
+         - same namespace. A [[fact-to-subject-set]]'s first identifier i
+         -s same namespace. Its second identifier is the only cross-schem
+         -a reach, and it resolves at evaluation in whatever schema the w
+         -alked-to facts land in — dynamic, not a static reference to a n
+         -amed schema.                                                   
+      38 +Strict cross-spec consistency can only bite on references that 
+         +are **static**, and the current rewrite grammar has none crossi
+         +ng a spec. A [[computed-subject-set]] is a bare identifier, sam
+         +e namespace. A [[fact-to-subject-set]]'s first identifier is sa
+         +me namespace. Its second identifier is the only cross-spec reac
+         +h, and it resolves at evaluation in whatever spec the walked-to
+         + facts land in — dynamic, not a static reference to a named spe
+         +c.                                                             
+      39  
+      44 -So "strict across the schema" currently has nothing cross-schem
+         -a to enforce; it collapses to intra-schema integrity (which the
+         - atomic push already gives), while every real cross-schema depe
+         -ndency rides on facts, which dangle freely. The fork:          
+      40 +So "strict across the spec" currently has nothing cross-spec to
+         + enforce; it collapses to intra-spec integrity, which the atomi
+         +c push already gives. Every real cross-spec dependency rides on
+         + facts, which dangle freely. The fork:                         
+      41  
+      46 -1. **Add static qualified references** to the rule grammar — a 
+         -term like `drive/documents#viewer`, an explicit import. The dep
+         -endency becomes visible, checked at publish (target must exist)
+         -, protected on delete (RESTRICT). The contract gets teeth, but 
+         -a schema no longer validates in isolation — it needs the schema
+         -s it imports.                                                  
+      47 -2. **Keep cross-schema coupling all-dynamic** — no qualified re
+         -ferences; cross-schema reach stays fact-driven and evaluation-r
+         -esolved. Schemas validate independently, but the "unbreakable c
+         -ontract" is soft: a deleted relation silently empties a consume
+         -r's paths. "Strict" then honestly means intra-schema only.     
+      42 +1. **Add static qualified references** to the rule grammar — a 
+         +term like `drive/documents#viewer`, an explicit import. The dep
+         +endency becomes visible, checked at publish (target must exist)
+         +, protected on delete (RESTRICT). The contract gets teeth, but 
+         +a spec no longer validates in isolation — it needs the specs it
+         + imports.                                                      
+      43 +2. **Keep cross-spec coupling all-dynamic** — no qualified refe
+         +rences; cross-spec reach stays fact-driven and evaluation-resol
+         +ved. Specs validate independently, but the "unbreakable contrac
+         +t" is soft: a deleted relation silently empties a consumer's pa
+         +ths. "Strict" then honestly means intra-spec only.             
+      44  
+      45  Mark leans 1. Unresolved.
+      46  
+      47  ## Corpus ripples to reconcile (flagged, not swept)
+      48  
+      53 -- [[schema]] — the locked entry ("purely human grouping," "noth
+         -ing stored under it") no longer holds: the schema is structural
+         -, a segment of every identity, and its ownership is stored as f
+         -acts. Still not a stored aggregate, still not a consistency bou
+         -ndary. Needs re-kernelling.                                    
+      54 -- [[schema-dissolves-into-administration]] — its "hierarchical 
+         -organization is naming convention" clause becomes "an enforced 
+         -schema qualifier"; its retirement of schema-as-type is reopened
+         - by the keystone shift above.                                  
+      55 -- [[namespace-documents]] — its "removal is not expressible" an
+         -d "cannot delete a namespace a fact uses" are reversed here: fa
+         -cts dangle freely. The doc's framing as a *namespace* document 
+         -is also in question once the schema is the owned unit.         
+      49 +- [[namespace]] — the locked entry says a namespace name is "gl
+         +obally unique within an installation." Now it is unique only wi
+         +thin its spec; `spec/namespace` is the globally-unique identity
+         +.                                                              
+      50 +- [[schema-dissolves-into-administration]] — its "hierarchical 
+         +organization is naming convention" clause becomes "an enforced 
+         +spec qualifier"; its retirement of the grouping as a domain typ
+         +e is reopened by the keystone above. Its `[[schema]]` links now
+         + dangle — the term is [[spec]].                                
+      51 +- [[namespace-documents]] — its "removal is not expressible" an
+         +d "cannot delete a namespace a fact uses" are reversed here: fa
+         +cts dangle freely. Its framing as a *namespace* document is in 
+         +question now the spec is the owned unit.                       
+      52 +- [[dissolve-schema-into-administration]] and [[evaluation-cont
+         +ext]] — still reference `[[schema]]`; the spec rename has not r
+         +eached them.                                                   
+
+● Now the glossary index and the symmetric contrast edge on namespace:
+
+● Update(docs\glossary\README.md)
+  ⎿  Added 1 line, removed 1 line
+      35  - [[putative-fact]]
+      36  - [[relationship]]
+      37  - [[resource]]
+      38 -- [[schema]]                                                   
+      38 +- [[spec]]                                                     
+      39  - [[subject]]
+      40  - [[subject-set]]
+      41  - [[subjectset-rewrite]]
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(docs\glossary\namespace.md)  ⎿  Added 1 line, removed 1 line
+       5  created: 2026-07-18
+       6  status: locked
+       7  contrast:
+       8 -  - "[[schema]]"                                               
+       8 +  - "[[spec]]"                                                 
+       9  ---
+      10  
+      11  A named grouping of relationship definitions — the stored, vers
+          ioned unit of configuration, globally unique within an installa
+          tion.
+
+● Update(docs\glossary\namespace.md)
+  ⎿  Added 1 line, removed 1 line
+      12  
+      13  ## Contrasts
+      14  
+      15 -- `schema` — the human grouping over namespaces for authoring a
+         -nd ownership; nothing is stored under it.                      
+      15 +- `spec` — the owned set that groups and names namespaces; a na
+         +mespace is one member.                                         
+
+● Now the proofreading sweep on the two rewritten prose files. Applying the
+  checklist I loaded earlier — the sweep flags three paragraphs in the note
+  carrying more than one em dash; fixing each:
+
+● Update(docs\notes\spec-as-owned-qualifier.md)
+  ⎿  Added 1 line, removed 1 line
+      15  
+      16  [[schema-dissolves-into-administration]] retired `Schema` as a 
+          domain type *because* facts were schema-agnostic — that premise
+           forces globally-unique bare namespace names, which leaves the 
+          grouping owning nothing structural, which is why it "earns no a
+          ggregate status." Every link in that chain hangs off the one pr
+          emise.
+      17  
+      18 -Making the namespace identity `<spec>/<namespace>` puts the spe
+         -c into every fact's namespace, so facts are no longer agnostic 
+         -to it. The keystone is gone, and the grouping returns — as a sp
+         -ec — in a shape the dissolution never weighed: **wall the rules
+         -, free the facts.** The boundary it rejected walled facts too; 
+         -this one does not.                                             
+      18 +Making the namespace identity `<spec>/<namespace>` puts the spe
+         +c into every fact's namespace, so facts are no longer agnostic 
+         +to it. The keystone is gone, and the grouping returns as a spec
+         +, in a shape the dissolution never weighed: **wall the rules, f
+         +ree the facts.** The boundary it rejected walled facts too; thi
+         +s one does not.                                                
+      19  
+      20  ## Settled this session
+      21  
+
+● Update(docs\notes\spec-as-owned-qualifier.md)
+  ⎿  Added 1 line, removed 1 line
+      39  
+      40  So "strict across the spec" currently has nothing cross-spec to
+           enforce; it collapses to intra-spec integrity, which the atomi
+          c push already gives. Every real cross-spec dependency rides on
+           facts, which dangle freely. The fork:
+      41  
+      42 -1. **Add static qualified references** to the rule grammar — a 
+         -term like `drive/documents#viewer`, an explicit import. The dep
+         -endency becomes visible, checked at publish (target must exist)
+         -, protected on delete (RESTRICT). The contract gets teeth, but 
+         -a spec no longer validates in isolation — it needs the specs it
+         - imports.                                                      
+      42 +1. **Add static qualified references** to the rule grammar: a t
+         +erm like `drive/documents#viewer`, an explicit import. The depe
+         +ndency becomes visible, checked at publish (target must exist),
+         + protected on delete (RESTRICT). The contract gets teeth, but a
+         + spec no longer validates in isolation — it needs the specs it 
+         +imports.                                                       
+      43  2. **Keep cross-spec coupling all-dynamic** — no qualified refe
+          rences; cross-spec reach stays fact-driven and evaluation-resol
+          ved. Specs validate independently, but the "unbreakable contrac
+          t" is soft: a deleted relation silently empties a consumer's pa
+          ths. "Strict" then honestly means intra-spec only.
+      44  
+      45  Mark leans 1. Unresolved.
+
+● Update(docs\notes\spec-as-owned-qualifier.md)
+  ⎿  Added 1 line, removed 1 line
+      47  ## Corpus ripples to reconcile (flagged, not swept)
+      48  
+      49  - [[namespace]] — the locked entry says a namespace name is "gl
+          obally unique within an installation." Now it is unique only wi
+          thin its spec; `spec/namespace` is the globally-unique identity
+          .
+      50 -- [[schema-dissolves-into-administration]] — its "hierarchical 
+         -organization is naming convention" clause becomes "an enforced 
+         -spec qualifier"; its retirement of the grouping as a domain typ
+         -e is reopened by the keystone above. Its `[[schema]]` links now
+         - dangle — the term is [[spec]].                                
+      50 +- [[schema-dissolves-into-administration]] — its "hierarchical 
+         +organization is naming convention" clause becomes "an enforced 
+         +spec qualifier"; its retirement of the grouping as a domain typ
+         +e is reopened by the keystone above. Its `[[schema]]` links now
+         + dangle; the term is [[spec]].                                 
+      51  - [[namespace-documents]] — its "removal is not expressible" an
+          d "cannot delete a namespace a fact uses" are reversed here: fa
+          cts dangle freely. Its framing as a *namespace* document is in 
+          question now the spec is the owned unit.
+      52  - [[dissolve-schema-into-administration]] and [[evaluation-cont
+          ext]] — still reference `[[schema]]`; the spec rename has not r
+          eached them.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Spec is folded in — cleanly, no aliases, scoped to what you named.
+  Uncommitted, so it's waiting for your morning review with everything else.
+
+  What changed:
+  - glossary/schema.md → spec.md — renamed and re-kernelled. The term is now "an
+  owned set of namespaces, grouped by domain and scoping their local names…
+  never a consistency boundary," status: evolving (the stored-aggregate and
+  static-reference questions are still open).
+  - notes/schema-as-owned-qualifier.md → spec-as-owned-qualifier.md — rewritten
+  to spec throughout, identity re-lettered to <spec>/<namespace>. "Schema"
+  survives only where it names the dissolved domain type and the
+  schema-dissolves-into-administration decision. Terminology section now records
+  spec (the module, not a bounded context) and rules (the working replacement
+  for config) as landed, with the stored-aggregate question flagged open.
+  - glossary/README.md — index entry [[schema]] → [[spec]], alphabetical slot
+  unchanged.
+  - glossary/namespace.md — the symmetric contrast edge and its bullet repointed
+  to [[spec]].
+
+  What I deliberately left alone, flagged in the note's ripples rather than
+  swept: dissolve-schema-into-administration, evaluation-context, and the
+  dissolution decision still say [[schema]] — those links now dangle as ghosts
+  until the broader reconciliation. I also flagged that namespace's locked
+  "globally unique within an installation" is now wrong (it's unique only within
+  its spec) but left the kernel untouched, since re-kernelling a locked term is
+  that reconciliation's job, not this rename's.
+
+  One judgment call worth surfacing: I read "spec is the exact right term" as
+  spec replacing schema outright, so "schema" retires as a live term rather than
+  surviving as a name for the global space. If you meant to keep "schema" for
+  the whole-store sense, say so and I'll adjust — it's all uncommitted.
+
+✻ Baked for 8m 10s
+
+※ recap: We reframed Kingo's schema into "spec" (an owned set of namespaces, not a consistency wall) and folded that rename through the note and glossary. All changes are uncommitted; next, you review the diff and open the PR in the morning.
+
+> good morning. i have an idea. what if I create a new branch off main named    
+  specs, then perform the PR targeting specs. then i review the PR, and we pull 
+  bits into specs one good idea at a time manually (not cherry). we close the   
+  specs branch with PR to main and this will land the schema rename to spec,    
+  the solidifaction of spec as unit of authoring + super-namespace, the         
+  adjustment of facts to be spec aware (transitively through the namespace now  
+  wearing a spec id)                                                            
+
+● Morning. The plan's sound, and it's the right shape for this mess:
+  review-then-reconstruct. specs off main gives you a clean base that only ever
+  accretes vetted bits; the rewrite-interpreters → specs PR is your read surface
+  for the full diff; and manual porting is correct precisely because the good
+  and bad are braided inside files, so no commit-level cherry-pick could
+  separate them anyway. Two mechanical notes: that source PR is a review
+  artifact — close it when you're done, don't merge it — and expect its diff to
+  be large, which is the point.
+
+  On the three landing goals, two things worth pinning before they set.
+
+  Facts spec-aware — it's cleaner than "adjustment" suggests. You already said
+  it: transitively, through the namespace wearing a spec id. So facts don't
+  change shape at all. A fact still references a namespace; that namespace's
+  identity now carries a spec segment (spec/namespace), and the fact inherits it
+  for free. There's no new spec field on the fact, no migration of fact
+  structure — the keystone (facts stop being schema-agnostic) is bought entirely
+  by the namespace id. Worth stating that way in the port so nobody goes
+  looking for a fact-schema change that doesn't exist.
+
+  "Super-namespace" carries two meanings — pin which one lands. Loose: a
+  namespace-of-namespaces, which is just "spec = an owned set of namespaces,"
+  and is what we settled. Precise: namespaces (or specs) promoted to first-class
+  addressable resources you can assert facts about — the meta-level we
+  explicitly set aside, and the same thing as the still-open "is a spec a stored
+  aggregate" question. Those are very different amounts of machinery. My read
+  is you mean the loose one, and I'd keep the word from smuggling the heavy one
+  in by accident when we write the spec definition. If you do want
+  spec-as-resource, that's a real design turn, not a rename.
+
+  One hazard for the clean specs → main PR: to keep main coherent, the manual
+  port has to include the [[schema]] → [[spec]] sweep across
+  schema-dissolves-into-administration, evaluation-context, and the
+  dissolve-schema-into-administration todo. My fold left those as flagged ghosts
+  on rewrite-interpreters; if they ride into main unswept, main gets dangling
+  links. So "one good idea at a time" has to end with that reconciliation, not
+  skip it.
+
+  Want me to stand up specs off main and push it, so you can open the PR against
+  it? I can also drive the port bit by bit once you've read the diff.
+
+✻ Brewed for 1m 18s
