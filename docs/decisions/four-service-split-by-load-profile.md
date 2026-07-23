@@ -18,7 +18,7 @@ In our day-job CQRS systems the same lesson holds: bounded contexts share domain
 
 Four hosts:
 
-1. **Write** — mutations are rare; can run on a very slow system. Sole writer of the fact store; appends the changelog, which is the zookie source. Carries the drift invariants (2026-07-20, dry-run finding F8): fact writes validate against the current schema, and a schema write that would abandon live facts is refused — a reverse existence query at schema-write time, making removal a two-step migration.
+1. **Write** — mutations are rare; can run on a very slow system. Sole writer of the fact store; appends the changelog, which is the zookie source. Carries the drift invariants (2026-07-20, dry-run finding F8): fact writes validate against the current schema, and a spec write that would abandon live facts is refused — a reverse existence query at spec-write time, making removal a two-step migration.
 2. **Read + Expand** — co-hosted serving tier; query-shaped, latency-tolerant.
 3. **Watch** — changelog streaming; long-lived connections, cursors via heartbeat zookies.
 4. **ACL Check** — the hot path. Multi-region, multi-node, parallel, auto-scaling; all the high-performance distributed-systems work (caching, hedging, hot-spot handling) lands here and only here.

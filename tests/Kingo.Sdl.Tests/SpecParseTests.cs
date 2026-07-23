@@ -11,7 +11,7 @@ public sealed class SpecParseTests
     public void Parse_SimpleDocument_ReturnsDefinedNamespaces()
     {
         const string sdl = """
-            schema: acme
+            spec: acme
             namespaces:
               file:
                 - owner
@@ -43,7 +43,7 @@ public sealed class SpecParseTests
             #   & = intersection operator
             #   | = union operator
 
-            schema: acme
+            spec: acme
 
             namespaces:
               file:                           # namespace
@@ -182,18 +182,18 @@ public sealed class SpecParseTests
     [InlineData("scalar", "sdl.document")]
     [InlineData("[]", "sdl.document")]
     [InlineData("{}", "sdl.document")] // neither key present
-    [InlineData("schema: acme\n---\nschema: other", "sdl.document")] // a SDL document is a single YAML document
-    [InlineData("namespaces:\n  file:\n    - owner", "sdl.document")] // no 'schema:' key
-    [InlineData("schema: acme", "sdl.document")] // no 'namespaces:' key
-    [InlineData("schema: acme\nnamespaces: 5", "sdl.document")] // 'namespaces:' is not a mapping
-    [InlineData("schema: acme\nnamespaces: []", "sdl.document")]
-    [InlineData("schema: [acme]\nnamespaces:\n  file:\n    - owner", "sdl.document")] // 'schema:' is not a scalar
-    [InlineData("schema:\nnamespaces:\n  file:\n    - owner", "spec_id.empty")] // a valueless 'schema:' loads as an empty scalar, which the identifier grammar rejects
+    [InlineData("spec: acme\n---\nspec: other", "sdl.document")] // a SDL document is a single YAML document
+    [InlineData("namespaces:\n  file:\n    - owner", "sdl.document")] // no 'spec:' key
+    [InlineData("spec: acme", "sdl.document")] // no 'namespaces:' key
+    [InlineData("spec: acme\nnamespaces: 5", "sdl.document")] // 'namespaces:' is not a mapping
+    [InlineData("spec: acme\nnamespaces: []", "sdl.document")]
+    [InlineData("spec: [acme]\nnamespaces:\n  file:\n    - owner", "sdl.document")] // 'spec:' is not a scalar
+    [InlineData("spec:\nnamespaces:\n  file:\n    - owner", "spec_id.empty")] // a valueless 'spec:' loads as an empty scalar, which the identifier grammar rejects
     [InlineData("file:\n  - owner", "sdl.document")] // the bare namespace map is no longer a document
-    [InlineData("schema: ''\nnamespaces:\n  file:\n    - owner", "spec_id.empty")]
-    [InlineData("schema: acme corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
-    [InlineData("schema: 123acme\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
-    [InlineData("schema: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
+    [InlineData("spec: ''\nnamespaces:\n  file:\n    - owner", "spec_id.empty")]
+    [InlineData("spec: acme corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
+    [InlineData("spec: 123acme\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
+    [InlineData("spec: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
     public void Parse_InvalidEnvelope_FailsWithExpectedCode(string sdl, string expectedCode)
     {
         var errors = ParseFailure(sdl);
@@ -222,7 +222,7 @@ public sealed class SpecParseTests
     public void Parse_DefectsInNameAndNamespaces_AccumulateAcrossBoth()
     {
         // Result.Apply accumulates the envelope's two halves: a bad spec name does not mask namespace defects
-        var errors = ParseFailure("schema: 123acme\nnamespaces:\n  123file:\n    - owner");
+        var errors = ParseFailure("spec: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
         Assert.Equal("spec_id.invalid", errors[0].Code);

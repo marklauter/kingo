@@ -14,7 +14,7 @@ public static class SpecPrinter
         .Build();
 
     /// <summary>
-    /// Emits the SDL document for <paramref name="spec"/>: the <c>schema:</c> name, then one namespace per key under <c>namespaces:</c> in spec order.
+    /// Emits the SDL document for <paramref name="spec"/>: the <c>spec:</c> name, then one namespace per key under <c>namespaces:</c> in spec order.
     /// The spec's own invariants make the mapping well-formed by construction (namespace names are unique); the one document invariant the domain cannot
     /// express is the caller's defect and throws <see cref="ArgumentException"/>: no relationship name or rewrite reference may be the reserved word of the
     /// rewrite grammar (<c>this</c>).
@@ -28,7 +28,7 @@ public static class SpecPrinter
         return DocumentSerializer.Serialize(
             new OrderedDictionary<string, object>
             {
-                ["schema"] = spec.Name.Value,
+                ["spec"] = spec.Name.Value,
                 ["namespaces"] = namespaces,
             });
     }

@@ -20,7 +20,7 @@ public sealed class SpecPrinterTests
                 ]),
         ]);
 
-        Assert.Equal("schema: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", spec.Print());
+        Assert.Equal("spec: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", spec.Print());
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class SpecPrinterTests
     {
         var spec = MakeSpec(SpecId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
 
-        Assert.StartsWith("schema: acme\nnamespaces:\n", spec.Print(), StringComparison.Ordinal);
+        Assert.StartsWith("spec: acme\nnamespaces:\n", spec.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class SpecPrinterTests
             MakeNs(Ns("folder"), [Bare("viewer")]),
         ]);
 
-        Assert.Equal("schema: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", spec.Print());
+        Assert.Equal("spec: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", spec.Print());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class SpecPrinterTests
     {
         var spec = MakeSpec([MakeNs(Ns("file"), [])]);
 
-        Assert.Equal("schema: test\nnamespaces:\n  file: []\n", spec.Print());
+        Assert.Equal("spec: test\nnamespaces:\n  file: []\n", spec.Print());
     }
 
     [Theory]

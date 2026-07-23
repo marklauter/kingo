@@ -15,12 +15,12 @@ namespace Kingo.Sdl;
 /// </summary>
 public static class SpecParser
 {
-    private const string NameKey = "schema";
+    private const string NameKey = "spec";
     private const string NamespacesKey = "namespaces";
 
     /// <summary>
     /// Parses untrusted SDL text, returning the defined <see cref="Spec"/> or every accumulated validation <see cref="Error"/> in document order: <c>sdl.syntax</c>
-    /// (malformed YAML), <c>sdl.document</c> (not a single mapping, or missing/misshapen <c>schema:</c> / <c>namespaces:</c> keys),
+    /// (malformed YAML), <c>sdl.document</c> (not a single mapping, or missing/misshapen <c>spec:</c> / <c>namespaces:</c> keys),
     /// <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
     /// <c>sdl.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>sdl.rewrite</c> (bad rewrite expressions), plus whatever
     /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> / <c>namespace.dangling_reference</c> /
@@ -36,7 +36,7 @@ public static class SpecParser
                 ParseNamespaces(document)))
             .Bind(spec => Spec.Create(spec.Name, spec.Namespaces));
 
-    /// <summary>The document's <c>schema:</c> key — the spec's name, and its domain key (<see cref="SpecIdentifier"/> owns the grammar).</summary>
+    /// <summary>The document's <c>spec:</c> key — the spec's name, and its domain key (<see cref="SpecIdentifier"/> owns the grammar).</summary>
     private static Result<SpecIdentifier> ParseName(YamlMappingNode document) =>
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
@@ -58,7 +58,7 @@ public static class SpecParser
             stream.Load(reader);
             return stream.Documents is [{ RootNode: YamlMappingNode document }]
                 ? Result.Success(document)
-                : Result.Failure<YamlMappingNode>(Error.Validation("sdl.document", "a SDL document is a single YAML mapping carrying a 'schema:' name and a 'namespaces:' map"));
+                : Result.Failure<YamlMappingNode>(Error.Validation("sdl.document", $"a SDL document is a single YAML mapping carrying a '{NameKey}:' name and a '{NamespacesKey}:' map"));
         }
         catch (YamlException ex)
         {

@@ -42,12 +42,12 @@ internal static class TestHelpers
         Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
 
     /// <summary>
-    /// Wraps a namespace-map fragment in the SDL document envelope — the <c>schema:</c> name plus the <c>namespaces:</c> key — so a
+    /// Wraps a namespace-map fragment in the SDL document envelope — the <c>spec:</c> name plus the <c>namespaces:</c> key — so a
     /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
     /// <see cref="ParseFailure"/> directly.
     /// </summary>
     public static string Document(string namespaceMap, string name = DefaultSpecName) =>
-        $"schema: {name}\nnamespaces:\n{Indent(namespaceMap)}";
+        $"spec: {name}\nnamespaces:\n{Indent(namespaceMap)}";
 
     private static string Indent(string text) =>
         string.Join('\n', text.Split('\n').Select(line => line.Length == 0 ? line : $"  {line}"));

@@ -12,7 +12,7 @@ Kingo needs an audit trail with CloudTrail semantics (Mark, 2026-07-15): a durab
 
 CloudTrail's event split maps cleanly onto Kingo's load profiles:
 
-- **Management events** (control plane, low volume, always on): schema changes and fact writes — grants and revokes. The Zanzibar changelog is already this record: Watch tails it, so a durable ordered write-log falls out of the storage design nearly for free ([[storage-versioning-design]]).
+- **Management events** (control plane, low volume, always on): spec changes and fact writes — grants and revokes. The Zanzibar changelog is already this record: Watch tails it, so a durable ordered write-log falls out of the storage design nearly for free ([[storage-versioning-design]]).
 - **Data events** (data plane, high volume): Check decisions. This is the class that needs new design.
 
 ## The event is the Decision

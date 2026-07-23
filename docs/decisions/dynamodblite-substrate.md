@@ -43,7 +43,7 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 
 - **Zookies / external consistency** — needs an app-layer commit-timestamp protocol. No store gives you this for free.
 - **Leopard-style set-fold caching** — application concern.
-- **Schema administration** — separate from storage. The YAML PDL parser on the `dictionary-encoding` quarry is the closest existing work.
+- **Spec administration** — separate from storage. The YAML PDL parser on the `dictionary-encoding` quarry is the closest existing work.
 
 ## Settled 2026-07-14
 
@@ -55,8 +55,8 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 The decision stands; three rows of the picture above gained specifics:
 
 - **Item shape.** Fact items are interval-stamped — created/tombstoned Kookie attributes; delete is a tombstone write, a snapshot read filters at the pin, and GC advances a store-wide retention horizon. The flat `tuples → (PK, SK) items` mapping now carries those attributes, and "MVCC header + journal split" is superseded by this model.
-- **A second reverse access pattern.** Beyond the subject GSI, the schema-write guard needs a reverse existence query — do any live facts reference this namespace or relationship. Cold path, schema-write time only.
-- **Schema storage is first-class.** The schema lives in the store as an append-only changelog of whole `Schema` values, versioned on the same timeline as facts (intervals close by supersession; whole-schema deletion is a terminal marker entry). "Schema administration — separate from storage" above still describes the admin workflow, not the storage artifact.
+- **A second reverse access pattern.** Beyond the subject GSI, the spec-write guard needs a reverse existence query — do any live facts reference this namespace or relationship. Cold path, spec-write time only.
+- **Spec storage is first-class.** Specs live in the store as an append-only changelog of whole `Spec` values, versioned on the same timeline as facts (intervals close by supersession; whole-spec deletion is a terminal marker entry). "Spec administration — separate from storage" above still describes the admin workflow, not the storage artifact.
 
 ## Caveats
 
