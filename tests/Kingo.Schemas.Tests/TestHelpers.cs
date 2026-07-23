@@ -6,7 +6,7 @@ namespace Kingo.Schemas.Tests;
 /// <summary>Shared construction and unwrap helpers for the spec-model tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
-    public static RelationshipIdentifier Rel(string value) => RelationshipIdentifier.Unchecked(value);
+    public static RelationshipPath Rel(string value) => RelationshipPath.Unchecked(value);
 
     public static ComputedSubjectSetRewrite Computed(string name) => ComputedSubjectSetRewrite.Create(Rel(name));
 

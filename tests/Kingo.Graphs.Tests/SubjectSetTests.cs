@@ -50,7 +50,7 @@ public sealed class SubjectSetTests
         var result = SubjectSet.Parse("team:sales#member#extra");
 
         var failure = Assert.IsType<Result<SubjectSet>.Failure>(result);
-        Assert.Equal("relationship_id.invalid", Assert.Single(failure.Errors).Code);
+        Assert.Equal("relationship_path.invalid", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class SubjectSetTests
         var result = SubjectSet.Parse("folder:y#...");
 
         var failure = Assert.IsType<Result<SubjectSet>.Failure>(result);
-        Assert.Equal("relationship_id.invalid", Assert.Single(failure.Errors).Code);
+        Assert.Equal("relationship_path.invalid", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -71,17 +71,17 @@ public sealed class SubjectSetTests
         var result = SubjectSet.Parse("doc:a:b#mem-ber");
 
         var failure = Assert.IsType<Result<SubjectSet>.Failure>(result);
-        Assert.Equal(["resource_id.invalid", "relationship_id.invalid"], failure.Errors.Select(e => e.Code));
+        Assert.Equal(["resource_id.invalid", "relationship_path.invalid"], failure.Errors.Select(e => e.Code));
     }
 
     [Fact]
     public void Parse_BothSidesEmpty_AccumulatesResourceEmptyThenRelationshipEmpty()
     {
-        // left "" short-circuits to Resource.Parse's single "resource.empty"; right "" → "relationship_id.empty"
+        // left "" short-circuits to Resource.Parse's single "resource.empty"; right "" → "relationship_path.empty"
         var result = SubjectSet.Parse("#");
 
         var failure = Assert.IsType<Result<SubjectSet>.Failure>(result);
-        Assert.Equal(["resource.empty", "relationship_id.empty"], failure.Errors.Select(e => e.Code));
+        Assert.Equal(["resource.empty", "relationship_path.empty"], failure.Errors.Select(e => e.Code));
     }
 
     [Fact]
@@ -89,8 +89,8 @@ public sealed class SubjectSetTests
     {
         var left = Assert.IsType<Result<SubjectSet>.Success>(SubjectSet.Parse("doc:readme#viewer")).Value;
         var right = new SubjectSet(
-            new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")),
-            RelationshipIdentifier.Unchecked("viewer"));
+            new Resource(NamespacePath.Unchecked("doc"), ResourceId.Unchecked("readme")),
+            RelationshipPath.Unchecked("viewer"));
 
         Assert.Equal(right, left);
     }

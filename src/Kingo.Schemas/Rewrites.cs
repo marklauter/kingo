@@ -64,14 +64,14 @@ public sealed record ThisRewrite
 public sealed record ComputedSubjectSetRewrite
     : SubjectSetRewrite
 {
-    public RelationshipIdentifier Relationship { get; }
+    public RelationshipPath Relationship { get; }
 
-    private ComputedSubjectSetRewrite(RelationshipIdentifier relationship)
+    private ComputedSubjectSetRewrite(RelationshipPath relationship)
         : base(depth: 1)
         => Relationship = relationship;
 
     /// <summary>The only construction path. Infallible — <paramref name="relationship"/> is already a valid identifier; whether it names a defined relationship is <c>Namespace.Create</c>'s check.</summary>
-    public static ComputedSubjectSetRewrite Create(RelationshipIdentifier relationship) => new(relationship);
+    public static ComputedSubjectSetRewrite Create(RelationshipPath relationship) => new(relationship);
 }
 
 /// <summary>
@@ -84,16 +84,16 @@ public sealed record ComputedSubjectSetRewrite
 public sealed record FactToSubjectSetRewrite
     : SubjectSetRewrite
 {
-    public RelationshipIdentifier FactsetRelationship { get; }
+    public RelationshipPath FactsetRelationship { get; }
 
-    public RelationshipIdentifier ComputedSubjectSetRelationship { get; }
+    public RelationshipPath ComputedSubjectSetRelationship { get; }
 
-    private FactToSubjectSetRewrite(RelationshipIdentifier factsetRelationship, RelationshipIdentifier computedSubjectSetRelationship)
+    private FactToSubjectSetRewrite(RelationshipPath factsetRelationship, RelationshipPath computedSubjectSetRelationship)
         : base(depth: 1)
         => (FactsetRelationship, ComputedSubjectSetRelationship) = (factsetRelationship, computedSubjectSetRelationship);
 
     /// <summary>The only construction path. Infallible — both identifiers are already valid; the factset reference's definedness is <c>Namespace.Create</c>'s check.</summary>
-    public static FactToSubjectSetRewrite Create(RelationshipIdentifier factsetRelationship, RelationshipIdentifier computedSubjectSetRelationship) =>
+    public static FactToSubjectSetRewrite Create(RelationshipPath factsetRelationship, RelationshipPath computedSubjectSetRelationship) =>
         new(factsetRelationship, computedSubjectSetRelationship);
 }
 

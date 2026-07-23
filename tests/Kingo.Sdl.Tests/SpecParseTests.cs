@@ -132,15 +132,15 @@ public sealed class SpecParseTests
     [InlineData("file: ''", "sdl.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
     [InlineData("file: 'null'", "sdl.namespace")]
     [InlineData("file: NuLL", "sdl.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
-    [InlineData("'':\n  - owner", "namespace_id.empty")]
-    [InlineData("file name:\n  - owner", "namespace_id.invalid")]
-    [InlineData("file-name:\n  - owner", "namespace_id.invalid")]
-    [InlineData("123file:\n  - owner", "namespace_id.invalid")]
-    [InlineData("file.ext:\n  - owner", "namespace_id.invalid")]
-    [InlineData("file:\n  - owner-name", "relationship_id.invalid")]
-    [InlineData("file:\n  - 123owner", "relationship_id.invalid")]
-    [InlineData("file:\n  - owner.ext", "relationship_id.invalid")]
-    [InlineData("file:\n  - ", "relationship_id.empty")]
+    [InlineData("'':\n  - owner", "namespace_path.empty")]
+    [InlineData("file name:\n  - owner", "namespace_path.invalid")]
+    [InlineData("file-name:\n  - owner", "namespace_path.invalid")]
+    [InlineData("123file:\n  - owner", "namespace_path.invalid")]
+    [InlineData("file.ext:\n  - owner", "namespace_path.invalid")]
+    [InlineData("file:\n  - owner-name", "relationship_path.invalid")]
+    [InlineData("file:\n  - 123owner", "relationship_path.invalid")]
+    [InlineData("file:\n  - owner.ext", "relationship_path.invalid")]
+    [InlineData("file:\n  - ", "relationship_path.empty")]
     [InlineData("file:\n  - : this", "sdl.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
     [InlineData("file:\n  - [nested]", "sdl.relationship")]
     [InlineData("file: &a [*a]", "sdl.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
@@ -161,8 +161,8 @@ public sealed class SpecParseTests
     [InlineData("file:\n  - this", "sdl.relationship.reserved")]
     [InlineData("file:\n  - THIS", "sdl.relationship.reserved")]
     [InlineData("file:\n  - this: owner", "sdl.relationship.reserved")]
-    [InlineData("file:\n  - '...'", "relationship_id.invalid")]
-    [InlineData("file:\n  - '...': owner", "relationship_id.invalid")]
+    [InlineData("file:\n  - '...'", "relationship_path.invalid")]
+    [InlineData("file:\n  - '...': owner", "relationship_path.invalid")]
     [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")] // the namespace gate runs on the parse path too
     [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")] // a factset's first element resolves here; its second does not
     [InlineData("file:\n  - viewer: viewer", "namespace.rewrite_cycle")]
@@ -188,12 +188,12 @@ public sealed class SpecParseTests
     [InlineData("spec: acme\nnamespaces: 5", "sdl.document")] // 'namespaces:' is not a mapping
     [InlineData("spec: acme\nnamespaces: []", "sdl.document")]
     [InlineData("spec: [acme]\nnamespaces:\n  file:\n    - owner", "sdl.document")] // 'spec:' is not a scalar
-    [InlineData("spec:\nnamespaces:\n  file:\n    - owner", "spec_id.empty")] // a valueless 'spec:' loads as an empty scalar, which the identifier grammar rejects
+    [InlineData("spec:\nnamespaces:\n  file:\n    - owner", "spec_path.empty")] // a valueless 'spec:' loads as an empty scalar, which the identifier grammar rejects
     [InlineData("file:\n  - owner", "sdl.document")] // the bare namespace map is no longer a document
-    [InlineData("spec: ''\nnamespaces:\n  file:\n    - owner", "spec_id.empty")]
-    [InlineData("spec: acme corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
-    [InlineData("spec: 123acme\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
-    [InlineData("spec: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
+    [InlineData("spec: ''\nnamespaces:\n  file:\n    - owner", "spec_path.empty")]
+    [InlineData("spec: acme corp\nnamespaces:\n  file:\n    - owner", "spec_path.invalid")]
+    [InlineData("spec: 123acme\nnamespaces:\n  file:\n    - owner", "spec_path.invalid")]
+    [InlineData("spec: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_path.invalid")]
     public void Parse_InvalidEnvelope_FailsWithExpectedCode(string sdl, string expectedCode)
     {
         var errors = ParseFailure(sdl);
@@ -225,8 +225,8 @@ public sealed class SpecParseTests
         var errors = ParseFailure("spec: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
-        Assert.Equal("spec_id.invalid", errors[0].Code);
-        Assert.Equal("namespace_id.invalid", errors[1].Code);
+        Assert.Equal("spec_path.invalid", errors[0].Code);
+        Assert.Equal("namespace_path.invalid", errors[1].Code);
     }
 
     [Fact]
@@ -258,8 +258,8 @@ public sealed class SpecParseTests
         var errors = ParseFailure(Document("123file:\n  - 456bad: this |"));
 
         Assert.Equal(3, errors.Length);
-        Assert.Equal("namespace_id.invalid", errors[0].Code);
-        Assert.Equal("relationship_id.invalid", errors[1].Code);
+        Assert.Equal("namespace_path.invalid", errors[0].Code);
+        Assert.Equal("relationship_path.invalid", errors[1].Code);
         Assert.Equal("sdl.rewrite", errors[2].Code);
     }
 
@@ -277,8 +277,8 @@ public sealed class SpecParseTests
         var errors = ParseFailure(Document(namespaceMap));
 
         Assert.Equal(3, errors.Length);
-        Assert.Equal("namespace_id.invalid", errors[0].Code);
-        Assert.Equal("relationship_id.invalid", errors[1].Code);
+        Assert.Equal("namespace_path.invalid", errors[0].Code);
+        Assert.Equal("relationship_path.invalid", errors[1].Code);
         Assert.Equal("sdl.rewrite", errors[2].Code);
     }
 

@@ -7,7 +7,7 @@ namespace Kingo.Graphs;
 /// <summary>
 /// A stored fact — the <c>&lt;fact&gt;</c> production of the fact grammar: <c>&lt;subjectset&gt;@&lt;subject&gt;</c>
 /// (e.g. <c>doc:readme#viewer@user:anne</c>). A closed discriminated union over the shape of its member (the seat the grammar names <c>&lt;subject&gt;</c>,
-/// the RDF-object): <see cref="SubjectFact"/> when the member is a bare <see cref="SubjectIdentifier"/>, <see cref="SubjectSetFact"/> when it is a
+/// the RDF-object): <see cref="SubjectFact"/> when the member is a bare <see cref="SubjectId"/>, <see cref="SubjectSetFact"/> when it is a
 /// <see cref="SubjectSet"/> (a userset), and <see cref="ResourceFact"/> when it is a <see cref="Resource"/> carried in canonical text by the <c>#...</c> marker
 /// (e.g. <c>folder:x#parent@folder:y#...</c>, the object-object edge — Table 1's <c>doc:readme#parent@folder:A#...</c>). The <c>#...</c> is fact-grammar
 /// punctuation, not a relationship. The hierarchy is closed; pattern-match to consume. A set-membership assertion read set-first: the RDF-subject is the
@@ -51,17 +51,17 @@ public abstract record Fact
                     subjectSet.Map<Func<SubjectSet, Fact>>(lhs => rhs => new SubjectSetFact(lhs, rhs)),
                     SubjectSet.Parse(member))
                 : Result.Apply(
-                    subjectSet.Map<Func<SubjectIdentifier, Fact>>(lhs => rhs => new SubjectFact(lhs, rhs)),
-                    SubjectIdentifier.Parse(member));
+                    subjectSet.Map<Func<SubjectId, Fact>>(lhs => rhs => new SubjectFact(lhs, rhs)),
+                    SubjectId.Parse(member));
     }
 
     /// <summary>
-    /// A <see cref="Fact"/> whose member is a bare <see cref="SubjectIdentifier"/> — <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c>
+    /// A <see cref="Fact"/> whose member is a bare <see cref="SubjectId"/> — <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c>
     /// (e.g. <c>doc:readme#viewer@user:anne</c>). The identifier seats directly: subjects exist only as identifiers inside facts.
     /// </summary>
     public sealed record SubjectFact(
         SubjectSet SubjectSet,
-        SubjectIdentifier Subject)
+        SubjectId Subject)
         : Fact
     {
         /// <summary>Canonical text form: <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c>.</summary>

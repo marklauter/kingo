@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class SpecIdentifierTests
+public sealed class SpecPathTests
 {
     [Theory]
     [InlineData("acme")]
@@ -12,7 +12,7 @@ public sealed class SpecIdentifierTests
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<SpecIdentifier>.Success>(SpecIdentifier.Parse(input));
+        var s = Assert.IsType<Result<SpecPath>.Success>(SpecPath.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -22,7 +22,7 @@ public sealed class SpecIdentifierTests
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<SpecIdentifier>.Success>(SpecIdentifier.Parse(input));
+        var s = Assert.IsType<Result<SpecPath>.Success>(SpecPath.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class SpecIdentifierTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<SpecIdentifier>.Failure>(SpecIdentifier.Parse(input!));
+        var f = Assert.IsType<Result<SpecPath>.Failure>(SpecPath.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec_id.empty", error.Code);
+        Assert.Equal("spec_path.empty", error.Code);
     }
 
     [Theory]
@@ -52,14 +52,14 @@ public sealed class SpecIdentifierTests
     [InlineData("@")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<SpecIdentifier>.Failure>(SpecIdentifier.Parse(input));
+        var f = Assert.IsType<Result<SpecPath>.Failure>(SpecPath.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec_id.invalid", error.Code);
+        Assert.Equal("spec_path.invalid", error.Code);
     }
 
     [Fact]
-    public void Parse_AcceptsTheSameGrammarAsNamespaceIdentifier()
+    public void Parse_AcceptsTheSameGrammarAsNamespacePath()
     {
         // spec and namespace names are the same kind of thing — authored vocabulary — and share a grammar
         // ([[domain-language]]); this pins that they do not drift apart silently
@@ -67,29 +67,29 @@ public sealed class SpecIdentifierTests
 
         foreach (var input in inputs)
             Assert.Equal(
-                SpecIdentifier.Parse(input) is Result<SpecIdentifier>.Success,
-                NamespaceIdentifier.Parse(input) is Result<NamespaceIdentifier>.Success);
+                SpecPath.Parse(input) is Result<SpecPath>.Success,
+                NamespacePath.Parse(input) is Result<NamespacePath>.Success);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SpecIdentifier.Unchecked("0-not.valid:");
+        var id = SpecPath.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = SpecIdentifier.Unchecked("ACME");
+        var id = SpecPath.Unchecked("ACME");
         Assert.Equal("ACME", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SpecIdentifier.Unchecked("acme");
-        var b = SpecIdentifier.Unchecked("acme");
+        var a = SpecPath.Unchecked("acme");
+        var b = SpecPath.Unchecked("acme");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -100,8 +100,8 @@ public sealed class SpecIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SpecIdentifier.Unchecked("acme");
-        var b = SpecIdentifier.Unchecked("globex");
+        var a = SpecPath.Unchecked("acme");
+        var b = SpecPath.Unchecked("globex");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -111,8 +111,8 @@ public sealed class SpecIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = SpecIdentifier.Unchecked("a");
-        var b = SpecIdentifier.Unchecked("b");
+        var a = SpecPath.Unchecked("a");
+        var b = SpecPath.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -129,7 +129,7 @@ public sealed class SpecIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SpecIdentifier.Unchecked("acme");
+        var id = SpecPath.Unchecked("acme");
         Assert.Equal("acme", id.ToString());
     }
 }

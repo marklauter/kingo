@@ -128,11 +128,11 @@ banned")]
     public void Parse_IdentifiersOutsideTheCoreGrammar_SurfaceTheCoreErrorsAccumulated()
     {
         // Superpower's C-style identifier lexes Unicode letters, but the core identifier grammar is ASCII:
-        // the exit transform's RelationshipIdentifier.Parse rejects each one and the errors accumulate
+        // the exit transform's RelationshipPath.Parse rejects each one and the errors accumulate
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("café | naïve"));
 
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("relationship_id.invalid", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("relationship_path.invalid", error.Code));
     }
 
     [Fact]

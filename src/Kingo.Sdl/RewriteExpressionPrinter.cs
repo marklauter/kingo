@@ -16,9 +16,9 @@ internal static class RewriteExpressionPrinter
     /// The rewrite grammar's reserved word: <c>this</c> always lexes as the direct-membership keyword — emitting it as an identifier would silently reparse a
     /// computed reference into <c>ThisRewrite</c>. Case-insensitive because the tokenizer matches the keyword case-insensitively while <c>Unchecked</c> performs
     /// no normalization. (<c>...</c> is no longer here: it is not a relationship — it is the <c>#...</c> marker of the <c>Fact.ResourceFact</c> member
-    /// production — so it cannot be a <see cref="RelationshipIdentifier"/> at all.)
+    /// production — so it cannot be a <see cref="RelationshipPath"/> at all.)
     /// </summary>
-    public static bool IsReserved(RelationshipIdentifier relationship) =>
+    public static bool IsReserved(RelationshipPath relationship) =>
         string.Equals(relationship.Value, "this", StringComparison.OrdinalIgnoreCase);
 
     public static string Print(SubjectSetRewrite rewrite) =>
@@ -37,7 +37,7 @@ internal static class RewriteExpressionPrinter
     private static string PrintExclusion(ExclusionRewrite exclusion) =>
         $"{PrintOperand(exclusion.Include)} ! {PrintTerm(exclusion.Exclude)}";
 
-    private static string PrintIdentifier(RelationshipIdentifier relationship) =>
+    private static string PrintIdentifier(RelationshipPath relationship) =>
         IsReserved(relationship)
             ? throw new ArgumentException($"relationship '{relationship}' cannot be referenced in a SDL rewrite expression: 'this' is reserved by the grammar")
             : relationship.Value;

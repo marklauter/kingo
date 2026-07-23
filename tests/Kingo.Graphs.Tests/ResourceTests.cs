@@ -63,7 +63,7 @@ public sealed class ResourceTests
         var result = Resource.Parse(":readme");
 
         var failure = Assert.IsType<Result<Resource>.Failure>(result);
-        Assert.Equal("namespace_id.empty", Assert.Single(failure.Errors).Code);
+        Assert.Equal("namespace_path.empty", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class ResourceTests
         var result = Resource.Parse(":");
 
         var failure = Assert.IsType<Result<Resource>.Failure>(result);
-        Assert.Equal(["namespace_id.empty", "resource_id.empty"], failure.Errors.Select(e => e.Code));
+        Assert.Equal(["namespace_path.empty", "resource_id.empty"], failure.Errors.Select(e => e.Code));
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class ResourceTests
         var result = Resource.Parse("d-c:a:b");
 
         var failure = Assert.IsType<Result<Resource>.Failure>(result);
-        Assert.Equal(["namespace_id.invalid", "resource_id.invalid"], failure.Errors.Select(e => e.Code));
+        Assert.Equal(["namespace_path.invalid", "resource_id.invalid"], failure.Errors.Select(e => e.Code));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class ResourceTests
         var right = Assert.IsType<Result<Resource>.Success>(Resource.Parse("doc:readme")).Value;
 
         Assert.Equal(left, right);
-        Assert.Equal(new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")), left);
+        Assert.Equal(new Resource(NamespacePath.Unchecked("doc"), ResourceId.Unchecked("readme")), left);
     }
 
     [Fact]

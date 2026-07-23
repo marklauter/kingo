@@ -14,7 +14,7 @@ Ruled (Mark, 2026-07-18): an unhealthy spec is detected at construction, so `Con
 
 ## What to validate, per namespace, at construction
 
-1. **Cycle detection over the zero-fact recursion graph.** Nodes are the namespace's relationships; edges are `ComputedSubjectSetRewrite` references, collected through union/intersection/exclusion nesting. Self-reference is the trivial cycle. Factset arms are excluded: a `FactToSubjectSetRewrite` cannot recurse without consuming a stored fact, so it belongs to the depth bound, not this check. The graph is intra-namespace by construction — `ComputedSubjectSetRewrite` carries only a `RelationshipIdentifier` and roots at the same resource.
+1. **Cycle detection over the zero-fact recursion graph.** Nodes are the namespace's relationships; edges are `ComputedSubjectSetRewrite` references, collected through union/intersection/exclusion nesting. Self-reference is the trivial cycle. Factset arms are excluded: a `FactToSubjectSetRewrite` cannot recurse without consuming a stored fact, so it belongs to the depth bound, not this check. The graph is intra-namespace by construction — `ComputedSubjectSetRewrite` carries only a `RelationshipPath` and roots at the same resource.
 2. **Dangling references.** Every `ComputedSubjectSetRewrite.Relationship` and every `FactToSubjectSetRewrite.FactsetRelationship` names a relationship defined in this namespace.
 3. **Empty operator nodes** (ruled Mark, 2026-07-19). `UnionRewrite`/`IntersectionRewrite` with empty operand lists are refused. The SDL grammar cannot produce the shape; the Write API path can, and the conventional reading of an empty intersection is the universal set — everyone a member — so the shape is refused rather than given semantics.
 

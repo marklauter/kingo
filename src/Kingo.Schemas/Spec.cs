@@ -12,21 +12,21 @@ namespace Kingo.Schemas;
 /// </summary>
 public sealed record Spec
 {
-    /// <summary>The spec's domain key — name-as-identity (provisional; see <see cref="SpecIdentifier"/>).</summary>
-    public SpecIdentifier Name { get; }
+    /// <summary>The spec's domain key — name-as-identity (provisional; see <see cref="SpecPath"/>).</summary>
+    public SpecPath Name { get; }
 
     public ImmutableArray<Namespace> Namespaces { get; }
 
-    private Spec(SpecIdentifier name, ImmutableArray<Namespace> namespaces) =>
+    private Spec(SpecPath name, ImmutableArray<Namespace> namespaces) =>
         (Name, Namespaces) = (name, namespaces);
 
     /// <summary>
     /// The only construction path — validating construction for untrusted and trusted callers alike: rejects an empty namespace set (<c>spec.empty</c> — a
     /// spec is never empty; the absence of namespaces is the absence of a spec, modeled as not having one) and duplicate namespace names
     /// (<c>spec.duplicate_namespace</c>, one <see cref="ErrorType.Validation"/> error per duplicated name in first-occurrence order — names are already
-    /// case-normalized by <see cref="NamespaceIdentifier"/>). <paramref name="name"/> arrives already valid — <see cref="SpecIdentifier.Parse"/> owns its grammar.
+    /// case-normalized by <see cref="NamespacePath"/>). <paramref name="name"/> arrives already valid — <see cref="SpecPath.Parse"/> owns its grammar.
     /// </summary>
-    public static Result<Spec> Create(SpecIdentifier name, ImmutableArray<Namespace> namespaces)
+    public static Result<Spec> Create(SpecPath name, ImmutableArray<Namespace> namespaces)
     {
         if (namespaces.IsDefaultOrEmpty)
             return Result.Failure<Spec>(

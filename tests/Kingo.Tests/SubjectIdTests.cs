@@ -2,32 +2,32 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class ResourceIdentifierTests
+public sealed class SubjectIdTests
 {
     [Theory]
-    [InlineData("doc")]
-    [InlineData("readme")]
+    [InlineData("anne")]
     [InlineData("_private")]
     [InlineData("a1")]
     [InlineData("a")]
-    [InlineData("readme.md")]
+    [InlineData("user:anne")]
+    [InlineData("a.b")]
     [InlineData("a-b")]
     [InlineData("0abc")]
+    [InlineData("a:")]
     [InlineData("a.")]
     [InlineData("a-")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<ResourceIdentifier>.Success>(ResourceIdentifier.Parse(input));
+        var s = Assert.IsType<Result<SubjectId>.Success>(SubjectId.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
     [Theory]
-    [InlineData("ReadMe.MD")]
-    [InlineData("DOC")]
+    [InlineData("User:Anne")]
     [InlineData("MixedCase")]
     public void Parse_PreservesCase(string input)
     {
-        var s = Assert.IsType<Result<ResourceIdentifier>.Success>(ResourceIdentifier.Parse(input));
+        var s = Assert.IsType<Result<SubjectId>.Success>(SubjectId.Parse(input));
         Assert.Equal(input, s.Value.Value);
         Assert.Equal(input, s.Value.ToString());
     }
@@ -40,42 +40,42 @@ public sealed class ResourceIdentifierTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<ResourceIdentifier>.Failure>(ResourceIdentifier.Parse(input!));
+        var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("resource_id.empty", error.Code);
+        Assert.Equal("subject_id.empty", error.Code);
     }
 
     [Theory]
+    [InlineData(":anne")]
     [InlineData(".a")]
     [InlineData("-a")]
     [InlineData("a b")]
     [InlineData("café")]
-    [InlineData("#")]
-    [InlineData("@")]
-    [InlineData("a:b")]
     [InlineData("a#b")]
     [InlineData("a@b")]
+    [InlineData("#")]
+    [InlineData("@")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<ResourceIdentifier>.Failure>(ResourceIdentifier.Parse(input));
+        var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("resource_id.invalid", error.Code);
+        Assert.Equal("subject_id.invalid", error.Code);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = ResourceIdentifier.Unchecked("a:b#c@d");
-        Assert.Equal("a:b#c@d", id.Value);
+        var id = SubjectId.Unchecked("a#b@c");
+        Assert.Equal("a#b@c", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = ResourceIdentifier.Unchecked("readme.md");
-        var b = ResourceIdentifier.Unchecked("readme.md");
+        var a = SubjectId.Unchecked("user:anne");
+        var b = SubjectId.Unchecked("user:anne");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -86,8 +86,8 @@ public sealed class ResourceIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = ResourceIdentifier.Unchecked("readme.md");
-        var b = ResourceIdentifier.Unchecked("license.txt");
+        var a = SubjectId.Unchecked("user:anne");
+        var b = SubjectId.Unchecked("user:bob");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -97,8 +97,8 @@ public sealed class ResourceIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_CaseSensitive_UppercaseBeforeLowercase()
     {
-        var upper = ResourceIdentifier.Unchecked("A");
-        var lower = ResourceIdentifier.Unchecked("a");
+        var upper = SubjectId.Unchecked("A");
+        var lower = SubjectId.Unchecked("a");
 
         // ordinal ordering: 'A' (0x41) < 'a' (0x61)
         Assert.True(upper.CompareTo(lower) < 0);
@@ -111,7 +111,7 @@ public sealed class ResourceIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = ResourceIdentifier.Unchecked("readme.md");
-        Assert.Equal("readme.md", id.ToString());
+        var id = SubjectId.Unchecked("user:anne");
+        Assert.Equal("user:anne", id.ToString());
     }
 }

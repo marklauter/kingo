@@ -10,11 +10,11 @@ internal static class TestHelpers
     /// <summary>The spec name every fixture document carries unless it is testing the name itself.</summary>
     public const string DefaultSpecName = "test";
 
-    public static NamespaceIdentifier Ns(string value) => NamespaceIdentifier.Unchecked(value);
+    public static NamespacePath Ns(string value) => NamespacePath.Unchecked(value);
 
-    public static RelationshipIdentifier Rel(string value) => RelationshipIdentifier.Unchecked(value);
+    public static RelationshipPath Rel(string value) => RelationshipPath.Unchecked(value);
 
-    public static SpecIdentifier SpecId(string value) => SpecIdentifier.Unchecked(value);
+    public static SpecPath SpecId(string value) => SpecPath.Unchecked(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
@@ -32,13 +32,13 @@ internal static class TestHelpers
     public static ExclusionRewrite Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
         Assert.IsType<Result<ExclusionRewrite>.Success>(ExclusionRewrite.Create(include, exclude)).Value;
 
-    public static Namespace MakeNs(NamespaceIdentifier name, ImmutableArray<Relationship> relationships) =>
+    public static Namespace MakeNs(NamespacePath name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
     public static Spec MakeSpec(ImmutableArray<Namespace> namespaces) =>
         MakeSpec(SpecId(DefaultSpecName), namespaces);
 
-    public static Spec MakeSpec(SpecIdentifier name, ImmutableArray<Namespace> namespaces) =>
+    public static Spec MakeSpec(SpecPath name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
 
     /// <summary>

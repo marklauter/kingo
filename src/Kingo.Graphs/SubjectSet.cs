@@ -10,7 +10,7 @@ namespace Kingo.Graphs;
 /// </summary>
 public sealed record SubjectSet(
     Resource Resource,
-    RelationshipIdentifier Relationship)
+    RelationshipPath Relationship)
     : IParse<SubjectSet>
 {
     private const char Separator = '#';
@@ -28,8 +28,8 @@ public sealed record SubjectSet(
         return separator < 0
             ? Result.Failure<SubjectSet>(Error.Validation("subjectset.format", $"subject set '{s}' is malformed; expected '<namespace>:<resource-id>#<relationship>'"))
             : Result.Apply(
-                Resource.Parse(s[..separator]).Map<Func<RelationshipIdentifier, SubjectSet>>(resource => relationship => new SubjectSet(resource, relationship)),
-                RelationshipIdentifier.Parse(s[(separator + 1)..]));
+                Resource.Parse(s[..separator]).Map<Func<RelationshipPath, SubjectSet>>(resource => relationship => new SubjectSet(resource, relationship)),
+                RelationshipPath.Parse(s[(separator + 1)..]));
     }
 
     /// <summary>Canonical text form: <c>&lt;resource&gt;#&lt;relationship&gt;</c>.</summary>

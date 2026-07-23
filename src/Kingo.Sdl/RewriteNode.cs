@@ -5,7 +5,7 @@ namespace Kingo.Sdl;
 /// <summary>
 /// The parser-internal syntax tree for rewrite expressions — the shape Superpower produces before identifiers have crossed the trust boundary. Leaves carry raw
 /// <see cref="string"/>s; <see cref="RewriteExpressionParser"/> transforms the tree into the core <c>SubjectSetRewrite</c> algebra at its exit, parsing every
-/// identifier through <c>RelationshipIdentifier.Parse</c>. Build-once, transform-once: nodes are never compared, so these are plain sealed classes, not
+/// identifier through <c>RelationshipPath.Parse</c>. Build-once, transform-once: nodes are never compared, so these are plain sealed classes, not
 /// records.
 /// <para>
 /// Each node is named for its algebra counterpart with a <c>Node</c> suffix — the tier difference is the raw <see cref="string"/> leaves, not the vocabulary, so

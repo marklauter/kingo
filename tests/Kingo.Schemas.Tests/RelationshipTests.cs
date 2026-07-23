@@ -4,7 +4,7 @@ namespace Kingo.Schemas.Tests;
 
 public sealed class RelationshipTests
 {
-    private static RelationshipIdentifier Id(string value) => RelationshipIdentifier.Unchecked(value);
+    private static RelationshipPath Id(string value) => RelationshipPath.Unchecked(value);
 
     [Fact]
     public void SecondaryCtor_DefaultsRewriteToThisRewriteDefaultSingleton()

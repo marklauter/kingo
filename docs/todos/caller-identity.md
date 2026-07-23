@@ -15,7 +15,7 @@ effort: medium
 The interpreter ruling in [[rewrite-interpreters]] (2026-07-17) put caller identity in the host's request envelope, not on the `Decision`. That ruling settles *where* identity lives; it leaves open *what* identity is. "Identity of caller" covers at least:
 
 - **Network context** — IP, user agent, and the rest of the transport-level envelope; audit material ([[authz-event-logging]]).
-- **The principal** — literally the authenticated subject: claims, token, the authn-side identity that maps to a `SubjectIdentifier`.
+- **The principal** — literally the authenticated subject: claims, token, the authn-side identity that maps to a `SubjectId`.
 - **The on-behalf-of chain** — most real-world calls are service-to-service OBO: service A calls service B passing a user.
 
 ## Interpretation

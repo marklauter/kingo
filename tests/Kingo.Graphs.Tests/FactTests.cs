@@ -60,8 +60,8 @@ public sealed class FactTests
 
         Assert.Equal(
             new SubjectSet(
-                new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")),
-                RelationshipIdentifier.Unchecked("viewer")),
+                new Resource(NamespacePath.Unchecked("doc"), ResourceId.Unchecked("readme")),
+                RelationshipPath.Unchecked("viewer")),
             fact.SubjectSet);
     }
 
@@ -119,7 +119,7 @@ public sealed class FactTests
         var result = Fact.Parse("doc:x#vie-wer@an@ne");
 
         var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal(["relationship_id.invalid", "subject_id.invalid"], failure.Errors.Select(e => e.Code));
+        Assert.Equal(["relationship_path.invalid", "subject_id.invalid"], failure.Errors.Select(e => e.Code));
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class FactTests
         var result = Fact.Parse("doc:x#vie-wer@fol-der:y#...");
 
         var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal(["relationship_id.invalid", "namespace_id.invalid"], failure.Errors.Select(e => e.Code));
+        Assert.Equal(["relationship_path.invalid", "namespace_path.invalid"], failure.Errors.Select(e => e.Code));
     }
 
     [Fact]
@@ -146,9 +146,9 @@ public sealed class FactTests
         var left = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
         var right = new SubjectFact(
             new SubjectSet(
-                new Resource(NamespaceIdentifier.Unchecked("doc"), ResourceIdentifier.Unchecked("readme")),
-                RelationshipIdentifier.Unchecked("viewer")),
-            SubjectIdentifier.Unchecked("user:anne"));
+                new Resource(NamespacePath.Unchecked("doc"), ResourceId.Unchecked("readme")),
+                RelationshipPath.Unchecked("viewer")),
+            SubjectId.Unchecked("user:anne"));
 
         Assert.Equal(right, left);
     }

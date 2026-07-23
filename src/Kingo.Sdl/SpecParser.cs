@@ -10,7 +10,7 @@ namespace Kingo.Sdl;
 /// The parse half of the SDL adapter: Schema Definition Language document text ([[schema-definition-language]]) to the core spec model
 /// (<see cref="SpecPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map; each relationship's optional rewrite
 /// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionPrinter"/>. Parsing exits through
-/// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>SpecIdentifier.Parse</c>, <c>Namespace.Create</c>,
+/// the core's validating factories — <c>RelationshipPath.Parse</c>, <c>NamespacePath.Parse</c>, <c>SpecPath.Parse</c>, <c>Namespace.Create</c>,
 /// <c>Spec.Create</c> — accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
 public static class SpecParser
@@ -31,17 +31,17 @@ public static class SpecParser
     public static Result<Spec> Parse(string text) =>
         LoadDocument(text)
             .Bind(document => Result.Apply(
-                ParseName(document).Map<Func<ImmutableArray<Namespace>, (SpecIdentifier Name, ImmutableArray<Namespace> Namespaces)>>(
+                ParseName(document).Map<Func<ImmutableArray<Namespace>, (SpecPath Name, ImmutableArray<Namespace> Namespaces)>>(
                     name => namespaces => (name, namespaces)),
                 ParseNamespaces(document)))
             .Bind(spec => Spec.Create(spec.Name, spec.Namespaces));
 
-    /// <summary>The document's <c>spec:</c> key — the spec's name, and its domain key (<see cref="SpecIdentifier"/> owns the grammar).</summary>
-    private static Result<SpecIdentifier> ParseName(YamlMappingNode document) =>
+    /// <summary>The document's <c>spec:</c> key — the spec's name, and its domain key (<see cref="SpecPath"/> owns the grammar).</summary>
+    private static Result<SpecPath> ParseName(YamlMappingNode document) =>
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
-            ? SpecIdentifier.Parse(scalar.Value!)
-            : Result.Failure<SpecIdentifier>(Error.Validation("sdl.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
+            ? SpecPath.Parse(scalar.Value!)
+            : Result.Failure<SpecPath>(Error.Validation("sdl.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
 
     /// <summary>The document's <c>namespaces:</c> key — the namespace map. Its emptiness is <c>Spec.Create</c>'s call (<c>spec.empty</c>), not this adapter's.</summary>
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
@@ -77,11 +77,11 @@ public static class SpecParser
     {
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         var name = entry.Key is YamlScalarNode key
-            ? NamespaceIdentifier.Parse(key.Value!)
-            : Result.Failure<NamespaceIdentifier>(Error.Validation("sdl.namespace", "a namespace name must be a scalar"));
+            ? NamespacePath.Parse(key.Value!)
+            : Result.Failure<NamespacePath>(Error.Validation("sdl.namespace", "a namespace name must be a scalar"));
 
         return Result.Apply(
-            name.Map<Func<ImmutableArray<Relationship>, (NamespaceIdentifier Name, ImmutableArray<Relationship> Relationships)>>(n => relationships => (n, relationships)),
+            name.Map<Func<ImmutableArray<Relationship>, (NamespacePath Name, ImmutableArray<Relationship> Relationships)>>(n => relationships => (n, relationships)),
             ParseRelationships(entry.Value))
             .Bind(ns => Namespace.Create(ns.Name, ns.Relationships));
     }
@@ -128,10 +128,10 @@ public static class SpecParser
     /// <summary>
     /// A relationship name in SDL must survive the rewrite grammar: <c>this</c> always lexes as the keyword (a relationship so named could never be referenced
     /// — or worse, a reference would silently mean direct membership), so it is reserved. (<c>...</c> needs no guard here: it is not a relationship name — it is
-    /// the <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production — so it fails <see cref="RelationshipIdentifier.Parse"/> upstream.)
+    /// the <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production — so it fails <see cref="RelationshipPath.Parse"/> upstream.)
     /// </summary>
-    private static Result<RelationshipIdentifier> ParseRelationshipName(string name) =>
-        RelationshipIdentifier.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
-            ? Result.Failure<RelationshipIdentifier>(Error.Validation("sdl.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
+    private static Result<RelationshipPath> ParseRelationshipName(string name) =>
+        RelationshipPath.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
+            ? Result.Failure<RelationshipPath>(Error.Validation("sdl.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
             : Result.Success(relationship));
 }

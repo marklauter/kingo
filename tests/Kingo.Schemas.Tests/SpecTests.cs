@@ -9,14 +9,14 @@ public sealed class SpecTests
     private static Namespace Ns(string name, params string[] relationships) =>
         Assert.IsType<Result<Namespace>.Success>(
             Namespace.Create(
-                NamespaceIdentifier.Unchecked(name),
-                [.. relationships.Select(r => new Relationship(RelationshipIdentifier.Unchecked(r)))])).Value;
+                NamespacePath.Unchecked(name),
+                [.. relationships.Select(r => new Relationship(RelationshipPath.Unchecked(r)))])).Value;
 
-    private static SpecIdentifier Id(string name) => SpecIdentifier.Unchecked(name);
+    private static SpecPath Id(string name) => SpecPath.Unchecked(name);
 
     private static Spec Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
 
-    private static Spec Make(SpecIdentifier name, ImmutableArray<Namespace> namespaces) =>
+    private static Spec Make(SpecPath name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
 
     [Fact]

@@ -16,11 +16,11 @@ namespace Kingo.Schemas;
 /// </summary>
 public sealed record Namespace
 {
-    public NamespaceIdentifier Name { get; }
+    public NamespacePath Name { get; }
 
     public ImmutableArray<Relationship> Relationships { get; }
 
-    private Namespace(NamespaceIdentifier name, ImmutableArray<Relationship> relationships)
+    private Namespace(NamespacePath name, ImmutableArray<Relationship> relationships)
     {
         Name = name;
         Relationships = relationships;
@@ -39,7 +39,7 @@ public sealed record Namespace
     /// bound, not this check; [[rewrite-interpreters]]). The spec model has no core <c>Parse</c> — its text forms live in serialization adapters, which call
     /// this after decoding ([[domain-language]]).
     /// </summary>
-    public static Result<Namespace> Create(NamespaceIdentifier name, ImmutableArray<Relationship> relationships)
+    public static Result<Namespace> Create(NamespacePath name, ImmutableArray<Relationship> relationships)
     {
         // a default array is the empty namespace: normalized here so construction is total and the stored value always enumerates
         if (relationships.IsDefault)
@@ -120,8 +120,8 @@ public sealed record Namespace
     /// first elements are references only (a factset hop consumes a fact, so it counts against the evaluator's depth bound instead). The factset's second
     /// element resolves in another namespace and is not referenced here.
     /// </summary>
-    private static IEnumerable<(RelationshipIdentifier Target, bool IsZeroFactEdge)> IntraNamespaceReferences(SubjectSetRewrite rewrite) =>
-        Flatten(rewrite).SelectMany(IEnumerable<(RelationshipIdentifier, bool)> (node) => node switch
+    private static IEnumerable<(RelationshipPath Target, bool IsZeroFactEdge)> IntraNamespaceReferences(SubjectSetRewrite rewrite) =>
+        Flatten(rewrite).SelectMany(IEnumerable<(RelationshipPath, bool)> (node) => node switch
         {
             ComputedSubjectSetRewrite computed => [(computed.Relationship, true)],
             FactToSubjectSetRewrite factTo => [(factTo.FactsetRelationship, false)],
@@ -138,9 +138,9 @@ public sealed record Namespace
     /// untrusted input, so input shape must not pick the stack depth.
     /// </summary>
     private static ImmutableArray<Error> DetectCycles(
-        NamespaceIdentifier name,
+        NamespacePath name,
         ImmutableArray<Relationship> relationships,
-        ImmutableDictionary<RelationshipIdentifier, ImmutableArray<(RelationshipIdentifier Target, bool IsZeroFactEdge)>> references)
+        ImmutableDictionary<RelationshipPath, ImmutableArray<(RelationshipPath Target, bool IsZeroFactEdge)>> references)
     {
         var edges = references.ToImmutableDictionary(
             entry => entry.Key,
@@ -150,10 +150,10 @@ public sealed record Namespace
                 .ToImmutableArray());
 
         var errors = ImmutableArray.CreateBuilder<Error>();
-        var finished = new HashSet<RelationshipIdentifier>();
-        var path = new List<RelationshipIdentifier>();
-        var onPath = new HashSet<RelationshipIdentifier>();
-        var frames = new Stack<(RelationshipIdentifier Node, int NextEdge)>();
+        var finished = new HashSet<RelationshipPath>();
+        var path = new List<RelationshipPath>();
+        var onPath = new HashSet<RelationshipPath>();
+        var frames = new Stack<(RelationshipPath Node, int NextEdge)>();
 
         foreach (var relationship in relationships)
         {

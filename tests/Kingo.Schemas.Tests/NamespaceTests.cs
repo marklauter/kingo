@@ -7,13 +7,13 @@ namespace Kingo.Schemas.Tests;
 
 public sealed class NamespaceTests
 {
-    private static NamespaceIdentifier Ns(string value) => NamespaceIdentifier.Unchecked(value);
+    private static NamespacePath Ns(string value) => NamespacePath.Unchecked(value);
 
-    private static Relationship Def(string name) => new(RelationshipIdentifier.Unchecked(name));
+    private static Relationship Def(string name) => new(RelationshipPath.Unchecked(name));
 
-    private static Relationship Def(string name, SubjectSetRewrite rewrite) => new(RelationshipIdentifier.Unchecked(name), rewrite);
+    private static Relationship Def(string name, SubjectSetRewrite rewrite) => new(RelationshipPath.Unchecked(name), rewrite);
 
-    private static Namespace Make(NamespaceIdentifier name, ImmutableArray<Relationship> relationships) =>
+    private static Namespace Make(NamespacePath name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
     [Fact]

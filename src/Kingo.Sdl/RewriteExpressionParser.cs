@@ -11,7 +11,7 @@ namespace Kingo.Sdl;
 /// Parses the rewrite-expression mini-language embedded in SDL relationship values — e.g. <c>(this | editor | (parent, viewer)) ! banned</c> — into the core
 /// <c>SubjectSetRewrite</c> algebra. Grammar and precedence: [[schema-definition-language]] (<c>!</c> binds tightest; <c>&amp;</c> and <c>|</c> share precedence,
 /// left-associative). The Superpower grammar produces the internal <see cref="RewriteNode"/> tree; the transform at the exit parses every identifier through
-/// <c>RelationshipIdentifier.Parse</c> and accumulates the errors, so bad input surfaces as <see cref="Result{T}"/> validation failures, never exceptions.
+/// <c>RelationshipPath.Parse</c> and accumulates the errors, so bad input surfaces as <see cref="Result{T}"/> validation failures, never exceptions.
 /// </summary>
 internal static class RewriteExpressionParser
 {
@@ -117,12 +117,12 @@ internal static class RewriteExpressionParser
         node switch
         {
             ThisNode => Result.Success<SubjectSetRewrite>(ThisRewrite.Default),
-            ComputedSubjectSetNode computed => RelationshipIdentifier.Parse(computed.Relationship)
+            ComputedSubjectSetNode computed => RelationshipPath.Parse(computed.Relationship)
                 .Map(SubjectSetRewrite (relationship) => ComputedSubjectSetRewrite.Create(relationship)),
             FactToSubjectSetNode factTo => Result.Apply(
-                RelationshipIdentifier.Parse(factTo.FactsetRelationship)
-                    .Map(Func<RelationshipIdentifier, SubjectSetRewrite> (factset) => computed => FactToSubjectSetRewrite.Create(factset, computed)),
-                RelationshipIdentifier.Parse(factTo.ComputedSubjectSetRelationship)),
+                RelationshipPath.Parse(factTo.FactsetRelationship)
+                    .Map(Func<RelationshipPath, SubjectSetRewrite> (factset) => computed => FactToSubjectSetRewrite.Create(factset, computed)),
+                RelationshipPath.Parse(factTo.ComputedSubjectSetRelationship)),
             UnionNode union => union.Children.Select(Transform).Sequence()
                 .Bind(children => UnionRewrite.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             IntersectionNode intersection => intersection.Children.Select(Transform).Sequence()
