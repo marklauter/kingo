@@ -1,9 +1,9 @@
 ---
 title: relationship
-summary: "A named relation on a namespace paired with the rewrite that computes its effective subject set — the predicate of a fact's triple."
+summary: "A named subjectset-rewrite scoped to a namespace. The predicate of a fact's triple."
 tags: [glossary, schema]
 created: 2026-07-18
 status: locked
 ---
 
-A named relation on a namespace paired with the rewrite that computes its effective subject set — the predicate of a fact's triple. A bare definition, with no rewrite, means direct membership.
+A named [[subjectset-rewrite]] scoped to a namespace. The predicate of a fact's triple.

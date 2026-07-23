@@ -6,6 +6,7 @@ created: 2026-07-15
 status: open
 priority: high
 effort: high
+blocked-by: "[[dissolve-schema-into-administration]]"
 ---
 
 # Rewrite interpreters — Contains and Expand
@@ -15,6 +16,10 @@ effort: high
 Design this in a fresh context from this note and the current domain code. The Zanzibar paper is inspiration, not an input (amended 2026-07-20): Kingo is its own system, and everything the design needs from the paper — the tuple grammar, check's question shape, Expand's tree shape, the `...` sentinel — is inlined below where it's used; section citations (§2.4.5 and kin) are provenance, not reading assignments. **Do not read the archive branches' ACL implementation** (`src/Kingo.Acl/` on `main-archive` / `dictionary-encoding`) before or during design — it is incomplete, and its lessons are already encoded below as requirements (Mark, 2026-07-15).
 
 The input closure (decided 2026-07-20; dry-run finding F14): the two artifacts above plus, one hop from this note, the wikilinked docs of settled kind — glossary terms, decision records, and spec-tagged notes ([[domain-language]], [[schema-definition-language]]). Settled means kind, not status flag: most of the glossary sits at `status: evolving`, so a locked-only rule would silently drop the vocabulary the note is written in. Open todos are out of bounds: a wikilink to one is a jurisdiction marker — the question is assigned there — never an invitation to read it. So is the findings ledger, since retired from the corpus (its narrative is the journal entry [[2026-07-20-2355-first-clean-room-dry-run]]): the dry-run finding citations below are provenance for the rulings, never input; everything it decided is restated here in full. No transitive expansion. Where an input disagrees with this note, the note wins; report the conflict as a finding.
+
+## Deliverable (ruled 2026-07-21)
+
+The design session's output is a set of specs, not code. Each concept the session settles — the evaluation-context shape, the fact-lookup port's operations, `Contains`, `Expand`, and the `Expansion` tree — lands as its own spec artifact (`hoplite-skills:spec`, composed from locked terms), and implementation follows in a second pass against the locked set. The session also seeds [[fact-store-access-patterns]] (requirement 6's named deliverable) and closes with a journal entry. This todo stays open until the implementation pass lands; the spec set is its first milestone. The block applies to the implementation pass only (added 2026-07-21): the specs design against the post-dissolution model ([[schema-dissolves-into-administration]]), so implementation waits on [[dissolve-schema-into-administration]]; the design session proceeds.
 
 ## The work item
 

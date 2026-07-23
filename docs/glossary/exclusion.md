@@ -4,7 +4,7 @@ summary: "The rewrite operator (!) whose effective subject set is its first oper
 tags: [glossary, rewrite]
 created: 2026-07-18
 status: locked
-is-a: "[[subject-set-rewrite]]"
+is-a: "[[subjectset-rewrite]]"
 ---
 
 The rewrite operator (!) whose effective subject set is its first operand minus its second — set difference, not a deny rule.

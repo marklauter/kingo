@@ -38,6 +38,7 @@ Queue order: rewrite interpreters first (selected 2026-07-15 — the consumer th
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] — **deferred** until the first wire consumer (the REST hosts); retitled "IParse-keyed converters for the JSON and YAML adapters" — the leak half is dead, the constructive half waits.
 - [[storage-versioning-design]] — **open**; design the versioning system (zookies, write CAS, Watch cursors — one scheme, three consumers) when storage work begins.
 - [[caller-identity]] — **open**; what "caller identity" means at the Check host edge (network context, principal, OBO chain) and the three authorization decisions an OBO call implies, including Kingo authorizing calls to itself.
+- [[sdl-parse-layer-has-no-input-size-bound]] — **open**; the depth guards bound nesting exactly but total input size is unbounded (linear CPU/memory, full-expression echo in errors); decide where the size bound lives with the first service edge.
 - [[pin-sdk-10.0.204]] — **closed** 2026-07-21; `global.json` pins 10.0.204 with `rollForward: disable` — CI hermetic and fail-loud.
 - [[ivalue-tself-tvalue-absorbs-all-value-type-wrappers]] — **closed** 2026-07-14 by fresh construction of the core.
 - [[dissolve-kingo-pdl-under-hexagonal-layout]] — **closed** 2026-07-14: `Kingo.Serialization.Pdl` adapter landed (first port, adapter-layer ArchUnit rules), quarry deleted; the adapter is since renamed `Kingo.Sdl` and the port dissolved.

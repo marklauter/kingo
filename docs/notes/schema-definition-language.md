@@ -4,10 +4,13 @@ summary: "The Schema Definition Language: a YAML document carrying the schema's 
 aliases: [pdl-yaml, sdl-yaml]
 tags: [note, spec, sdl, yaml]
 created: 2026-05-12
-status: evolving
+status: superseded
+superseded-by: "[[kingo-wire-format]]"
 ---
 
 # SDL — YAML structure with embedded rewrite expressions
+
+> Superseded 2026-07-22 by [[kingo-wire-format]]. The rewrite-expression grammar, precedence, and reserved words folded into that spec unchanged; the document envelope below (`schema:`/`namespaces:` keys, `SchemaIdentifier`, `sdl.document`/`schema_id.*` errors) predates [[schema-dissolves-into-administration]] and is stale. Kept for the prior-art record until the corpus reframe lands ([[dissolve-schema-into-administration]]).
 
 The Schema Definition Language names a schema and defines its namespaces and their relationships ([[domain-language]]: the schema-side record is `Relationship`, the algebra is `SubjectSetRewrite`). SDL is one of the two sublanguages of the **Authorization Graph Language (AGL)** — Kingo's counterpart to SQL, named in [[domain-language]]. SDL is the DDL half, defining what edges may exist; FML, the Fact Mutation Language, is the DML half that mutates the edges that do ([[graph-document-is-bulk-dml]]). The outer structure is YAML; each relationship's optional **rewrite expression** is a small embedded language parsed with [Superpower](https://github.com/datalust/superpower). Implemented by `Kingo.Sdl` per [[dissolve-kingo-pdl-under-hexagonal-layout]] — parse errors accumulate as `Result` validation failures, the transform exits through `Namespace.Create` and `Schema.Create`, and the serializer's newline is pinned to `\n`.
 
@@ -44,7 +47,7 @@ A structural note the adapter honors: a run of consecutive same-operator applica
 #   & = intersection operator
 #   | = union operator
 
-schema: acme                      # the schema's name, and its domain key
+schema: io                      # the schema's name, and its domain key
 
 namespaces:
   file:                           # namespace
