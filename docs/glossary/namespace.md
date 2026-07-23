@@ -5,11 +5,11 @@ tags: [glossary, schema]
 created: 2026-07-18
 status: locked
 contrast:
-  - "[[schema]]"
+  - "[[spec]]"
 ---
 
 A named grouping of relationship definitions — the stored, versioned unit of configuration, globally unique within an installation.
 
 ## Contrasts
 
-- `schema` — the human grouping over namespaces for authoring and ownership; nothing is stored under it.
+- `spec` — the owned set that groups and names namespaces; a namespace is one member.
