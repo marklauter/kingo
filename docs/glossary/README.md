@@ -36,6 +36,7 @@ One file per term, each reduced to the word plus the smallest phrase that unpack
 - [[relationship]]
 - [[resource]]
 - [[schema]]
+- [[spec]]
 - [[subject]]
 - [[subject-set]]
 - [[subject-set-rewrite]]

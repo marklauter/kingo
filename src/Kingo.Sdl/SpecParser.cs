@@ -7,43 +7,43 @@ using YamlDotNet.RepresentationModel;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// The parse half of the SDL adapter: Schema Definition Language document text ([[schema-definition-language]]) to the core schema model
-/// (<see cref="SchemaPrinter.Print"/> renders the other direction). YAML carries the schema name and the outer namespace map; each relationship's optional rewrite
+/// The parse half of the SDL adapter: Schema Definition Language document text ([[schema-definition-language]]) to the core spec model
+/// (<see cref="SpecPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map; each relationship's optional rewrite
 /// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionPrinter"/>. Parsing exits through
-/// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>SchemaIdentifier.Parse</c>, <c>Namespace.Create</c>,
-/// <c>Schema.Create</c> — accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
+/// the core's validating factories — <c>RelationshipIdentifier.Parse</c>, <c>NamespaceIdentifier.Parse</c>, <c>SpecIdentifier.Parse</c>, <c>Namespace.Create</c>,
+/// <c>Spec.Create</c> — accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
-public static class SchemaParser
+public static class SpecParser
 {
     private const string NameKey = "schema";
     private const string NamespacesKey = "namespaces";
 
     /// <summary>
-    /// Parses untrusted SDL text, returning the defined <see cref="Schema"/> or every accumulated validation <see cref="Error"/> in document order: <c>sdl.syntax</c>
+    /// Parses untrusted SDL text, returning the defined <see cref="Spec"/> or every accumulated validation <see cref="Error"/> in document order: <c>sdl.syntax</c>
     /// (malformed YAML), <c>sdl.document</c> (not a single mapping, or missing/misshapen <c>schema:</c> / <c>namespaces:</c> keys),
     /// <c>sdl.namespace</c> / <c>sdl.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
     /// <c>sdl.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>sdl.rewrite</c> (bad rewrite expressions), plus whatever
     /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> / <c>namespace.dangling_reference</c> /
-    /// <c>namespace.rewrite_cycle</c> via <c>Namespace.Create</c>, and <c>schema.empty</c> /
-    /// <c>schema.duplicate_namespace</c> via <c>Schema.Create</c> — YAML keys are case-sensitive but namespace identity is not, so case-variant keys collapse
+    /// <c>namespace.rewrite_cycle</c> via <c>Namespace.Create</c>, and <c>spec.empty</c> /
+    /// <c>spec.duplicate_namespace</c> via <c>Spec.Create</c> — YAML keys are case-sensitive but namespace identity is not, so case-variant keys collapse
     /// to one identity after lowercase normalization and fail as duplicates.
     /// </summary>
-    public static Result<Schema> Parse(string text) =>
+    public static Result<Spec> Parse(string text) =>
         LoadDocument(text)
             .Bind(document => Result.Apply(
-                ParseName(document).Map<Func<ImmutableArray<Namespace>, (SchemaIdentifier Name, ImmutableArray<Namespace> Namespaces)>>(
+                ParseName(document).Map<Func<ImmutableArray<Namespace>, (SpecIdentifier Name, ImmutableArray<Namespace> Namespaces)>>(
                     name => namespaces => (name, namespaces)),
                 ParseNamespaces(document)))
-            .Bind(schema => Schema.Create(schema.Name, schema.Namespaces));
+            .Bind(spec => Spec.Create(spec.Name, spec.Namespaces));
 
-    /// <summary>The document's <c>schema:</c> key — the schema's name, and its domain key (<see cref="SchemaIdentifier"/> owns the grammar).</summary>
-    private static Result<SchemaIdentifier> ParseName(YamlMappingNode document) =>
+    /// <summary>The document's <c>schema:</c> key — the spec's name, and its domain key (<see cref="SpecIdentifier"/> owns the grammar).</summary>
+    private static Result<SpecIdentifier> ParseName(YamlMappingNode document) =>
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
-            ? SchemaIdentifier.Parse(scalar.Value!)
-            : Result.Failure<SchemaIdentifier>(Error.Validation("sdl.document", $"a SDL document requires a '{NameKey}:' key naming the schema, with a scalar value"));
+            ? SpecIdentifier.Parse(scalar.Value!)
+            : Result.Failure<SpecIdentifier>(Error.Validation("sdl.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
 
-    /// <summary>The document's <c>namespaces:</c> key — the namespace map. Its emptiness is <c>Schema.Create</c>'s call (<c>schema.empty</c>), not this adapter's.</summary>
+    /// <summary>The document's <c>namespaces:</c> key — the namespace map. Its emptiness is <c>Spec.Create</c>'s call (<c>spec.empty</c>), not this adapter's.</summary>
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
         document.Children.TryGetValue(new YamlScalarNode(NamespacesKey), out var namespaces) && namespaces is YamlMappingNode map
             ? map.Children.Select(ParseNamespace).Sequence()

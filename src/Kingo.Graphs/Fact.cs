@@ -13,7 +13,7 @@ namespace Kingo.Graphs;
 /// punctuation, not a relationship. The hierarchy is closed; pattern-match to consume. A set-membership assertion read set-first: the RDF-subject is the
 /// left-hand <see cref="SubjectSet"/>, the predicate is membership itself (∋), and the RDF-object is the member asserted into the set. An aggregate root:
 /// created and deleted atomically, never mutated; its domain key is the whole value. Covers permission edges, memberships, and structural edges alike —
-/// access semantics come from the rewrite rules, not the fact itself. Not to be confused with <c>Kingo.Schemas.Relationship</c>, the schema-side definition.
+/// access semantics come from the rewrite rules, not the fact itself. Not to be confused with <c>Kingo.Schemas.Relationship</c>, the spec-side definition.
 /// </summary>
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Fact is a discriminated union; SubjectFact, SubjectSetFact, and ResourceFact are its cases, nested under the closed base and deliberately public — Fact.SubjectFact reads as the case it is.")]
 public abstract record Fact

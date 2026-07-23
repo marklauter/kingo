@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class SchemaIdentifierTests
+public sealed class SpecIdentifierTests
 {
     [Theory]
     [InlineData("acme")]
@@ -12,7 +12,7 @@ public sealed class SchemaIdentifierTests
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<SchemaIdentifier>.Success>(SchemaIdentifier.Parse(input));
+        var s = Assert.IsType<Result<SpecIdentifier>.Success>(SpecIdentifier.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -22,7 +22,7 @@ public sealed class SchemaIdentifierTests
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<SchemaIdentifier>.Success>(SchemaIdentifier.Parse(input));
+        var s = Assert.IsType<Result<SpecIdentifier>.Success>(SpecIdentifier.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class SchemaIdentifierTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<SchemaIdentifier>.Failure>(SchemaIdentifier.Parse(input!));
+        var f = Assert.IsType<Result<SpecIdentifier>.Failure>(SpecIdentifier.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("schema_id.empty", error.Code);
+        Assert.Equal("spec_id.empty", error.Code);
     }
 
     [Theory]
@@ -52,44 +52,44 @@ public sealed class SchemaIdentifierTests
     [InlineData("@")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<SchemaIdentifier>.Failure>(SchemaIdentifier.Parse(input));
+        var f = Assert.IsType<Result<SpecIdentifier>.Failure>(SpecIdentifier.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("schema_id.invalid", error.Code);
+        Assert.Equal("spec_id.invalid", error.Code);
     }
 
     [Fact]
     public void Parse_AcceptsTheSameGrammarAsNamespaceIdentifier()
     {
-        // schema and namespace names are the same kind of thing — authored vocabulary — and share a grammar
+        // spec and namespace names are the same kind of thing — authored vocabulary — and share a grammar
         // ([[domain-language]]); this pins that they do not drift apart silently
         string[] inputs = ["acme", "ACME", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 
         foreach (var input in inputs)
             Assert.Equal(
-                SchemaIdentifier.Parse(input) is Result<SchemaIdentifier>.Success,
+                SpecIdentifier.Parse(input) is Result<SpecIdentifier>.Success,
                 NamespaceIdentifier.Parse(input) is Result<NamespaceIdentifier>.Success);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SchemaIdentifier.Unchecked("0-not.valid:");
+        var id = SpecIdentifier.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = SchemaIdentifier.Unchecked("ACME");
+        var id = SpecIdentifier.Unchecked("ACME");
         Assert.Equal("ACME", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SchemaIdentifier.Unchecked("acme");
-        var b = SchemaIdentifier.Unchecked("acme");
+        var a = SpecIdentifier.Unchecked("acme");
+        var b = SpecIdentifier.Unchecked("acme");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -100,8 +100,8 @@ public sealed class SchemaIdentifierTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SchemaIdentifier.Unchecked("acme");
-        var b = SchemaIdentifier.Unchecked("globex");
+        var a = SpecIdentifier.Unchecked("acme");
+        var b = SpecIdentifier.Unchecked("globex");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -111,8 +111,8 @@ public sealed class SchemaIdentifierTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = SchemaIdentifier.Unchecked("a");
-        var b = SchemaIdentifier.Unchecked("b");
+        var a = SpecIdentifier.Unchecked("a");
+        var b = SpecIdentifier.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -129,7 +129,7 @@ public sealed class SchemaIdentifierTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SchemaIdentifier.Unchecked("acme");
+        var id = SpecIdentifier.Unchecked("acme");
         Assert.Equal("acme", id.ToString());
     }
 }

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Kingo.Schemas.Tests;
 
-public sealed class SchemaTests
+public sealed class SpecTests
 {
     private static Namespace Ns(string name, params string[] relationships) =>
         Assert.IsType<Result<Namespace>.Success>(
@@ -12,12 +12,12 @@ public sealed class SchemaTests
                 NamespaceIdentifier.Unchecked(name),
                 [.. relationships.Select(r => new Relationship(RelationshipIdentifier.Unchecked(r)))])).Value;
 
-    private static SchemaIdentifier Id(string name) => SchemaIdentifier.Unchecked(name);
+    private static SpecIdentifier Id(string name) => SpecIdentifier.Unchecked(name);
 
-    private static Schema Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
+    private static Spec Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
 
-    private static Schema Make(SchemaIdentifier name, ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Schema>.Success>(Schema.Create(name, namespaces)).Value;
+    private static Spec Make(SpecIdentifier name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
 
     [Fact]
     public void Equals_ElementWiseEqualNamespaces_AreEqualWithMatchingHashCodes()
@@ -73,7 +73,7 @@ public sealed class SchemaTests
     [Fact]
     public void Equals_DifferentNames_NotEqual()
     {
-        // the name is the schema's domain key, so it is part of the value's identity
+        // the name is the spec's domain key, so it is part of the value's identity
         var a = Make(Id("acme"), [Ns("doc", "viewer")]);
         var b = Make(Id("globex"), [Ns("doc", "viewer")]);
 
@@ -81,11 +81,11 @@ public sealed class SchemaTests
     }
 
     [Fact]
-    public void Create_Name_IsCarriedOntoTheSchema()
+    public void Create_Name_IsCarriedOntoTheSpec()
     {
-        var schema = Make(Id("acme"), [Ns("doc", "viewer")]);
+        var spec = Make(Id("acme"), [Ns("doc", "viewer")]);
 
-        Assert.Equal(Id("acme"), schema.Name);
+        Assert.Equal(Id("acme"), spec.Name);
     }
 
     [Fact]
@@ -115,53 +115,53 @@ public sealed class SchemaTests
     [Fact]
     public void Create_UniqueNamespaceNames_ReturnsSuccessEqualToConstructed()
     {
-        var result = Schema.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
+        var result = Spec.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
 
-        var success = Assert.IsType<Result<Schema>.Success>(result);
+        var success = Assert.IsType<Result<Spec>.Success>(result);
         Assert.Equal(Make([Ns("doc", "viewer"), Ns("folder", "parent")]), success.Value);
     }
 
     [Fact]
     public void Create_EmptyNamespaces_ReturnsValidationFailure()
     {
-        var result = Schema.Create(Id("test"), []);
+        var result = Spec.Create(Id("test"), []);
 
-        var failure = Assert.IsType<Result<Schema>.Failure>(result);
+        var failure = Assert.IsType<Result<Spec>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("schema.empty", error.Code);
+        Assert.Equal("spec.empty", error.Code);
     }
 
     [Fact]
     public void Create_DefaultArray_ReturnsValidationFailure()
     {
-        var result = Schema.Create(Id("test"), default);
+        var result = Spec.Create(Id("test"), default);
 
-        var failure = Assert.IsType<Result<Schema>.Failure>(result);
+        var failure = Assert.IsType<Result<Spec>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("schema.empty", error.Code);
+        Assert.Equal("spec.empty", error.Code);
     }
 
     [Fact]
     public void Create_DuplicateNamespaceName_ReturnsValidationFailure()
     {
-        var result = Schema.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
+        var result = Spec.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
 
-        var failure = Assert.IsType<Result<Schema>.Failure>(result);
+        var failure = Assert.IsType<Result<Spec>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("schema.duplicate_namespace", error.Code);
+        Assert.Equal("spec.duplicate_namespace", error.Code);
         Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void Create_MultipleDuplicatedNames_AccumulatesOneErrorPerNameInFirstOccurrenceOrder()
     {
-        var result = Schema.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
+        var result = Spec.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
 
-        var failure = Assert.IsType<Result<Schema>.Failure>(result);
+        var failure = Assert.IsType<Result<Spec>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("schema.duplicate_namespace", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("spec.duplicate_namespace", error.Code));
         Assert.Contains("'doc'", failure.Errors[0].Message, StringComparison.Ordinal);
         Assert.Contains("'folder'", failure.Errors[1].Message, StringComparison.Ordinal);
     }
@@ -172,8 +172,8 @@ public sealed class SchemaTests
         // Uniqueness is ordinal over canonical values. Parsed namespace names are always
         // lowercase; mixed case here is only reachable through the trusted Unchecked path,
         // and Create compares what it is given.
-        var result = Schema.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
+        var result = Spec.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
 
-        _ = Assert.IsType<Result<Schema>.Success>(result);
+        _ = Assert.IsType<Result<Spec>.Success>(result);
     }
 }

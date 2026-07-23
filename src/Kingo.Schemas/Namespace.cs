@@ -5,8 +5,8 @@ namespace Kingo.Schemas;
 
 /// <summary>
 /// A namespace's definition <b>as a value</b> — an immutable snapshot of its relationships and their rewrites,
-/// with structural equality. Parse-agnostic and storable. An entity within the <see cref="Schema"/> aggregate,
-/// not a root: its identity is local — <see cref="Name"/> unique within its schema (names arrive canonical lowercase
+/// with structural equality. Parse-agnostic and storable. An entity within the <see cref="Spec"/> aggregate,
+/// not a root: its identity is local — <see cref="Name"/> unique within its spec (names arrive canonical lowercase
 /// through <c>Parse</c>; the comparison here is ordinal), immutable
 /// (there is no rename, only a new namespace). <see cref="Create"/> is the only construction path, so a
 /// <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
@@ -36,7 +36,7 @@ public sealed record Namespace
     /// <see cref="FactToSubjectSetRewrite.ComputedSubjectSetRelationship"/> targets another namespace and stays the interpreter's condition 4), then cycles in
     /// the zero-fact recursion graph (<c>namespace.rewrite_cycle</c>, each error carrying the full cycle path — edges are
     /// <see cref="ComputedSubjectSetRewrite"/> references; factset arms cannot recurse without consuming a stored fact, so they belong to the evaluator's depth
-    /// bound, not this check; [[rewrite-interpreters]]). The schema model has no core <c>Parse</c> — its text forms live in serialization adapters, which call
+    /// bound, not this check; [[rewrite-interpreters]]). The spec model has no core <c>Parse</c> — its text forms live in serialization adapters, which call
     /// this after decoding ([[domain-language]]).
     /// </summary>
     public static Result<Namespace> Create(NamespaceIdentifier name, ImmutableArray<Relationship> relationships)
@@ -132,7 +132,7 @@ public sealed record Namespace
     /// <summary>
     /// Depth-first search over the zero-fact recursion graph — nodes are the namespace's relationships, edges its <see cref="ComputedSubjectSetRewrite"/>
     /// references — reporting one error per back edge the search meets (not one per elementary cycle: cycles sharing a node can collapse into one report;
-    /// a defective schema always fails, but fixing one cycle can surface another), each error carrying the full cycle path so the schema is diagnosable
+    /// a defective spec always fails, but fixing one cycle can surface another), each error carrying the full cycle path so the spec is diagnosable
     /// without re-deriving the graph. Runs after the dangling-reference stage, so every edge target is a defined node. Mutable three-color bookkeeping with an
     /// explicit frame stack rather than an expression pipeline or recursion: the path that makes the error message is inherently stateful, and this runs on
     /// untrusted input, so input shape must not pick the stack depth.

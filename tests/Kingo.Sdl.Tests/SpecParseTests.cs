@@ -5,7 +5,7 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SchemaParseTests
+public sealed class SpecParseTests
 {
     [Fact]
     public void Parse_SimpleDocument_ReturnsDefinedNamespaces()
@@ -30,7 +30,7 @@ public sealed class SchemaParseTests
                 ]),
         ];
 
-        Assert.Equal(MakeSchema(SchemaId("acme"), expected), ParseSuccess(sdl));
+        Assert.Equal(MakeSpec(SpecId("acme"), expected), ParseSuccess(sdl));
     }
 
     [Fact]
@@ -188,12 +188,12 @@ public sealed class SchemaParseTests
     [InlineData("schema: acme\nnamespaces: 5", "sdl.document")] // 'namespaces:' is not a mapping
     [InlineData("schema: acme\nnamespaces: []", "sdl.document")]
     [InlineData("schema: [acme]\nnamespaces:\n  file:\n    - owner", "sdl.document")] // 'schema:' is not a scalar
-    [InlineData("schema:\nnamespaces:\n  file:\n    - owner", "schema_id.empty")] // a valueless 'schema:' loads as an empty scalar, which the identifier grammar rejects
+    [InlineData("schema:\nnamespaces:\n  file:\n    - owner", "spec_id.empty")] // a valueless 'schema:' loads as an empty scalar, which the identifier grammar rejects
     [InlineData("file:\n  - owner", "sdl.document")] // the bare namespace map is no longer a document
-    [InlineData("schema: ''\nnamespaces:\n  file:\n    - owner", "schema_id.empty")]
-    [InlineData("schema: acme corp\nnamespaces:\n  file:\n    - owner", "schema_id.invalid")]
-    [InlineData("schema: 123acme\nnamespaces:\n  file:\n    - owner", "schema_id.invalid")]
-    [InlineData("schema: acme-corp\nnamespaces:\n  file:\n    - owner", "schema_id.invalid")]
+    [InlineData("schema: ''\nnamespaces:\n  file:\n    - owner", "spec_id.empty")]
+    [InlineData("schema: acme corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
+    [InlineData("schema: 123acme\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
+    [InlineData("schema: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_id.invalid")]
     public void Parse_InvalidEnvelope_FailsWithExpectedCode(string sdl, string expectedCode)
     {
         var errors = ParseFailure(sdl);
@@ -203,29 +203,29 @@ public sealed class SchemaParseTests
     }
 
     [Fact]
-    public void Parse_SchemaName_IsTheSchemasDomainKey()
+    public void Parse_SpecName_IsTheSpecsDomainKey()
     {
-        var schema = ParseSuccess(Document("file:\n  - owner", name: "acme"));
+        var spec = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
-        Assert.Equal(SchemaId("acme"), schema.Name);
+        Assert.Equal(SpecId("acme"), spec.Name);
     }
 
     [Fact]
-    public void Parse_MixedCaseSchemaName_NormalizesToLowercase()
+    public void Parse_MixedCaseSpecName_NormalizesToLowercase()
     {
-        var schema = ParseSuccess(Document("file:\n  - owner", name: "ACME"));
+        var spec = ParseSuccess(Document("file:\n  - owner", name: "ACME"));
 
-        Assert.Equal(SchemaId("acme"), schema.Name);
+        Assert.Equal(SpecId("acme"), spec.Name);
     }
 
     [Fact]
     public void Parse_DefectsInNameAndNamespaces_AccumulateAcrossBoth()
     {
-        // Result.Apply accumulates the envelope's two halves: a bad schema name does not mask namespace defects
+        // Result.Apply accumulates the envelope's two halves: a bad spec name does not mask namespace defects
         var errors = ParseFailure("schema: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
-        Assert.Equal("schema_id.invalid", errors[0].Code);
+        Assert.Equal("spec_id.invalid", errors[0].Code);
         Assert.Equal("namespace_id.invalid", errors[1].Code);
     }
 
@@ -244,7 +244,7 @@ public sealed class SchemaParseTests
     {
         // SDL owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
         // to a relationship named null — which is also what lets that name survive a round trip, since the
-        // renderer emits it unquoted (SchemaPrinter.Print)
+        // renderer emits it unquoted (SpecPrinter.Print)
         var ns = Assert.Single(ParseSuccess(Document("file:\n  - null\n  - viewer: null")).Namespaces);
 
         ImmutableArray<Relationship> expected = [Bare("null"), new Relationship(Rel("viewer"), Computed("null"))];
@@ -289,7 +289,7 @@ public sealed class SchemaParseTests
         var errors = ParseFailure(Document("file:\n  - owner\nFILE:\n  - viewer"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("schema.duplicate_namespace", error.Code);
+        Assert.Equal("spec.duplicate_namespace", error.Code);
         Assert.Contains("'file'", error.Message, StringComparison.Ordinal);
     }
 
@@ -327,12 +327,12 @@ public sealed class SchemaParseTests
     }
 
     [Fact]
-    public void Parse_EmptyNamespaceMap_FailsAsEmptySchema()
+    public void Parse_EmptyNamespaceMap_FailsAsEmptySpec()
     {
-        // a schema is never empty: the absence of namespaces is the absence of a schema
+        // a spec is never empty: the absence of namespaces is the absence of a spec
         var errors = ParseFailure(Document("{}"));
 
-        Assert.Equal("schema.empty", Assert.Single(errors).Code);
+        Assert.Equal("spec.empty", Assert.Single(errors).Code);
     }
 
     [Theory]

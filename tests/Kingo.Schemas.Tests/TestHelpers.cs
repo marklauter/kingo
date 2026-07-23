@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Kingo.Schemas.Tests;
 
-/// <summary>Shared construction and unwrap helpers for the schema-model tests — import with <c>using static</c>.</summary>
+/// <summary>Shared construction and unwrap helpers for the spec-model tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
     public static RelationshipIdentifier Rel(string value) => RelationshipIdentifier.Unchecked(value);
