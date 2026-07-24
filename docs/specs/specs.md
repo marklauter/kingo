@@ -1,6 +1,6 @@
 ---
 title: specs
-summary: "The authored form of a spec: a YAML document naming one spec and defining its namespaces and their relationships, with each rewrite written as an expression in a small embedded language."
+summary: "A spec is a named grouping of namespaces of relationships, each relationship a named subject-set rewrite. A domain entity, projected to and from YAML as its wire and storage form."
 tags: [spec, schema]
 created: 2026-07-23
 status: evolving
@@ -18,11 +18,13 @@ cites:
 
 # Specs
 
-One document defines one [[spec]]: its name, its [[namespace]]s, and their [[relationship]]s. A write replaces the spec whole. Omit a relationship and the write removes it.
+A [[spec]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]]. A spec sits above its namespaces as a super-namespace: a resource is addressed as its spec, then its namespace.
 
-## Document
+A spec is a domain entity. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the spec, not the spec itself. This document defines the spec: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed spec obeys.
 
-Two keys. `spec:` is the spec's name, `namespaces:` a map of namespace name to relationship list. The name lives in the document rather than arriving out of band, so the printer can emit every part of the value it was given and a document round-trips.
+## Projection
+
+A spec projects to a YAML document with two keys. `spec:` is the spec's name; `namespaces:` maps each namespace name to its relationship list. The name travels inside the projection rather than arriving out of band, so the printer emits every part of the spec it was given and the document round-trips. A write carries a whole document and replaces the spec whole. Omit a relationship and the write removes it.
 
 ```yaml
 spec: io
@@ -60,33 +62,33 @@ Three operators, in binding order:
 
 Each binds tighter than the one below it, so `a | b & c` is `a | (b & c)`. This matches ordinary math: `&` binds before `|`, the way `×` binds before `+`. Each level reads left to right, so `a ! b ! c` is `(a ! b) ! c`.
 
-EBNF, with the operators and conventions given in [[identifiers]].
+EBNF conventions are given in [[identifiers]].
 
 ```ebnf
-⟨rewrite⟩              ::= ⟨union⟩
+⟨subject-set-rewrite⟩  ::= ⟨union⟩
 ⟨union⟩                ::= ⟨intersection⟩ { '|' ⟨intersection⟩ }
 ⟨intersection⟩         ::= ⟨exclusion⟩ { '&' ⟨exclusion⟩ }
 ⟨exclusion⟩            ::= ⟨term⟩ { '!' ⟨term⟩ }
 ⟨term⟩                 ::= 'this'
                          | ⟨computed-subject-set⟩
                          | ⟨fact-to-subject-set⟩
-                         | '(' ⟨rewrite⟩ ')'
+                         | '(' ⟨subject-set-rewrite⟩ ')'
 
-⟨computed-subject-set⟩ ::= ⟨name⟩
-⟨fact-to-subject-set⟩  ::= '(' ⟨factset name⟩ ',' ⟨computed name⟩ ')'
-⟨factset name⟩         ::= ⟨name⟩
-⟨computed name⟩        ::= ⟨name⟩
+⟨computed-subject-set⟩ ::= ⟨relationship name⟩
+⟨fact-to-subject-set⟩  ::= '(' ⟨factset relationship⟩ ',' ⟨computed-subject-set relationship⟩ ')'
+⟨factset relationship⟩ ::= ⟨relationship name⟩
+⟨computed-subject-set relationship⟩ ::= ⟨relationship name⟩
 
-⟨name⟩                 ::= ⟨name-start⟩ { ⟨name-char⟩ }     excluding 'this'
+⟨relationship name⟩    ::= ⟨name-start⟩ { ⟨name-char⟩ }     excluding 'this'
 ⟨name-start⟩           ::= ⟨letter⟩ | '_'
 ⟨name-char⟩            ::= ⟨letter⟩ | ⟨digit⟩ | '_'
 ⟨letter⟩               ::= 'a'…'z' | 'A'…'Z'
 ⟨digit⟩                ::= '0'…'9'
 ```
 
-`⟨factset name⟩` names the relationship whose facts the walk reads. `⟨computed name⟩` is evaluated on each resource that walk reaches.
+`⟨factset relationship⟩` names the relationship whose facts the walk reads. `⟨computed-subject-set relationship⟩` is evaluated on each resource that the walk reaches.
 
-`⟨name⟩` is the production behind `⟨spec name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` in [[identifiers]], and it governs all four name positions in a document: the `spec:` value, the namespace keys, the relationship names, and the names inside a rewrite.
+Every name a rewrite holds is a `⟨relationship name⟩`, evaluated against the resource in hand. Its character grammar — `⟨name-start⟩` through `⟨digit⟩` — also forms the `spec:` value and the namespace keys, the `⟨spec name⟩` and `⟨namespace name⟩` productions in [[identifiers]].
 
 A run of one operator parses to a single n-ary node. Parentheses survive as structure, so the parser never flattens across them. The printer parenthesizes by grammar position, so a [[subject-set-rewrite]] tree round-trips to a structurally equal tree.
 
@@ -103,7 +105,7 @@ A [[computed-subject-set]] names another relationship in the same namespace. A [
 - A relationship written as a pair with no expression, `- owner:`, is rejected. It always reads as a forgotten rewrite, so it gets a pointed error rather than a default.
 - A namespace with no relationships is valid, written `file:` or `file: []`.
 - A namespace may not define the same relationship name twice, before or after normalization.
-- Every computed-subject-set name and every `⟨factset name⟩` must name a relationship in the same namespace, in any order. The parser doesn't check `⟨computed name⟩`, because the namespace it resolves in depends on facts.
+- Every computed-subject-set name and every `⟨factset relationship⟩` must name a relationship in the same namespace, in any order. The parser doesn't check `⟨computed-subject-set relationship⟩`, because the namespace it resolves in depends on facts.
 - Computed-subject-set references must not form a cycle. The check covers computed-subject-set edges only, so a walk may reach its own relationship, as `folder`'s `viewer` does through `(parent, viewer)`.
 - A spec defines at least one namespace. The absence of namespaces is the absence of a spec, so an empty `namespaces:` map is rejected.
 - No relationship may be named `this`, spelled any way — `This` and `THIS` are refused too, since names normalize to lowercase. The word lexes as the direct-membership keyword, so a relationship named `this` could never be referenced. The core accepts the name; this format reserves it.
