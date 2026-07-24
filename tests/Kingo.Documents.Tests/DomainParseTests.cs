@@ -1,9 +1,9 @@
 using Kingo.Domains;
 using Results;
 using System.Collections.Immutable;
-using static Kingo.Sdl.Tests.TestHelpers;
+using static Kingo.Documents.Tests.TestHelpers;
 
-namespace Kingo.Sdl.Tests;
+namespace Kingo.Documents.Tests;
 
 public sealed class DomainParseTests
 {

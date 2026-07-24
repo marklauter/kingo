@@ -6,7 +6,7 @@ using Superpower.Parsers;
 using Superpower.Tokenizers;
 using System.Collections.Immutable;
 
-namespace Kingo.Sdl;
+namespace Kingo.Documents;
 
 /// <summary>
 /// Recursive-descent parser for the rewrite-expression mini-language embedded in SDL relationship values, for example

@@ -1,6 +1,6 @@
 using Kingo.Domains;
 
-namespace Kingo.Sdl;
+namespace Kingo.Documents;
 
 /// <summary>
 /// Renders a <c>SubjectSetRewrite</c> tree as rewrite-expression text (grammar: [[specs]]). Parenthesization is decided by grammar position,

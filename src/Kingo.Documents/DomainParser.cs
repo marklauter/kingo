@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using YamlDotNet.Core;
 using YamlDotNet.RepresentationModel;
 
-namespace Kingo.Sdl;
+namespace Kingo.Documents;
 
 /// <summary>
 /// The parse half of the SDL adapter: Schema Definition Language document text ([[specs]]) to the core domain model

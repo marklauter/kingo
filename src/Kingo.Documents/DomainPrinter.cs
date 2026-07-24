@@ -1,7 +1,7 @@
 using Kingo.Domains;
 using YamlDotNet.Serialization;
 
-namespace Kingo.Sdl;
+namespace Kingo.Documents;
 
 /// <summary>
 /// Renders a <see cref="Domain"/> to its SDL document text, the serialize half of the SDL round trip (<see cref="DomainParser.Parse"/> is the

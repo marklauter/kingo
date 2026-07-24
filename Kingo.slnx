@@ -4,7 +4,7 @@
     <Project Path="src/Kingo.Closures/Kingo.Closures.csproj" />
     <Project Path="src/Kingo.Facts/Kingo.Facts.csproj" />
     <Project Path="src/Kingo.Domains/Kingo.Domains.csproj" />
-    <Project Path="src/Kingo.Sdl/Kingo.Sdl.csproj" />
+    <Project Path="src/Kingo.Documents/Kingo.Documents.csproj" />
     <Project Path="src/Kingo.Serialization.Json/Kingo.Serialization.Json.csproj" />
     <Project Path="src/Results/Results.csproj" />
     <Project Path="src/Values/Values.csproj" />
@@ -13,7 +13,7 @@
     <Project Path="tests/Kingo.Closures.Tests/Kingo.Closures.Tests.csproj" />
     <Project Path="tests/Kingo.Facts.Tests/Kingo.Facts.Tests.csproj" />
     <Project Path="tests/Kingo.Domains.Tests/Kingo.Domains.Tests.csproj" />
-    <Project Path="tests/Kingo.Sdl.Tests/Kingo.Sdl.Tests.csproj" />
+    <Project Path="tests/Kingo.Documents.Tests/Kingo.Documents.Tests.csproj" />
     <Project Path="tests/Kingo.Serialization.Json.Tests/Kingo.Serialization.Json.Tests.csproj" />
     <Project Path="tests/Kingo.Testing/Kingo.Testing.csproj" />
     <Project Path="tests/Kingo.Tests/Kingo.Tests.csproj" />

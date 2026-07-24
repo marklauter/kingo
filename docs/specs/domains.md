@@ -18,7 +18,7 @@ cites:
 
 # Domains
 
-A [[domain]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]]. A domain sits above its namespaces as a super-namespace: a resource is addressed as its domain, then its namespace.
+A [[domain]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]].
 
 A domain is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the domain, not the domain itself. This document defines the domain: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed domain obeys.
 
