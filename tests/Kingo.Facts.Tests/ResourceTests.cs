@@ -1,4 +1,4 @@
-namespace Kingo.Graphs.Tests;
+namespace Kingo.Facts.Tests;
 
 public sealed class ResourceTests
 {

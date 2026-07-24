@@ -1,4 +1,4 @@
-namespace Kingo.Graphs;
+namespace Kingo.Facts;
 
 /// <summary>
 /// The set of subjects that hold <see cref="Relationship"/> on <see cref="Resource"/>. The <c>&lt;subject-set&gt;</c> production of the fact grammar:

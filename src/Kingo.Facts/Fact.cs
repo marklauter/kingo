@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Graphs;
+namespace Kingo.Facts;
 
 /// <summary>
 /// A stored fact. The <c>&lt;fact&gt;</c> production of the fact grammar: <c>&lt;subjectset&gt;@&lt;subject&gt;</c>,

@@ -88,7 +88,7 @@ public sealed class RelationshipNameTests
         {
             Assert.Equal(
                 RelationshipName.Parse(input) is Result<RelationshipName>.Success,
-                SpecName.Parse(input) is Result<SpecName>.Success);
+                DomainName.Parse(input) is Result<DomainName>.Success);
             Assert.Equal(
                 RelationshipName.Parse(input) is Result<RelationshipName>.Success,
                 NamespaceName.Parse(input) is Result<NamespaceName>.Success);

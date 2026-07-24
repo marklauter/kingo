@@ -12,11 +12,11 @@ public sealed class ArchitectureTests()
     /// in <c>Kingo</c>.
     /// </summary>
     [Fact]
-    public void DoesNotDependOnGraphs()
+    public void DoesNotDependOnFacts()
     {
         var violations = Assembly.Load("Kingo.Domains")
             .GetReferencedAssemblies()
-            .Where(reference => reference.Name == "Kingo.Graphs")
+            .Where(reference => reference.Name == "Kingo.Facts")
             .Select(reference => reference.FullName)
             .ToList();
 

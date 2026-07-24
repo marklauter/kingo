@@ -22,7 +22,7 @@ internal static class RewriteExpressionParser
 {
     /// <summary>Parses <paramref name="expression"/> into the core <c>SubjectSetRewrite</c> algebra.</summary>
     /// <returns>
-    /// A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>. A <c>spec.rewrite</c> validation failure when the
+    /// A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>. A <c>domain.rewrite</c> validation failure when the
     /// text does not tokenize, when parenthesis nesting exceeds <c>SubjectSetRewrite.MaxDepth</c>, or when the token stream does not parse.
     /// A <c>rewrite.depth</c> failure when the parsed tree exceeds <c>SubjectSetRewrite.MaxDepth</c>. Identifier validation failures from
     /// <c>RelationshipName.Parse</c> when any name in the expression is not a valid relationship name.
@@ -31,15 +31,15 @@ internal static class RewriteExpressionParser
     {
         var tokens = Tokenizer.TryTokenize(expression);
         if (!tokens.HasValue)
-            return Result.Failure<SubjectSetRewrite>(Error.Validation("spec.rewrite", $"invalid rewrite expression '{expression}': {tokens}"));
+            return Result.Failure<SubjectSetRewrite>(Error.Validation("domain.rewrite", $"invalid rewrite expression '{expression}': {tokens}"));
 
         if (WouldOverflowTheParserStack(tokens.Value))
             return Result.Failure<SubjectSetRewrite>(
-                Error.Validation("spec.rewrite", $"invalid rewrite expression '{expression}': parenthesis nesting exceeds {SubjectSetRewrite.MaxDepth} levels"));
+                Error.Validation("domain.rewrite", $"invalid rewrite expression '{expression}': parenthesis nesting exceeds {SubjectSetRewrite.MaxDepth} levels"));
 
         var parsed = Expression.AtEnd().TryParse(tokens.Value);
         return !parsed.HasValue
-            ? Result.Failure<SubjectSetRewrite>(Error.Validation("spec.rewrite", $"invalid rewrite expression '{expression}': {parsed}"))
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation("domain.rewrite", $"invalid rewrite expression '{expression}': {parsed}"))
             : ExceedsMaxDepth(parsed.Value)
                 ? Result.Failure<SubjectSetRewrite>(SubjectSetRewrite.DepthError())
                 : Transform(parsed.Value);

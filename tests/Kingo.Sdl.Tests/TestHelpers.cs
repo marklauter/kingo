@@ -15,7 +15,7 @@ internal static class TestHelpers
 
     public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
 
-    public static SpecName SpecId(string value) => SpecName.Unchecked(value);
+    public static DomainName SpecId(string value) => DomainName.Unchecked(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
@@ -39,16 +39,16 @@ internal static class TestHelpers
     public static Domain MakeSpec(ImmutableArray<Namespace> namespaces) =>
         MakeSpec(SpecId(DefaultSpecName), namespaces);
 
-    public static Domain MakeSpec(SpecName name, ImmutableArray<Namespace> namespaces) =>
+    public static Domain MakeSpec(DomainName name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
 
     /// <summary>
-    /// Wraps a namespace-map fragment in the SDL document envelope — the <c>spec:</c> name plus the <c>namespaces:</c> key — so a
+    /// Wraps a namespace-map fragment in the SDL document envelope — the <c>domain:</c> name plus the <c>namespaces:</c> key — so a
     /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
     /// <see cref="ParseFailure"/> directly.
     /// </summary>
     public static string Document(string namespaceMap, string name = DefaultSpecName) =>
-        $"spec: {name}\nnamespaces:\n{Indent(namespaceMap)}";
+        $"domain: {name}\nnamespaces:\n{Indent(namespaceMap)}";
 
     private static string Indent(string text) =>
         string.Join('\n', text.Split('\n').Select(line => line.Length == 0 ? line : $"  {line}"));

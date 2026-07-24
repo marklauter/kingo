@@ -12,7 +12,7 @@ public sealed class SpecNameTests
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<SpecName>.Success>(SpecName.Parse(input));
+        var s = Assert.IsType<Result<DomainName>.Success>(DomainName.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -22,7 +22,7 @@ public sealed class SpecNameTests
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<SpecName>.Success>(SpecName.Parse(input));
+        var s = Assert.IsType<Result<DomainName>.Success>(DomainName.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class SpecNameTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<SpecName>.Failure>(SpecName.Parse(input!));
+        var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec_name.empty", error.Code);
+        Assert.Equal("domain_name.empty", error.Code);
     }
 
     [Theory]
@@ -52,10 +52,10 @@ public sealed class SpecNameTests
     [InlineData("@")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<SpecName>.Failure>(SpecName.Parse(input));
+        var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec_name.invalid", error.Code);
+        Assert.Equal("domain_name.invalid", error.Code);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class SpecNameTests
 
         foreach (var input in inputs)
             Assert.Equal(
-                SpecName.Parse(input) is Result<SpecName>.Success,
+                DomainName.Parse(input) is Result<DomainName>.Success,
                 NamespacePath.Parse($"{input}/file") is Result<NamespacePath>.Success);
     }
 
@@ -78,29 +78,29 @@ public sealed class SpecNameTests
     public void Parse_QualifiedPath_IsNotASpecName(string input)
     {
         // a spec is one segment; anything carrying a separator names something below it
-        var f = Assert.IsType<Result<SpecName>.Failure>(SpecName.Parse(input));
-        Assert.Equal("spec_name.invalid", Assert.Single(f.Errors).Code);
+        var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input));
+        Assert.Equal("domain_name.invalid", Assert.Single(f.Errors).Code);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SpecName.Unchecked("0-not.valid:");
+        var id = DomainName.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = SpecName.Unchecked("ACME");
+        var id = DomainName.Unchecked("ACME");
         Assert.Equal("ACME", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SpecName.Unchecked("acme");
-        var b = SpecName.Unchecked("acme");
+        var a = DomainName.Unchecked("acme");
+        var b = DomainName.Unchecked("acme");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -111,8 +111,8 @@ public sealed class SpecNameTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SpecName.Unchecked("acme");
-        var b = SpecName.Unchecked("globex");
+        var a = DomainName.Unchecked("acme");
+        var b = DomainName.Unchecked("globex");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -122,8 +122,8 @@ public sealed class SpecNameTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = SpecName.Unchecked("a");
-        var b = SpecName.Unchecked("b");
+        var a = DomainName.Unchecked("a");
+        var b = DomainName.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -140,7 +140,7 @@ public sealed class SpecNameTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SpecName.Unchecked("acme");
+        var id = DomainName.Unchecked("acme");
         Assert.Equal("acme", id.ToString());
     }
 }

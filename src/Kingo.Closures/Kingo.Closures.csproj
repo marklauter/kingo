@@ -7,7 +7,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Kingo\Kingo.csproj" />
-		<ProjectReference Include="..\Kingo.Graphs\Kingo.Graphs.csproj" />
+		<ProjectReference Include="..\Kingo.Facts\Kingo.Facts.csproj" />
 		<ProjectReference Include="..\Kingo.Domains\Kingo.Domains.csproj" />
 		<ProjectReference Include="..\Results\Results.csproj" />
 	</ItemGroup>

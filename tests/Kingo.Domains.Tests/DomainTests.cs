@@ -12,11 +12,11 @@ public sealed class DomainTests
                 NamespaceName.Unchecked(name),
                 [.. relationships.Select(r => new Relationship(RelationshipName.Unchecked(r)))])).Value;
 
-    private static SpecName Id(string name) => SpecName.Unchecked(name);
+    private static DomainName Id(string name) => DomainName.Unchecked(name);
 
     private static Domain Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
 
-    private static Domain Make(SpecName name, ImmutableArray<Namespace> namespaces) =>
+    private static Domain Make(DomainName name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
 
     [Fact]
@@ -83,9 +83,9 @@ public sealed class DomainTests
     [Fact]
     public void Create_Name_IsCarriedOntoTheDomain()
     {
-        var spec = Make(Id("acme"), [Ns("doc", "viewer")]);
+        var domain = Make(Id("acme"), [Ns("doc", "viewer")]);
 
-        Assert.Equal(Id("acme"), spec.Name);
+        Assert.Equal(Id("acme"), domain.Name);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class DomainTests
         var failure = Assert.IsType<Result<Domain>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec.empty", error.Code);
+        Assert.Equal("domain.empty", error.Code);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class DomainTests
 
         var failure = Assert.IsType<Result<Domain>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("spec.empty", error.Code);
+        Assert.Equal("domain.empty", error.Code);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public sealed class DomainTests
         var failure = Assert.IsType<Result<Domain>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec.duplicate_namespace", error.Code);
+        Assert.Equal("domain.duplicate_namespace", error.Code);
         Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
     }
 
@@ -161,7 +161,7 @@ public sealed class DomainTests
 
         var failure = Assert.IsType<Result<Domain>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("spec.duplicate_namespace", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("domain.duplicate_namespace", error.Code));
         Assert.Contains("'doc'", failure.Errors[0].Message, StringComparison.Ordinal);
         Assert.Contains("'folder'", failure.Errors[1].Message, StringComparison.Ordinal);
     }

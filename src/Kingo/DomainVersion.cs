@@ -6,4 +6,4 @@ namespace Kingo;
 /// Encoding is not yet decided: content hash, store revision, or name plus revision. A stub minted ahead of the storage/versioning design
 /// ([[storage-versioning-design]]).
 /// </summary>
-public sealed record SpecVersion;
+public sealed record DomainVersion;

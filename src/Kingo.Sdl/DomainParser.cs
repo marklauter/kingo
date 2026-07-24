@@ -16,18 +16,18 @@ namespace Kingo.Sdl;
 /// </summary>
 public static class DomainParser
 {
-    private const string NameKey = "spec";
+    private const string NameKey = "domain";
     private const string NamespacesKey = "namespaces";
 
     /// <summary>Parses untrusted SDL text into the defined <see cref="Domain"/>.</summary>
     /// <returns>
     /// A successful <see cref="Result{T}"/> carrying the defined <see cref="Domain"/>, or every accumulated validation <see cref="Error"/> in
-    /// document order. <c>spec.syntax</c> for malformed YAML. <c>spec.document</c> when the text is not a single mapping, or the <c>spec:</c>
-    /// or <c>namespaces:</c> keys are missing or misshapen. <c>spec.namespace</c> or <c>spec.relationship</c> for wrong node shapes, or a
-    /// <c>&lt;name&gt;:</c> pair missing its rewrite expression. <c>spec.rewrite</c> for bad rewrite expressions. <c>spec.relationship.reserved</c>
+    /// document order. <c>domain.syntax</c> for malformed YAML. <c>domain.document</c> when the text is not a single mapping, or the <c>domain:</c>
+    /// or <c>namespaces:</c> keys are missing or misshapen. <c>domain.namespace</c> or <c>domain.relationship</c> for wrong node shapes, or a
+    /// <c>&lt;name&gt;:</c> pair missing its rewrite expression. <c>domain.rewrite</c> for bad rewrite expressions. <c>domain.relationship.reserved</c>
     /// when a relationship is named by a rewrite-grammar reserved word (<c>this</c>). Whatever the core factories reject: identifier grammars,
     /// <c>namespace.duplicate_relationship</c>, <c>namespace.dangling_reference</c>, and <c>namespace.rewrite_cycle</c> via
-    /// <c>Namespace.Create</c>. <c>spec.empty</c> and <c>spec.duplicate_namespace</c> via <c>Domain.Create</c>. YAML keys are case-sensitive but
+    /// <c>Namespace.Create</c>. <c>domain.empty</c> and <c>domain.duplicate_namespace</c> via <c>Domain.Create</c>. YAML keys are case-sensitive but
     /// namespace identity is not, so case-variant keys collapse to one identity after lowercase normalization and fail as duplicates.
     /// </returns>
     public static Result<Domain> Parse(string text) =>
@@ -41,29 +41,29 @@ public static class DomainParser
     /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="Domain"/>, or the accumulated failures from both halves and <c>Domain.Create</c>.</returns>
     private static Result<Domain> ParseDocument(YamlMappingNode document) =>
         Result.Apply(
-            ParseName(document).Map<Func<ImmutableArray<Namespace>, (SpecName Name, ImmutableArray<Namespace> Namespaces)>>(
+            ParseName(document).Map<Func<ImmutableArray<Namespace>, (DomainName Name, ImmutableArray<Namespace> Namespaces)>>(
                 spec => namespaces => (spec, namespaces)),
             ParseNamespaces(document))
             .Bind(spec => Domain.Create(spec.Name, spec.Namespaces));
 
-    /// <summary>Parses the document's <c>spec:</c> key, the spec's name and domain key (<see cref="SpecName"/> owns the grammar).</summary>
-    /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="SpecName"/>, or a <c>spec.document</c> failure when the <c>spec:</c> key is missing or its value is not a scalar.</returns>
-    private static Result<SpecName> ParseName(YamlMappingNode document) =>
+    /// <summary>Parses the document's <c>domain:</c> key, the spec's name and domain key (<see cref="DomainName"/> owns the grammar).</summary>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="DomainName"/>, or a <c>domain.document</c> failure when the <c>domain:</c> key is missing or its value is not a scalar.</returns>
+    private static Result<DomainName> ParseName(YamlMappingNode document) =>
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
-            ? SpecName.Parse(scalar.Value!)
-            : Result.Failure<SpecName>(Error.Validation("spec.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
+            ? DomainName.Parse(scalar.Value!)
+            : Result.Failure<DomainName>(Error.Validation("domain.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
 
     /// <summary>
-    /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Domain.Create</c>'s call (<c>spec.empty</c>), not
+    /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Domain.Create</c>'s call (<c>domain.empty</c>), not
     /// this adapter's. Each key is a bare <see cref="NamespaceName"/>, and the spec it belongs to is the document's own, supplied by
     /// containment.
     /// </summary>
-    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed namespaces, or a <c>spec.document</c> failure when the <c>namespaces:</c> key is missing or is not a mapping.</returns>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed namespaces, or a <c>domain.document</c> failure when the <c>namespaces:</c> key is missing or is not a mapping.</returns>
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
         document.Children.TryGetValue(new YamlScalarNode(NamespacesKey), out var namespaces) && namespaces is YamlMappingNode map
             ? map.Children.Select(ParseNamespace).Sequence()
-            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation("spec.document", $"a SDL document requires a '{NamespacesKey}:' key mapping namespace name to relationship list"));
+            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation("domain.document", $"a SDL document requires a '{NamespacesKey}:' key mapping namespace name to relationship list"));
 
     private static Result<YamlMappingNode> LoadDocument(string text)
     {
@@ -74,18 +74,18 @@ public static class DomainParser
             stream.Load(reader);
             return stream.Documents is [{ RootNode: YamlMappingNode document }]
                 ? Result.Success(document)
-                : Result.Failure<YamlMappingNode>(Error.Validation("spec.document", $"a SDL document is a single YAML mapping carrying a '{NameKey}:' name and a '{NamespacesKey}:' map"));
+                : Result.Failure<YamlMappingNode>(Error.Validation("domain.document", $"a SDL document is a single YAML mapping carrying a '{NameKey}:' name and a '{NamespacesKey}:' map"));
         }
         catch (YamlException ex)
         {
             // substrate fault translated at the boundary: malformed text is a modeled outcome of parsing untrusted input
-            return Result.Failure<YamlMappingNode>(Error.Validation("spec.syntax", $"malformed YAML: {ex.Message}"));
+            return Result.Failure<YamlMappingNode>(Error.Validation("domain.syntax", $"malformed YAML: {ex.Message}"));
         }
         catch (ArgumentException ex)
         {
             // YamlDotNet leaks ArgumentException for shapes its representation model cannot load (e.g. "- : this"
             // dies in YamlNode.ParseNode with "current event is of an unsupported type") — same modeled outcome
-            return Result.Failure<YamlMappingNode>(Error.Validation("spec.syntax", $"malformed YAML: {ex.Message}"));
+            return Result.Failure<YamlMappingNode>(Error.Validation("domain.syntax", $"malformed YAML: {ex.Message}"));
         }
     }
 
@@ -94,7 +94,7 @@ public static class DomainParser
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         var name = entry.Key is YamlScalarNode key
             ? NamespaceName.Parse(key.Value!)
-            : Result.Failure<NamespaceName>(Error.Validation("spec.namespace", "a namespace name must be a scalar"));
+            : Result.Failure<NamespaceName>(Error.Validation("domain.namespace", "a namespace name must be a scalar"));
 
         return Result.Apply(
             name.Map<Func<ImmutableArray<Relationship>, (NamespaceName Name, ImmutableArray<Relationship> Relationships)>>(n => relationships => (n, relationships)),
@@ -108,7 +108,7 @@ public static class DomainParser
             YamlSequenceNode sequence => sequence.Children.Select(ParseRelationship).Sequence(),
             // "file:" with no value — a namespace with no relationships — parses as a plain null scalar (core-schema null forms)
             YamlScalarNode { Style: ScalarStyle.Plain, Value: null or "" or "null" or "Null" or "NULL" or "~" } => Result.Success<ImmutableArray<Relationship>>([]),
-            _ => Result.Failure<ImmutableArray<Relationship>>(Error.Validation("spec.namespace", "a namespace defines a sequence of relationships")),
+            _ => Result.Failure<ImmutableArray<Relationship>>(Error.Validation("domain.namespace", "a namespace defines a sequence of relationships")),
         };
 
     private static Result<Relationship> ParseRelationship(YamlNode node) =>
@@ -118,7 +118,7 @@ public static class DomainParser
             YamlScalarNode scalar => ParseRelationshipName(scalar.Value!).Map(relationship => new Relationship(relationship)),
             // "- editor: this | owner" — a single-pair mapping of name to rewrite expression
             YamlMappingNode { Children.Count: 1 } mapping => ParseRewriteRelationship(mapping.Children.First()),
-            _ => Result.Failure<Relationship>(Error.Validation("spec.relationship", "a relationship is a bare name or a single '<name>: <rewrite expression>' pair")),
+            _ => Result.Failure<Relationship>(Error.Validation("domain.relationship", "a relationship is a bare name or a single '<name>: <rewrite expression>' pair")),
         };
 
     private static Result<Relationship> ParseRewriteRelationship(KeyValuePair<YamlNode, YamlNode> entry) =>
@@ -128,7 +128,7 @@ public static class DomainParser
                 ParseRelationshipName(name.Value!)
                     .Map<Func<SubjectSetRewrite, Relationship>>(relationship => rewrite => new Relationship(relationship, rewrite)),
                 ParseRewriteExpression(name, expression))
-            : Result.Failure<Relationship>(Error.Validation("spec.relationship", "a relationship is a bare name or a single '<name>: <rewrite expression>' pair"));
+            : Result.Failure<Relationship>(Error.Validation("domain.relationship", "a relationship is a bare name or a single '<name>: <rewrite expression>' pair"));
 
     /// <summary>
     /// Parses the value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain
@@ -137,10 +137,10 @@ public static class DomainParser
     /// SDL owns the text rather than YAML's scalar typing. A plain <c>null</c> is the identifier <c>null</c>, which keeps a relationship so
     /// named round-tripping, because the renderer emits it unquoted.
     /// </summary>
-    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>spec.relationship</c> failure when the expression is missing, or the expression parser's failures.</returns>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>domain.relationship</c> failure when the expression is missing, or the expression parser's failures.</returns>
     private static Result<SubjectSetRewrite> ParseRewriteExpression(YamlScalarNode name, YamlScalarNode expression) =>
         expression is { Style: ScalarStyle.Plain, Value: null or "" }
-            ? Result.Failure<SubjectSetRewrite>(Error.Validation("spec.relationship", $"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name"))
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation("domain.relationship", $"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name"))
             : RewriteExpressionParser.Parse(expression.Value!);
 
     /// <summary>
@@ -149,12 +149,12 @@ public static class DomainParser
     /// <see cref="Namespace"/> supplies the qualification.
     /// </summary>
     /// <returns>
-    /// A successful <see cref="Result{T}"/> carrying the <see cref="RelationshipName"/>, a <c>spec.relationship.reserved</c> failure when the name is a
+    /// A successful <see cref="Result{T}"/> carrying the <see cref="RelationshipName"/>, a <c>domain.relationship.reserved</c> failure when the name is a
     /// rewrite-grammar reserved word, or the identifier-grammar failures (<c>relationship_name.empty</c>, <c>relationship_name.invalid</c>) that
     /// <c>RelationshipName.Parse</c> raises.
     /// </returns>
     private static Result<RelationshipName> ParseRelationshipName(string name) =>
         RelationshipName.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
-            ? Result.Failure<RelationshipName>(Error.Validation("spec.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
+            ? Result.Failure<RelationshipName>(Error.Validation("domain.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
             : Result.Success(relationship));
 }

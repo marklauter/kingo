@@ -2,7 +2,7 @@ namespace Kingo.Domains;
 
 /// <summary>
 /// A named relationship and the rewrite that computes its effective subject set. Spec-side: this is the definition inside a <see cref="Namespace"/>, not the
-/// stored fact (that is <c>Kingo.Graphs.Fact</c>). A bare definition with no rewrite specified defaults to <see cref="SubjectSetRewrite.This"/>, direct membership
+/// stored fact (that is <c>Kingo.Facts.Fact</c>). A bare definition with no rewrite specified defaults to <see cref="SubjectSetRewrite.This"/>, direct membership
 /// only.
 /// <para>
 /// <see cref="Name"/> is bare, like every name in the config tree. A relationship exists only inside a <see cref="Namespace"/>, which exists only inside a

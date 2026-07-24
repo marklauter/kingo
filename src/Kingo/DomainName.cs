@@ -11,48 +11,48 @@ namespace Kingo;
 /// worth more than the identity being legible. See [[domain-language]]). The spec is the root of the config tree, so this name is never itself qualified. It
 /// is instead what qualifies a <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
-public readonly record struct SpecName
-    : IValue<SpecName, string>
+public readonly record struct DomainName
+    : IValue<DomainName, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
 
     /// <inheritdoc/>
-    public static SpecName Unchecked(string value) => new(value);
+    public static DomainName Unchecked(string value) => new(value);
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<SpecName> Parse(string s) =>
+    public static Result<DomainName> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<SpecName>(Error.Validation("spec_name.empty", "spec name cannot be empty or whitespace"))
+            ? Result.Failure<DomainName>(Error.Validation("domain_name.empty", "domain name cannot be empty or whitespace"))
             : !SpecNamePatterns.Validation().IsMatch(s)
-                ? Result.Failure<SpecName>(Error.Validation("spec_name.invalid", $"spec name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
-                : Result.Success(new SpecName(s.ToLowerInvariant()));
+                ? Result.Failure<DomainName>(Error.Validation("domain_name.invalid", $"domain name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
+                : Result.Success(new DomainName(s.ToLowerInvariant()));
 
-    private SpecName(string value) => Value = value;
+    private DomainName(string value) => Value = value;
 
     /// <summary>Returns the canonical text form of the value.</summary>
     /// <returns>The underlying string, unquoted and undecorated.</returns>
     public override string ToString() => Value;
 
     /// <inheritdoc/>
-    public int CompareTo(SpecName other) => string.CompareOrdinal(Value, other.Value);
+    public int CompareTo(DomainName other) => string.CompareOrdinal(Value, other.Value);
 
     /// <inheritdoc/>
-    public static bool operator <(SpecName left, SpecName right) => left.CompareTo(right) < 0;
+    public static bool operator <(DomainName left, DomainName right) => left.CompareTo(right) < 0;
 
     /// <inheritdoc/>
-    public static bool operator <=(SpecName left, SpecName right) => left.CompareTo(right) <= 0;
+    public static bool operator <=(DomainName left, DomainName right) => left.CompareTo(right) <= 0;
 
     /// <inheritdoc/>
-    public static bool operator >(SpecName left, SpecName right) => left.CompareTo(right) > 0;
+    public static bool operator >(DomainName left, DomainName right) => left.CompareTo(right) > 0;
 
     /// <inheritdoc/>
-    public static bool operator >=(SpecName left, SpecName right) => left.CompareTo(right) >= 0;
+    public static bool operator >=(DomainName left, DomainName right) => left.CompareTo(right) >= 0;
 
 }
 
-/// <summary>Character rules for <see cref="SpecName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
+/// <summary>Character rules for <see cref="DomainName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
 internal static partial class SpecNamePatterns
 {
     private const RegexOptions PatternOptions =

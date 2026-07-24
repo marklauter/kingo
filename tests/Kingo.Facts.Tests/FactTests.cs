@@ -1,6 +1,6 @@
-using static Kingo.Graphs.Fact;
+using static Kingo.Facts.Fact;
 
-namespace Kingo.Graphs.Tests;
+namespace Kingo.Facts.Tests;
 
 public sealed class FactTests
 {

@@ -8,7 +8,7 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_SimpleDocument_EmitsCanonicalSdl()
     {
-        var spec = MakeSpec(
+        var domain = MakeSpec(
         [
             MakeNs(
                 Ns("file"),
@@ -20,13 +20,13 @@ public sealed class SpecPrinterTests
                 ]),
         ]);
 
-        Assert.Equal("spec: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", spec.Print());
+        Assert.Equal("domain: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", domain.Print());
     }
 
     [Fact]
     public void Print_AllRewriteTypes_EmitsExpectedExpressions()
     {
-        var spec = MakeSpec(
+        var domain = MakeSpec(
         [
             MakeNs(
                 Ns("test"),
@@ -44,7 +44,7 @@ public sealed class SpecPrinterTests
                 ]),
         ]);
 
-        var sdl = spec.Print();
+        var sdl = domain.Print();
 
         Assert.Contains("- direct", sdl, StringComparison.Ordinal);
         Assert.Contains("computed: owner", sdl, StringComparison.Ordinal);
@@ -57,42 +57,42 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_SpecName_LeadsTheDocument()
     {
-        var spec = MakeSpec(SpecId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
+        var domain = MakeSpec(SpecId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
 
-        Assert.StartsWith("spec: acme\nnamespaces:\n", spec.Print(), StringComparison.Ordinal);
+        Assert.StartsWith("domain: acme\nnamespaces:\n", domain.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
     public void Print_MultipleNamespaces_EmitsAllInOrder()
     {
-        var spec = MakeSpec(
+        var domain = MakeSpec(
         [
             MakeNs(Ns("file"), [Bare("owner")]),
             MakeNs(Ns("folder"), [Bare("viewer")]),
         ]);
 
-        Assert.Equal("spec: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", spec.Print());
+        Assert.Equal("domain: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", domain.Print());
     }
 
     [Fact]
     public void Print_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
     {
-        var spec = MakeSpec(
+        var domain = MakeSpec(
         [
             MakeNs(
                 Ns("file"),
                 [Bare("owner"), new Relationship(Rel("editor"), SubjectSetRewrite.This.Default)]),
         ]);
 
-        Assert.DoesNotContain("\r", spec.Print(), StringComparison.Ordinal);
+        Assert.DoesNotContain("\r", domain.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
     public void Print_NamespaceWithoutRelationships_EmitsEmptySequence()
     {
-        var spec = MakeSpec([MakeNs(Ns("file"), [])]);
+        var domain = MakeSpec([MakeNs(Ns("file"), [])]);
 
-        Assert.Equal("spec: test\nnamespaces:\n  file: []\n", spec.Print());
+        Assert.Equal("domain: test\nnamespaces:\n  file: []\n", domain.Print());
     }
 
     [Theory]
@@ -102,9 +102,9 @@ public sealed class SpecPrinterTests
     {
         // SDL cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
         // never be referenced (a reference lexes as the keyword).
-        var spec = MakeSpec([MakeNs(Ns("file"), [Bare(name)])]);
+        var domain = MakeSpec([MakeNs(Ns("file"), [Bare(name)])]);
 
-        _ = Assert.Throws<ArgumentException>(spec.Print);
+        _ = Assert.Throws<ArgumentException>(domain.Print);
     }
 
     [Fact]
@@ -112,25 +112,25 @@ public sealed class SpecPrinterTests
     {
         // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
         // instead of a relationship reference — so emitting it is corruption, not serialization
-        var spec = MakeSpec(
+        var domain = MakeSpec(
         [
             MakeNs(Ns("file"), [Bare("this"), new Relationship(Rel("viewer"), Computed("this"))]),
         ]);
 
-        _ = Assert.Throws<ArgumentException>(spec.Print);
+        _ = Assert.Throws<ArgumentException>(domain.Print);
     }
 
     [Fact]
     public void Print_ReservedReferenceInFactset_IsCallerDefect()
     {
         // pins that the factset arm routes both components through the reserved-word gate
-        var spec = MakeSpec(
+        var domain = MakeSpec(
         [
             MakeNs(
                 Ns("file"),
                 [Bare("this"), new Relationship(Rel("viewer"), FactTo("this", "member"))]),
         ]);
 
-        _ = Assert.Throws<ArgumentException>(spec.Print);
+        _ = Assert.Throws<ArgumentException>(domain.Print);
     }
 }

@@ -2,7 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Kingo/Kingo.csproj" />
     <Project Path="src/Kingo.Closures/Kingo.Closures.csproj" />
-    <Project Path="src/Kingo.Graphs/Kingo.Graphs.csproj" />
+    <Project Path="src/Kingo.Facts/Kingo.Facts.csproj" />
     <Project Path="src/Kingo.Domains/Kingo.Domains.csproj" />
     <Project Path="src/Kingo.Sdl/Kingo.Sdl.csproj" />
     <Project Path="src/Kingo.Serialization.Json/Kingo.Serialization.Json.csproj" />
@@ -11,7 +11,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Kingo.Closures.Tests/Kingo.Closures.Tests.csproj" />
-    <Project Path="tests/Kingo.Graphs.Tests/Kingo.Graphs.Tests.csproj" />
+    <Project Path="tests/Kingo.Facts.Tests/Kingo.Facts.Tests.csproj" />
     <Project Path="tests/Kingo.Domains.Tests/Kingo.Domains.Tests.csproj" />
     <Project Path="tests/Kingo.Sdl.Tests/Kingo.Sdl.Tests.csproj" />
     <Project Path="tests/Kingo.Serialization.Json.Tests/Kingo.Serialization.Json.Tests.csproj" />
