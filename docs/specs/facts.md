@@ -13,7 +13,7 @@ cites:
   - "[[namespace]]"
 ---
 
-# facts
+# Facts
 
 A [[fact]] is one edge in the graph, composed of a [[subject-set]] and a [[subject]].
 

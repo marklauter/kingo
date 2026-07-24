@@ -16,11 +16,11 @@ cites:
   - "[[factset]]"
 ---
 
-# specs
+# Specs
 
 One document defines one [[spec]]: its name, its [[namespace]]s, and their [[relationship]]s. A write replaces the spec whole. Omit a relationship and the write removes it.
 
-## Envelope
+## Document
 
 Two keys. `spec:` is the spec's name, `namespaces:` a map of namespace name to relationship list. The name lives in the document rather than arriving out of band, so the printer can emit every part of the value it was given and a document round-trips.
 
@@ -44,13 +44,11 @@ namespaces:
     - banned
 ```
 
-## Names and paths
+## Identifiers (names)
 
-Every name in a document is bare: namespace keys, relationship names, and the names inside a rewrite. They stay bare. A relationship lives in a namespace, and a namespace lives in a spec, so containment already says which one a name means. The stored model keeps no qualified path, and the parser qualifies nothing ([[identifiers]]).
+Identifiers normalize to lowercase. YAML keys do not, so the parser rejects two keys that normalize alike.
 
-Names normalize to lowercase. YAML keys do not, so the parser rejects two keys that normalize alike.
-
-## Rewrites
+## Rewrite grammar
 
 A relationship's rewrite is an expression in a scalar, parsed separately from the YAML. The parser reads the scalar's raw text rather than YAML's typed value, so a plain `null` in expression position is the name `null`, not a missing value.
 
