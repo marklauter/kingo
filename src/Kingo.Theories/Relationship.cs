@@ -1,4 +1,4 @@
-namespace Kingo.Domains;
+namespace Kingo.Theories;
 
 /// <summary>
 /// A named relationship and the rewrite that computes its effective subject set. Domain-side: this is the definition inside a <see cref="Namespace"/>, not the

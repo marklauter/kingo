@@ -1,4 +1,4 @@
-using Kingo.Domains;
+using Kingo.Theories;
 using static Kingo.Documents.Tests.TestHelpers;
 
 namespace Kingo.Documents.Tests;

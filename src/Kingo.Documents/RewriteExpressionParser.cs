@@ -1,4 +1,4 @@
-using Kingo.Domains;
+using Kingo.Theories;
 using Results;
 using Superpower;
 using Superpower.Display;

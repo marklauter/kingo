@@ -11,7 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kingo.Domains\Kingo.Domains.csproj" />
+		<ProjectReference Include="..\Kingo.Theories\Kingo.Theories.csproj" />
 		<ProjectReference Include="..\Results\Results.csproj" />
 	</ItemGroup>
 

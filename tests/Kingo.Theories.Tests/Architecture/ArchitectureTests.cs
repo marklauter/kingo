@@ -1,10 +1,10 @@
 using Kingo.Testing;
 using System.Reflection;
 
-namespace Kingo.Domains.Tests.Architecture;
+namespace Kingo.Theories.Tests.Architecture;
 
 public sealed class ArchitectureTests()
-    : ArchitectureTestsBase(Assembly.Load("Kingo.Domains"), @"^Kingo\.Domains(\..*)?$")
+    : ArchitectureTestsBase(Assembly.Load("Kingo.Theories"), @"^Kingo\.Theories(\..*)?$")
 {
     /// <summary>
     /// The config model and the statement model are independent halves of the domain — they meet only in the rewrite
@@ -14,7 +14,7 @@ public sealed class ArchitectureTests()
     [Fact]
     public void DoesNotDependOnFacts()
     {
-        var violations = Assembly.Load("Kingo.Domains")
+        var violations = Assembly.Load("Kingo.Theories")
             .GetReferencedAssemblies()
             .Where(reference => reference.Name == "Kingo.Facts")
             .Select(reference => reference.FullName)

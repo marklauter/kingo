@@ -1,4 +1,4 @@
-using Kingo.Domains;
+using Kingo.Theories;
 
 namespace Kingo.Documents;
 

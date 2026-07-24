@@ -1,9 +1,9 @@
 using Results;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using static Kingo.Domains.Tests.TestHelpers;
+using static Kingo.Theories.Tests.TestHelpers;
 
-namespace Kingo.Domains.Tests;
+namespace Kingo.Theories.Tests;
 
 public sealed class NamespaceTests
 {

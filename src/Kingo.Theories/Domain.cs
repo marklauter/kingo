@@ -1,7 +1,7 @@
 using Results;
 using System.Collections.Immutable;
 
-namespace Kingo.Domains;
+namespace Kingo.Theories;
 
 /// <summary>
 /// A domain <b>as a value</b>: a set of namespace definitions curated together under a name, immutable with structural equality. The config-side aggregate root,

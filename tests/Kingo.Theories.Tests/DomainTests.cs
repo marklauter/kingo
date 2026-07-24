@@ -2,7 +2,7 @@ using Results;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Domains.Tests;
+namespace Kingo.Theories.Tests;
 
 public sealed class DomainTests
 {

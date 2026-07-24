@@ -1,4 +1,4 @@
-using Kingo.Domains;
+using Kingo.Theories;
 using Results;
 using System.Collections.Immutable;
 using YamlDotNet.Core;

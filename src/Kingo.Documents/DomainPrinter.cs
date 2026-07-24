@@ -1,4 +1,4 @@
-using Kingo.Domains;
+using Kingo.Theories;
 using YamlDotNet.Serialization;
 
 namespace Kingo.Documents;

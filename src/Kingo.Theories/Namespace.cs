@@ -1,7 +1,7 @@
 using Results;
 using System.Collections.Immutable;
 
-namespace Kingo.Domains;
+namespace Kingo.Theories;
 
 /// <summary>
 /// A namespace's definition <b>as a value</b>: an immutable snapshot of its relationships and their rewrites, with structural equality. Parse-agnostic and
