@@ -6,7 +6,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// The name of a <see cref="Schemas.Spec"/>, the config-side aggregate root's domain key, one segment of the identifier grammar ([[identifiers]]): <c>io</c>.
+/// The name of a <see cref="Schemas.Domain"/>, the config-side aggregate root's domain key, one segment of the identifier grammar ([[identifiers]]): <c>io</c>.
 /// Name-as-identity (settled 2026-07-15, provisionally: no rename, only a new spec. The surrogate-key alternative stays available if admin rename-freedom is
 /// worth more than the identity being legible. See [[domain-language]]). The spec is the root of the config tree, so this name is never itself qualified. It
 /// is instead what qualifies a <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.

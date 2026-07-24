@@ -2,9 +2,9 @@ using Results;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Schemas.Tests;
+namespace Kingo.Domains.Tests;
 
-public sealed class SpecTests
+public sealed class DomainTests
 {
     private static Namespace Ns(string name, params string[] relationships) =>
         Assert.IsType<Result<Namespace>.Success>(
@@ -14,10 +14,10 @@ public sealed class SpecTests
 
     private static SpecName Id(string name) => SpecName.Unchecked(name);
 
-    private static Spec Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
+    private static Domain Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
 
-    private static Spec Make(SpecName name, ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
+    private static Domain Make(SpecName name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
 
     [Fact]
     public void Equals_ElementWiseEqualNamespaces_AreEqualWithMatchingHashCodes()
@@ -81,7 +81,7 @@ public sealed class SpecTests
     }
 
     [Fact]
-    public void Create_Name_IsCarriedOntoTheSpec()
+    public void Create_Name_IsCarriedOntoTheDomain()
     {
         var spec = Make(Id("acme"), [Ns("doc", "viewer")]);
 
@@ -115,18 +115,18 @@ public sealed class SpecTests
     [Fact]
     public void Create_UniqueNamespaceNames_ReturnsSuccessEqualToConstructed()
     {
-        var result = Spec.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
+        var result = Domain.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
 
-        var success = Assert.IsType<Result<Spec>.Success>(result);
+        var success = Assert.IsType<Result<Domain>.Success>(result);
         Assert.Equal(Make([Ns("doc", "viewer"), Ns("folder", "parent")]), success.Value);
     }
 
     [Fact]
     public void Create_EmptyNamespaces_ReturnsValidationFailure()
     {
-        var result = Spec.Create(Id("test"), []);
+        var result = Domain.Create(Id("test"), []);
 
-        var failure = Assert.IsType<Result<Spec>.Failure>(result);
+        var failure = Assert.IsType<Result<Domain>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("spec.empty", error.Code);
@@ -135,9 +135,9 @@ public sealed class SpecTests
     [Fact]
     public void Create_DefaultArray_ReturnsValidationFailure()
     {
-        var result = Spec.Create(Id("test"), default);
+        var result = Domain.Create(Id("test"), default);
 
-        var failure = Assert.IsType<Result<Spec>.Failure>(result);
+        var failure = Assert.IsType<Result<Domain>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal("spec.empty", error.Code);
     }
@@ -145,9 +145,9 @@ public sealed class SpecTests
     [Fact]
     public void Create_DuplicateNamespaceName_ReturnsValidationFailure()
     {
-        var result = Spec.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
+        var result = Domain.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
 
-        var failure = Assert.IsType<Result<Spec>.Failure>(result);
+        var failure = Assert.IsType<Result<Domain>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("spec.duplicate_namespace", error.Code);
@@ -157,9 +157,9 @@ public sealed class SpecTests
     [Fact]
     public void Create_MultipleDuplicatedNames_AccumulatesOneErrorPerNameInFirstOccurrenceOrder()
     {
-        var result = Spec.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
+        var result = Domain.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
 
-        var failure = Assert.IsType<Result<Spec>.Failure>(result);
+        var failure = Assert.IsType<Result<Domain>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
         Assert.All(failure.Errors, error => Assert.Equal("spec.duplicate_namespace", error.Code));
         Assert.Contains("'doc'", failure.Errors[0].Message, StringComparison.Ordinal);
@@ -172,8 +172,8 @@ public sealed class SpecTests
         // Uniqueness is ordinal over canonical values. Parsed namespace names are always
         // lowercase; mixed case here is only reachable through the trusted Unchecked path,
         // and Create compares what it is given.
-        var result = Spec.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
+        var result = Domain.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
 
-        _ = Assert.IsType<Result<Spec>.Success>(result);
+        _ = Assert.IsType<Result<Domain>.Success>(result);
     }
 }

@@ -1,4 +1,4 @@
-namespace Kingo.Schemas;
+namespace Kingo.Domains;
 
 /// <summary>
 /// A named relationship and the rewrite that computes its effective subject set. Spec-side: this is the definition inside a <see cref="Namespace"/>, not the
@@ -6,7 +6,7 @@ namespace Kingo.Schemas;
 /// only.
 /// <para>
 /// <see cref="Name"/> is bare, like every name in the config tree. A relationship exists only inside a <see cref="Namespace"/>, which exists only inside a
-/// <see cref="Spec"/>, so containment already says which relationship this is. A qualified path held here would be a second source of truth that could disagree
+/// <see cref="Domain"/>, so containment already says which relationship this is. A qualified path held here would be a second source of truth that could disagree
 /// with its container ([[split-identities-at-ownership-boundaries]]). It also puts the definition's own name in the same currency as the names its rewrite
 /// references, so <c>Namespace.Create</c> resolves them without qualifying either side.
 /// </para>

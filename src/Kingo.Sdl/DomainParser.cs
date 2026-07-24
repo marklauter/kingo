@@ -1,4 +1,4 @@
-using Kingo.Schemas;
+using Kingo.Domains;
 using Results;
 using System.Collections.Immutable;
 using YamlDotNet.Core;
@@ -8,29 +8,29 @@ namespace Kingo.Sdl;
 
 /// <summary>
 /// The parse half of the SDL adapter: Schema Definition Language document text ([[specs]]) to the core spec model
-/// (<see cref="SpecPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map. Each relationship's
+/// (<see cref="DomainPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map. Each relationship's
 /// optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
 /// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationshipName.Parse</c>,
-/// <c>NamespaceName.Parse</c>, <c>SpecName.Parse</c>, <c>Namespace.Create</c>, <c>Spec.Create</c>), accumulating every document-level,
+/// <c>NamespaceName.Parse</c>, <c>SpecName.Parse</c>, <c>Namespace.Create</c>, <c>Domain.Create</c>), accumulating every document-level,
 /// identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
-public static class SpecParser
+public static class DomainParser
 {
     private const string NameKey = "spec";
     private const string NamespacesKey = "namespaces";
 
-    /// <summary>Parses untrusted SDL text into the defined <see cref="Spec"/>.</summary>
+    /// <summary>Parses untrusted SDL text into the defined <see cref="Domain"/>.</summary>
     /// <returns>
-    /// A successful <see cref="Result{T}"/> carrying the defined <see cref="Spec"/>, or every accumulated validation <see cref="Error"/> in
+    /// A successful <see cref="Result{T}"/> carrying the defined <see cref="Domain"/>, or every accumulated validation <see cref="Error"/> in
     /// document order. <c>spec.syntax</c> for malformed YAML. <c>spec.document</c> when the text is not a single mapping, or the <c>spec:</c>
     /// or <c>namespaces:</c> keys are missing or misshapen. <c>spec.namespace</c> or <c>spec.relationship</c> for wrong node shapes, or a
     /// <c>&lt;name&gt;:</c> pair missing its rewrite expression. <c>spec.rewrite</c> for bad rewrite expressions. <c>spec.relationship.reserved</c>
     /// when a relationship is named by a rewrite-grammar reserved word (<c>this</c>). Whatever the core factories reject: identifier grammars,
     /// <c>namespace.duplicate_relationship</c>, <c>namespace.dangling_reference</c>, and <c>namespace.rewrite_cycle</c> via
-    /// <c>Namespace.Create</c>. <c>spec.empty</c> and <c>spec.duplicate_namespace</c> via <c>Spec.Create</c>. YAML keys are case-sensitive but
+    /// <c>Namespace.Create</c>. <c>spec.empty</c> and <c>spec.duplicate_namespace</c> via <c>Domain.Create</c>. YAML keys are case-sensitive but
     /// namespace identity is not, so case-variant keys collapse to one identity after lowercase normalization and fail as duplicates.
     /// </returns>
-    public static Result<Spec> Parse(string text) =>
+    public static Result<Domain> Parse(string text) =>
         LoadDocument(text).Bind(ParseDocument);
 
     /// <summary>
@@ -38,13 +38,13 @@ public static class SpecParser
     /// half needs anything from the other, because a namespace key is a bare name that the enclosing spec qualifies by containment rather
     /// than by string.
     /// </summary>
-    /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="Spec"/>, or the accumulated failures from both halves and <c>Spec.Create</c>.</returns>
-    private static Result<Spec> ParseDocument(YamlMappingNode document) =>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="Domain"/>, or the accumulated failures from both halves and <c>Domain.Create</c>.</returns>
+    private static Result<Domain> ParseDocument(YamlMappingNode document) =>
         Result.Apply(
             ParseName(document).Map<Func<ImmutableArray<Namespace>, (SpecName Name, ImmutableArray<Namespace> Namespaces)>>(
                 spec => namespaces => (spec, namespaces)),
             ParseNamespaces(document))
-            .Bind(spec => Spec.Create(spec.Name, spec.Namespaces));
+            .Bind(spec => Domain.Create(spec.Name, spec.Namespaces));
 
     /// <summary>Parses the document's <c>spec:</c> key, the spec's name and domain key (<see cref="SpecName"/> owns the grammar).</summary>
     /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="SpecName"/>, or a <c>spec.document</c> failure when the <c>spec:</c> key is missing or its value is not a scalar.</returns>
@@ -55,7 +55,7 @@ public static class SpecParser
             : Result.Failure<SpecName>(Error.Validation("spec.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
 
     /// <summary>
-    /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Spec.Create</c>'s call (<c>spec.empty</c>), not
+    /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Domain.Create</c>'s call (<c>spec.empty</c>), not
     /// this adapter's. Each key is a bare <see cref="NamespaceName"/>, and the spec it belongs to is the document's own, supplied by
     /// containment.
     /// </summary>

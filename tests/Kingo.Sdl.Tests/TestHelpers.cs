@@ -1,4 +1,4 @@
-using Kingo.Schemas;
+using Kingo.Domains;
 using Results;
 using System.Collections.Immutable;
 
@@ -36,11 +36,11 @@ internal static class TestHelpers
     public static Namespace MakeNs(NamespaceName name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
-    public static Spec MakeSpec(ImmutableArray<Namespace> namespaces) =>
+    public static Domain MakeSpec(ImmutableArray<Namespace> namespaces) =>
         MakeSpec(SpecId(DefaultSpecName), namespaces);
 
-    public static Spec MakeSpec(SpecName name, ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
+    public static Domain MakeSpec(SpecName name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
 
     /// <summary>
     /// Wraps a namespace-map fragment in the SDL document envelope — the <c>spec:</c> name plus the <c>namespaces:</c> key — so a
@@ -53,9 +53,9 @@ internal static class TestHelpers
     private static string Indent(string text) =>
         string.Join('\n', text.Split('\n').Select(line => line.Length == 0 ? line : $"  {line}"));
 
-    public static Spec ParseSuccess(string text) =>
-        Assert.IsType<Result<Spec>.Success>(SpecParser.Parse(text)).Value;
+    public static Domain ParseSuccess(string text) =>
+        Assert.IsType<Result<Domain>.Success>(DomainParser.Parse(text)).Value;
 
     public static ImmutableArray<Error> ParseFailure(string text) =>
-        Assert.IsType<Result<Spec>.Failure>(SpecParser.Parse(text)).Errors;
+        Assert.IsType<Result<Domain>.Failure>(DomainParser.Parse(text)).Errors;
 }

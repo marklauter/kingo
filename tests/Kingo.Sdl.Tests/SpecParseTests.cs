@@ -1,4 +1,4 @@
-using Kingo.Schemas;
+using Kingo.Domains;
 using Results;
 using System.Collections.Immutable;
 using static Kingo.Sdl.Tests.TestHelpers;

@@ -1,14 +1,14 @@
-using Kingo.Schemas;
+using Kingo.Domains;
 using YamlDotNet.Serialization;
 
 namespace Kingo.Sdl;
 
 /// <summary>
-/// Renders a <see cref="Spec"/> to its SDL document text, the serialize half of the SDL round trip (<see cref="SpecParser.Parse"/> is the
+/// Renders a <see cref="Domain"/> to its SDL document text, the serialize half of the SDL round trip (<see cref="DomainParser.Parse"/> is the
 /// other). An extension method, so the call site reads as a domain capability (<c>spec.Print()</c>) while the format knowledge stays in the
 /// adapter.
 /// </summary>
-public static class SpecPrinter
+public static class DomainPrinter
 {
     private static readonly ISerializer DocumentSerializer = new SerializerBuilder()
         .WithNewLine("\n") // the document format owns its line ending, independent of platform
@@ -21,7 +21,7 @@ public static class SpecPrinter
     /// </summary>
     /// <returns>The SDL document text for <paramref name="spec"/>.</returns>
     /// <exception cref="ArgumentException">A relationship name or rewrite reference is the reserved word of the rewrite grammar (<c>this</c>), which cannot be expressed in SDL.</exception>
-    public static string Print(this Spec spec)
+    public static string Print(this Domain spec)
     {
         OrderedDictionary<string, List<object>> namespaces = new(spec.Namespaces.Length);
         foreach (var ns in spec.Namespaces)

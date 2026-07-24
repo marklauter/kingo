@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\Kingo.Schemas\Kingo.Schemas.csproj" />
+		<ProjectReference Include="..\..\src\Kingo.Domains\Kingo.Domains.csproj" />
 		<ProjectReference Include="..\Kingo.Testing\Kingo.Testing.csproj" />
 	</ItemGroup>
 

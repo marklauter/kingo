@@ -10,7 +10,7 @@ namespace Kingo.Graphs;
 /// Pattern-match to consume. A set-membership assertion read set-first: the subject is the
 /// left-hand <see cref="SubjectSet"/>, the predicate is membership itself (∋), and the member is asserted into the set. An aggregate root:
 /// created and deleted atomically, never mutated. Its domain key is the whole value. Covers permission edges, memberships, and structural edges alike.
-/// Access semantics come from the rewrite rules, not the fact itself. Not to be confused with <c>Kingo.Schemas.Relationship</c>, the spec-side definition.
+/// Access semantics come from the rewrite rules, not the fact itself. Not to be confused with <c>Kingo.Domains.Relationship</c>, the spec-side definition.
 /// </summary>
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Fact is a discriminated union; SubjectFact, SubjectSetFact, and ResourceFact are its cases, nested under the closed base and deliberately public — Fact.SubjectFact reads as the case it is.")]
 public abstract record Fact

@@ -1,7 +1,7 @@
 using Results;
 using System.Collections.Immutable;
 
-namespace Kingo.Schemas;
+namespace Kingo.Domains;
 
 /// <summary>
 /// The depth half of the rewrite algebra: the structural bound every operator factory constructs through. It is kept apart from the case declarations in

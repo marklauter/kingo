@@ -1,6 +1,6 @@
-using static Kingo.Schemas.Tests.TestHelpers;
+using static Kingo.Domains.Tests.TestHelpers;
 
-namespace Kingo.Schemas.Tests;
+namespace Kingo.Domains.Tests;
 
 public sealed class RelationshipTests
 {

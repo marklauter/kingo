@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 
-namespace Kingo.Schemas;
+namespace Kingo.Domains;
 
 /// <summary>
 /// Order-sensitive structural hash over an <see cref="ImmutableArray{T}"/>. It is the counterpart to the element-wise <c>Equals</c> the spec model's

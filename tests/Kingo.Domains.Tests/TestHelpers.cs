@@ -1,7 +1,7 @@
 using Results;
 using System.Collections.Immutable;
 
-namespace Kingo.Schemas.Tests;
+namespace Kingo.Domains.Tests;
 
 /// <summary>Shared construction and unwrap helpers for the spec-model tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers

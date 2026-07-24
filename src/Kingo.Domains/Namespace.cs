@@ -1,11 +1,11 @@
 using Results;
 using System.Collections.Immutable;
 
-namespace Kingo.Schemas;
+namespace Kingo.Domains;
 
 /// <summary>
 /// A namespace's definition <b>as a value</b>: an immutable snapshot of its relationships and their rewrites, with structural equality. Parse-agnostic and
-/// storable. An entity within the <see cref="Spec"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its spec. Names arrive
+/// storable. An entity within the <see cref="Domain"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its spec. Names arrive
 /// canonical lowercase through <c>Parse</c>, and the comparison here is ordinal. It is immutable, so there is no rename, only a new namespace.
 /// <see cref="Create"/> is the only construction path, so a <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
 /// concurrency, authorship) is the Write context's wrapper and never lives in core. If this type ever grows a version field, a timestamp, or a mutation method,

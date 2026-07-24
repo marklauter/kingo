@@ -2,7 +2,7 @@ using Results;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Kingo.Schemas;
+namespace Kingo.Domains;
 
 /// <summary>
 /// The rewrite algebra: a closed discriminated union describing how a relationship's effective subject set is computed. The cases are direct membership
