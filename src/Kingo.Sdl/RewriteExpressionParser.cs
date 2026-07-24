@@ -4,14 +4,18 @@ using Superpower;
 using Superpower.Display;
 using Superpower.Parsers;
 using Superpower.Tokenizers;
+using System.Collections.Immutable;
 
 namespace Kingo.Sdl;
 
 /// <summary>
 /// Parses the rewrite-expression mini-language embedded in SDL relationship values — e.g. <c>(this | editor | (parent, viewer)) ! banned</c> — into the core
-/// <c>SubjectSetRewrite</c> algebra. Grammar and precedence: [[schema-definition-language]] (<c>!</c> binds tightest; <c>&amp;</c> and <c>|</c> share precedence,
-/// left-associative). The Superpower grammar produces the internal <see cref="RewriteNode"/> tree; the transform at the exit parses every identifier through
-/// <c>RelationshipPath.Parse</c> and accumulates the errors, so bad input surfaces as <see cref="Result{T}"/> validation failures, never exceptions.
+/// <c>SubjectSetRewrite</c> algebra. Grammar and precedence: [[specs]] — a standard cascade, tightest first: <c>!</c> exclusion, then
+/// <c>&amp;</c> intersection, then <c>|</c> union, each level left-associative, so <c>a | b &amp; c</c> is <c>a | (b &amp; c)</c>. The Superpower grammar
+/// produces the internal <see cref="RewriteNode"/> tree; the transform at the exit parses every identifier through <c>RelationshipName.Parse</c> and
+/// accumulates the errors, so bad input surfaces as <see cref="Result{T}"/> validation failures, never exceptions. The expression language writes bare names
+/// and nothing else, so the transform needs no namespace to qualify against — the rewrite algebra stores names, and evaluation qualifies them against the
+/// resource in hand ([[identifiers]]).
 /// </summary>
 internal static class RewriteExpressionParser
 {
@@ -19,15 +23,15 @@ internal static class RewriteExpressionParser
     {
         var tokens = Tokenizer.TryTokenize(expression);
         if (!tokens.HasValue)
-            return Result.Failure<SubjectSetRewrite>(Error.Validation("sdl.rewrite", $"invalid rewrite expression '{expression}': {tokens}"));
+            return Result.Failure<SubjectSetRewrite>(Error.Validation("spec.rewrite", $"invalid rewrite expression '{expression}': {tokens}"));
 
         if (WouldOverflowTheParserStack(tokens.Value))
             return Result.Failure<SubjectSetRewrite>(
-                Error.Validation("sdl.rewrite", $"invalid rewrite expression '{expression}': parenthesis nesting exceeds {SubjectSetRewrite.MaxDepth} levels"));
+                Error.Validation("spec.rewrite", $"invalid rewrite expression '{expression}': parenthesis nesting exceeds {SubjectSetRewrite.MaxDepth} levels"));
 
         var parsed = Expression.AtEnd().TryParse(tokens.Value);
         return !parsed.HasValue
-            ? Result.Failure<SubjectSetRewrite>(Error.Validation("sdl.rewrite", $"invalid rewrite expression '{expression}': {parsed}"))
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation("spec.rewrite", $"invalid rewrite expression '{expression}': {parsed}"))
             : ExceedsMaxDepth(parsed.Value)
                 ? Result.Failure<SubjectSetRewrite>(SubjectSetRewrite.DepthError())
                 : Transform(parsed.Value);
@@ -116,17 +120,17 @@ internal static class RewriteExpressionParser
     private static Result<SubjectSetRewrite> Transform(RewriteNode node) =>
         node switch
         {
-            ThisNode => Result.Success<SubjectSetRewrite>(ThisRewrite.Default),
-            ComputedSubjectSetNode computed => RelationshipPath.Parse(computed.Relationship)
-                .Map(SubjectSetRewrite (relationship) => ComputedSubjectSetRewrite.Create(relationship)),
+            ThisNode => Result.Success<SubjectSetRewrite>(SubjectSetRewrite.This.Default),
+            ComputedSubjectSetNode computed => RelationshipName.Parse(computed.Relationship)
+                .Map(SubjectSetRewrite (relationship) => SubjectSetRewrite.ComputedSubjectSet.Create(relationship)),
             FactToSubjectSetNode factTo => Result.Apply(
-                RelationshipPath.Parse(factTo.FactsetRelationship)
-                    .Map(Func<RelationshipPath, SubjectSetRewrite> (factset) => computed => FactToSubjectSetRewrite.Create(factset, computed)),
-                RelationshipPath.Parse(factTo.ComputedSubjectSetRelationship)),
+                RelationshipName.Parse(factTo.FactsetRelationship)
+                    .Map(Func<RelationshipName, SubjectSetRewrite> (factset) => computed => SubjectSetRewrite.FactToSubjectSet.Create(factset, computed)),
+                RelationshipName.Parse(factTo.ComputedSubjectSetRelationship)),
             UnionNode union => union.Children.Select(Transform).Sequence()
-                .Bind(children => UnionRewrite.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
+                .Bind(children => SubjectSetRewrite.Union.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             IntersectionNode intersection => intersection.Children.Select(Transform).Sequence()
-                .Bind(children => IntersectionRewrite.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
+                .Bind(children => SubjectSetRewrite.Intersection.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             // the last inhabitant of the closed hierarchy: a discard arm (rather than a type pattern)
             // keeps the compiler from synthesizing an unreachable default branch under the switch
             _ => TransformExclusion((ExclusionNode)node),
@@ -137,7 +141,7 @@ internal static class RewriteExpressionParser
             Transform(exclusion.Include)
                 .Map(Func<SubjectSetRewrite, (SubjectSetRewrite Include, SubjectSetRewrite Exclude)> (include) => exclude => (include, exclude)),
             Transform(exclusion.Exclude))
-        .Bind(operands => ExclusionRewrite.Create(operands.Include, operands.Exclude).Map(SubjectSetRewrite (rewrite) => rewrite));
+        .Bind(operands => SubjectSetRewrite.Exclusion.Create(operands.Include, operands.Exclude).Map(SubjectSetRewrite (rewrite) => rewrite));
 
     private enum RewriteExpressionToken
     {
@@ -210,46 +214,24 @@ internal static class RewriteExpressionParser
             from excludes in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(term).Many()
             select excludes.Aggregate(include, (accumulated, exclude) => new ExclusionNode(accumulated, exclude));
 
-        expressionRef =
+        var intersection =
             from first in exclusion
-            from rest in Token.EqualTo(RewriteExpressionToken.Intersection).Or(Token.EqualTo(RewriteExpressionToken.Union))
-                .Then(op => exclusion.Select(right => (Op: op.Kind, Right: right)))
-                .Many()
-            select ChainBinaryOperators(first, rest);
+            from rest in Token.EqualTo(RewriteExpressionToken.Intersection).IgnoreThen(exclusion).Many()
+            select Chain(first, rest, static children => new IntersectionNode(children));
+
+        expressionRef =
+            from first in intersection
+            from rest in Token.EqualTo(RewriteExpressionToken.Union).IgnoreThen(intersection).Many()
+            select Chain(first, rest, static children => new UnionNode(children));
 
         return expressionRef;
     }
 
     /// <summary>
-    /// Folds an operator chain left-to-right, flattening each run of consecutive same-operator applications into one n-ary node: <c>a | b | c</c> is a single
-    /// three-child union. Only nodes built by this chain are appended into — a parenthesized operand arrives as an opaque <paramref name="first"/> or
-    /// <c>Right</c> and is never absorbed, so <c>(a | b) | c</c> keeps its nested shape and round-trips structurally. Each run accumulates in one list and
-    /// materializes once when the operator changes, so an untrusted flat chain costs linear work, not a re-copy per operand.
+    /// Collapses one precedence level's run into a single n-ary node: <c>a | b | c</c> is a single three-child union, and a lone operand passes through
+    /// untouched so the level costs nothing when its operator is absent. Only the operands this level parsed are gathered — a parenthesized operand arrives as
+    /// an opaque <see cref="RewriteNode"/> and is never absorbed, so <c>(a | b) | c</c> keeps its nested shape and round-trips structurally.
     /// </summary>
-    private static RewriteNode ChainBinaryOperators(RewriteNode first, (RewriteExpressionToken Op, RewriteNode Right)[] rest)
-    {
-        var accumulated = first;
-        List<RewriteNode>? run = null;
-        var runOp = RewriteExpressionToken.None;
-        foreach (var (op, right) in rest)
-        {
-            if (run is not null && op == runOp)
-            {
-                run.Add(right);
-                continue;
-            }
-
-            if (run is not null)
-                accumulated = MaterializeRun(runOp, run);
-            run = [accumulated, right];
-            runOp = op;
-        }
-
-        return run is null ? accumulated : MaterializeRun(runOp, run);
-    }
-
-    private static RewriteNode MaterializeRun(RewriteExpressionToken op, List<RewriteNode> children) =>
-        op == RewriteExpressionToken.Union
-            ? new UnionNode([.. children])
-            : new IntersectionNode([.. children]);
+    private static RewriteNode Chain(RewriteNode first, RewriteNode[] rest, Func<ImmutableArray<RewriteNode>, RewriteNode> materialize) =>
+        rest.Length == 0 ? first : materialize([first, .. rest]);
 }
