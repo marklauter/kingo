@@ -14,7 +14,8 @@ public static class SpecPrinter
         .Build();
 
     /// <summary>
-    /// Emits the SDL document for <paramref name="spec"/>: the <c>spec:</c> name, then one namespace per key under <c>namespaces:</c> in spec order.
+    /// Emits the SDL document for <paramref name="spec"/>: the <c>spec:</c> name, then one namespace per key under <c>namespaces:</c> in spec order. Every
+    /// name in the document is bare, and so is every name in the spec tree, so each key is written out as it is stored ([[identifiers]]).
     /// The spec's own invariants make the mapping well-formed by construction (namespace names are unique); the one document invariant the domain cannot
     /// express is the caller's defect and throws <see cref="ArgumentException"/>: no relationship name or rewrite reference may be the reserved word of the
     /// rewrite grammar (<c>this</c>).
@@ -23,20 +24,20 @@ public static class SpecPrinter
     {
         OrderedDictionary<string, List<object>> namespaces = new(spec.Namespaces.Length);
         foreach (var ns in spec.Namespaces)
-            namespaces.Add(ns.Path.Value, [.. ns.Relationships.Select(PrintRelationship)]);
+            namespaces.Add(ns.Name.Value, [.. ns.Relationships.Select(PrintRelationship)]);
 
         return DocumentSerializer.Serialize(
             new OrderedDictionary<string, object>
             {
-                ["spec"] = spec.Path.Value,
+                ["spec"] = spec.Name.Value,
                 ["namespaces"] = namespaces,
             });
     }
 
     private static object PrintRelationship(Relationship relationship) =>
-        RewriteExpressionPrinter.IsReserved(relationship.Path)
-            ? throw new ArgumentException($"relationship '{relationship.Path}' cannot be expressed in SDL: '{relationship.Path}' is reserved by the rewrite grammar")
-            : relationship.Rewrite is ThisRewrite
-                ? relationship.Path.Value
-                : new Dictionary<string, string> { [relationship.Path.Value] = RewriteExpressionPrinter.Print(relationship.Rewrite) };
+        RewriteExpressionPrinter.IsReserved(relationship.Name)
+            ? throw new ArgumentException($"relationship '{relationship.Name}' cannot be expressed in SDL: '{relationship.Name}' is reserved by the rewrite grammar")
+            : relationship.Rewrite is SubjectSetRewrite.This
+                ? relationship.Name.Value
+                : new Dictionary<string, string> { [relationship.Name.Value] = RewriteExpressionPrinter.Print(relationship.Rewrite) };
 }
