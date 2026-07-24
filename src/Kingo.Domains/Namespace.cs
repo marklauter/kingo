@@ -5,7 +5,7 @@ namespace Kingo.Domains;
 
 /// <summary>
 /// A namespace's definition <b>as a value</b>: an immutable snapshot of its relationships and their rewrites, with structural equality. Parse-agnostic and
-/// storable. An entity within the <see cref="Domain"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its spec. Names arrive
+/// storable. An entity within the <see cref="Domain"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its domain. Names arrive
 /// canonical lowercase through <c>Parse</c>, and the comparison here is ordinal. It is immutable, so there is no rename, only a new namespace.
 /// <see cref="Create"/> is the only construction path, so a <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
 /// concurrency, authorship) is the Write context's wrapper and never lives in core. If this type ever grows a version field, a timestamp, or a mutation method,
@@ -26,7 +26,7 @@ public sealed record Namespace
     /// <summary>
     /// Constructs a namespace from its name and relationships, validating for untrusted and trusted callers alike. The checks are staged because each makes the
     /// next well-defined: duplicates make reference resolution ambiguous, and dangling references make the cycle graph ill-defined. Each stage accumulates every
-    /// <see cref="ErrorType.Validation"/> error it finds before returning. The spec model has no core <c>Parse</c>. Its text forms live in serialization adapters,
+    /// <see cref="ErrorType.Validation"/> error it finds before returning. The domain model has no core <c>Parse</c>. Its text forms live in serialization adapters,
     /// which call this after decoding ([[domain-language]]). The only construction path.
     /// </summary>
     /// <returns>
@@ -135,8 +135,8 @@ public sealed record Namespace
     /// <summary>
     /// Searches the zero-fact recursion graph depth-first for cycles. Nodes are the namespace's relationships, and edges are its
     /// <see cref="SubjectSetRewrite.ComputedSubjectSet"/> references. Reports one error per back edge the search meets, not one per elementary cycle: cycles
-    /// sharing a node can collapse into one report, and a defective spec always fails, though fixing one cycle can surface another. Each error carries the full
-    /// cycle path, so the spec is diagnosable without re-deriving the graph. Runs after the dangling-reference stage, so every edge target is a defined node. Uses
+    /// sharing a node can collapse into one report, and a defective domain always fails, though fixing one cycle can surface another. Each error carries the full
+    /// cycle path, so the domain is diagnosable without re-deriving the graph. Runs after the dangling-reference stage, so every edge target is a defined node. Uses
     /// mutable three-color bookkeeping with an explicit frame stack rather than an expression pipeline or recursion: the path that makes the error message is
     /// inherently stateful, and this runs on untrusted input, so input shape must not pick the stack depth.
     /// </summary>

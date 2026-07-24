@@ -6,9 +6,9 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// The name of a <see cref="Schemas.Domain"/>, the config-side aggregate root's domain key, one segment of the identifier grammar ([[identifiers]]): <c>io</c>.
-/// Name-as-identity (settled 2026-07-15, provisionally: no rename, only a new spec. The surrogate-key alternative stays available if admin rename-freedom is
-/// worth more than the identity being legible. See [[domain-language]]). The spec is the root of the config tree, so this name is never itself qualified. It
+/// The name of a <see cref="Domains.Domain"/>, the config-side aggregate root's domain key, one segment of the identifier grammar ([[identifiers]]): <c>io</c>.
+/// Name-as-identity (settled 2026-07-15, provisionally: no rename, only a new domain. The surrogate-key alternative stays available if admin rename-freedom is
+/// worth more than the identity being legible. See [[domain-language]]). The domain is the root of the config tree, so this name is never itself qualified. It
 /// is instead what qualifies a <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct DomainName
@@ -25,7 +25,7 @@ public readonly record struct DomainName
     public static Result<DomainName> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
             ? Result.Failure<DomainName>(Error.Validation("domain_name.empty", "domain name cannot be empty or whitespace"))
-            : !SpecNamePatterns.Validation().IsMatch(s)
+            : !DomainNamePatterns.Validation().IsMatch(s)
                 ? Result.Failure<DomainName>(Error.Validation("domain_name.invalid", $"domain name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
                 : Result.Success(new DomainName(s.ToLowerInvariant()));
 
@@ -53,7 +53,7 @@ public readonly record struct DomainName
 }
 
 /// <summary>Character rules for <see cref="DomainName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
-internal static partial class SpecNamePatterns
+internal static partial class DomainNamePatterns
 {
     private const RegexOptions PatternOptions =
         RegexOptions.ExplicitCapture |

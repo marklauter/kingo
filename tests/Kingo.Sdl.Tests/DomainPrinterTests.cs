@@ -3,12 +3,12 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SpecPrinterTests
+public sealed class DomainPrinterTests
 {
     [Fact]
     public void Print_SimpleDocument_EmitsCanonicalSdl()
     {
-        var domain = MakeSpec(
+        var domain = MakeDomain(
         [
             MakeNs(
                 Ns("file"),
@@ -26,7 +26,7 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_AllRewriteTypes_EmitsExpectedExpressions()
     {
-        var domain = MakeSpec(
+        var domain = MakeDomain(
         [
             MakeNs(
                 Ns("test"),
@@ -55,9 +55,9 @@ public sealed class SpecPrinterTests
     }
 
     [Fact]
-    public void Print_SpecName_LeadsTheDocument()
+    public void Print_DomainName_LeadsTheDocument()
     {
-        var domain = MakeSpec(SpecId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
+        var domain = MakeDomain(DomainId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
 
         Assert.StartsWith("domain: acme\nnamespaces:\n", domain.Print(), StringComparison.Ordinal);
     }
@@ -65,7 +65,7 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_MultipleNamespaces_EmitsAllInOrder()
     {
-        var domain = MakeSpec(
+        var domain = MakeDomain(
         [
             MakeNs(Ns("file"), [Bare("owner")]),
             MakeNs(Ns("folder"), [Bare("viewer")]),
@@ -77,7 +77,7 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
     {
-        var domain = MakeSpec(
+        var domain = MakeDomain(
         [
             MakeNs(
                 Ns("file"),
@@ -90,7 +90,7 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_NamespaceWithoutRelationships_EmitsEmptySequence()
     {
-        var domain = MakeSpec([MakeNs(Ns("file"), [])]);
+        var domain = MakeDomain([MakeNs(Ns("file"), [])]);
 
         Assert.Equal("domain: test\nnamespaces:\n  file: []\n", domain.Print());
     }
@@ -102,7 +102,7 @@ public sealed class SpecPrinterTests
     {
         // SDL cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
         // never be referenced (a reference lexes as the keyword).
-        var domain = MakeSpec([MakeNs(Ns("file"), [Bare(name)])]);
+        var domain = MakeDomain([MakeNs(Ns("file"), [Bare(name)])]);
 
         _ = Assert.Throws<ArgumentException>(domain.Print);
     }
@@ -112,7 +112,7 @@ public sealed class SpecPrinterTests
     {
         // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
         // instead of a relationship reference — so emitting it is corruption, not serialization
-        var domain = MakeSpec(
+        var domain = MakeDomain(
         [
             MakeNs(Ns("file"), [Bare("this"), new Relationship(Rel("viewer"), Computed("this"))]),
         ]);
@@ -124,7 +124,7 @@ public sealed class SpecPrinterTests
     public void Print_ReservedReferenceInFactset_IsCallerDefect()
     {
         // pins that the factset arm routes both components through the reserved-word gate
-        var domain = MakeSpec(
+        var domain = MakeDomain(
         [
             MakeNs(
                 Ns("file"),

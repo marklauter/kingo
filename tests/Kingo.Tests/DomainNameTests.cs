@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class SpecNameTests
+public sealed class DomainNameTests
 {
     [Theory]
     [InlineData("acme")]
@@ -61,9 +61,9 @@ public sealed class SpecNameTests
     [Fact]
     public void Parse_IsOneSegment_AndAgreesWithTheSegmentInsideANamespacePath()
     {
-        // spec and namespace names are the same kind of thing — authored vocabulary — and share the segment
-        // grammar ([[identifiers]]); a namespace path is two of those segments, so a spec name that parses is
-        // exactly a spec name that can lead one
+        // domain and namespace names are the same kind of thing — authored vocabulary — and share the segment
+        // grammar ([[identifiers]]); a namespace path is two of those segments, so a domain name that parses is
+        // exactly a domain name that can lead one
         string[] inputs = ["acme", "ACME", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 
         foreach (var input in inputs)
@@ -75,9 +75,9 @@ public sealed class SpecNameTests
     [Theory]
     [InlineData("io/file")]
     [InlineData("io/file#viewer")]
-    public void Parse_QualifiedPath_IsNotASpecName(string input)
+    public void Parse_QualifiedPath_IsNotADomainName(string input)
     {
-        // a spec is one segment; anything carrying a separator names something below it
+        // a domain is one segment; anything carrying a separator names something below it
         var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input));
         Assert.Equal("domain_name.invalid", Assert.Single(f.Errors).Code);
     }

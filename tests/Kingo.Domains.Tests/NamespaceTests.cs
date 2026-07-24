@@ -7,7 +7,7 @@ namespace Kingo.Domains.Tests;
 
 public sealed class NamespaceTests
 {
-    // a namespace name is bare: the spec that owns it supplies the qualification ([[identifiers]])
+    // a namespace name is bare: the domain that owns it supplies the qualification ([[identifiers]])
     private static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     private static Relationship Def(string name) => new(RelationshipName.Unchecked(name));

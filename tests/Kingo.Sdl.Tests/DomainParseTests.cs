@@ -5,7 +5,7 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SpecParseTests
+public sealed class DomainParseTests
 {
     [Fact]
     public void Parse_SimpleDocument_ReturnsDefinedNamespaces()
@@ -30,7 +30,7 @@ public sealed class SpecParseTests
                 ]),
         ];
 
-        Assert.Equal(MakeSpec(SpecId("acme"), expected), ParseSuccess(sdl));
+        Assert.Equal(MakeDomain(DomainId("acme"), expected), ParseSuccess(sdl));
     }
 
     [Fact]
@@ -203,25 +203,25 @@ public sealed class SpecParseTests
     }
 
     [Fact]
-    public void Parse_SpecName_IsTheSpecsDomainKey()
+    public void Parse_DomainName_IsTheDomainsDomainKey()
     {
         var domain = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
-        Assert.Equal(SpecId("acme"), domain.Name);
+        Assert.Equal(DomainId("acme"), domain.Name);
     }
 
     [Fact]
-    public void Parse_MixedCaseSpecName_NormalizesToLowercase()
+    public void Parse_MixedCaseDomainName_NormalizesToLowercase()
     {
         var domain = ParseSuccess(Document("file:\n  - owner", name: "ACME"));
 
-        Assert.Equal(SpecId("acme"), domain.Name);
+        Assert.Equal(DomainId("acme"), domain.Name);
     }
 
     [Fact]
     public void Parse_DefectsInNameAndNamespaces_AccumulateAcrossBoth()
     {
-        // Result.Apply accumulates the envelope's two halves: a bad spec name does not mask namespace defects
+        // Result.Apply accumulates the envelope's two halves: a bad domain name does not mask namespace defects
         var errors = ParseFailure("domain: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
@@ -244,7 +244,7 @@ public sealed class SpecParseTests
     {
         // SDL owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
         // to a relationship named null — which is also what lets that name survive a round trip, since the
-        // renderer emits it unquoted (SpecPrinter.Print)
+        // renderer emits it unquoted (DomainPrinter.Print)
         var ns = Assert.Single(ParseSuccess(Document("file:\n  - null\n  - viewer: null")).Namespaces);
 
         ImmutableArray<Relationship> expected = [Bare("null"), new Relationship(Rel("viewer"), Computed("null"))];
@@ -327,9 +327,9 @@ public sealed class SpecParseTests
     }
 
     [Fact]
-    public void Parse_EmptyNamespaceMap_FailsAsEmptySpec()
+    public void Parse_EmptyNamespaceMap_FailsAsEmptyDomain()
     {
-        // a spec is never empty: the absence of namespaces is the absence of a spec
+        // a domain is never empty: the absence of namespaces is the absence of a domain
         var errors = ParseFailure(Document("{}"));
 
         Assert.Equal("domain.empty", Assert.Single(errors).Code);

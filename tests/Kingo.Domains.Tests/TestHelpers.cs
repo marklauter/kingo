@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Kingo.Domains.Tests;
 
-/// <summary>Shared construction and unwrap helpers for the spec-model tests — import with <c>using static</c>.</summary>
+/// <summary>Shared construction and unwrap helpers for the domain-model tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
     public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);

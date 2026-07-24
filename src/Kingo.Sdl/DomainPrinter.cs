@@ -15,9 +15,9 @@ public static class DomainPrinter
         .Build();
 
     /// <summary>
-    /// Emits the SDL document for <paramref name="domain"/>: the <c>domain:</c> name, then one namespace per key under <c>namespaces:</c> in spec
-    /// order. Every name in the document is bare, and so is every name in the spec tree, so each key is written out as it is stored
-    /// ([[identifiers]]). The spec's own invariants make the mapping well-formed by construction, because namespace names are unique.
+    /// Emits the SDL document for <paramref name="domain"/>: the <c>domain:</c> name, then one namespace per key under <c>namespaces:</c> in domain
+    /// order. Every name in the document is bare, and so is every name in the domain tree, so each key is written out as it is stored
+    /// ([[identifiers]]). The domain's own invariants make the mapping well-formed by construction, because namespace names are unique.
     /// </summary>
     /// <returns>The SDL document text for <paramref name="domain"/>.</returns>
     /// <exception cref="ArgumentException">A relationship name or rewrite reference is the reserved word of the rewrite grammar (<c>this</c>), which cannot be expressed in SDL.</exception>

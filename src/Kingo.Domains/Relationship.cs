@@ -1,7 +1,7 @@
 namespace Kingo.Domains;
 
 /// <summary>
-/// A named relationship and the rewrite that computes its effective subject set. Spec-side: this is the definition inside a <see cref="Namespace"/>, not the
+/// A named relationship and the rewrite that computes its effective subject set. Domain-side: this is the definition inside a <see cref="Namespace"/>, not the
 /// stored fact (that is <c>Kingo.Facts.Fact</c>). A bare definition with no rewrite specified defaults to <see cref="SubjectSetRewrite.This"/>, direct membership
 /// only.
 /// <para>

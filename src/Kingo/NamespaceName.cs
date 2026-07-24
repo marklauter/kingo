@@ -6,8 +6,8 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// The name of a <see cref="Schemas.Namespace"/> within its spec, one segment of the identifier grammar ([[identifiers]]): <c>file</c>. Bare, because the
-/// config side is a tree. A namespace lives inside the spec that owns it, so containment supplies the qualification and nothing on that side ever holds a
+/// The name of a <see cref="Domains.Namespace"/> within its domain, one segment of the identifier grammar ([[identifiers]]): <c>file</c>. Bare, because the
+/// config side is a tree. A namespace lives inside the domain that owns it, so containment supplies the qualification and nothing on that side ever holds a
 /// qualified path. The fact side is the other case: a fact points at a namespace it does not live inside, so its reference carries the qualifier as a
 /// <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>

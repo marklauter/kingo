@@ -3,7 +3,7 @@ using static Kingo.Sdl.Tests.TestHelpers;
 
 namespace Kingo.Sdl.Tests;
 
-public sealed class SpecRoundTripTests
+public sealed class DomainRoundTripTests
 {
     [Theory]
     [InlineData("file:\n  - owner")]
@@ -66,7 +66,7 @@ public sealed class SpecRoundTripTests
     public void RoundTrip_FromDomain_PreservesTreeStructure(string key)
     {
         // every relationship the rewrite cases reference, defined bare so the namespace gate passes
-        var original = MakeSpec(
+        var original = MakeDomain(
         [
             MakeNs(
                 Ns("file"),
@@ -115,14 +115,14 @@ public sealed class SpecRoundTripTests
     }
 
     [Fact]
-    public void RoundTrip_SpecName_SurvivesTheDocument()
+    public void RoundTrip_DomainName_SurvivesTheDocument()
     {
-        // the name is in the document, so parse ∘ print = id covers the spec's domain key too
+        // the name is in the document, so parse ∘ print = id covers the domain's key too
         var original = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
         var roundTripped = ParseSuccess(original.Print());
 
-        Assert.Equal(SpecId("acme"), roundTripped.Name);
+        Assert.Equal(DomainId("acme"), roundTripped.Name);
         Assert.Equal(original, roundTripped);
     }
 }

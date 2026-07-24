@@ -71,7 +71,7 @@ public sealed class NamespaceNameTests
     [Fact]
     public void Parse_IsTheSecondSegmentOfANamespacePath()
     {
-        // a namespace path is a spec name and a namespace name joined by '/', so a bare name that parses here is
+        // a namespace path is a domain name and a namespace name joined by '/', so a bare name that parses here is
         // exactly a bare name that can close one ([[identifiers]])
         string[] inputs = ["file", "FILE", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 

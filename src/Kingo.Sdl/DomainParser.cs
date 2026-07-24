@@ -7,11 +7,11 @@ using YamlDotNet.RepresentationModel;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// The parse half of the SDL adapter: Schema Definition Language document text ([[specs]]) to the core spec model
-/// (<see cref="DomainPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map. Each relationship's
+/// The parse half of the SDL adapter: Schema Definition Language document text ([[specs]]) to the core domain model
+/// (<see cref="DomainPrinter.Print"/> renders the other direction). YAML carries the domain name and the outer namespace map. Each relationship's
 /// optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
 /// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationshipName.Parse</c>,
-/// <c>NamespaceName.Parse</c>, <c>SpecName.Parse</c>, <c>Namespace.Create</c>, <c>Domain.Create</c>), accumulating every document-level,
+/// <c>NamespaceName.Parse</c>, <c>DomainName.Parse</c>, <c>Namespace.Create</c>, <c>Domain.Create</c>), accumulating every document-level,
 /// identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
 public static class DomainParser
@@ -34,29 +34,29 @@ public static class DomainParser
         LoadDocument(text).Bind(ParseDocument);
 
     /// <summary>
-    /// Parses the two halves of the envelope independently and accumulates them, so a bad spec name never masks namespace defects. Neither
-    /// half needs anything from the other, because a namespace key is a bare name that the enclosing spec qualifies by containment rather
+    /// Parses the two halves of the envelope independently and accumulates them, so a bad domain name never masks namespace defects. Neither
+    /// half needs anything from the other, because a namespace key is a bare name that the enclosing domain qualifies by containment rather
     /// than by string.
     /// </summary>
     /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="Domain"/>, or the accumulated failures from both halves and <c>Domain.Create</c>.</returns>
     private static Result<Domain> ParseDocument(YamlMappingNode document) =>
         Result.Apply(
             ParseName(document).Map<Func<ImmutableArray<Namespace>, (DomainName Name, ImmutableArray<Namespace> Namespaces)>>(
-                spec => namespaces => (spec, namespaces)),
+                domain => namespaces => (domain, namespaces)),
             ParseNamespaces(document))
-            .Bind(spec => Domain.Create(spec.Name, spec.Namespaces));
+            .Bind(domain => Domain.Create(domain.Name, domain.Namespaces));
 
-    /// <summary>Parses the document's <c>domain:</c> key, the spec's name and domain key (<see cref="DomainName"/> owns the grammar).</summary>
+    /// <summary>Parses the document's <c>domain:</c> key, the domain's name and domain key (<see cref="DomainName"/> owns the grammar).</summary>
     /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="DomainName"/>, or a <c>domain.document</c> failure when the <c>domain:</c> key is missing or its value is not a scalar.</returns>
     private static Result<DomainName> ParseName(YamlMappingNode document) =>
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
             ? DomainName.Parse(scalar.Value!)
-            : Result.Failure<DomainName>(Error.Validation("domain.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
+            : Result.Failure<DomainName>(Error.Validation("domain.document", $"a SDL document requires a '{NameKey}:' key naming the domain, with a scalar value"));
 
     /// <summary>
     /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Domain.Create</c>'s call (<c>domain.empty</c>), not
-    /// this adapter's. Each key is a bare <see cref="NamespaceName"/>, and the spec it belongs to is the document's own, supplied by
+    /// this adapter's. Each key is a bare <see cref="NamespaceName"/>, and the domain it belongs to is the document's own, supplied by
     /// containment.
     /// </summary>
     /// <returns>A successful <see cref="Result{T}"/> carrying the parsed namespaces, or a <c>domain.document</c> failure when the <c>namespaces:</c> key is missing or is not a mapping.</returns>

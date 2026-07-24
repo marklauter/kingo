@@ -4,14 +4,14 @@ using System.Collections.Immutable;
 namespace Kingo.Domains;
 
 /// <summary>
-/// A spec <b>as a value</b>: a set of namespace definitions curated together under a name, immutable with structural equality. The config-side aggregate root,
-/// with <see cref="Namespace"/> now an entity within it. Namespace-name uniqueness is an intra-aggregate invariant, and the spec is the unit of atomic config
+/// A domain <b>as a value</b>: a set of namespace definitions curated together under a name, immutable with structural equality. The config-side aggregate root,
+/// with <see cref="Namespace"/> now an entity within it. Namespace-name uniqueness is an intra-aggregate invariant, and the domain is the unit of atomic config
 /// change. <see cref="Create"/> is the only construction path, so a <c>Domain</c> that exists satisfies its invariants. The root of the config tree: it owns its
 /// namespaces, so it supplies their qualification, and nothing beneath it carries a qualified path ([[split-identities-at-ownership-boundaries]]).
 /// </summary>
 public sealed record Domain
 {
-    /// <summary>The spec's domain key, name-as-identity (provisional; see <see cref="DomainName"/>).</summary>
+    /// <summary>The domain's key, name-as-identity (provisional; see <see cref="DomainName"/>).</summary>
     public DomainName Name { get; }
 
     public ImmutableArray<Namespace> Namespaces { get; }
@@ -20,26 +20,26 @@ public sealed record Domain
         (Name, Namespaces) = (name, namespaces);
 
     /// <summary>
-    /// Constructs a spec from its name and namespaces, validating for untrusted and trusted callers alike. <paramref name="name"/> arrives already valid, because
+    /// Constructs a domain from its name and namespaces, validating for untrusted and trusted callers alike. <paramref name="name"/> arrives already valid, because
     /// <see cref="DomainName.Parse"/> owns its grammar. The only construction path.
     /// </summary>
     /// <returns>
-    /// A successful <see cref="Result{T}"/> carrying the spec. Otherwise a failure when the namespace set is empty (<c>domain.empty</c>: a spec is never empty, and
-    /// the absence of namespaces is the absence of a spec, modeled as not having one), or on duplicate namespace names (<c>domain.duplicate_namespace</c>, one
+    /// A successful <see cref="Result{T}"/> carrying the domain. Otherwise a failure when the namespace set is empty (<c>domain.empty</c>: a domain is never empty, and
+    /// the absence of namespaces is the absence of a domain, modeled as not having one), or on duplicate namespace names (<c>domain.duplicate_namespace</c>, one
     /// <see cref="ErrorType.Validation"/> error per duplicated name in first-occurrence order; names are already case-normalized by <see cref="NamespaceName"/>).
     /// </returns>
     public static Result<Domain> Create(DomainName name, ImmutableArray<Namespace> namespaces)
     {
         if (namespaces.IsDefaultOrEmpty)
             return Result.Failure<Domain>(
-                Error.Validation("domain.empty", "a spec requires at least one namespace; the absence of namespaces is the absence of a spec"));
+                Error.Validation("domain.empty", "a domain requires at least one namespace; the absence of namespaces is the absence of a domain"));
 
         var duplicates = namespaces
             .GroupBy(ns => ns.Name)
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
                 "domain.duplicate_namespace",
-                $"namespace '{group.Key}' is defined more than once in the spec"))
+                $"namespace '{group.Key}' is defined more than once in the domain"))
             .ToImmutableArray();
 
         return duplicates.IsEmpty

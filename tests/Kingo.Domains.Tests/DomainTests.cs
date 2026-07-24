@@ -73,7 +73,7 @@ public sealed class DomainTests
     [Fact]
     public void Equals_DifferentNames_NotEqual()
     {
-        // the name is the spec's domain key, so it is part of the value's identity
+        // the name is the domain's key, so it is part of the value's identity
         var a = Make(Id("acme"), [Ns("doc", "viewer")]);
         var b = Make(Id("globex"), [Ns("doc", "viewer")]);
 

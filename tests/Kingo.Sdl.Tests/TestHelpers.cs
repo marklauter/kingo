@@ -7,15 +7,15 @@ namespace Kingo.Sdl.Tests;
 /// <summary>Shared construction and unwrap helpers for the SDL adapter tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
-    /// <summary>The spec name every fixture document carries unless it is testing the name itself.</summary>
-    public const string DefaultSpecName = "test";
+    /// <summary>The domain name every fixture document carries unless it is testing the name itself.</summary>
+    public const string DefaultDomainName = "test";
 
-    /// <summary>A namespace name — bare, exactly as an SDL document writes the key and as the spec tree stores it ([[identifiers]]).</summary>
+    /// <summary>A namespace name — bare, exactly as an SDL document writes the key and as the domain tree stores it ([[identifiers]]).</summary>
     public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
 
-    public static DomainName SpecId(string value) => DomainName.Unchecked(value);
+    public static DomainName DomainId(string value) => DomainName.Unchecked(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
@@ -36,10 +36,10 @@ internal static class TestHelpers
     public static Namespace MakeNs(NamespaceName name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
-    public static Domain MakeSpec(ImmutableArray<Namespace> namespaces) =>
-        MakeSpec(SpecId(DefaultSpecName), namespaces);
+    public static Domain MakeDomain(ImmutableArray<Namespace> namespaces) =>
+        MakeDomain(DomainId(DefaultDomainName), namespaces);
 
-    public static Domain MakeSpec(DomainName name, ImmutableArray<Namespace> namespaces) =>
+    public static Domain MakeDomain(DomainName name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
 
     /// <summary>
@@ -47,7 +47,7 @@ internal static class TestHelpers
     /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
     /// <see cref="ParseFailure"/> directly.
     /// </summary>
-    public static string Document(string namespaceMap, string name = DefaultSpecName) =>
+    public static string Document(string namespaceMap, string name = DefaultDomainName) =>
         $"domain: {name}\nnamespaces:\n{Indent(namespaceMap)}";
 
     private static string Indent(string text) =>
