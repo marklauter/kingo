@@ -1,5 +1,5 @@
 ---
-title: spec document
+title: specs
 summary: "The authored form of a spec: a YAML document naming one spec and defining its namespaces and their relationships, with each rewrite written as an expression in a small embedded language."
 tags: [spec, schema]
 created: 2026-07-23
@@ -16,7 +16,7 @@ cites:
   - "[[factset]]"
 ---
 
-# spec document
+# specs
 
 One document defines one [[spec]]: its name, its [[namespace]]s, and their [[relationship]]s. A write replaces the spec whole. Omit a relationship and the write removes it.
 
@@ -46,9 +46,7 @@ namespaces:
 
 ## Names and paths
 
-Every name in a document is bare: namespace keys, relationship names, and names inside a rewrite. `spec:` supplies the missing segment and the parser qualifies each one before the domain sees it. Under `spec: io`, `file` becomes `io/file` and its `viewer` becomes `io/file#viewer` ([[identifiers]]).
-
-One name stays bare. A [[fact-to-subject-set]]'s second name applies to the resource the walk reaches, whose namespace depends on facts, so the evaluator qualifies it instead.
+Every name in a document is bare: namespace keys, relationship names, and the names inside a rewrite. They stay bare. A relationship lives in a namespace, and a namespace lives in a spec, so containment already says which one a name means. The stored model keeps no qualified path, and the parser qualifies nothing ([[identifiers]]).
 
 Names normalize to lowercase. YAML keys do not, so the parser rejects two keys that normalize alike.
 
@@ -62,7 +60,7 @@ Three operators, in binding order:
 - `&` intersection
 - `|` union
 
-Each binds tighter than the one below it, so `a | b & c` is `a | (b & c)`. Set algebra reads `A ∩ B ∪ C` the same way, on the convention that puts `×` over `+`. Each level reads left to right, so `a ! b ! c` is `(a ! b) ! c`.
+Each binds tighter than the one below it, so `a | b & c` is `a | (b & c)`. This matches ordinary math: `&` binds before `|`, the way `×` binds before `+`. Each level reads left to right, so `a ! b ! c` is `(a ! b) ! c`.
 
 EBNF, with the operators and conventions given in [[identifiers]].
 
@@ -110,7 +108,7 @@ A [[computed-subject-set]] names another relationship in the same namespace. A [
 - Every computed-subject-set name and every `⟨factset name⟩` must name a relationship in the same namespace, in any order. The parser doesn't check `⟨computed name⟩`, because the namespace it resolves in depends on facts.
 - Computed-subject-set references must not form a cycle. The check covers computed-subject-set edges only, so a walk may reach its own relationship, as `folder`'s `viewer` does through `(parent, viewer)`.
 - A spec defines at least one namespace. The absence of namespaces is the absence of a spec, so an empty `namespaces:` map is rejected.
-- `this` cannot name a relationship, in any case. It lexes as the direct-membership keyword, so a relationship so named could never be referenced. The core accepts the name; the restriction is this format's.
+- No relationship may be named `this`, spelled any way — `This` and `THIS` are refused too, since names normalize to lowercase. The word lexes as the direct-membership keyword, so a relationship named `this` could never be referenced. The core accepts the name; this format reserves it.
 
 ## Reference
 
