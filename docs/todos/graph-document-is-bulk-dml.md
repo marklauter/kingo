@@ -55,7 +55,7 @@ public sealed record DeleteOperation(Fact Fact) : GraphOperation(Fact);
 
 `Graph` beats `Fact` as the qualifier (Mark, 2026-07-15). `FactOperation(Fact Fact)` promises every operation names exactly one fact — true today, false the moment delete-by-filter lands, since "drop every viewer of `doc:readme`" acts on the graph and names no single fact. `GraphOperation` makes no such promise, so the DU can grow a filter case without the base lying. (Closing the DU is an implementation detail left open: `SubjectSetRewrite` uses a bare `private protected` ctor, which works because it declares no primary constructor. A base that takes one cannot cleanly also expose a parameterless ctor, so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention.)
 
-**It does not live in the domain layer** (Mark, 2026-07-15 — correcting this note's first draft, which put it in `Kingo.Graphs`). An operation sits **between two edges**: born at user IO (a document, a REST call), dead at storage IO (a conditional write). The tell is that every rule it carries is storage semantics, not a domain invariant:
+**It does not live in the domain layer** (Mark, 2026-07-15 — correcting this note's first draft, which put it in `Kingo.Facts`). An operation sits **between two edges**: born at user IO (a document, a REST call), dead at storage IO (a conditional write). The tell is that every rule it carries is storage semantics, not a domain invariant:
 
 - `create` vs `touch` differ *only* in whether the write carries an if-absent condition — `attribute_not_exists`, nothing more.
 - "Delete of an absent fact — no-op or failure?" is a conditional-write question.
@@ -69,13 +69,13 @@ A type whose entire rule set is storage semantics is not a domain type; it is th
 
 ## `Kingo.Fml` — the adapter
 
-The document's parser is its own project, **`Kingo.Fml`**, beside `Kingo.Sdl` — one adapter per sublanguage of AGL ([[domain-language]]). The pair mirrors the models: `Kingo.Sdl` → `Kingo.Schemas`, `Kingo.Fml` → `Kingo.Graphs`, so the assembly ban the two test suites already enforce between the models carries into the adapters for free. Nothing about FML wants to live in `Kingo.Sdl`: that project is named for the *Schema* Definition Language, and the two documents share no grammar — only a frame.
+The document's parser is its own project, **`Kingo.Fml`**, beside `Kingo.Sdl` — one adapter per sublanguage of AGL ([[domain-language]]). The pair mirrors the models: `Kingo.Sdl` → `Kingo.Domains`, `Kingo.Fml` → `Kingo.Facts`, so the assembly ban the two test suites already enforce between the models carries into the adapters for free. Nothing about FML wants to live in `Kingo.Sdl`: that project is named for the *Schema* Definition Language, and the two documents share no grammar — only a frame.
 
 It is by far the thinner of the pair, and the asymmetry is the design, not an accident:
 
 - **Parser only, no printer.** `parse ∘ print = id` pins the domain pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
 - **YamlDotNet, no Superpower.** SDL needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. FML has no embedded language at all — every entry is a fact in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
-- **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so `Kingo.Fml` references ports *and* `Kingo.Graphs`, and travels with the storage work rather than landing next.
+- **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so `Kingo.Fml` references ports *and* `Kingo.Facts`, and travels with the storage work rather than landing next.
 
 ## Consequences — the stubs are gone
 
@@ -85,7 +85,7 @@ All three fact-side stubs from 2026-07-15 were removed the same day rather than 
 - **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the fact grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
 - **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[domain-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
 
-`Kingo.Graphs` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Sdl` is back to the domain pair alone.
+`Kingo.Facts` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Sdl` is back to the domain pair alone.
 
 ## Open questions
 
@@ -108,6 +108,6 @@ These are storage questions, which is why they travel with the ports project rat
 
 ## Related
 
-- [[domains]] — the DDL half: the domain document, its `spec:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
+- [[domains]] — the DDL half: the domain document, its `domain:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
 - [[domain-language]] — `Fact` and the fact grammar these documents carry; the `Graph`-is-not-a-type guardrail this proposal vindicates.
 - [[four-service-split-by-load-profile]] — Write is the host that would consume these documents.

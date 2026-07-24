@@ -37,9 +37,9 @@ EBNF conventions are given in [[identifiers]]. Kingo's names are spelled in full
 ⟨object-set⟩        ::= ⟨resource⟩ '#' '...'
 ⟨subject-set⟩       ::= ⟨resource⟩ '#' ⟨relationship name⟩
 ⟨resource⟩          ::= ⟨namespace path⟩ ':' ⟨resource id⟩
-⟨namespace path⟩    ::= ⟨spec name⟩ '/' ⟨namespace name⟩
+⟨namespace path⟩    ::= ⟨domain name⟩ '/' ⟨namespace name⟩
 
-⟨spec name⟩         ::= ⟨name⟩
+⟨domain name⟩       ::= ⟨name⟩
 ⟨namespace name⟩    ::= ⟨name⟩
 ⟨relationship name⟩ ::= ⟨name⟩
 ⟨name⟩              ::= ⟨name-start⟩ { ⟨name-char⟩ }

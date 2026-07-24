@@ -56,7 +56,7 @@ The decision stands; three rows of the picture above gained specifics:
 
 - **Item shape.** Fact items are interval-stamped — created/tombstoned Kookie attributes; delete is a tombstone write, a snapshot read filters at the pin, and GC advances a store-wide retention horizon. The flat `tuples → (PK, SK) items` mapping now carries those attributes, and "MVCC header + journal split" is superseded by this model.
 - **A second reverse access pattern.** Beyond the subject GSI, the domain-write guard needs a reverse existence query — do any live facts reference this namespace or relationship. Cold path, domain-write time only.
-- **Domain storage is first-class.** Domains live in the store as an append-only changelog of whole `Spec` values, versioned on the same timeline as facts (intervals close by supersession; whole-domain deletion is a terminal marker entry). "Domain administration — separate from storage" above still describes the admin workflow, not the storage artifact.
+- **Domain storage is first-class.** Domains live in the store as an append-only changelog of whole `Domain` values, versioned on the same timeline as facts (intervals close by supersession; whole-domain deletion is a terminal marker entry). "Domain administration — separate from storage" above still describes the admin workflow, not the storage artifact.
 
 ## Caveats
 

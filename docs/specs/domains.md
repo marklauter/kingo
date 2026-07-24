@@ -24,12 +24,10 @@ A domain is an entity of the model. It enters the system as a YAML document and 
 
 ## Projection
 
-A domain projects to a YAML document with two keys. `spec:` is the domain's name; `namespaces:` maps each namespace name to its relationship list. The name travels inside the projection rather than arriving out of band, so the printer emits every part of the domain it was given and the document round-trips. A write carries a whole document and replaces the domain whole. Omit a relationship and the write removes it.
-
-The projection key is still spelled `spec:`; the rename reaches the wire format and the parser in a later pass.
+A domain projects to a YAML document with two keys. `domain:` is the domain's name; `namespaces:` maps each namespace name to its relationship list. The name travels inside the projection rather than arriving out of band, so the printer emits every part of the domain it was given and the document round-trips. A write carries a whole document and replaces the domain whole. Omit a relationship and the write removes it.
 
 ```yaml
-spec: io
+domain: io
 
 namespaces:
   file:
@@ -90,13 +88,13 @@ EBNF conventions are given in [[identifiers]].
 
 `⟨factset relationship⟩` names the relationship whose facts the walk reads. `⟨computed-subject-set relationship⟩` is evaluated on each resource that the walk reaches.
 
-Every name a rewrite holds is a `⟨relationship name⟩`, evaluated against the resource in hand. Its character grammar — `⟨name-start⟩` through `⟨digit⟩` — also forms the `spec:` value and the namespace keys, the `⟨spec name⟩` and `⟨namespace name⟩` productions in [[identifiers]].
+Every name a rewrite holds is a `⟨relationship name⟩`, evaluated against the resource in hand. Its character grammar — `⟨name-start⟩` through `⟨digit⟩` — also forms the `domain:` value and the namespace keys, the `⟨domain name⟩` and `⟨namespace name⟩` productions in [[identifiers]].
 
 A run of one operator parses to a single n-ary node. Parentheses survive as structure, so the parser never flattens across them. The printer parenthesizes by grammar position, so a [[subject-set-rewrite]] tree round-trips to a structurally equal tree.
 
 Two constraints the grammar can't carry:
 
-- A rewrite nests at most 100 levels deep; a run of `|` or `&` is one level however wide, so operand count is free. Grouping-parenthesis depth is bounded on its own, refused as `spec.rewrite`, and the parsed tree's height as `rewrite.depth`.
+- A rewrite nests at most 100 levels deep; a run of `|` or `&` is one level however wide, so operand count is free. Grouping-parenthesis depth is bounded on its own, refused as `domain.rewrite`, and the parsed tree's height as `rewrite.depth`.
 - A union or an intersection takes at least one operand. An empty one has no members to take, so it is refused rather than given semantics.
 
 A [[computed-subject-set]] names another relationship in the same namespace. A [[fact-to-subject-set]] walks a [[factset]], then evaluates a second relationship on the resource it reaches.

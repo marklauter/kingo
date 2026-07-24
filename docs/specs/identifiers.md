@@ -42,10 +42,10 @@ Grammars in this corpus are EBNF: `::=` defines, `|` alternates, `( )` groups, `
 
 ```ebnf
 ⟨relationship path⟩ ::= ⟨namespace path⟩ '#' ⟨relationship name⟩
-⟨namespace path⟩    ::= ⟨spec name⟩ '/' ⟨namespace name⟩
+⟨namespace path⟩    ::= ⟨domain name⟩ '/' ⟨namespace name⟩
 ```
 
-`⟨spec name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` are Kingo's own names — opaque segments here, their character grammar the `⟨name⟩` production of [[domains]]. These two productions say only how the segments compose into a qualified path. The [[facts]] grammar builds resources, subject-sets, and facts on top of them.
+`⟨domain name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` are Kingo's own names — opaque segments here, their character grammar the `⟨name⟩` production of [[domains]]. These two productions say only how the segments compose into a qualified path. The [[facts]] grammar builds resources, subject-sets, and facts on top of them.
 
 ```
 io                                              domain

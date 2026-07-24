@@ -1,6 +1,6 @@
 ---
 title: Architecture
-summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds the domain (Schemas and Graphs), Kingo.Sdl is the domain-document codec, .Json/.Yaml are wire-converter packs; no ports project until a genuine port family appears."
+summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds the domain (Domains and Facts), Kingo.Sdl is the domain-document codec, .Json/.Yaml are wire-converter packs; no ports project until a genuine port family appears."
 tags: [note, architecture, hexagonal, ddd]
 created: 2026-05-13
 status: evolving
@@ -14,7 +14,7 @@ The project follows hexagonal architecture with a DDD core at the center. Projec
 
 ### Domain core — `Kingo`
 
-The center. Pure types describing the ubiquitous domain per [[domain-language]]: the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Schemas` (the config side: the `Spec` root over its `Namespace` entities, plus the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST) and `Graphs` (the data side: the `Fact` root with its value objects `Resource` and `SubjectSet`; the party seats as `SubjectId` directly — [[resource-fact-case]] dissolved the `Subject` wrapper, 2026-07-21). No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
+The center. Pure types describing the ubiquitous domain per [[domain-language]]: the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Domains` (the config side: the `Domain` root over its `Namespace` entities, plus the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST) and `Facts` (the data side: the `Fact` root with its value objects `Resource` and `SubjectSet`; the party seats as `SubjectId` directly — [[resource-fact-case]] dissolved the `Subject` wrapper, 2026-07-21). No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
 
 The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry was dissolved and deleted per [[dissolve-kingo-pdl-under-hexagonal-layout]]; it survives only on the archive branches ([[sources]]).
 
@@ -30,7 +30,7 @@ That trigger has now fired, though the project has not been built yet. The bulk-
 
 Concrete implementations of the ports, using whichever third-party library or platform is appropriate. Adapters know about YamlDotNet, System.Text.Json, DynamoDbLite, ASP.NET Core. Domain code never directly references them; it talks to the port.
 
-The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Sdl` is the whole-document codec (YamlDotNet + Superpower; public surface: `SpecParser.Parse(text) → Result<Spec>` and the `spec.Print()` extension — format knowledge in the adapter, domain untouched; the fact-side document has no adapter yet: its stubs were deleted 2026-07-15 because that document is a bulk-DML changeset, not a state, and its `GraphOperation` vocabulary belongs between the edges rather than in core — see [[graph-document-is-bulk-dml]], which waits on the first ports project); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
+The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Sdl` is the whole-document codec (YamlDotNet + Superpower; public surface: `DomainParser.Parse(text) → Result<Domain>` and the `domain.Print()` extension — format knowledge in the adapter, domain untouched; the fact-side document has no adapter yet: its stubs were deleted 2026-07-15 because that document is a bulk-DML changeset, not a state, and its `GraphOperation` vocabulary belongs between the edges rather than in core — see [[graph-document-is-bulk-dml]], which waits on the first ports project); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
 
 ## Principles
 
@@ -49,4 +49,4 @@ The serialization projects have distinct jobs ([[realign-serialization-projects-
 
 - [[dissolve-kingo-pdl-under-hexagonal-layout]]
 - [[move-jsonconverter-off-identifier-types-into-the-json-adapter]]
-- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; SDL public-surface rework landed 2026-07-15: `SpecParser.Parse` + `spec.Print()`; the interim `SdlDocument : IParse<SdlDocument>` idea was dropped — no wrapper type needed.
+- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; SDL public-surface rework landed 2026-07-15: `DomainParser.Parse` + `domain.Print()`; the interim `SdlDocument : IParse<SdlDocument>` idea was dropped — no wrapper type needed.

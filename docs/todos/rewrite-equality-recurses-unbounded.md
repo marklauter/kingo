@@ -10,7 +10,7 @@ effort: medium
 
 # Rewrite equality recurses unbounded
 
-Raised by code review, 2026-07-21, after `Namespace.Create`'s traversals went iterative ([[namespace-create-validation]]). The validation gate no longer recurses, but structural equality still does: `SubjectSetRewrite.Union`/`SubjectSetRewrite.Intersection` `SequenceEqual` into children, `SubjectSetRewrite.Exclusion`'s synthesized record `Equals` into `Include`/`Exclude`, and `SequenceHash.Of` into each child — all in `src/Kingo.Schemas/SubjectSetRewrite.cs`, and reachable through `Namespace`/`Spec` equality.
+Raised by code review, 2026-07-21, after `Namespace.Create`'s traversals went iterative ([[namespace-create-validation]]). The validation gate no longer recurses, but structural equality still does: `SubjectSetRewrite.Union`/`SubjectSetRewrite.Intersection` `SequenceEqual` into children, `SubjectSetRewrite.Exclusion`'s synthesized record `Equals` into `Include`/`Exclude`, and `SequenceHash.Of` into each child — all in `src/Kingo.Domains/SubjectSetRewrite.cs`, and reachable through `Namespace`/`Domain` equality.
 
 The exposure was the trusted path: the SDL parser's guard bounds every tree untrusted text can produce, but a trusted caller could assemble an arbitrarily deep tree through the public factories.
 
