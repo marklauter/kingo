@@ -6,7 +6,7 @@ namespace Kingo.Schemas;
 /// <summary>
 /// A namespace's definition <b>as a value</b> — an immutable snapshot of its relationships and their rewrites,
 /// with structural equality. Parse-agnostic and storable. An entity within the <see cref="Spec"/> aggregate,
-/// not a root: its identity is local — <see cref="Path"/> unique within its spec (names arrive canonical lowercase
+/// not a root: its identity is local — <see cref="Name"/> unique within its spec (names arrive canonical lowercase
 /// through <c>Parse</c>; the comparison here is ordinal), immutable
 /// (there is no rename, only a new namespace). <see cref="Create"/> is the only construction path, so a
 /// <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
@@ -16,13 +16,13 @@ namespace Kingo.Schemas;
 /// </summary>
 public sealed record Namespace
 {
-    public NamespacePath Path { get; }
+    public NamespaceName Name { get; }
 
     public ImmutableArray<Relationship> Relationships { get; }
 
-    private Namespace(NamespacePath path, ImmutableArray<Relationship> relationships)
+    private Namespace(NamespaceName name, ImmutableArray<Relationship> relationships)
     {
-        Path = path;
+        Name = name;
         Relationships = relationships;
     }
 
@@ -31,52 +31,52 @@ public sealed record Namespace
     /// (duplicates make reference resolution ambiguous; dangling references make the cycle graph ill-defined), each stage accumulating every
     /// <see cref="ErrorType.Validation"/> error it finds before returning:
     /// duplicate relationship names (<c>namespace.duplicate_relationship</c>, one error per duplicated name in first-occurrence order), then dangling
-    /// intra-namespace references (<c>namespace.dangling_reference</c> — every <see cref="ComputedSubjectSetRewrite.Relationship"/> and every
-    /// <see cref="FactToSubjectSetRewrite.FactsetRelationship"/> names a relationship defined here; the factset's
-    /// <see cref="FactToSubjectSetRewrite.ComputedSubjectSetRelationship"/> targets another namespace and stays the interpreter's condition 4), then cycles in
+    /// intra-namespace references (<c>namespace.dangling_reference</c> — every <see cref="SubjectSetRewrite.ComputedSubjectSet.Relationship"/> and every
+    /// <see cref="SubjectSetRewrite.FactToSubjectSet.FactsetRelationship"/> names a relationship defined here; the factset's
+    /// <see cref="SubjectSetRewrite.FactToSubjectSet.ComputedSubjectSetRelationship"/> targets another namespace and stays the interpreter's condition 4), then cycles in
     /// the zero-fact recursion graph (<c>namespace.rewrite_cycle</c>, each error carrying the full cycle path — edges are
-    /// <see cref="ComputedSubjectSetRewrite"/> references; factset arms cannot recurse without consuming a stored fact, so they belong to the evaluator's depth
+    /// <see cref="SubjectSetRewrite.ComputedSubjectSet"/> references; factset arms cannot recurse without consuming a stored fact, so they belong to the evaluator's depth
     /// bound, not this check; [[rewrite-interpreters]]). The spec model has no core <c>Parse</c> — its text forms live in serialization adapters, which call
     /// this after decoding ([[domain-language]]).
     /// </summary>
-    public static Result<Namespace> Create(NamespacePath path, ImmutableArray<Relationship> relationships)
+    public static Result<Namespace> Create(NamespaceName name, ImmutableArray<Relationship> relationships)
     {
         // a default array is the empty namespace: normalized here so construction is total and the stored value always enumerates
         if (relationships.IsDefault)
             relationships = [];
 
         var duplicates = relationships
-            .GroupBy(relationship => relationship.Path)
+            .GroupBy(relationship => relationship.Name)
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
                 "namespace.duplicate_relationship",
-                $"relationship '{group.Key}' is defined more than once in namespace '{path}'"))
+                $"relationship '{group.Key}' is defined more than once in namespace '{name}'"))
             .ToImmutableArray();
         if (!duplicates.IsEmpty)
             return Result.Failure<Namespace>(duplicates);
 
         // one tree walk per relationship: the references materialize here and both remaining stages consume them
         var references = relationships.ToImmutableDictionary(
-            relationship => relationship.Path,
+            relationship => relationship.Name,
             relationship => IntraNamespaceReferences(relationship.Rewrite).Distinct().ToImmutableArray());
 
-        var defined = relationships.Select(relationship => relationship.Path).ToImmutableHashSet();
+        var defined = relationships.Select(relationship => relationship.Name).ToImmutableHashSet();
         var dangling = relationships
-            .SelectMany(relationship => references[relationship.Path]
+            .SelectMany(relationship => references[relationship.Name]
                 .Select(reference => reference.Target)
                 // not redundant with the tuple-level Distinct above: one target can appear under both edge kinds
                 .Distinct()
                 .Where(target => !defined.Contains(target))
                 .Select(target => Error.Validation(
                     "namespace.dangling_reference",
-                    $"relationship '{relationship.Path}' references '{target}', which is not defined in namespace '{path}'")))
+                    $"relationship '{relationship.Name}' references '{target}', which is not defined in namespace '{name}'")))
             .ToImmutableArray();
         if (!dangling.IsEmpty)
             return Result.Failure<Namespace>(dangling);
 
-        var cycles = DetectCycles(path, relationships, references);
+        var cycles = DetectCycles(name, relationships, references);
         return cycles.IsEmpty
-            ? Result.Success(new Namespace(path, relationships))
+            ? Result.Success(new Namespace(name, relationships))
             : Result.Failure<Namespace>(cycles);
     }
 
@@ -102,17 +102,17 @@ public sealed record Namespace
     private static ImmutableArray<SubjectSetRewrite> Children(SubjectSetRewrite rewrite) =>
         rewrite switch
         {
-            UnionRewrite union => union.Children,
-            IntersectionRewrite intersection => intersection.Children,
-            ExclusionRewrite exclusion => [exclusion.Include, exclusion.Exclude],
-            ThisRewrite or ComputedSubjectSetRewrite => [],
+            SubjectSetRewrite.Union union => union.Children,
+            SubjectSetRewrite.Intersection intersection => intersection.Children,
+            SubjectSetRewrite.Exclusion exclusion => [exclusion.Include, exclusion.Exclude],
+            SubjectSetRewrite.This or SubjectSetRewrite.ComputedSubjectSet => [],
             // the last inhabitant of the closed hierarchy: a discard arm with a cast (rather than a type pattern)
             // keeps the compiler from synthesizing an unreachable default branch under the switch, and fails
             // loudly if the union ever grows a variant this traversal has not met
-            _ => LeafChildren((FactToSubjectSetRewrite)rewrite),
+            _ => LeafChildren((SubjectSetRewrite.FactToSubjectSet)rewrite),
         };
 
-    private static ImmutableArray<SubjectSetRewrite> LeafChildren(FactToSubjectSetRewrite _) => [];
+    private static ImmutableArray<SubjectSetRewrite> LeafChildren(SubjectSetRewrite.FactToSubjectSet _) => [];
 
     /// <summary>
     /// The relationships a rewrite names within its own namespace — one extraction feeding both validation stages, so the two can never disagree on what a
@@ -120,17 +120,17 @@ public sealed record Namespace
     /// first elements are references only (a factset hop consumes a fact, so it counts against the evaluator's depth bound instead). The factset's second
     /// element resolves in another namespace and is not referenced here.
     /// </summary>
-    private static IEnumerable<(RelationshipPath Target, bool IsZeroFactEdge)> IntraNamespaceReferences(SubjectSetRewrite rewrite) =>
-        Flatten(rewrite).SelectMany(IEnumerable<(RelationshipPath, bool)> (node) => node switch
+    private static IEnumerable<(RelationshipName Target, bool IsZeroFactEdge)> IntraNamespaceReferences(SubjectSetRewrite rewrite) =>
+        Flatten(rewrite).SelectMany(IEnumerable<(RelationshipName, bool)> (node) => node switch
         {
-            ComputedSubjectSetRewrite computed => [(computed.Relationship, true)],
-            FactToSubjectSetRewrite factTo => [(factTo.FactsetRelationship, false)],
+            SubjectSetRewrite.ComputedSubjectSet computed => [(computed.Relationship, true)],
+            SubjectSetRewrite.FactToSubjectSet factTo => [(factTo.FactsetRelationship, false)],
             // operator nodes carry no references of their own; an unrecognized variant already failed loudly in Children
             _ => [],
         });
 
     /// <summary>
-    /// Depth-first search over the zero-fact recursion graph — nodes are the namespace's relationships, edges its <see cref="ComputedSubjectSetRewrite"/>
+    /// Depth-first search over the zero-fact recursion graph — nodes are the namespace's relationships, edges its <see cref="SubjectSetRewrite.ComputedSubjectSet"/>
     /// references — reporting one error per back edge the search meets (not one per elementary cycle: cycles sharing a node can collapse into one report;
     /// a defective spec always fails, but fixing one cycle can surface another), each error carrying the full cycle path so the spec is diagnosable
     /// without re-deriving the graph. Runs after the dangling-reference stage, so every edge target is a defined node. Mutable three-color bookkeeping with an
@@ -138,9 +138,9 @@ public sealed record Namespace
     /// untrusted input, so input shape must not pick the stack depth.
     /// </summary>
     private static ImmutableArray<Error> DetectCycles(
-        NamespacePath name,
+        NamespaceName name,
         ImmutableArray<Relationship> relationships,
-        ImmutableDictionary<RelationshipPath, ImmutableArray<(RelationshipPath Target, bool IsZeroFactEdge)>> references)
+        ImmutableDictionary<RelationshipName, ImmutableArray<(RelationshipName Target, bool IsZeroFactEdge)>> references)
     {
         var edges = references.ToImmutableDictionary(
             entry => entry.Key,
@@ -150,19 +150,19 @@ public sealed record Namespace
                 .ToImmutableArray());
 
         var errors = ImmutableArray.CreateBuilder<Error>();
-        var finished = new HashSet<RelationshipPath>();
-        var path = new List<RelationshipPath>();
-        var onPath = new HashSet<RelationshipPath>();
-        var frames = new Stack<(RelationshipPath Node, int NextEdge)>();
+        var finished = new HashSet<RelationshipName>();
+        var path = new List<RelationshipName>();
+        var onPath = new HashSet<RelationshipName>();
+        var frames = new Stack<(RelationshipName Node, int NextEdge)>();
 
         foreach (var relationship in relationships)
         {
-            if (finished.Contains(relationship.Path))
+            if (finished.Contains(relationship.Name))
                 continue;
 
-            frames.Push((relationship.Path, 0));
-            _ = onPath.Add(relationship.Path);
-            path.Add(relationship.Path);
+            frames.Push((relationship.Name, 0));
+            _ = onPath.Add(relationship.Name);
+            path.Add(relationship.Name);
 
             while (frames.Count > 0)
             {
@@ -201,8 +201,8 @@ public sealed record Namespace
 
     public bool Equals(Namespace? other) =>
         other is not null
-        && Path.Equals(other.Path)
+        && Name.Equals(other.Name)
         && Relationships.AsSpan().SequenceEqual(other.Relationships.AsSpan());
 
-    public override int GetHashCode() => HashCode.Combine(Path, RewriteHash.OfSequence(Relationships));
+    public override int GetHashCode() => HashCode.Combine(Name, SequenceHash.Of(Relationships));
 }

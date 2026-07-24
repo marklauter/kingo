@@ -2,14 +2,20 @@ namespace Kingo.Schemas;
 
 /// <summary>
 /// A named relationship and the rewrite that computes its effective subject set. Spec-side: this is the definition inside a <see cref="Namespace"/>, not the
-/// stored fact (that is <c>Kingo.Graphs.Fact</c>). A bare definition (no rewrite specified) defaults to <see cref="ThisRewrite"/> — direct membership
+/// stored fact (that is <c>Kingo.Graphs.Fact</c>). A bare definition (no rewrite specified) defaults to <see cref="SubjectSetRewrite.This"/> — direct membership
 /// only.
+/// <para>
+/// <see cref="Name"/> is bare, like every name in the config tree: a relationship exists only inside a <see cref="Namespace"/>, which exists only inside a
+/// <see cref="Spec"/>, so containment already says which relationship this is and a qualified path held here would be a second source of truth that could
+/// disagree with its container ([[split-identities-at-ownership-boundaries]]). It also puts the definition's own name in the same currency as the names its
+/// rewrite references, so <c>Namespace.Create</c> resolves them without qualifying either side.
+/// </para>
 /// </summary>
 public sealed record Relationship(
-    RelationshipPath Path,
+    RelationshipName Name,
     SubjectSetRewrite Rewrite)
 {
-    /// <summary>Constructs a definition with the implicit <see cref="ThisRewrite"/> — direct membership only.</summary>
-    public Relationship(RelationshipPath path)
-        : this(path, ThisRewrite.Default) { }
+    /// <summary>Constructs a definition with the implicit <see cref="SubjectSetRewrite.This"/> — direct membership only.</summary>
+    public Relationship(RelationshipName name)
+        : this(name, SubjectSetRewrite.This.Default) { }
 }
