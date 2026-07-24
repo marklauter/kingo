@@ -18,18 +18,11 @@ cites:
 
 # spec document
 
-A spec document is how a [[spec]] is written. One document names one spec and defines every [[namespace]] in it, so the document is the unit of authoring and the unit of atomic change. A write replaces the spec whole: relationships the document omits are removed.
-
-The outer form is YAML, which carries the names, the map structure, comments, and indentation. Each [[relationship]]'s rewrite lives in a scalar as a small embedded language, parsed separately. An expression like `(this | editor | (parent, viewer)) ! banned` has operators, precedence, and grouping, and YAML has no way to spell those except as nested mappings.
+One document defines one [[spec]]: its name, its [[namespace]]s, and their [[relationship]]s. A write replaces the spec whole. Omit a relationship and the write removes it.
 
 ## Envelope
 
-A document is one YAML mapping with two keys:
-
-- `spec:` — the spec's name.
-- `namespaces:` — a map of namespace name to relationship list.
-
-The name lives in the document rather than arriving out of band, so a document round-trips: the printer can emit every part of the value it was given.
+Two keys. `spec:` is the spec's name, `namespaces:` a map of namespace name to relationship list. The name lives in the document rather than arriving out of band, so the printer can emit every part of the value it was given and a document round-trips.
 
 ```yaml
 spec: io
@@ -51,45 +44,74 @@ namespaces:
     - banned
 ```
 
-## The document holds names, the domain holds paths
+## Names and paths
 
-Every name in a document is bare. The namespace keys are bare, and so is every relationship name and every name inside a rewrite. The document's `spec:` supplies the missing segment, and the parser qualifies each name before the domain sees it — `file` under `spec: io` becomes `io/file`, and its `viewer` becomes `io/file#viewer`. See [[identifiers]].
+Every name in a document is bare: namespace keys, relationship names, and names inside a rewrite. `spec:` supplies the missing segment and the parser qualifies each one before the domain sees it. Under `spec: io`, `file` becomes `io/file` and its `viewer` becomes `io/file#viewer` ([[identifiers]]).
 
-One position keeps its bare name. In a [[fact-to-subject-set]] the second name is evaluated against the resource the walk arrives at, whose namespace is not known until the facts are read, so it stays unqualified in the stored rewrite.
+One name stays bare. A [[fact-to-subject-set]]'s second name applies to the resource the walk reaches, whose namespace depends on facts, so the evaluator qualifies it instead.
 
-Names are case-insensitive and normalize to lowercase. YAML keys are not, so two keys that normalize to the same namespace are rejected.
+Names normalize to lowercase. YAML keys do not, so the parser rejects two keys that normalize alike.
 
-## Rewrite expressions
+## Rewrites
 
-| Operator | Meaning      | Precedence           | Associativity |
-|----------|--------------|----------------------|---------------|
-| `!`      | exclusion    | highest              | left          |
-| `&`      | intersection | lower (same as `\|`) | left          |
-| `\|`     | union        | lower (same as `&`)  | left          |
+A relationship's rewrite is an expression in a scalar, parsed separately from the YAML. The parser reads the scalar's raw text rather than YAML's typed value, so a plain `null` in expression position is the name `null`, not a missing value.
 
-`!` binds tighter than `&` and `|`. Those two share a precedence and read left to right, so mix them with parentheses when grouping matters. Chained `!` associates left, matching set difference: `a ! b ! c` is `(a ! b) ! c`.
+Three operators, in binding order:
 
-```bnf
-<rewrite>             ::= <exclusion> [ ('&' | '|') <exclusion> ]*
-<exclusion>           ::= <term> [ '!' <term> ]*
-<term>                ::= 'this'
-                        | <computed-subjectset>
-                        | <fact-to-subjectset>
-                        | '(' <rewrite> ')'
+- `!` exclusion, binds tightest
+- `&` intersection
+- `|` union
 
-<computed-subjectset> ::= <name>
-<fact-to-subjectset>  ::= '(' <name> ',' <name> ')'
-<name>                ::= [a-zA-Z_][a-zA-Z0-9_]*
+Each binds tighter than the one below it, so `a | b & c` is `a | (b & c)`. Set algebra reads `A ∩ B ∪ C` the same way, on the convention that puts `×` over `+`. Each level reads left to right, so `a ! b ! c` is `(a ! b) ! c`.
+
+EBNF, with the operators and conventions given in [[identifiers]].
+
+```ebnf
+⟨rewrite⟩              ::= ⟨union⟩
+⟨union⟩                ::= ⟨intersection⟩ { '|' ⟨intersection⟩ }
+⟨intersection⟩         ::= ⟨exclusion⟩ { '&' ⟨exclusion⟩ }
+⟨exclusion⟩            ::= ⟨term⟩ { '!' ⟨term⟩ }
+⟨term⟩                 ::= 'this'
+                         | ⟨computed-subject-set⟩
+                         | ⟨fact-to-subject-set⟩
+                         | '(' ⟨rewrite⟩ ')'
+
+⟨computed-subject-set⟩ ::= ⟨name⟩
+⟨fact-to-subject-set⟩  ::= '(' ⟨factset name⟩ ',' ⟨computed name⟩ ')'
+⟨factset name⟩         ::= ⟨name⟩
+⟨computed name⟩        ::= ⟨name⟩
+
+⟨name⟩                 ::= ⟨name-start⟩ { ⟨name-char⟩ }     excluding 'this'
+⟨name-start⟩           ::= ⟨letter⟩ | '_'
+⟨name-char⟩            ::= ⟨letter⟩ | ⟨digit⟩ | '_'
+⟨letter⟩               ::= 'a'…'z' | 'A'…'Z'
+⟨digit⟩                ::= '0'…'9'
 ```
 
-A run of the same operator is one n-ary node, so `a | b | c` is a single three-child union. A parenthesized operand is opaque, so `(a | b) | c` is a union whose first child is a union. The printer parenthesizes by grammar position, so any [[subject-set-rewrite]] tree round-trips to a structurally equal tree.
+`⟨factset name⟩` names the relationship whose facts the walk reads. `⟨computed name⟩` is evaluated on each resource that walk reaches.
 
-A [[computed-subject-set]] names another relationship in the same namespace. A [[fact-to-subject-set]] walks a [[factset]] relationship, then evaluates a second relationship on the resource that walk reaches.
+`⟨name⟩` is the production behind `⟨spec name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` in [[identifiers]], and it governs all four name positions in a document: the `spec:` value, the namespace keys, the relationship names, and the names inside a rewrite.
 
-## What the parser checks
+A run of one operator parses to a single n-ary node. Parentheses survive as structure, so the parser never flattens across them. The printer parenthesizes by grammar position, so a [[subject-set-rewrite]] tree round-trips to a structurally equal tree.
 
-Every computed-subject-set name and every factset first name must be defined in the same namespace, and computed-subject-set references must not form a cycle. A factset's second name is not checked, because the namespace it resolves in depends on facts.
+Two constraints the grammar can't carry:
 
-A relationship written as a bare name has no rewrite and means [[this]]. A `<name>:` pair with a missing value is rejected rather than defaulted, since it always reads as a forgotten expression. A namespace with no relationships is valid.
+- A rewrite tree is at most 100 levels deep. Deeper is refused as `rewrite.depth`.
+- A union or an intersection takes at least one operand. An empty one has no members to take, so it is refused rather than given semantics.
 
-`this` and `...` cannot name a relationship. `this` always lexes as the direct-membership keyword, so a relationship so named could never be referenced. `...` is the fact grammar's unspecified-relationship sentinel and cannot lex in a rewrite at all. Both are constraints of this format. A relationship path accepts either name, and a format with no embedded expression language has no such collision.
+A [[computed-subject-set]] names another relationship in the same namespace. A [[fact-to-subject-set]] walks a [[factset]], then evaluates a second relationship on the resource it reaches.
+
+## Rules
+
+- A relationship written as a bare name, `- owner`, has an implicit [[this]] rewrite.
+- A relationship written as a pair with no expression, `- owner:`, is rejected. It always reads as a forgotten rewrite, so it gets a pointed error rather than a default.
+- A namespace with no relationships is valid, written `file:` or `file: []`.
+- A namespace may not define the same relationship name twice, before or after normalization.
+- Every computed-subject-set name and every `⟨factset name⟩` must name a relationship in the same namespace, in any order. The parser doesn't check `⟨computed name⟩`, because the namespace it resolves in depends on facts.
+- Computed-subject-set references must not form a cycle. The check covers computed-subject-set edges only, so a walk may reach its own relationship, as `folder`'s `viewer` does through `(parent, viewer)`.
+- A spec defines at least one namespace. The absence of namespaces is the absence of a spec, so an empty `namespaces:` map is rejected.
+- `this` cannot name a relationship, in any case. It lexes as the direct-membership keyword, so a relationship so named could never be referenced. The core accepts the name; the restriction is this format's.
+
+## Reference
+
+- [Algebra of sets](https://en.wikipedia.org/wiki/Algebra_of_sets) — the laws the operators obey, and the precedence convention they inherit.
