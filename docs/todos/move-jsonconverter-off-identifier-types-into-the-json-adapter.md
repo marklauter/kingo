@@ -16,7 +16,7 @@ Retitled 2026-07-21; the original title ("Move JsonConverter off identifier type
 
 The pre-reboot identifier types carried `[JsonConverter(typeof(StringConvertible<...>))]` attributes — the domain declaring how it is serialized. That half is dead: the fresh-built core carries no serialization attributes, and the last remnants were deleted with the `Kingo.Pdl` quarry (2026-07-14, [[dissolve-kingo-pdl-under-hexagonal-layout]]). As of 2026-07-21 both `Kingo.Serialization.Json` and `Kingo.Serialization.Yaml` hold only a `GlobalSuppressions.cs`, and their test projects only the ArchUnit architecture tests.
 
-What remains is constructive, and the design is settled by the Parse boundary rule in [[domain-language]]: wire-*capability* lives on the type (`IParse`), the wire *format* lives in the adapter's converters. The adapter layer's shape ([[realign-serialization-projects-around-their-real-consumers]]): the converter packs ARE the point of the .Json/.Yaml projects — no ports, no document serializers there — and `AdapterArchitectureTestsBase` enforces that adapters define no exception types.
+What remains is constructive, and the design is settled by the Parse boundary rule in [[ubiquitous-language]]: wire-*capability* lives on the type (`IParse`), the wire *format* lives in the adapter's converters. The adapter layer's shape ([[realign-serialization-projects-around-their-real-consumers]]): the converter packs ARE the point of the .Json/.Yaml projects — no ports, no document serializers there — and `AdapterArchitectureTestsBase` enforces that adapters define no exception types.
 
 ## When the need arises
 

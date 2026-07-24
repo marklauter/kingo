@@ -7,4 +7,4 @@ status: locked
 is-a: "[[subject-set-rewrite]]"
 ---
 
-Direct membership — the subjects written directly under a subject set, plus the members of any subject-set-valued facts stored there. Reserved in SDL, never in the core; a bare relationship name means this.
+Direct membership — the subjects written directly under a subject set, plus the members of any subject-set-valued facts stored there. Reserved in the domain document, never in the core; a bare relationship name means this.

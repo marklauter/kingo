@@ -13,9 +13,9 @@ Format and authoring rules live in the hoplite skills (see CLAUDE.md, "Docs and 
 
 ## The system
 
-- [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types; `Kingo.Sdl` is the SDL document codec; `.Json`/`.Yaml` are value-type converter packs for future REST hosts. No ports project — the first genuine port family (storage, transport) gets its own.
-- [[domain-language]] — the ubiquitous language: the fact grammar in Kingo vocabulary and the mapping from each production to its C# type. The Parse boundary rule lives here.
-- [[the-first-consumer-forges-the-domain]] — building the SDL codec pressure-tested the core: the renames, the aggregate collapse, and the port dissolution all fell out of one real consumer; put one on a young domain early.
+- [[architecture]] — hexagonal with a DDD core: `Kingo` holds domain types; `Kingo.Documents` is the domain-document codec; `.Json`/`.Yaml` are value-type converter packs for future REST hosts. No ports project — the first genuine port family (storage, transport) gets its own.
+- [[ubiquitous-language]] — the ubiquitous language: the fact grammar in Kingo vocabulary and the mapping from each production to its C# type. The Parse boundary rule lives here.
+- [[the-first-consumer-forges-the-domain]] — building the domain-document codec pressure-tested the core: the renames, the aggregate collapse, and the port dissolution all fell out of one real consumer; put one on a young domain early.
 - [[authz-event-logging]] — CloudTrail-style audit: writes are management events (the changelog already is that record), Check decisions are data events shipped asynchronously as serialized `Decision`s; buffer-full policy open.
 - [[clean-room-procedure]] — how a work item reaches a clean-room design session: self-sufficient handoff note, input closure by settled kind, dry-run critique, findings ledger driven empty before the session runs. Distilled from the rewrite-interpreters run.
 - [[the-walk-gathers-constraints-set-theory-decides]] — Contains intermixes graph theory and set theory with separate guards: traversal over facts discovers which set expressions apply, Kleene evaluation of the assembled expression produces the verdict. The walk assembles the question; it never answers it.

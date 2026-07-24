@@ -1,6 +1,6 @@
 ---
 title: CsCheck property-based tests for parsers and value types
-summary: "Refactor to CsCheck properties where the contract is a law over an input space (identifier grammars, Parse/ToString and SDL round-trips, Result algebra), keeping the example-based tests as readable contract documentation."
+summary: "Refactor to CsCheck properties where the contract is a law over an input space (identifier grammars, Parse/ToString and domain-document round-trips, Result algebra), keeping the example-based tests as readable contract documentation."
 tags: [note, todo, testing]
 created: 2026-07-21
 status: open
@@ -16,7 +16,7 @@ One line tests the whole class: a property quantifies over the input space where
 
 - **Identifier grammars** (`tests/Kingo.Tests`, five identifier types): generate strings over and around the grammar alphabets; assert `Parse` accepts iff the pattern matches, rejects anything carrying a reserved delimiter (`:`, `#`, `@`) in a reserved position, and that `Unchecked`/`Parse` agree on accepted input.
 - **Graphs round-trips** (`tests/Kingo.Facts.Tests`): `Parse(x.ToString()) == x` for `Resource`, `SubjectSet`, `Fact` over generated valid values.
-- **SDL round-trips** (`tests/Kingo.Sdl.Tests`): generate domains, assert print→parse identity — the existing `DomainRoundTripTests` enumerate cases by hand; a generator walks the space between them.
+- **Domain-document round-trips** (`tests/Kingo.Documents.Tests`): generate domains, assert print→parse identity — the existing `DomainRoundTripTests` enumerate cases by hand; a generator walks the space between them.
 - **Result algebra** (`tests/Results.Tests`): `ResultLawTests` pin functor/applicative/monad laws at fixed points; quantify them over generated values and functions.
 
 ## Constraints

@@ -23,7 +23,7 @@ Two caveats that ride along with the choice:
 - **Custom structural equality is mandatory.** The struct's default equality compares the inner array *reference*, so records carrying an `ImmutableArray` override `Equals`/`GetHashCode` with span-based `SequenceEqual` (see `SubjectSetRewrite.Union`, `Namespace`, `Result<T>.Failure`). A new record carrying an `ImmutableArray` without the override is a defect.
 - **`default(ImmutableArray<T>)` wraps a null array** and throws on use — same trash-value class as `default(Error)`, minus the fail-loud treatment. Non-issue while construction flows through primary constructors, but worth remembering at deserialization boundaries.
 
-On `Namespace.Relationships` specifically, the array is a deliberate *document-shaped* choice: it preserves authored order (SDL round-trip fidelity) and gives cheap order-sensitive structural equality. The two gaps it leaves are intentional deferrals, not oversights:
+On `Namespace.Relationships` specifically, the array is a deliberate *document-shaped* choice: it preserves authored order (domain-document round-trip fidelity) and gives cheap order-sensitive structural equality. The two gaps it leaves are intentional deferrals, not oversights:
 
 - Duplicate relationship names are unrepresentable: `Namespace.Create` is the only construction path (ctor private, 2026-07-14) and rejects them with one `Validation` error per duplicated name.
 - Keyed lookup (`RelationshipPath → SubjectSetRewrite`) is the interpreters' concern, not the model's: the Check host compiles a `Namespace` into its own read-side form (e.g. `FrozenDictionary` — built for the build-once/read-forever profile). Write-side-vs-read-side projection applied one level down.
@@ -36,5 +36,5 @@ If incremental domain editing ever becomes a real workflow, builder/`ImmutableLi
 
 ## Related
 
-- [[domain-language]] — the types these collections live in.
+- [[ubiquitous-language]] — the types these collections live in.
 - [[four-service-split-by-load-profile]] — why read-side compiled forms (FrozenDictionary) live in the hosts, not the model.

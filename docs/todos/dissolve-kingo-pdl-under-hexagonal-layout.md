@@ -29,7 +29,7 @@ PDL is a distinct format — YAML outer structure plus a Superpower-parsed embed
 
 ## Next
 
-**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [[domain-language]]: identifier IValues (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
+**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [[ubiquitous-language]]: identifier IValues (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
 
 Remaining work:
 
@@ -42,7 +42,7 @@ Likely coordinated with [[move-jsonconverter-off-identifier-types-into-the-json-
 
 **Update 2026-07-14 — unblocked; this is the active work item.** The core test pass closed the same day (ten test files pin the identifier grammars, delimiter reservations, composite Parse/ToString round-trips, applicative error accumulation, and the ImmutableArray structural-equality overrides; `build-gate.sh` green, Kingo at 98% line / 100% branch). Additions to the plan since it was written:
 
-- **The transform exits through `Namespace.Define`, not the raw constructor.** `Define(name, relationships)` is the core's `Result`-returning structured factory (landed with the test pass): duplicate relationship names fail as accumulated `namespace.duplicate_relationship` validation errors. The adapter decodes the document, then calls `Define` at the untrusted boundary — its first real caller. The raw constructor is pure assignment for trusted sources only, mirroring the `Create`/`Parse` split ([[domain-language]]).
+- **The transform exits through `Namespace.Define`, not the raw constructor.** `Define(name, relationships)` is the core's `Result`-returning structured factory (landed with the test pass): duplicate relationship names fail as accumulated `namespace.duplicate_relationship` validation errors. The adapter decodes the document, then calls `Define` at the untrusted boundary — its first real caller. The raw constructor is pure assignment for trusted sources only, mirroring the `Create`/`Parse` split ([[ubiquitous-language]]).
 - **First slice sets the layer.** This work creates the first port interface in `Kingo.Serialization` and the adapter-layer ArchUnit rules; `.Json`/`.Yaml` inherit the shape. The three serialization projects are scaffolded but empty today.
 - **Queue behind it:** [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] (unblocks REST hosts), then in any order the rewrite interpreters ([[four-service-split-by-load-profile]]), storage on DynamoDbLite ([[dynamodblite-substrate]]), and the zookie/snapshot design session — the Write host waits on all three.
 
