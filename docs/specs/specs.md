@@ -94,21 +94,20 @@ A run of one operator parses to a single n-ary node. Parentheses survive as stru
 
 Two constraints the grammar can't carry:
 
-- A rewrite tree is at most 100 levels deep. Deeper is refused as `rewrite.depth`.
+- A rewrite nests at most 100 levels deep; a run of `|` or `&` is one level however wide, so operand count is free. Grouping-parenthesis depth is bounded on its own, refused as `spec.rewrite`, and the parsed tree's height as `rewrite.depth`.
 - A union or an intersection takes at least one operand. An empty one has no members to take, so it is refused rather than given semantics.
 
 A [[computed-subject-set]] names another relationship in the same namespace. A [[fact-to-subject-set]] walks a [[factset]], then evaluates a second relationship on the resource it reaches.
 
 ## Rules
 
-- A relationship written as a bare name, `- owner`, has an implicit [[this]] rewrite.
-- A relationship written as a pair with no expression, `- owner:`, is rejected. It always reads as a forgotten rewrite, so it gets a pointed error rather than a default.
-- A namespace with no relationships is valid, written `file:` or `file: []`.
-- A namespace may not define the same relationship name twice, before or after normalization.
-- Every computed-subject-set name and every `⟨factset relationship⟩` must name a relationship in the same namespace, in any order. The parser doesn't check `⟨computed-subject-set relationship⟩`, because the namespace it resolves in depends on facts.
-- Computed-subject-set references must not form a cycle. The check covers computed-subject-set edges only, so a walk may reach its own relationship, as `folder`'s `viewer` does through `(parent, viewer)`.
-- A spec defines at least one namespace. The absence of namespaces is the absence of a spec, so an empty `namespaces:` map is rejected.
-- No relationship may be named `this`, spelled any way — `This` and `THIS` are refused too, since names normalize to lowercase. The word lexes as the direct-membership keyword, so a relationship named `this` could never be referenced. The core accepts the name; this format reserves it.
+- `- name: <rewrite>` defines a relationship. `- name` alone is shorthand for `- name: this`; `- name:` with nothing after is rejected as a forgotten rewrite.
+- A namespace may hold no relationships: `file:` or `file: []`.
+- A namespace cannot name the same relationship twice. Names normalize to lowercase first, so `Owner` and `owner` collide.
+- Every [[computed-subject-set]] and the factset half of every [[fact-to-subject-set]] must name a relationship in the same namespace, defined before or after. The computed half is unchecked: the namespace it resolves in isn't known until facts are read.
+- Computed-subject-set references cannot form a cycle. Only computed edges count, so a walk may still reach its own relationship, as `folder`'s `viewer` does through `(parent, viewer)`.
+- A spec defines at least one namespace; an empty `namespaces:` map is rejected.
+- No relationship may be named `this`, any casing. It lexes as the direct-membership keyword, so the name could never be referenced. The core accepts it; this format reserves it.
 
 ## Reference
 
