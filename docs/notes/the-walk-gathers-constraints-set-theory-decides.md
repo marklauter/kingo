@@ -12,7 +12,7 @@ status: evolving
 
 The recursion therefore has two sources, one per theory, and each has its own guard:
 
-- **Set-theoretic recursion lives in the schema**: `ComputedSubjectSetRewrite` crossings. Finite, made acyclic at `Namespace.Create` ([[namespace-create-validation]]), and free in the depth accounting.
+- **Set-theoretic recursion lives in the schema**: `SubjectSetRewrite.ComputedSubjectSet` crossings. Finite, made acyclic at `Namespace.Create` ([[namespace-create-validation]]), and free in the depth accounting.
 - **Graph-theoretic recursion lives in the facts**: factset hops and subjectset-valued member expansions. User-writable, unbounded, and exactly what the [[depth-bound]] meters.
 
 The graph is literally the object-object notation: `Fact.ResourceFact` — `folder:x#parent@folder:y#...` — is the edge the walk traverses, and the walkable pointer is the only member encoding that is graph rather than set ([[resource-fact-case]]). The other two encodings denote sets (a subject-id its singleton, a subjectset its derived set), and a fact asserts inclusion between sets ([[domain-language]]) — so the walk is confined to the pointer encoding, and the rest is set algebra.

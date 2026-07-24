@@ -10,7 +10,7 @@ effort: low
 
 # Rewrite test helpers are duplicated
 
-Raised by code review, 2026-07-21. `tests/Kingo.Schemas.Tests/TestHelpers.cs` and `tests/Kingo.Sdl.Tests/TestHelpers.cs` carry the same six rewrite-construction members character for character; the `ExclusionRewrite.Create` change (bare → `Result`) had to land in both files, twice in one branch.
+Raised by code review, 2026-07-21. `tests/Kingo.Schemas.Tests/TestHelpers.cs` and `tests/Kingo.Sdl.Tests/TestHelpers.cs` carry the same six rewrite-construction members character for character; the `SubjectSetRewrite.Exclusion.Create` change (bare → `Result`) had to land in both files, twice in one branch.
 
 Homing them in `Kingo.Testing` is ruled out: every test project references it — `Values.Tests` and `Results.Tests` included — and the helpers need `Kingo.Schemas`, a dependency those projects must not inherit. The candidate shapes:
 

@@ -13,13 +13,13 @@ blocked-by: "[[storage-versioning-design]]"
 
 ## Observation
 
-`GraphParser` / `GraphPrinter` were stubbed 2026-07-15 as the fact-side mirror of the spec pair ([[schema-definition-language]]): `Parse(text) → Result<Graph>` plus a `graph.Print()` extension, with the document format left open. Mark's aspiration for that format (2026-07-15) is **bulk DML** — a loader/mutator, not a serialized state. You can add, delete, and (in SQL's frame) patch; patch is empty for a fact, because a fact's domain key is the whole triple and there is no non-key field left to change — a "patched" fact is a different fact. That leaves **create, touch, delete**, which is exactly Zanzibar's `RelationTupleUpdate` set (§2.4) and the set SpiceDB's `RelationshipUpdate` kept unchanged. Two independent designs landing on the same three is evidence the space is that shape:
+`GraphParser` / `GraphPrinter` were stubbed 2026-07-15 as the fact-side mirror of the spec pair ([[specs]]): `Parse(text) → Result<Graph>` plus a `graph.Print()` extension, with the document format left open. Mark's aspiration for that format (2026-07-15) is **bulk DML** — a loader/mutator, not a serialized state. You can add, delete, and (in SQL's frame) patch; patch is empty for a fact, because a fact's domain key is the whole triple and there is no non-key field left to change — a "patched" fact is a different fact. That leaves **create, touch, delete**, which is exactly Zanzibar's `RelationTupleUpdate` set (§2.4) and the set SpiceDB's `RelationshipUpdate` kept unchanged. Two independent designs landing on the same three is evidence the space is that shape:
 
 - `create` — assert, conflict if the fact already exists.
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
 - `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal (dry-run finding F8); the operation vocabulary is unchanged by that.
 
-The DDL/DML frame is what names the split cleanly ([[schema-definition-language]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The language this document is written in is **FML, the Fact Mutation Language** — the DML half of the Authorization Graph Language, as SDL is the DDL half ([[domain-language]] names AGL and its two sublanguages). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
+The DDL/DML frame is what names the split cleanly ([[specs]] is the DDL half): the schema carries the rules, the facts are the ground data, and this document mutates the data. The language this document is written in is **FML, the Fact Mutation Language** — the DML half of the Authorization Graph Language, as SDL is the DDL half ([[domain-language]] names AGL and its two sublanguages). "Mutation" over "manipulation": SQL's M is a 1970s word for the same slot, and mutation says what the three operations do to the graph. The analogy is not exact — SQL's DML is a language of statements against a live store, while a graph document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
 ## Proposed format
 
@@ -104,10 +104,10 @@ These are storage questions, which is why they travel with the ports project rat
 - **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[dynamodblite-substrate]].
 - Settle the delete semantics and the transaction question — they decide whether a batch type exists and what `GraphParser` returns.
 - Rebuild `GraphParser` against `GraphOperation` once it has a home, in `Kingo.Fml` (above) — the project the naming question in this note's first draft was reaching for.
-- Write the format up properly once settled — likely its own note beside [[schema-definition-language]], since an FML document is a different artifact from the SDL one.
+- Write the format up properly once settled — likely its own note beside [[specs]], since an FML document is a different artifact from the SDL one.
 
 ## Related
 
-- [[schema-definition-language]] — the DDL half: the spec document, its `spec:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
+- [[specs]] — the DDL half: the spec document, its `spec:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
 - [[domain-language]] — `Fact` and the fact grammar these documents carry; the `Graph`-is-not-a-type guardrail this proposal vindicates.
 - [[four-service-split-by-load-profile]] — Write is the host that would consume these documents.

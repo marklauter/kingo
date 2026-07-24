@@ -12,7 +12,7 @@ status: locked
 
 `ImmutableArray<T>` is a thin struct wrapper around a plain `T[]` — contiguous memory, O(1) index, allocation-free enumeration, zero per-element overhead. Its trade is on mutation: every "update" copies the whole array. `ImmutableList<T>` is the opposite profile — an AVL tree with structural sharing, O(log n) access and update, pointer-chasing everywhere.
 
-Current uses: `UnionRewrite.Children`, `IntersectionRewrite.Children`, `Namespace.Relationships` (and `Result<T>.Failure.Errors` in the Results project, same pattern).
+Current uses: `SubjectSetRewrite.Union.Children`, `SubjectSetRewrite.Intersection.Children`, `Namespace.Relationships` (and `Result<T>.Failure.Errors` in the Results project, same pattern).
 
 ## Interpretation
 
@@ -20,7 +20,7 @@ Domain values in Kingo are read-optimized by construction. "Mutation" in this de
 
 Two caveats that ride along with the choice:
 
-- **Custom structural equality is mandatory.** The struct's default equality compares the inner array *reference*, so records carrying an `ImmutableArray` override `Equals`/`GetHashCode` with span-based `SequenceEqual` (see `UnionRewrite`, `Namespace`, `Result<T>.Failure`). A new record carrying an `ImmutableArray` without the override is a defect.
+- **Custom structural equality is mandatory.** The struct's default equality compares the inner array *reference*, so records carrying an `ImmutableArray` override `Equals`/`GetHashCode` with span-based `SequenceEqual` (see `SubjectSetRewrite.Union`, `Namespace`, `Result<T>.Failure`). A new record carrying an `ImmutableArray` without the override is a defect.
 - **`default(ImmutableArray<T>)` wraps a null array** and throws on use — same trash-value class as `default(Error)`, minus the fail-loud treatment. Non-issue while construction flows through primary constructors, but worth remembering at deserialization boundaries.
 
 On `Namespace.Relationships` specifically, the array is a deliberate *document-shaped* choice: it preserves authored order (SDL round-trip fidelity) and gives cheap order-sensitive structural equality. The two gaps it leaves are intentional deferrals, not oversights:

@@ -22,7 +22,7 @@ Zanzibar's data model is essentially specified in DynamoDB-shaped primitives. Th
 | Reverse index ("what can user X see?") | GSI on `subject` |
 | Watch API / change feed | DynamoDB Streams |
 | MVCC header + journal split | Items + separate journal table |
-| Range scan in `FactToSubjectSetRewrite` | `Query` with `KeyConditionExpression` |
+| Range scan in `SubjectSetRewrite.FactToSubjectSet` | `Query` with `KeyConditionExpression` |
 
 Zanzibar production runs on Spanner, but the abstract model is a partition+sort key store with conditional writes — DynamoDB's exact shape.
 
