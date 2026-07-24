@@ -1,0 +1,136 @@
+using Kingo.Theories;
+using static Kingo.Documents.Tests.TestHelpers;
+
+namespace Kingo.Documents.Tests;
+
+public sealed class TheoryPrinterTests
+{
+    [Fact]
+    public void Print_SimpleDocument_EmitsCanonicalSdl()
+    {
+        var domain = MakeTheory(
+        [
+            MakeNs(
+                Ns("file"),
+                [
+                    Bare("owner"),
+                    new Relationship(
+                        Rel("editor"),
+                        Union([SubjectSetRewrite.This.Default, Computed("owner")])),
+                ]),
+        ]);
+
+        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", domain.Print());
+    }
+
+    [Fact]
+    public void Print_AllRewriteTypes_EmitsExpectedExpressions()
+    {
+        var domain = MakeTheory(
+        [
+            MakeNs(
+                Ns("test"),
+                [
+                    Bare("owner"),
+                    Bare("parent"),
+                    Bare("viewer"),
+                    Bare("banned"),
+                    Bare("direct"),
+                    new Relationship(Rel("computed"), Computed("owner")),
+                    new Relationship(Rel("factset"), FactTo("parent", "viewer")),
+                    new Relationship(Rel("union"), Union([SubjectSetRewrite.This.Default, Computed("owner")])),
+                    new Relationship(Rel("intersection"), Intersection([SubjectSetRewrite.This.Default, Computed("viewer")])),
+                    new Relationship(Rel("exclusion"), Exclusion(SubjectSetRewrite.This.Default, Computed("banned"))),
+                ]),
+        ]);
+
+        var document = domain.Print();
+
+        Assert.Contains("- direct", document, StringComparison.Ordinal);
+        Assert.Contains("computed: owner", document, StringComparison.Ordinal);
+        Assert.Contains("factset: (parent, viewer)", document, StringComparison.Ordinal);
+        Assert.Contains("union: this | owner", document, StringComparison.Ordinal);
+        Assert.Contains("intersection: this & viewer", document, StringComparison.Ordinal);
+        Assert.Contains("exclusion: this ! banned", document, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Print_TheoryName_LeadsTheDocument()
+    {
+        var domain = MakeTheory(TheoryId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
+
+        Assert.StartsWith("theory: acme\nnamespaces:\n", domain.Print(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Print_MultipleNamespaces_EmitsAllInOrder()
+    {
+        var domain = MakeTheory(
+        [
+            MakeNs(Ns("file"), [Bare("owner")]),
+            MakeNs(Ns("folder"), [Bare("viewer")]),
+        ]);
+
+        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", domain.Print());
+    }
+
+    [Fact]
+    public void Print_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
+    {
+        var domain = MakeTheory(
+        [
+            MakeNs(
+                Ns("file"),
+                [Bare("owner"), new Relationship(Rel("editor"), SubjectSetRewrite.This.Default)]),
+        ]);
+
+        Assert.DoesNotContain("\r", domain.Print(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Print_NamespaceWithoutRelationships_EmitsEmptySequence()
+    {
+        var domain = MakeTheory([MakeNs(Ns("file"), [])]);
+
+        Assert.Equal("theory: test\nnamespaces:\n  file: []\n", domain.Print());
+    }
+
+    [Theory]
+    [InlineData("this")]
+    [InlineData("THIS")] // Unchecked performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
+    public void Print_ReservedRelationshipName_IsCallerDefect(string name)
+    {
+        // a domain document cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
+        // never be referenced (a reference lexes as the keyword).
+        var domain = MakeTheory([MakeNs(Ns("file"), [Bare(name)])]);
+
+        _ = Assert.Throws<ArgumentException>(domain.Print);
+    }
+
+    [Fact]
+    public void Print_ReservedReferenceInRewrite_IsCallerDefect()
+    {
+        // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
+        // instead of a relationship reference — so emitting it is corruption, not serialization
+        var domain = MakeTheory(
+        [
+            MakeNs(Ns("file"), [Bare("this"), new Relationship(Rel("viewer"), Computed("this"))]),
+        ]);
+
+        _ = Assert.Throws<ArgumentException>(domain.Print);
+    }
+
+    [Fact]
+    public void Print_ReservedReferenceInFactset_IsCallerDefect()
+    {
+        // pins that the factset arm routes both components through the reserved-word gate
+        var domain = MakeTheory(
+        [
+            MakeNs(
+                Ns("file"),
+                [Bare("this"), new Relationship(Rel("viewer"), FactTo("this", "member"))]),
+        ]);
+
+        _ = Assert.Throws<ArgumentException>(domain.Print);
+    }
+}

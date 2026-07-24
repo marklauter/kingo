@@ -1,12 +1,12 @@
 ---
 title: closure
-summary: "The set of facts derivable from the stored facts under the schema's rewrite rules — the set closed under derivation."
+summary: "The set of facts derivable from the stored facts under the catalog's rewrite rules — the set closed under derivation."
 tags: [glossary, acl]
 created: 2026-07-18
 status: locked
 ---
 
-The set of facts derivable from the stored facts under the schema's rewrite rules — the set closed under derivation.
+The set of facts derivable from the stored facts under the catalog's rewrite rules — the set closed under derivation.
 
 ## Examples
 

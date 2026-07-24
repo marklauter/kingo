@@ -3,17 +3,17 @@ using System.Collections.Immutable;
 namespace Results;
 
 /// <summary>
-/// Applicative sequencing for collections of results: all successes yield the collected array; any failure yields every error accumulated in input order. This
-/// is the collection-shaped counterpart of the <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/> applicative — a batch of
-/// independent parses reports everything wrong with it in one pass, not just the first problem.
+/// Applicative sequencing for collections of results. All successes yield the collected array. Any failure yields every error accumulated in input order. This
+/// is the collection-shaped counterpart of the <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/> applicative: a batch of
+/// independent parses reports every error in one pass rather than stopping at the first.
 /// </summary>
 public static class ResultSequence
 {
-    /// <summary>
-    /// Sequences <paramref name="results"/> into a single result. Returns <see cref="Result{T}.Success"/> carrying every value in input order when all inputs
-    /// succeed (and when <paramref name="results"/> is empty — the identity element); otherwise returns <see cref="Result{T}.Failure"/> carrying every error
-    /// from every failed input, accumulated in input order.
-    /// </summary>
+    /// <summary>Sequences <paramref name="results"/> into a single result.</summary>
+    /// <returns>
+    /// A <see cref="Result{T}.Success"/> carrying every value in input order when all inputs succeed, and when <paramref name="results"/> is empty (the identity
+    /// element). Otherwise a <see cref="Result{T}.Failure"/> carrying every error from every failed input, accumulated in input order.
+    /// </returns>
     public static Result<ImmutableArray<T>> Sequence<T>(this IEnumerable<Result<T>> results)
     {
         var values = ImmutableArray.CreateBuilder<T>();

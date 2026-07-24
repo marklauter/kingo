@@ -6,7 +6,7 @@ Kingo is a Google Zanzibar-inspired ReBAC authorization system: a relationship-b
 
 Load the `csharp:writing-csharp` skill before writing code or performing a code review.
 
-One repo-level override to that skill: the internal domain and libraries take **no runtime null checks, ever** — nullable reference annotations are the contract. The skill's `ArgumentNullException.ThrowIfNull` rule applies only at the API edges (the service hosts, where callers are uncontrolled); those edges are 100% guarded, so the domain behind them is already protected and never needs null validation. CA1062 is suppressed **per project** via `GlobalSuppressions.cs` in each domain/library project — deliberately not solution-wide, so edge-facing projects (API hosts, ports) do not inherit it and keep the rule active. A new domain/library project gets the same `GlobalSuppressions.cs`; an edge project doesn't.
+One repo-level override to that skill: the domain and libraries take **no runtime null checks** — nullable annotations are the contract. `ArgumentNullException.ThrowIfNull` applies only at the API edges, where callers are uncontrolled and CA1062 stays active. Domain/library projects suppress CA1062 by setting `<KingoDomainLibrary>true</KingoDomainLibrary>` (see `Directory.Build.targets`); edge projects omit the flag.
 
 ## Docs and notes
 

@@ -1,6 +1,6 @@
 ---
 title: Glossary
-summary: "The domain's terms, each reduced to its kernel — one file per term."
+summary: "Kingo's domain terms, each reduced to its kernel — one file per term."
 tags: [glossary, index]
 created: 2026-07-18
 status: evolving
@@ -13,6 +13,7 @@ One file per term, each reduced to the word plus the smallest phrase that unpack
 ## Terms
 
 - [[caller-identity]]
+- [[catalog]]
 - [[check]]
 - [[closure]]
 - [[computed-subject-set]]
@@ -35,10 +36,10 @@ One file per term, each reduced to the word plus the smallest phrase that unpack
 - [[putative-fact]]
 - [[relationship]]
 - [[resource]]
-- [[schema]]
 - [[subject]]
 - [[subject-set]]
 - [[subject-set-rewrite]]
+- [[theory]]
 - [[this]]
 - [[union]]
 - [[verdict]]

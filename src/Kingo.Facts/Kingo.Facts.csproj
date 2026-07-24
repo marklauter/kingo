@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+		<KingoDomainLibrary>true</KingoDomainLibrary>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kingo\Kingo.csproj" />
+		<ProjectReference Include="..\Results\Results.csproj" />
+		<ProjectReference Include="..\Values\Values.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -6,8 +6,8 @@ namespace Results;
 public enum ErrorType
 {
     /// <summary>
-    /// Failure outside the domain's named cases — including an uninitialized <c>default(Error)</c>, whose type reads as this zero value. Treated as a bug
-    /// rather than a domain outcome.
+    /// Failure outside the domain's named cases, including an uninitialized <c>default(Error)</c> whose type reads as this zero value. Treated as a bug, not a
+    /// domain outcome.
     /// </summary>
     Undefined = 0,
 

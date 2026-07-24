@@ -10,8 +10,8 @@ namespace Values;
 public static class ValueParser
 {
     /// <summary>
-    /// Canonical <c>TryParse</c> body for <see cref="ITryParse{TSelf}"/> implementors: invokes <typeparamref name="TSelf"/>'s <see cref="IParse{TSelf}.Parse"/>
-    /// and projects the <see cref="Result{T}"/> into the BCL <c>bool</c>+<c>out</c> shape, discarding any accumulated <see cref="Error"/>s on failure.
+    /// Projects <typeparamref name="TSelf"/>'s <see cref="IParse{TSelf}.Parse"/> into the BCL <c>bool</c>+<c>out</c> shape, discarding any accumulated
+    /// <see cref="Error"/>s on failure. This is the canonical <c>TryParse</c> body that each <see cref="ITryParse{TSelf}"/> implementor delegates to.
     /// </summary>
     /// <typeparam name="TSelf">The type implementing <see cref="IParse{TSelf}"/>.</typeparam>
     /// <param name="s">The untrusted input string.</param>

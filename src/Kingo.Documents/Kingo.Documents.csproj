@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+		<KingoDomainLibrary>true</KingoDomainLibrary>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Superpower" />
+		<PackageReference Include="YamlDotNet" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kingo.Theories\Kingo.Theories.csproj" />
+		<ProjectReference Include="..\Results\Results.csproj" />
+	</ItemGroup>
+
+</Project>
