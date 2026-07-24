@@ -1,7 +1,7 @@
 ---
-title: specs
+title: domains
 summary: "A spec is a named grouping of namespaces of relationships, each relationship a named subject-set rewrite. A domain entity, projected to and from YAML as its wire and storage form."
-tags: [spec, schema]
+tags: [spec, domain]
 created: 2026-07-23
 status: evolving
 cites:
@@ -16,7 +16,7 @@ cites:
   - "[[factset]]"
 ---
 
-# Specs
+# Domains
 
 A [[spec]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]]. A spec sits above its namespaces as a super-namespace: a resource is addressed as its spec, then its namespace.
 
