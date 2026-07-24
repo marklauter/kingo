@@ -4,7 +4,7 @@ namespace Kingo.Graphs;
 
 /// <summary>
 /// A stored fact. The <c>&lt;fact&gt;</c> production of the fact grammar: <c>&lt;subjectset&gt;@&lt;subject&gt;</c>,
-/// for example, <c>doc:readme#viewer@anne</c>. A closed discriminated union over the shape of its member, the seat the grammar names <c>&lt;subject&gt;</c>:
+/// for example, <c>io/doc:readme#viewer@anne</c>. A closed discriminated union over the shape of its member, the seat the grammar names <c>&lt;subject&gt;</c>:
 /// <see cref="SubjectFact"/> when the member is a bare <see cref="SubjectId"/>, <see cref="SubjectSetFact"/> when it is a
 /// <see cref="SubjectSet"/>, and <see cref="ResourceFact"/> when it is a <see cref="Resource"/> (the object-object edge). The hierarchy is closed.
 /// Pattern-match to consume. A set-membership assertion read set-first: the subject is the
@@ -19,7 +19,7 @@ public abstract record Fact
 
     /// <summary>
     /// A <see cref="Fact"/> whose member is a bare <see cref="SubjectId"/>: <c>&lt;subjectset&gt;@&lt;subject-id&gt;</c>,
-    /// for example, <c>doc:readme#viewer@anne</c>. The identifier seats directly: subjects exist only as identifiers inside facts.
+    /// for example, <c>io/doc:readme#viewer@anne</c>. The identifier seats directly: subjects exist only as identifiers inside facts.
     /// </summary>
     public sealed record SubjectFact(
         SubjectSet SubjectSet,
@@ -28,7 +28,7 @@ public abstract record Fact
 
     /// <summary>
     /// A <see cref="Fact"/> whose member is a <see cref="SubjectSet"/>: <c>&lt;subjectset&gt;@&lt;subjectset&gt;</c>,
-    /// for example, <c>doc:readme#viewer@team:sales#member</c>.
+    /// for example, <c>io/doc:readme#viewer@io/team:sales#member</c>.
     /// </summary>
     public sealed record SubjectSetFact(
         SubjectSet SubjectSet,
@@ -37,7 +37,7 @@ public abstract record Fact
 
     /// <summary>
     /// A <see cref="Fact"/> whose member is a <see cref="Resource"/>, the object-object edge:
-    /// <c>&lt;subjectset&gt;@&lt;resource&gt;</c>, for example, <c>folder:x#parent@folder:y</c>. Keeps a resource member distinct from a bare
+    /// <c>&lt;subjectset&gt;@&lt;resource&gt;</c>, for example, <c>io/folder:x#parent@io/folder:y</c>. Keeps a resource member distinct from a bare
     /// <see cref="SubjectFact"/> member.
     /// </summary>
     public sealed record ResourceFact(
