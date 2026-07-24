@@ -1,6 +1,6 @@
 ---
 title: domain
-summary: "A scoped set of namespaces — the unit of ownership, authoring, and atomic change. A naming and ownership scope, never a consistency boundary."
+summary: "A scoped set of namespaces — the unit of ownership, authoring, and atomic change."
 tags: [glossary, schema]
 created: 2026-07-22
 status: evolving
@@ -8,7 +8,7 @@ contrast:
   - "[[namespace]]"
 ---
 
-A scoped set of namespaces — the unit of ownership, authoring, and atomic change. A naming and ownership scope, never a consistency boundary.
+A scoped set of namespaces — the unit of ownership, authoring, and atomic change.
 
 ## Examples
 

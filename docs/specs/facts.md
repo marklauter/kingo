@@ -25,7 +25,7 @@ Subject has three shapes:
 
 A subject-set is a [[resource]] and a relationship name. In `io/doc:readme#viewer` the relationship name qualifies against the resource's own namespace, so the subject-set names the [[relationship]] `io/doc#viewer`. A resource is a [[namespace]] and a user-supplied id: `io/doc:readme`.
 
-Facts may span specs. In `sales/doc:readme#viewer@org/group:eng#member`, each side qualifies independently, which is how one group is defined once and referenced from anywhere.
+Facts may span domains. In `sales/doc:readme#viewer@org/group:eng#member`, each side qualifies independently, which is how one group is defined once and referenced from anywhere.
 
 ## Grammar
 
@@ -55,5 +55,5 @@ EBNF conventions are given in [[identifiers]]. Kingo's names are spelled in full
 io/doc:readme#viewer@10                         fact, subject id
 io/doc:readme#viewer@io/group:eng#member        fact, subject-set
 io/folder:A#viewer@io/folder:B#...              fact, object-set
-sales/doc:readme#viewer@org/group:eng#member    fact spanning two specs
+sales/doc:readme#viewer@org/group:eng#member    fact spanning two domains
 ```

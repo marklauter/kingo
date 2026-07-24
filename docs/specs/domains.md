@@ -1,12 +1,12 @@
 ---
 title: domains
-summary: "A spec is a named grouping of namespaces of relationships, each relationship a named subject-set rewrite. A domain entity, projected to and from YAML as its wire and storage form."
-tags: [spec, domain]
+summary: "A domain is a named grouping of namespaces of relationships, each relationship a named subject-set rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
+tags: [spec, schema]
 created: 2026-07-23
 status: evolving
 cites:
   - "[[identifiers]]"
-  - "[[spec]]"
+  - "[[domain]]"
   - "[[namespace]]"
   - "[[relationship]]"
   - "[[subject-set-rewrite]]"
@@ -18,13 +18,15 @@ cites:
 
 # Domains
 
-A [[spec]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]]. A spec sits above its namespaces as a super-namespace: a resource is addressed as its spec, then its namespace.
+A [[domain]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]]. A domain sits above its namespaces as a super-namespace: a resource is addressed as its domain, then its namespace.
 
-A spec is a domain entity. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the spec, not the spec itself. This document defines the spec: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed spec obeys.
+A domain is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the domain, not the domain itself. This document defines the domain: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed domain obeys.
 
 ## Projection
 
-A spec projects to a YAML document with two keys. `spec:` is the spec's name; `namespaces:` maps each namespace name to its relationship list. The name travels inside the projection rather than arriving out of band, so the printer emits every part of the spec it was given and the document round-trips. A write carries a whole document and replaces the spec whole. Omit a relationship and the write removes it.
+A domain projects to a YAML document with two keys. `spec:` is the domain's name; `namespaces:` maps each namespace name to its relationship list. The name travels inside the projection rather than arriving out of band, so the printer emits every part of the domain it was given and the document round-trips. A write carries a whole document and replaces the domain whole. Omit a relationship and the write removes it.
+
+The projection key is still spelled `spec:`; the rename reaches the wire format and the parser in a later pass.
 
 ```yaml
 spec: io
@@ -106,7 +108,7 @@ A [[computed-subject-set]] names another relationship in the same namespace. A [
 - A namespace cannot name the same relationship twice. Names normalize to lowercase first, so `Owner` and `owner` collide.
 - Every [[computed-subject-set]] and the factset half of every [[fact-to-subject-set]] must name a relationship in the same namespace, defined before or after. The computed half is unchecked: the namespace it resolves in isn't known until facts are read.
 - Computed-subject-set references cannot form a cycle. Only computed edges count, so a walk may still reach its own relationship, as `folder`'s `viewer` does through `(parent, viewer)`.
-- A spec defines at least one namespace; an empty `namespaces:` map is rejected.
+- A domain defines at least one namespace; an empty `namespaces:` map is rejected.
 - No relationship may be named `this`, any casing. It lexes as the direct-membership keyword, so the name could never be referenced. The core accepts it; this format reserves it.
 
 ## Reference

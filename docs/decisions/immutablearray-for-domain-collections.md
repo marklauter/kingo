@@ -1,6 +1,6 @@
 ---
 title: ImmutableArray for domain collections
-summary: "Domain values carry their collections as ImmutableArray<T>: spec values are build-once/read-many snapshots and mutation never touches these types — with custom structural equality and the default-instance trap riding along as mandatory caveats."
+summary: "Domain values carry their collections as ImmutableArray<T>: they are build-once/read-many snapshots and mutation never touches these types — with custom structural equality and the default-instance trap riding along as mandatory caveats."
 tags: [decision, ddd, performance]
 created: 2026-07-14
 status: locked
@@ -16,7 +16,7 @@ Current uses: `SubjectSetRewrite.Union.Children`, `SubjectSetRewrite.Intersectio
 
 ## Interpretation
 
-Domain values in Kingo are read-optimized by construction. "Mutation" in this design means the Write service constructs a whole new `Namespace` value and persists it as the next version — nothing ever edits a spec definition in place. Downstream (Check, Expand, Read) only ever traverses. That is exactly `ImmutableArray`'s sweet spot; `ImmutableList`'s structural sharing would pay its overhead for update operations that never happen.
+Domain values in Kingo are read-optimized by construction. "Mutation" in this design means the Write service constructs a whole new `Namespace` value and persists it as the next version — nothing ever edits a domain definition in place. Downstream (Check, Expand, Read) only ever traverses. That is exactly `ImmutableArray`'s sweet spot; `ImmutableList`'s structural sharing would pay its overhead for update operations that never happen.
 
 Two caveats that ride along with the choice:
 
@@ -28,7 +28,7 @@ On `Namespace.Relationships` specifically, the array is a deliberate *document-s
 - Duplicate relationship names are unrepresentable: `Namespace.Create` is the only construction path (ctor private, 2026-07-14) and rejects them with one `Validation` error per duplicated name.
 - Keyed lookup (`RelationshipPath → SubjectSetRewrite`) is the interpreters' concern, not the model's: the Check host compiles a `Namespace` into its own read-side form (e.g. `FrozenDictionary` — built for the build-once/read-forever profile). Write-side-vs-read-side projection applied one level down.
 
-If incremental spec editing ever becomes a real workflow, builder/`ImmutableList` machinery belongs inside the Write context, converting to the flat array when it mints the final value. The domain type stays read-shaped.
+If incremental domain editing ever becomes a real workflow, builder/`ImmutableList` machinery belongs inside the Write context, converting to the flat array when it mints the final value. The domain type stays read-shaped.
 
 ## Next
 
