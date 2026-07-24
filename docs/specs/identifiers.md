@@ -45,7 +45,7 @@ Grammars in this corpus are EBNF: `::=` defines, `|` alternates, `( )` groups, `
 ⟨namespace⟩    ::= ⟨spec name⟩ '/' ⟨namespace name⟩
 ```
 
-`⟨spec name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` are Kingo's own names, opaque strings the rules above govern. The [[facts]] grammar builds resources, subject-sets, and facts on top of these productions.
+`⟨spec name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` are Kingo's own names — opaque segments here, their character grammar the `⟨name⟩` production of [[specs]]. These two productions say only how the segments compose into a qualified path. The [[facts]] grammar builds resources, subject-sets, and facts on top of them.
 
 ```
 io                                              spec
