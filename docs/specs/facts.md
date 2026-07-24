@@ -29,14 +29,24 @@ Facts may span specs. In `sales/doc:readme#viewer@org/group:eng#member`, each si
 
 ## Grammar
 
-Grammar conventions and the name productions (`⟨namespace⟩`, `⟨relationship name⟩`, and the separators) are defined in [[identifiers]]. This grammar builds the fact tree on top of them.
+EBNF conventions are given in [[identifiers]]. Kingo's names are spelled in full below, down to `⟨letter⟩` and `⟨digit⟩`. Ids are the caller's, opaque terminals this grammar leaves undefined.
 
 ```ebnf
-⟨fact⟩         ::= ⟨subject-set⟩ '@' ⟨subject⟩
-⟨subject⟩      ::= ⟨subject id⟩ | ⟨subject-set⟩ | ⟨object-set⟩
-⟨object-set⟩   ::= ⟨resource⟩ '#' '...'
-⟨subject-set⟩  ::= ⟨resource⟩ '#' ⟨relationship name⟩
-⟨resource⟩     ::= ⟨namespace⟩ ':' ⟨resource id⟩
+⟨fact⟩              ::= ⟨subject-set⟩ '@' ⟨subject⟩
+⟨subject⟩           ::= ⟨subject id⟩ | ⟨subject-set⟩ | ⟨object-set⟩
+⟨object-set⟩        ::= ⟨resource⟩ '#' '...'
+⟨subject-set⟩       ::= ⟨resource⟩ '#' ⟨relationship name⟩
+⟨resource⟩          ::= ⟨namespace⟩ ':' ⟨resource id⟩
+⟨namespace⟩         ::= ⟨spec name⟩ '/' ⟨namespace name⟩
+
+⟨spec name⟩         ::= ⟨name⟩
+⟨namespace name⟩    ::= ⟨name⟩
+⟨relationship name⟩ ::= ⟨name⟩
+⟨name⟩              ::= ⟨name-start⟩ { ⟨name-char⟩ }
+⟨name-start⟩        ::= ⟨letter⟩ | '_'
+⟨name-char⟩         ::= ⟨letter⟩ | ⟨digit⟩ | '_'
+⟨letter⟩            ::= 'a'…'z' | 'A'…'Z'
+⟨digit⟩             ::= '0'…'9'
 ```
 
 `⟨resource id⟩` and `⟨subject id⟩` are the caller's — a natural key, a surrogate key, a GUID, whatever their system uses. Kingo compares them and never interprets them. The `:` separates a namespace from a resource id.
