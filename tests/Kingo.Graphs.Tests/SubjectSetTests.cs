@@ -17,14 +17,8 @@ public sealed class SubjectSetTests
     }
 
     [Fact]
-    public void Equality_EqualParts_ProduceEqualValues()
-    {
-        Assert.Equal(Of("io/doc", "readme", "viewer"), Of("io/doc", "readme", "viewer"));
-    }
+    public void Equality_EqualParts_ProduceEqualValues() => Assert.Equal(Of("io/doc", "readme", "viewer"), Of("io/doc", "readme", "viewer"));
 
     [Fact]
-    public void Equality_DifferentRelationship_ProducesUnequalValues()
-    {
-        Assert.NotEqual(Of("io/doc", "readme", "viewer"), Of("io/doc", "readme", "editor"));
-    }
+    public void Equality_DifferentRelationship_ProducesUnequalValues() => Assert.NotEqual(Of("io/doc", "readme", "viewer"), Of("io/doc", "readme", "editor"));
 }
