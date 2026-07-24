@@ -6,6 +6,7 @@ created: 2026-07-24
 status: evolving
 cites:
   - "[[fact]]"
+  - "[[theory]]"
   - "[[subject-set]]"
   - "[[subject]]"
   - "[[resource]]"
@@ -17,6 +18,8 @@ cites:
 
 A [[fact]] is one edge in the authorization graph, composed of a [[subject-set]] and a [[subject]]. A fact is a value built from typed parts; the strings in this document are notation for a fact, not the fact itself.
 
+Facts are the extensional half of the model: memberships recorded outright. A [[theory]]'s rewrites are the intensional half, deriving further memberships from the facts. A membership question is answered by reading the facts through a theory.
+
 Subject has three shapes:
 
 - A subject id — an opaque key the user owns, `10`.
@@ -25,7 +28,7 @@ Subject has three shapes:
 
 A subject-set is a [[resource]] and a relationship name. In `io/doc:readme#viewer` the relationship name qualifies against the resource's own namespace, so the subject-set names the [[relationship]] `io/doc#viewer`. A resource is a [[namespace]] and a user-supplied id: `io/doc:readme`.
 
-Facts may span domains. In `sales/doc:readme#viewer@org/group:eng#member`, each side qualifies independently, which is how one group is defined once and referenced from anywhere.
+Facts may span theories. In `sales/doc:readme#viewer@org/group:eng#member`, each side qualifies independently, which is how one group is defined once and referenced from anywhere.
 
 ## Grammar
 
@@ -37,9 +40,9 @@ EBNF conventions are given in [[identifiers]]. Kingo's names are spelled in full
 ⟨object-set⟩        ::= ⟨resource⟩ '#' '...'
 ⟨subject-set⟩       ::= ⟨resource⟩ '#' ⟨relationship name⟩
 ⟨resource⟩          ::= ⟨namespace path⟩ ':' ⟨resource id⟩
-⟨namespace path⟩    ::= ⟨domain name⟩ '/' ⟨namespace name⟩
+⟨namespace path⟩    ::= ⟨theory name⟩ '/' ⟨namespace name⟩
 
-⟨domain name⟩       ::= ⟨name⟩
+⟨theory name⟩       ::= ⟨name⟩
 ⟨namespace name⟩    ::= ⟨name⟩
 ⟨relationship name⟩ ::= ⟨name⟩
 ⟨name⟩              ::= ⟨name-start⟩ { ⟨name-char⟩ }
@@ -55,5 +58,5 @@ EBNF conventions are given in [[identifiers]]. Kingo's names are spelled in full
 io/doc:readme#viewer@10                         fact, subject id
 io/doc:readme#viewer@io/group:eng#member        fact, subject-set
 io/folder:A#viewer@io/folder:B#...              fact, object-set
-sales/doc:readme#viewer@org/group:eng#member    fact spanning two domains
+sales/doc:readme#viewer@org/group:eng#member    fact spanning two theories
 ```

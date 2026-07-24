@@ -1,12 +1,13 @@
 ---
 title: theories
 summary: "A theory is a named grouping of namespaces of relationships, each relationship a named subject-set rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
-tags: [spec, schema]
+tags: [spec, theory]
 created: 2026-07-23
 status: evolving
 cites:
   - "[[identifiers]]"
   - "[[theory]]"
+  - "[[fact]]"
   - "[[namespace]]"
   - "[[relationship]]"
   - "[[subject-set-rewrite]]"
@@ -19,6 +20,8 @@ cites:
 # Theories
 
 A [[theory]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relationship]]s, each relationship a named [[subject-set-rewrite]].
+
+A theory is intensional: its rewrites define subject sets from other subject sets, deriving memberships rather than recording them. Recorded memberships are [[fact]]s, the extensional half. A membership question is answered by reading the facts through the theory.
 
 A theory is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the theory, not the theory itself. This document defines the theory: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed theory obeys.
 
@@ -79,7 +82,8 @@ EBNF conventions are given in [[identifiers]].
 ⟨factset relationship⟩ ::= ⟨relationship name⟩
 ⟨computed-subject-set relationship⟩ ::= ⟨relationship name⟩
 
-⟨relationship name⟩    ::= ⟨name-start⟩ { ⟨name-char⟩ }     excluding 'this'
+⟨relationship name⟩    ::= ⟨name⟩     excluding 'this'
+⟨name⟩                 ::= ⟨name-start⟩ { ⟨name-char⟩ }
 ⟨name-start⟩           ::= ⟨letter⟩ | '_'
 ⟨name-char⟩            ::= ⟨letter⟩ | ⟨digit⟩ | '_'
 ⟨letter⟩               ::= 'a'…'z' | 'A'…'Z'
@@ -100,6 +104,8 @@ Two constraints the grammar can't carry:
 A [[computed-subject-set]] names another relationship in the same namespace. A [[fact-to-subject-set]] walks a [[factset]], then evaluates a second relationship on the resource it reaches.
 
 ## Rules
+
+Several of these rules exist to make a theory determinate — so that the theory and the facts settle every membership question one way. Definitions must resolve (every [[computed-subject-set]] and the factset half of every [[fact-to-subject-set]] names a relationship that exists) and must not circle back on themselves, so no derived set is left without a settled membership. Depth is bounded and empty operators are refused, so every rewrite's meaning stays finite and definite. That determinacy is what earns the word theory: exactly one answer per membership question.
 
 - `- name: <rewrite>` defines a relationship. `- name` alone is shorthand for `- name: this`; `- name:` with nothing after is rejected as a forgotten rewrite.
 - A namespace may hold no relationships: `file:` or `file: []`.

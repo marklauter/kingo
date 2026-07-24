@@ -13,13 +13,13 @@ blocked-by: "[[storage-versioning-design]]"
 
 ## Observation
 
-`GraphParser` / `GraphPrinter` were stubbed 2026-07-15 as the fact-side mirror of the domain pair ([[domains]]): `Parse(text) → Result<Graph>` plus a `graph.Print()` extension, with the document format left open. Mark's aspiration for that format (2026-07-15) is **bulk DML** — a loader/mutator, not a serialized state. You can add, delete, and (in SQL's frame) patch; patch is empty for a fact, because a fact's domain key is the whole triple and there is no non-key field left to change — a "patched" fact is a different fact. That leaves **create, touch, delete**, which is exactly Zanzibar's `RelationTupleUpdate` set (§2.4) and the set SpiceDB's `RelationshipUpdate` kept unchanged. Two independent designs landing on the same three is evidence the space is that shape:
+`GraphParser` / `GraphPrinter` were stubbed 2026-07-15 as the fact-side mirror of the theory pair ([[theories]]): `Parse(text) → Result<Graph>` plus a `graph.Print()` extension, with the document format left open. Mark's aspiration for that format (2026-07-15) is **bulk DML** — a loader/mutator, not a serialized state. You can add, delete, and (in SQL's frame) patch; patch is empty for a fact, because a fact's domain key is the whole triple and there is no non-key field left to change — a "patched" fact is a different fact. That leaves **create, touch, delete**, which is exactly Zanzibar's `RelationTupleUpdate` set (§2.4) and the set SpiceDB's `RelationshipUpdate` kept unchanged. Two independent designs landing on the same three is evidence the space is that shape:
 
 - `create` — assert, conflict if the fact already exists.
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
 - `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal (dry-run finding F8); the operation vocabulary is unchanged by that.
 
-The SQL frame names the split cleanly: the domain document is the schema half ([[domains]]) — the rules — while this document is the data half, mutating the facts the rules range over. The analogy is not exact — SQL's DML is a language of statements against a live store, while a fact document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
+The SQL frame names the split cleanly: the theory document is the schema half ([[theories]]) — the rules — while this document is the data half, mutating the facts the rules range over. The analogy is not exact — SQL's DML is a language of statements against a live store, while a fact document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
 ## Proposed format
 
@@ -37,7 +37,7 @@ touch:
   - group:eng#member@user:dave
 ```
 
-Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relationship>@<subject>`). The adapter owns only the envelope, exactly as with the domain document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
+Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relationship>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
 
 Sections are the natural fit for a bulk loader — the common document is "here are 400 facts to create" and a per-entry operation tag would be noise on every line. The cost is that operation order becomes *implicit in section order*, which is a real constraint (see open questions).
 
@@ -61,7 +61,7 @@ public sealed record DeleteOperation(Fact Fact) : GraphOperation(Fact);
 - "Delete of an absent fact — no-op or failure?" is a conditional-write question.
 - "Is the document a transaction?" is a `TransactWriteItems` question.
 
-One guard sits upstream of all three and changes none of them: every fact write first passes the Write service's domain validation — facts can't lead the domain (2026-07-20, dry-run finding F8). That is the service's invariant at its edge, not a rule the operation type carries, so the storage-semantics argument stands.
+One guard sits upstream of all three and changes none of them: every fact write first passes the Write service's theory validation — facts can't lead the theory (2026-07-20, dry-run finding F8). That is the service's invariant at its edge, not a rule the operation type carries, so the storage-semantics argument stands.
 
 A type whose entire rule set is storage semantics is not a domain type; it is the vocabulary of the thing that talks to storage. That it *mentions* `Fact` proves nothing — a SQL `INSERT` mentions a row without being part of the business model. The pure core never ranges over a verb: Check evaluates schema plus facts, Expand the same, and neither has any use for one. Zanzibar agrees, and its placement is the evidence: `RelationTupleUpdate` lives in the **Write API proto**, not in the tuple model — request vocabulary, exactly like SpiceDB's `RelationshipUpdate`.
 
@@ -69,23 +69,23 @@ A type whose entire rule set is storage semantics is not a domain type; it is th
 
 ## The adapter
 
-The fact document is a separate format from the domain document — the two share no grammar, only the YAML-envelope frame. Whether its parser becomes its own adapter, and where it lives, is deferred; it lands with the storage/ports work (below).
+The fact document is a separate format from the theory document — the two share no grammar, only the YAML-envelope frame. Whether its parser becomes its own adapter, and where it lives, is deferred; it lands with the storage/ports work (below).
 
 It would be by far the thinner adapter, and the asymmetry is the design, not an accident:
 
-- **Parser only, no printer.** `parse ∘ print = id` pins the domain pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
-- **YamlDotNet, no Superpower.** The domain document needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. The fact document has no embedded language at all — every entry is a fact in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
+- **Parser only, no printer.** `parse ∘ print = id` pins the theory pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
+- **YamlDotNet, no Superpower.** The theory document needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. The fact document has no embedded language at all — every entry is a fact in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
 - **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so the fact-document parser references ports *and* `Kingo.Facts`, and travels with the storage work rather than landing next.
 
 ## Consequences — the stubs are gone
 
 All three fact-side stubs from 2026-07-15 were removed the same day rather than left to rot:
 
-- **`GraphPrinter` — deleted.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset; the round-trip tests that pin the domain pair have no analogue here. Printing a graph back out is a *dump* — a different artifact that merely shares a vocabulary. If a dump format is ever wanted it returns under its own name.
+- **`GraphPrinter` — deleted.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset; the round-trip tests that pin the theory pair have no analogue here. Printing a graph back out is a *dump* — a different artifact that merely shares a vocabulary. If a dump format is ever wanted it returns under its own name.
 - **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the fact grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
 - **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[ubiquitous-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
 
-`Kingo.Facts` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Documents` is back to the domain pair alone.
+`Kingo.Facts` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Documents` is back to the theory pair alone.
 
 ## Open questions
 
@@ -104,10 +104,10 @@ These are storage questions, which is why they travel with the ports project rat
 - **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[dynamodblite-substrate]].
 - Settle the delete semantics and the transaction question — they decide whether a batch type exists and what `GraphParser` returns.
 - Rebuild `GraphParser` against `GraphOperation` once it has a home (above) — placement, and whether it becomes its own adapter, deferred with the storage work.
-- Write the format up properly once settled — likely its own note beside [[domains]], since the fact document is a different artifact from the domain document.
+- Write the format up properly once settled — likely its own note beside [[theories]], since the fact document is a different artifact from the theory document.
 
 ## Related
 
-- [[domains]] — the DDL half: the domain document, its `domain:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
+- [[theories]] — the DDL half: the theory document, its `theory:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
 - [[ubiquitous-language]] — `Fact` and the fact grammar these documents carry; the `Graph`-is-not-a-type guardrail this proposal vindicates.
 - [[four-service-split-by-load-profile]] — Write is the host that would consume these documents.
