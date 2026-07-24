@@ -41,8 +41,8 @@ What a string names is recoverable from which separators it carries, not from co
 Grammars in this corpus are EBNF: `::=` defines, `|` alternates, `( )` groups, `{ }` repeats zero or more times, `[ ]` marks optional, quoted text is literal, `'x'…'y'` is an inclusive character range, and `⟨…⟩` names a production.
 
 ```ebnf
-⟨relationship⟩ ::= ⟨namespace⟩ '#' ⟨relationship name⟩
-⟨namespace⟩    ::= ⟨spec name⟩ '/' ⟨namespace name⟩
+⟨relationship path⟩ ::= ⟨namespace path⟩ '#' ⟨relationship name⟩
+⟨namespace path⟩    ::= ⟨spec name⟩ '/' ⟨namespace name⟩
 ```
 
 `⟨spec name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` are Kingo's own names — opaque segments here, their character grammar the `⟨name⟩` production of [[specs]]. These two productions say only how the segments compose into a qualified path. The [[facts]] grammar builds resources, subject-sets, and facts on top of them.
