@@ -8,14 +8,14 @@ namespace Kingo.Documents.Tests;
 internal static class TestHelpers
 {
     /// <summary>The domain name every fixture document carries unless it is testing the name itself.</summary>
-    public const string DefaultDomainName = "test";
+    public const string DefaultTheoryName = "test";
 
     /// <summary>A namespace name — bare, exactly as a domain document writes the key and as the domain tree stores it ([[identifiers]]).</summary>
     public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
 
-    public static DomainName DomainId(string value) => DomainName.Unchecked(value);
+    public static TheoryName TheoryId(string value) => TheoryName.Unchecked(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
@@ -36,26 +36,26 @@ internal static class TestHelpers
     public static Namespace MakeNs(NamespaceName name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
-    public static Domain MakeDomain(ImmutableArray<Namespace> namespaces) =>
-        MakeDomain(DomainId(DefaultDomainName), namespaces);
+    public static Theory MakeTheory(ImmutableArray<Namespace> namespaces) =>
+        MakeTheory(TheoryId(DefaultTheoryName), namespaces);
 
-    public static Domain MakeDomain(DomainName name, ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
+    public static Theory MakeTheory(TheoryName name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Theory>.Success>(Theory.Create(name, namespaces)).Value;
 
     /// <summary>
-    /// Wraps a namespace-map fragment in the domain document envelope — the <c>domain:</c> name plus the <c>namespaces:</c> key — so a
+    /// Wraps a namespace-map fragment in the domain document envelope — the <c>theory:</c> name plus the <c>namespaces:</c> key — so a
     /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
     /// <see cref="ParseFailure"/> directly.
     /// </summary>
-    public static string Document(string namespaceMap, string name = DefaultDomainName) =>
-        $"domain: {name}\nnamespaces:\n{Indent(namespaceMap)}";
+    public static string Document(string namespaceMap, string name = DefaultTheoryName) =>
+        $"theory: {name}\nnamespaces:\n{Indent(namespaceMap)}";
 
     private static string Indent(string text) =>
         string.Join('\n', text.Split('\n').Select(line => line.Length == 0 ? line : $"  {line}"));
 
-    public static Domain ParseSuccess(string text) =>
-        Assert.IsType<Result<Domain>.Success>(DomainParser.Parse(text)).Value;
+    public static Theory ParseSuccess(string text) =>
+        Assert.IsType<Result<Theory>.Success>(TheoryParser.Parse(text)).Value;
 
     public static ImmutableArray<Error> ParseFailure(string text) =>
-        Assert.IsType<Result<Domain>.Failure>(DomainParser.Parse(text)).Errors;
+        Assert.IsType<Result<Theory>.Failure>(TheoryParser.Parse(text)).Errors;
 }

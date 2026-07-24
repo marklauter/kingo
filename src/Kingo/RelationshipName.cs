@@ -26,9 +26,9 @@ public readonly record struct RelationshipName
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
     public static Result<RelationshipName> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<RelationshipName>(Error.Validation("relationship_name.empty", "relationship name cannot be empty or whitespace"))
+            ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.RelationshipName.Empty, "relationship name cannot be empty or whitespace"))
             : !RelationshipNamePatterns.Validation().IsMatch(s)
-                ? Result.Failure<RelationshipName>(Error.Validation("relationship_name.invalid", $"relationship name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
+                ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.RelationshipName.Invalid, $"relationship name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
                 : Result.Success(new RelationshipName(s.ToLowerInvariant()));
 
     private RelationshipName(string value) => Value = value;

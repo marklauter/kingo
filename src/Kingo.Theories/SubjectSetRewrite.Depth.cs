@@ -25,7 +25,7 @@ public abstract partial record SubjectSetRewrite
     /// <summary>Builds the refusal a tree past <see cref="MaxDepth"/> receives. Shared by the operator factories and the domain parse edge, one code for one invariant.</summary>
     /// <returns>An <see cref="Error"/> with code <c>rewrite.depth</c>.</returns>
     public static Error DepthError() =>
-        Error.Validation("rewrite.depth", $"a rewrite tree deeper than {MaxDepth} levels is refused");
+        Error.Validation(Diagnostics.ErrorCodes.Rewrite.Depth, $"a rewrite tree deeper than {MaxDepth} levels is refused");
 
     /// <summary>Returns one more than the deepest operand, the depth an operator node over <paramref name="children"/> would have.</summary>
     /// <returns>One more than the maximum operand depth.</returns>

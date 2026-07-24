@@ -3,12 +3,12 @@ using static Kingo.Documents.Tests.TestHelpers;
 
 namespace Kingo.Documents.Tests;
 
-public sealed class DomainPrinterTests
+public sealed class TheoryPrinterTests
 {
     [Fact]
     public void Print_SimpleDocument_EmitsCanonicalSdl()
     {
-        var domain = MakeDomain(
+        var domain = MakeTheory(
         [
             MakeNs(
                 Ns("file"),
@@ -20,13 +20,13 @@ public sealed class DomainPrinterTests
                 ]),
         ]);
 
-        Assert.Equal("domain: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", domain.Print());
+        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", domain.Print());
     }
 
     [Fact]
     public void Print_AllRewriteTypes_EmitsExpectedExpressions()
     {
-        var domain = MakeDomain(
+        var domain = MakeTheory(
         [
             MakeNs(
                 Ns("test"),
@@ -55,29 +55,29 @@ public sealed class DomainPrinterTests
     }
 
     [Fact]
-    public void Print_DomainName_LeadsTheDocument()
+    public void Print_TheoryName_LeadsTheDocument()
     {
-        var domain = MakeDomain(DomainId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
+        var domain = MakeTheory(TheoryId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
 
-        Assert.StartsWith("domain: acme\nnamespaces:\n", domain.Print(), StringComparison.Ordinal);
+        Assert.StartsWith("theory: acme\nnamespaces:\n", domain.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
     public void Print_MultipleNamespaces_EmitsAllInOrder()
     {
-        var domain = MakeDomain(
+        var domain = MakeTheory(
         [
             MakeNs(Ns("file"), [Bare("owner")]),
             MakeNs(Ns("folder"), [Bare("viewer")]),
         ]);
 
-        Assert.Equal("domain: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", domain.Print());
+        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", domain.Print());
     }
 
     [Fact]
     public void Print_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
     {
-        var domain = MakeDomain(
+        var domain = MakeTheory(
         [
             MakeNs(
                 Ns("file"),
@@ -90,9 +90,9 @@ public sealed class DomainPrinterTests
     [Fact]
     public void Print_NamespaceWithoutRelationships_EmitsEmptySequence()
     {
-        var domain = MakeDomain([MakeNs(Ns("file"), [])]);
+        var domain = MakeTheory([MakeNs(Ns("file"), [])]);
 
-        Assert.Equal("domain: test\nnamespaces:\n  file: []\n", domain.Print());
+        Assert.Equal("theory: test\nnamespaces:\n  file: []\n", domain.Print());
     }
 
     [Theory]
@@ -102,7 +102,7 @@ public sealed class DomainPrinterTests
     {
         // a domain document cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
         // never be referenced (a reference lexes as the keyword).
-        var domain = MakeDomain([MakeNs(Ns("file"), [Bare(name)])]);
+        var domain = MakeTheory([MakeNs(Ns("file"), [Bare(name)])]);
 
         _ = Assert.Throws<ArgumentException>(domain.Print);
     }
@@ -112,7 +112,7 @@ public sealed class DomainPrinterTests
     {
         // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
         // instead of a relationship reference — so emitting it is corruption, not serialization
-        var domain = MakeDomain(
+        var domain = MakeTheory(
         [
             MakeNs(Ns("file"), [Bare("this"), new Relationship(Rel("viewer"), Computed("this"))]),
         ]);
@@ -124,7 +124,7 @@ public sealed class DomainPrinterTests
     public void Print_ReservedReferenceInFactset_IsCallerDefect()
     {
         // pins that the factset arm routes both components through the reserved-word gate
-        var domain = MakeDomain(
+        var domain = MakeTheory(
         [
             MakeNs(
                 Ns("file"),

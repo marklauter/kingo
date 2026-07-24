@@ -128,7 +128,7 @@ banned")]
 
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("domain.rewrite", error.Code);
+        Assert.Equal("theory.rewrite", error.Code);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("domain.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("domain.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ banned")]
         {
             var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-            Assert.Equal("domain.rewrite", Assert.Single(failure.Errors).Code);
+            Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
         }
     }
 
@@ -211,7 +211,7 @@ banned")]
         // ignored by the paren scan and fails as plain bad syntax
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(") this"));
 
-        Assert.Equal("domain.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]

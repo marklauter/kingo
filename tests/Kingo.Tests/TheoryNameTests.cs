@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class DomainNameTests
+public sealed class TheoryNameTests
 {
     [Theory]
     [InlineData("acme")]
@@ -12,7 +12,7 @@ public sealed class DomainNameTests
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<DomainName>.Success>(DomainName.Parse(input));
+        var s = Assert.IsType<Result<TheoryName>.Success>(TheoryName.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -22,7 +22,7 @@ public sealed class DomainNameTests
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<DomainName>.Success>(DomainName.Parse(input));
+        var s = Assert.IsType<Result<TheoryName>.Success>(TheoryName.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class DomainNameTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input!));
+        var f = Assert.IsType<Result<TheoryName>.Failure>(TheoryName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("domain_name.empty", error.Code);
+        Assert.Equal("theory_name.empty", error.Code);
     }
 
     [Theory]
@@ -52,10 +52,10 @@ public sealed class DomainNameTests
     [InlineData("@")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input));
+        var f = Assert.IsType<Result<TheoryName>.Failure>(TheoryName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("domain_name.invalid", error.Code);
+        Assert.Equal("theory_name.invalid", error.Code);
     }
 
     [Fact]
@@ -68,39 +68,39 @@ public sealed class DomainNameTests
 
         foreach (var input in inputs)
             Assert.Equal(
-                DomainName.Parse(input) is Result<DomainName>.Success,
+                TheoryName.Parse(input) is Result<TheoryName>.Success,
                 NamespacePath.Parse($"{input}/file") is Result<NamespacePath>.Success);
     }
 
     [Theory]
     [InlineData("io/file")]
     [InlineData("io/file#viewer")]
-    public void Parse_QualifiedPath_IsNotADomainName(string input)
+    public void Parse_QualifiedPath_IsNotATheoryName(string input)
     {
         // a domain is one segment; anything carrying a separator names something below it
-        var f = Assert.IsType<Result<DomainName>.Failure>(DomainName.Parse(input));
-        Assert.Equal("domain_name.invalid", Assert.Single(f.Errors).Code);
+        var f = Assert.IsType<Result<TheoryName>.Failure>(TheoryName.Parse(input));
+        Assert.Equal("theory_name.invalid", Assert.Single(f.Errors).Code);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = DomainName.Unchecked("0-not.valid:");
+        var id = TheoryName.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = DomainName.Unchecked("ACME");
+        var id = TheoryName.Unchecked("ACME");
         Assert.Equal("ACME", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = DomainName.Unchecked("acme");
-        var b = DomainName.Unchecked("acme");
+        var a = TheoryName.Unchecked("acme");
+        var b = TheoryName.Unchecked("acme");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -111,8 +111,8 @@ public sealed class DomainNameTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = DomainName.Unchecked("acme");
-        var b = DomainName.Unchecked("globex");
+        var a = TheoryName.Unchecked("acme");
+        var b = TheoryName.Unchecked("globex");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -122,8 +122,8 @@ public sealed class DomainNameTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = DomainName.Unchecked("a");
-        var b = DomainName.Unchecked("b");
+        var a = TheoryName.Unchecked("a");
+        var b = TheoryName.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -140,7 +140,7 @@ public sealed class DomainNameTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = DomainName.Unchecked("acme");
+        var id = TheoryName.Unchecked("acme");
         Assert.Equal("acme", id.ToString());
     }
 }

@@ -23,9 +23,9 @@ public readonly record struct SubjectId
     /// <inheritdoc/>
     public static Result<SubjectId> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<SubjectId>(Error.Validation("subject_id.empty", "subject identifier cannot be empty or whitespace"))
+            ? Result.Failure<SubjectId>(Error.Validation(Diagnostics.ErrorCodes.SubjectId.Empty, "subject identifier cannot be empty or whitespace"))
             : !SubjectIdPatterns.Validation().IsMatch(s)
-                ? Result.Failure<SubjectId>(Error.Validation("subject_id.invalid", $"subject identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
+                ? Result.Failure<SubjectId>(Error.Validation(Diagnostics.ErrorCodes.SubjectId.Invalid, $"subject identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
                 : Result.Success(new SubjectId(s));
 
     private SubjectId(string value) => Value = value;

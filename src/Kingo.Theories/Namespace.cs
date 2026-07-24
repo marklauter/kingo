@@ -5,7 +5,7 @@ namespace Kingo.Theories;
 
 /// <summary>
 /// A namespace's definition <b>as a value</b>: an immutable snapshot of its relationships and their rewrites, with structural equality. Parse-agnostic and
-/// storable. An entity within the <see cref="Domain"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its domain. Names arrive
+/// storable. An entity within the <see cref="Theory"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its domain. Names arrive
 /// canonical lowercase through <c>Parse</c>, and the comparison here is ordinal. It is immutable, so there is no rename, only a new namespace.
 /// <see cref="Create"/> is the only construction path, so a <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
 /// concurrency, authorship) is the Write context's wrapper and never lives in core. If this type ever grows a version field, a timestamp, or a mutation method,
@@ -49,7 +49,7 @@ public sealed record Namespace
             .GroupBy(relationship => relationship.Name)
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
-                "namespace.duplicate_relationship",
+                Diagnostics.ErrorCodes.Namespace.DuplicateRelationship,
                 $"relationship '{group.Key}' is defined more than once in namespace '{name}'"))
             .ToImmutableArray();
         if (!duplicates.IsEmpty)
@@ -68,7 +68,7 @@ public sealed record Namespace
                 .Distinct()
                 .Where(target => !defined.Contains(target))
                 .Select(target => Error.Validation(
-                    "namespace.dangling_reference",
+                    Diagnostics.ErrorCodes.Namespace.DanglingReference,
                     $"relationship '{relationship.Name}' references '{target}', which is not defined in namespace '{name}'")))
             .ToImmutableArray();
         if (!dangling.IsEmpty)
@@ -189,7 +189,7 @@ public sealed record Namespace
                 {
                     var cycle = path.Skip(path.IndexOf(target)).Append(target);
                     errors.Add(Error.Validation(
-                        "namespace.rewrite_cycle",
+                        Diagnostics.ErrorCodes.Namespace.RewriteCycle,
                         $"rewrite cycle in namespace '{name}': {string.Join(" -> ", cycle.Select(step => $"'{step}'"))}"));
                     continue;
                 }

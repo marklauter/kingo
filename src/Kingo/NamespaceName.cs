@@ -24,9 +24,9 @@ public readonly record struct NamespaceName
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
     public static Result<NamespaceName> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<NamespaceName>(Error.Validation("namespace_name.empty", "namespace name cannot be empty or whitespace"))
+            ? Result.Failure<NamespaceName>(Error.Validation(Diagnostics.ErrorCodes.NamespaceName.Empty, "namespace name cannot be empty or whitespace"))
             : !NamespaceNamePatterns.Validation().IsMatch(s)
-                ? Result.Failure<NamespaceName>(Error.Validation("namespace_name.invalid", $"namespace name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
+                ? Result.Failure<NamespaceName>(Error.Validation(Diagnostics.ErrorCodes.NamespaceName.Invalid, $"namespace name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
                 : Result.Success(new NamespaceName(s.ToLowerInvariant()));
 
     private NamespaceName(string value) => Value = value;

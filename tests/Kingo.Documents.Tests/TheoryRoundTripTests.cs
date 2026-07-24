@@ -3,7 +3,7 @@ using static Kingo.Documents.Tests.TestHelpers;
 
 namespace Kingo.Documents.Tests;
 
-public sealed class DomainRoundTripTests
+public sealed class TheoryRoundTripTests
 {
     [Theory]
     [InlineData("file:\n  - owner")]
@@ -19,7 +19,7 @@ public sealed class DomainRoundTripTests
     // 'null' is a legal relationship name; the renderer emits it as unquoted plain text and the parser reads
     // raw scalar text, so the pair stays inverse even where YAML's own typing would read a null
     [InlineData("file:\n  - null\n  - viewer: null")]
-    public void RoundTrip_FromText_PreservesDomainValues(string namespaceMap)
+    public void RoundTrip_FromText_PreservesTheoryValues(string namespaceMap)
     {
         var original = ParseSuccess(Document(namespaceMap));
         var roundTripped = ParseSuccess(original.Print());
@@ -63,10 +63,10 @@ public sealed class DomainRoundTripTests
 
     [Theory]
     [MemberData(nameof(RewriteCaseKeys))]
-    public void RoundTrip_FromDomain_PreservesTreeStructure(string key)
+    public void RoundTrip_FromTheory_PreservesTreeStructure(string key)
     {
         // every relationship the rewrite cases reference, defined bare so the namespace gate passes
-        var original = MakeDomain(
+        var original = MakeTheory(
         [
             MakeNs(
                 Ns("file"),
@@ -89,7 +89,7 @@ public sealed class DomainRoundTripTests
     }
 
     [Fact]
-    public void RoundTrip_ComplexDocument_PreservesDomainValues()
+    public void RoundTrip_ComplexDocument_PreservesTheoryValues()
     {
         const string namespaceMap = """
             file:
@@ -115,14 +115,14 @@ public sealed class DomainRoundTripTests
     }
 
     [Fact]
-    public void RoundTrip_DomainName_SurvivesTheDocument()
+    public void RoundTrip_TheoryName_SurvivesTheDocument()
     {
         // the name is in the document, so parse ∘ print = id covers the domain's key too
         var original = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
         var roundTripped = ParseSuccess(original.Print());
 
-        Assert.Equal(DomainId("acme"), roundTripped.Name);
+        Assert.Equal(TheoryId("acme"), roundTripped.Name);
         Assert.Equal(original, roundTripped);
     }
 }

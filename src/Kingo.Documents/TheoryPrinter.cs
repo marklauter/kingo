@@ -4,11 +4,11 @@ using YamlDotNet.Serialization;
 namespace Kingo.Documents;
 
 /// <summary>
-/// Renders a <see cref="Domain"/> to its domain document text, the serialize half of the domain document round trip (<see cref="DomainParser.Parse"/> is the
+/// Renders a <see cref="Theory"/> to its domain document text, the serialize half of the domain document round trip (<see cref="TheoryParser.Parse"/> is the
 /// other). An extension method, so the call site reads as a domain capability (<c>domain.Print()</c>) while the format knowledge stays in the
 /// adapter.
 /// </summary>
-public static class DomainPrinter
+public static class TheoryPrinter
 {
     private static readonly ISerializer DocumentSerializer = new SerializerBuilder()
         .WithNewLine("\n") // the document format owns its line ending, independent of platform
@@ -21,7 +21,7 @@ public static class DomainPrinter
     /// </summary>
     /// <returns>The domain document text for <paramref name="domain"/>.</returns>
     /// <exception cref="ArgumentException">A relationship name or rewrite reference is the reserved word of the rewrite grammar (<c>this</c>), which cannot be expressed in a domain document.</exception>
-    public static string Print(this Domain domain)
+    public static string Print(this Theory domain)
     {
         OrderedDictionary<string, List<object>> namespaces = new(domain.Namespaces.Length);
         foreach (var ns in domain.Namespaces)
@@ -30,8 +30,8 @@ public static class DomainPrinter
         return DocumentSerializer.Serialize(
             new OrderedDictionary<string, object>
             {
-                ["domain"] = domain.Name.Value,
-                ["namespaces"] = namespaces,
+                [DocumentKeys.Name] = domain.Name.Value,
+                [DocumentKeys.Namespaces] = namespaces,
             });
     }
 

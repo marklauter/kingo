@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Kingo.Theories.Tests;
 
-public sealed class DomainTests
+public sealed class TheoryTests
 {
     private static Namespace Ns(string name, params string[] relationships) =>
         Assert.IsType<Result<Namespace>.Success>(
@@ -12,12 +12,12 @@ public sealed class DomainTests
                 NamespaceName.Unchecked(name),
                 [.. relationships.Select(r => new Relationship(RelationshipName.Unchecked(r)))])).Value;
 
-    private static DomainName Id(string name) => DomainName.Unchecked(name);
+    private static TheoryName Id(string name) => TheoryName.Unchecked(name);
 
-    private static Domain Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
+    private static Theory Make(ImmutableArray<Namespace> namespaces) => Make(Id("test"), namespaces);
 
-    private static Domain Make(DomainName name, ImmutableArray<Namespace> namespaces) =>
-        Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
+    private static Theory Make(TheoryName name, ImmutableArray<Namespace> namespaces) =>
+        Assert.IsType<Result<Theory>.Success>(Theory.Create(name, namespaces)).Value;
 
     [Fact]
     public void Equals_ElementWiseEqualNamespaces_AreEqualWithMatchingHashCodes()
@@ -81,7 +81,7 @@ public sealed class DomainTests
     }
 
     [Fact]
-    public void Create_Name_IsCarriedOntoTheDomain()
+    public void Create_Name_IsCarriedOntoTheTheory()
     {
         var domain = Make(Id("acme"), [Ns("doc", "viewer")]);
 
@@ -115,53 +115,53 @@ public sealed class DomainTests
     [Fact]
     public void Create_UniqueNamespaceNames_ReturnsSuccessEqualToConstructed()
     {
-        var result = Domain.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
+        var result = Theory.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder", "parent")]);
 
-        var success = Assert.IsType<Result<Domain>.Success>(result);
+        var success = Assert.IsType<Result<Theory>.Success>(result);
         Assert.Equal(Make([Ns("doc", "viewer"), Ns("folder", "parent")]), success.Value);
     }
 
     [Fact]
     public void Create_EmptyNamespaces_ReturnsValidationFailure()
     {
-        var result = Domain.Create(Id("test"), []);
+        var result = Theory.Create(Id("test"), []);
 
-        var failure = Assert.IsType<Result<Domain>.Failure>(result);
+        var failure = Assert.IsType<Result<Theory>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("domain.empty", error.Code);
+        Assert.Equal("theory.empty", error.Code);
     }
 
     [Fact]
     public void Create_DefaultArray_ReturnsValidationFailure()
     {
-        var result = Domain.Create(Id("test"), default);
+        var result = Theory.Create(Id("test"), default);
 
-        var failure = Assert.IsType<Result<Domain>.Failure>(result);
+        var failure = Assert.IsType<Result<Theory>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("domain.empty", error.Code);
+        Assert.Equal("theory.empty", error.Code);
     }
 
     [Fact]
     public void Create_DuplicateNamespaceName_ReturnsValidationFailure()
     {
-        var result = Domain.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
+        var result = Theory.Create(Id("test"), [Ns("doc", "viewer"), Ns("folder"), Ns("doc", "editor")]);
 
-        var failure = Assert.IsType<Result<Domain>.Failure>(result);
+        var failure = Assert.IsType<Result<Theory>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("domain.duplicate_namespace", error.Code);
+        Assert.Equal("theory.duplicate_namespace", error.Code);
         Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void Create_MultipleDuplicatedNames_AccumulatesOneErrorPerNameInFirstOccurrenceOrder()
     {
-        var result = Domain.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
+        var result = Theory.Create(Id("test"), [Ns("doc"), Ns("folder"), Ns("doc"), Ns("folder")]);
 
-        var failure = Assert.IsType<Result<Domain>.Failure>(result);
+        var failure = Assert.IsType<Result<Theory>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("domain.duplicate_namespace", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("theory.duplicate_namespace", error.Code));
         Assert.Contains("'doc'", failure.Errors[0].Message, StringComparison.Ordinal);
         Assert.Contains("'folder'", failure.Errors[1].Message, StringComparison.Ordinal);
     }
@@ -172,8 +172,8 @@ public sealed class DomainTests
         // Uniqueness is ordinal over canonical values. Parsed namespace names are always
         // lowercase; mixed case here is only reachable through the trusted Unchecked path,
         // and Create compares what it is given.
-        var result = Domain.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
+        var result = Theory.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
 
-        _ = Assert.IsType<Result<Domain>.Success>(result);
+        _ = Assert.IsType<Result<Theory>.Success>(result);
     }
 }

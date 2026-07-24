@@ -22,9 +22,9 @@ public readonly record struct ResourceId
     /// <inheritdoc/>
     public static Result<ResourceId> Parse(string s) =>
         string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<ResourceId>(Error.Validation("resource_id.empty", "resource identifier cannot be empty or whitespace"))
+            ? Result.Failure<ResourceId>(Error.Validation(Diagnostics.ErrorCodes.ResourceId.Empty, "resource identifier cannot be empty or whitespace"))
             : !ResourceIdPatterns.Validation().IsMatch(s)
-                ? Result.Failure<ResourceId>(Error.Validation("resource_id.invalid", $"resource identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
+                ? Result.Failure<ResourceId>(Error.Validation(Diagnostics.ErrorCodes.ResourceId.Invalid, $"resource identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
                 : Result.Success(new ResourceId(s));
 
     private ResourceId(string value) => Value = value;

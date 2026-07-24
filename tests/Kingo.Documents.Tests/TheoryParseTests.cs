@@ -5,13 +5,13 @@ using static Kingo.Documents.Tests.TestHelpers;
 
 namespace Kingo.Documents.Tests;
 
-public sealed class DomainParseTests
+public sealed class TheoryParseTests
 {
     [Fact]
     public void Parse_SimpleDocument_ReturnsDefinedNamespaces()
     {
         const string document = """
-            domain: acme
+            theory: acme
             namespaces:
               file:
                 - owner
@@ -30,7 +30,7 @@ public sealed class DomainParseTests
                 ]),
         ];
 
-        Assert.Equal(MakeDomain(DomainId("acme"), expected), ParseSuccess(document));
+        Assert.Equal(MakeTheory(TheoryId("acme"), expected), ParseSuccess(document));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class DomainParseTests
             #   & = intersection operator
             #   | = union operator
 
-            domain: acme
+            theory: acme
 
             namespaces:
               file:                           # namespace
@@ -122,16 +122,16 @@ public sealed class DomainParseTests
         _ = ParseSuccess(Document(namespaceMap));
 
     [Theory]
-    [InlineData("invalid: yaml: content", "domain.syntax")]
-    [InlineData("file:\n  - viewer: | this", "domain.syntax")]
-    [InlineData("file:\n  - a\nfile:\n  - b", "domain.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
-    [InlineData("file:\n  - a: this\n    a: owner", "domain.syntax")] // duplicate keys inside a relationship mapping, likewise
-    [InlineData("file: *missing", "domain.syntax")] // unresolved alias
-    [InlineData("file: 5", "domain.namespace")]
-    [InlineData("file:\n  a: b", "domain.namespace")]
-    [InlineData("file: ''", "domain.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
-    [InlineData("file: 'null'", "domain.namespace")]
-    [InlineData("file: NuLL", "domain.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
+    [InlineData("invalid: yaml: content", "theory.syntax")]
+    [InlineData("file:\n  - viewer: | this", "theory.syntax")]
+    [InlineData("file:\n  - a\nfile:\n  - b", "theory.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
+    [InlineData("file:\n  - a: this\n    a: owner", "theory.syntax")] // duplicate keys inside a relationship mapping, likewise
+    [InlineData("file: *missing", "theory.syntax")] // unresolved alias
+    [InlineData("file: 5", "theory.namespace")]
+    [InlineData("file:\n  a: b", "theory.namespace")]
+    [InlineData("file: ''", "theory.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
+    [InlineData("file: 'null'", "theory.namespace")]
+    [InlineData("file: NuLL", "theory.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
     [InlineData("'':\n  - owner", "namespace_name.empty")]
     [InlineData("file name:\n  - owner", "namespace_name.invalid")]
     [InlineData("file-name:\n  - owner", "namespace_name.invalid")]
@@ -141,26 +141,26 @@ public sealed class DomainParseTests
     [InlineData("file:\n  - 123owner", "relationship_name.invalid")]
     [InlineData("file:\n  - owner.ext", "relationship_name.invalid")]
     [InlineData("file:\n  - ", "relationship_name.empty")]
-    [InlineData("file:\n  - : this", "domain.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
-    [InlineData("file:\n  - [nested]", "domain.relationship")]
-    [InlineData("file: &a [*a]", "domain.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
-    [InlineData("file:\n  - a: this\n    b: this", "domain.relationship")]
-    [InlineData("file:\n  - viewer:", "domain.relationship")] // a pair missing its rewrite expression; the bare-name form is how a domain document spells "no rewrite"
-    [InlineData("file:\n  - viewer: ''", "domain.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
-    [InlineData("file:\n  - viewer: ~", "domain.rewrite")] // plain scalar text is expression source, and '~' cannot lex
-    [InlineData("? [complex, key]\n: - owner", "domain.namespace")]
-    [InlineData("file:\n  - ? [complex, key]\n    : this", "domain.relationship")]
-    [InlineData("file:\n  - viewer:\n      - nested", "domain.relationship")]
-    [InlineData("file:\n  - owner: invalid expression syntax", "domain.rewrite")]
-    [InlineData("file:\n  - viewer: this |", "domain.rewrite")]
-    [InlineData("file:\n  - viewer: this & & owner", "domain.rewrite")]
-    [InlineData("file:\n  - viewer: invalid-identifier", "domain.rewrite")]
-    [InlineData("file:\n  - viewer: (incomplete factset", "domain.rewrite")]
-    [InlineData("file:\n  - viewer: (parent, child, extra)", "domain.rewrite")]
-    [InlineData("file:\n  - viewer: 123invalid", "domain.rewrite")]
-    [InlineData("file:\n  - this", "domain.relationship.reserved")]
-    [InlineData("file:\n  - THIS", "domain.relationship.reserved")]
-    [InlineData("file:\n  - this: owner", "domain.relationship.reserved")]
+    [InlineData("file:\n  - : this", "theory.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
+    [InlineData("file:\n  - [nested]", "theory.relationship")]
+    [InlineData("file: &a [*a]", "theory.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
+    [InlineData("file:\n  - a: this\n    b: this", "theory.relationship")]
+    [InlineData("file:\n  - viewer:", "theory.relationship")] // a pair missing its rewrite expression; the bare-name form is how a domain document spells "no rewrite"
+    [InlineData("file:\n  - viewer: ''", "theory.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
+    [InlineData("file:\n  - viewer: ~", "theory.rewrite")] // plain scalar text is expression source, and '~' cannot lex
+    [InlineData("? [complex, key]\n: - owner", "theory.namespace")]
+    [InlineData("file:\n  - ? [complex, key]\n    : this", "theory.relationship")]
+    [InlineData("file:\n  - viewer:\n      - nested", "theory.relationship")]
+    [InlineData("file:\n  - owner: invalid expression syntax", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: this |", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: this & & owner", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: invalid-identifier", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: (incomplete factset", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: (parent, child, extra)", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: 123invalid", "theory.rewrite")]
+    [InlineData("file:\n  - this", "theory.relationship.reserved")]
+    [InlineData("file:\n  - THIS", "theory.relationship.reserved")]
+    [InlineData("file:\n  - this: owner", "theory.relationship.reserved")]
     [InlineData("file:\n  - '...'", "relationship_name.invalid")]
     [InlineData("file:\n  - '...': owner", "relationship_name.invalid")]
     [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")] // the namespace gate runs on the parse path too
@@ -176,24 +176,24 @@ public sealed class DomainParseTests
     }
 
     [Theory]
-    [InlineData("", "domain.document")]
-    [InlineData("   ", "domain.document")]
-    [InlineData("null", "domain.document")]
-    [InlineData("scalar", "domain.document")]
-    [InlineData("[]", "domain.document")]
-    [InlineData("{}", "domain.document")] // neither key present
-    [InlineData("domain: acme\n---\ndomain: other", "domain.document")] // a domain document is a single YAML document
-    [InlineData("namespaces:\n  file:\n    - owner", "domain.document")] // no 'domain:' key
-    [InlineData("domain: acme", "domain.document")] // no 'namespaces:' key
-    [InlineData("domain: acme\nnamespaces: 5", "domain.document")] // 'namespaces:' is not a mapping
-    [InlineData("domain: acme\nnamespaces: []", "domain.document")]
-    [InlineData("domain: [acme]\nnamespaces:\n  file:\n    - owner", "domain.document")] // 'domain:' is not a scalar
-    [InlineData("domain:\nnamespaces:\n  file:\n    - owner", "domain_name.empty")] // a valueless 'domain:' loads as an empty scalar, which the identifier grammar rejects
-    [InlineData("file:\n  - owner", "domain.document")] // the bare namespace map is no longer a document
-    [InlineData("domain: ''\nnamespaces:\n  file:\n    - owner", "domain_name.empty")]
-    [InlineData("domain: acme corp\nnamespaces:\n  file:\n    - owner", "domain_name.invalid")]
-    [InlineData("domain: 123acme\nnamespaces:\n  file:\n    - owner", "domain_name.invalid")]
-    [InlineData("domain: acme-corp\nnamespaces:\n  file:\n    - owner", "domain_name.invalid")]
+    [InlineData("", "theory.document")]
+    [InlineData("   ", "theory.document")]
+    [InlineData("null", "theory.document")]
+    [InlineData("scalar", "theory.document")]
+    [InlineData("[]", "theory.document")]
+    [InlineData("{}", "theory.document")] // neither key present
+    [InlineData("theory: acme\n---\ntheory: other", "theory.document")] // a domain document is a single YAML document
+    [InlineData("namespaces:\n  file:\n    - owner", "theory.document")] // no 'theory:' key
+    [InlineData("theory: acme", "theory.document")] // no 'namespaces:' key
+    [InlineData("theory: acme\nnamespaces: 5", "theory.document")] // 'namespaces:' is not a mapping
+    [InlineData("theory: acme\nnamespaces: []", "theory.document")]
+    [InlineData("theory: [acme]\nnamespaces:\n  file:\n    - owner", "theory.document")] // 'theory:' is not a scalar
+    [InlineData("theory:\nnamespaces:\n  file:\n    - owner", "theory_name.empty")] // a valueless 'theory:' loads as an empty scalar, which the identifier grammar rejects
+    [InlineData("file:\n  - owner", "theory.document")] // the bare namespace map is no longer a document
+    [InlineData("theory: ''\nnamespaces:\n  file:\n    - owner", "theory_name.empty")]
+    [InlineData("theory: acme corp\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
+    [InlineData("theory: 123acme\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
+    [InlineData("theory: acme-corp\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
     public void Parse_InvalidEnvelope_FailsWithExpectedCode(string document, string expectedCode)
     {
         var errors = ParseFailure(document);
@@ -203,29 +203,29 @@ public sealed class DomainParseTests
     }
 
     [Fact]
-    public void Parse_DomainName_IsTheDomainsDomainKey()
+    public void Parse_TheoryName_IsTheTheoriesTheoryKey()
     {
         var domain = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
-        Assert.Equal(DomainId("acme"), domain.Name);
+        Assert.Equal(TheoryId("acme"), domain.Name);
     }
 
     [Fact]
-    public void Parse_MixedCaseDomainName_NormalizesToLowercase()
+    public void Parse_MixedCaseTheoryName_NormalizesToLowercase()
     {
         var domain = ParseSuccess(Document("file:\n  - owner", name: "ACME"));
 
-        Assert.Equal(DomainId("acme"), domain.Name);
+        Assert.Equal(TheoryId("acme"), domain.Name);
     }
 
     [Fact]
     public void Parse_DefectsInNameAndNamespaces_AccumulateAcrossBoth()
     {
         // Result.Apply accumulates the envelope's two halves: a bad domain name does not mask namespace defects
-        var errors = ParseFailure("domain: 123acme\nnamespaces:\n  123file:\n    - owner");
+        var errors = ParseFailure("theory: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
-        Assert.Equal("domain_name.invalid", errors[0].Code);
+        Assert.Equal("theory_name.invalid", errors[0].Code);
         Assert.Equal("namespace_name.invalid", errors[1].Code);
     }
 
@@ -235,7 +235,7 @@ public sealed class DomainParseTests
         var errors = ParseFailure(Document("file:\n  - viewer:"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("domain.relationship", error.Code);
+        Assert.Equal("theory.relationship", error.Code);
         Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
     }
 
@@ -244,7 +244,7 @@ public sealed class DomainParseTests
     {
         // the domain document owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
         // to a relationship named null — which is also what lets that name survive a round trip, since the
-        // renderer emits it unquoted (DomainPrinter.Print)
+        // renderer emits it unquoted (TheoryPrinter.Print)
         var ns = Assert.Single(ParseSuccess(Document("file:\n  - null\n  - viewer: null")).Namespaces);
 
         ImmutableArray<Relationship> expected = [Bare("null"), new Relationship(Rel("viewer"), Computed("null"))];
@@ -260,7 +260,7 @@ public sealed class DomainParseTests
         Assert.Equal(3, errors.Length);
         Assert.Equal("namespace_name.invalid", errors[0].Code);
         Assert.Equal("relationship_name.invalid", errors[1].Code);
-        Assert.Equal("domain.rewrite", errors[2].Code);
+        Assert.Equal("theory.rewrite", errors[2].Code);
     }
 
     [Fact]
@@ -279,7 +279,7 @@ public sealed class DomainParseTests
         Assert.Equal(3, errors.Length);
         Assert.Equal("namespace_name.invalid", errors[0].Code);
         Assert.Equal("relationship_name.invalid", errors[1].Code);
-        Assert.Equal("domain.rewrite", errors[2].Code);
+        Assert.Equal("theory.rewrite", errors[2].Code);
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public sealed class DomainParseTests
         var errors = ParseFailure(Document("file:\n  - owner\nFILE:\n  - viewer"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("domain.duplicate_namespace", error.Code);
+        Assert.Equal("theory.duplicate_namespace", error.Code);
         Assert.Contains("'file'", error.Message, StringComparison.Ordinal);
     }
 
@@ -327,12 +327,12 @@ public sealed class DomainParseTests
     }
 
     [Fact]
-    public void Parse_EmptyNamespaceMap_FailsAsEmptyDomain()
+    public void Parse_EmptyNamespaceMap_FailsAsEmptyTheory()
     {
         // a domain is never empty: the absence of namespaces is the absence of a domain
         var errors = ParseFailure(Document("{}"));
 
-        Assert.Equal("domain.empty", Assert.Single(errors).Code);
+        Assert.Equal("theory.empty", Assert.Single(errors).Code);
     }
 
     [Theory]
