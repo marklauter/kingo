@@ -5,8 +5,10 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). Character rules
-/// are provisional; the terminal must never contain the fact-grammar delimiters <c>:</c>, <c>#</c>, or <c>@</c>.
+/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). The caller owns this
+/// value: Kingo compares it and never interprets it ([[split-identities-at-ownership-boundaries]]). The rule is shared with <see cref="SubjectId"/> as
+/// <see cref="IdentifierGrammar.IdPattern"/> and admits the real shapes callers bring — GUIDs, integers, URNs, URIs — requiring only a non-empty run of
+/// visible characters with no whitespace and no control characters.
 /// </summary>
 public readonly record struct ResourceId
     : IValue<ResourceId, string>
@@ -22,7 +24,7 @@ public readonly record struct ResourceId
         string.IsNullOrWhiteSpace(s)
             ? Result.Failure<ResourceId>(Error.Validation("resource_id.empty", "resource identifier cannot be empty or whitespace"))
             : !ResourceIdPatterns.Validation().IsMatch(s)
-                ? Result.Failure<ResourceId>(Error.Validation("resource_id.invalid", $"resource identifier '{s}' contains invalid characters; expected '^[A-Za-z0-9_][A-Za-z0-9_.-]*$'"))
+                ? Result.Failure<ResourceId>(Error.Validation("resource_id.invalid", $"resource identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
                 : Result.Success(new ResourceId(s));
 
     private ResourceId(string value) => Value = value;
@@ -47,7 +49,7 @@ public readonly record struct ResourceId
 
 }
 
-/// <summary>Character rules for <see cref="ResourceId"/> — the terminal owns its grammar ([[domain-language]]).</summary>
+/// <summary>Character rules for <see cref="ResourceId"/> — the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[domain-language]]).</summary>
 internal static partial class ResourceIdPatterns
 {
     private const RegexOptions PatternOptions =
@@ -56,7 +58,7 @@ internal static partial class ResourceIdPatterns
         RegexOptions.CultureInvariant;
 
     // provisional per [[domain-language]]: resource ids need dots (e.g. readme.md);
-    // must never contain the fact-grammar delimiters ':' '#' '@'
-    [GeneratedRegex(@"^[A-Za-z0-9_][A-Za-z0-9_.-]*$", PatternOptions)]
+    // must never contain the fact-grammar delimiters '/' ':' '#' '@'
+    [GeneratedRegex(IdentifierGrammar.IdPattern, PatternOptions)]
     public static partial Regex Validation();
 }
