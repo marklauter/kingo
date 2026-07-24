@@ -6,4 +6,9 @@
 		<DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
 	</PropertyGroup>
 
+	<!-- CA1062 Validate arguments of public methods : nullable reference types are the contract in the domain and libraries; callers are Kingo's own NRT-clean code. The API host and port projects that face uncontrolled callers guard their edges instead and must not carry this suppression. Opt-in per project via <KingoDomainLibrary>true</KingoDomainLibrary> so edge-facing projects stay CA1062-enforced by default. Lives in Directory.Build.targets, not .props, because .props imports before the csproj sets the flag. -->
+	<PropertyGroup Condition="'$(KingoDomainLibrary)' == 'true'">
+		<NoWarn>$(NoWarn);CA1062</NoWarn>
+	</PropertyGroup>
+
 </Project>

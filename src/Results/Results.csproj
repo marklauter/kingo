@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<IsPackable>false</IsPackable>
+		<KingoDomainLibrary>true</KingoDomainLibrary>
 	</PropertyGroup>
 
 </Project>
