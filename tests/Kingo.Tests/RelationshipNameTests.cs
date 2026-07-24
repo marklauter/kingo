@@ -80,8 +80,9 @@ public sealed class RelationshipNameTests
     public void Parse_AcceptsTheSameGrammarAsTheOtherNames()
     {
         // a spec name, a namespace name, and a relationship name are the same production — one segment
-        // ([[identifiers]]); this pins that the three do not drift apart silently
-        string[] inputs = ["viewer", "VIEWER", "_x", "a1", "0abc", "a-b", "a.b", "a b", "", "io/file"];
+        // ([[identifiers]]); this pins that the three do not drift apart silently. 'this' is included
+        // deliberately: the core accepts it as a name, and reserving it is the SDL parser's job, not this type's
+        string[] inputs = ["viewer", "VIEWER", "_x", "a1", "this", "This", "0abc", "a-b", "a.b", "a b", "", "io/file"];
 
         foreach (var input in inputs)
         {

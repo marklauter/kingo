@@ -10,29 +10,16 @@ namespace Kingo;
 /// namespace name, as in <c>io/file</c>. There is no namespace called <c>file</c>. The only qualified identifier Kingo holds, and it exists for the fact side
 /// alone: a <c>Kingo.Graphs.Resource</c> points at a namespace it does not live inside, so the qualifier has to travel with the reference. The config side is a
 /// tree, because a spec owns its namespaces, so containment supplies the qualification there and nothing in <c>Kingo.Schemas</c> holds one of these
-/// ([[split-identities-at-ownership-boundaries]]). One string with one representation, ordered so a spec's namespaces are contiguous in the key space.
-/// <see cref="Spec"/> and <see cref="Name"/> are projections of that string rather than fields beside it. Case-insensitive: <see cref="Parse"/> normalizes to
-/// lowercase, the canonical form.
+/// ([[split-identities-at-ownership-boundaries]]). One string with one representation, ordered so a spec's namespaces are contiguous in the key space. The spec
+/// and namespace segments are deliberately not projected off it: the value is stored, compared, and sorted whole, and nothing reads the halves. Deriving them
+/// would cost a character scan (at construction if eager, per read if lazy) that no caller needs today, so it is deferred to an extension method if a use ever
+/// arises. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct NamespacePath
     : IValue<NamespacePath, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
-
-    /// <summary>
-    /// The spec this namespace belongs to, the segment before the <c>/</c>. A projection of <see cref="Value"/>, computed on demand, so the path stays one
-    /// value. Total on any value <see cref="Parse"/> produced. Undefined on one <see cref="Unchecked"/> vouched for wrongly.
-    /// </summary>
-    public SpecName Spec => SpecName.Unchecked(Value[..SeparatorIndex]);
-
-    /// <summary>
-    /// The bare namespace name, the segment after the <c>/</c>, which is what an SDL document writes as its key and what the spec tree stores. Same totality
-    /// as <see cref="Spec"/>.
-    /// </summary>
-    public NamespaceName Name => NamespaceName.Unchecked(Value[(SeparatorIndex + 1)..]);
-
-    private int SeparatorIndex => Value.IndexOf(IdentifierGrammar.SpecSeparator, StringComparison.Ordinal);
 
     /// <inheritdoc/>
     public static NamespacePath Unchecked(string value) => new(value);

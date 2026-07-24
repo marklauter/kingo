@@ -128,13 +128,4 @@ public sealed class NamespacePathTests
         var id = NamespacePath.Unchecked("io/doc");
         Assert.Equal("io/doc", id.ToString());
     }
-
-    [Fact]
-    public void SpecAndName_ProjectTheTwoSegments()
-    {
-        var path = Assert.IsType<Result<NamespacePath>.Success>(NamespacePath.Parse("io/file")).Value;
-
-        Assert.Equal(SpecName.Unchecked("io"), path.Spec);
-        Assert.Equal(NamespaceName.Unchecked("file"), path.Name);
-    }
 }
