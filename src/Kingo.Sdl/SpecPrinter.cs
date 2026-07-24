@@ -4,8 +4,9 @@ using YamlDotNet.Serialization;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// Prints a <see cref="Spec"/> to its SDL document text — the serialize half of the SDL round trip (<see cref="SpecParser.Parse"/> is the other).
-/// An extension so the call site reads as a domain capability (<c>spec.Print()</c>) while the format knowledge stays in the adapter.
+/// Renders a <see cref="Spec"/> to its SDL document text, the serialize half of the SDL round trip (<see cref="SpecParser.Parse"/> is the
+/// other). An extension method, so the call site reads as a domain capability (<c>spec.Print()</c>) while the format knowledge stays in the
+/// adapter.
 /// </summary>
 public static class SpecPrinter
 {
@@ -14,12 +15,12 @@ public static class SpecPrinter
         .Build();
 
     /// <summary>
-    /// Emits the SDL document for <paramref name="spec"/>: the <c>spec:</c> name, then one namespace per key under <c>namespaces:</c> in spec order. Every
-    /// name in the document is bare, and so is every name in the spec tree, so each key is written out as it is stored ([[identifiers]]).
-    /// The spec's own invariants make the mapping well-formed by construction (namespace names are unique); the one document invariant the domain cannot
-    /// express is the caller's defect and throws <see cref="ArgumentException"/>: no relationship name or rewrite reference may be the reserved word of the
-    /// rewrite grammar (<c>this</c>).
+    /// Emits the SDL document for <paramref name="spec"/>: the <c>spec:</c> name, then one namespace per key under <c>namespaces:</c> in spec
+    /// order. Every name in the document is bare, and so is every name in the spec tree, so each key is written out as it is stored
+    /// ([[identifiers]]). The spec's own invariants make the mapping well-formed by construction, because namespace names are unique.
     /// </summary>
+    /// <returns>The SDL document text for <paramref name="spec"/>.</returns>
+    /// <exception cref="ArgumentException">A relationship name or rewrite reference is the reserved word of the rewrite grammar (<c>this</c>), which cannot be expressed in SDL.</exception>
     public static string Print(this Spec spec)
     {
         OrderedDictionary<string, List<object>> namespaces = new(spec.Namespaces.Length);

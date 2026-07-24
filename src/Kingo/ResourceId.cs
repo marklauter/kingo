@@ -5,9 +5,9 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Identifies a resource within a namespace — the <c>&lt;resource-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). The caller owns this
+/// An identifier for a resource within a namespace, the <c>&lt;resource-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). The caller owns this
 /// value: Kingo compares it and never interprets it ([[split-identities-at-ownership-boundaries]]). The rule is shared with <see cref="SubjectId"/> as
-/// <see cref="IdentifierGrammar.IdPattern"/> and admits the real shapes callers bring — GUIDs, integers, URNs, URIs — requiring only a non-empty run of
+/// <see cref="IdentifierGrammar.IdPattern"/> and admits the real shapes callers bring: GUIDs, integers, URNs, and URIs. It requires only a non-empty run of
 /// visible characters with no whitespace and no control characters.
 /// </summary>
 public readonly record struct ResourceId
@@ -29,7 +29,8 @@ public readonly record struct ResourceId
 
     private ResourceId(string value) => Value = value;
 
-    /// <summary>Canonical text form: the underlying string value, unquoted and undecorated.</summary>
+    /// <summary>Returns the canonical text form of the value.</summary>
+    /// <returns>The underlying string, unquoted and undecorated.</returns>
     public override string ToString() => Value;
 
     /// <inheritdoc/>
@@ -49,7 +50,7 @@ public readonly record struct ResourceId
 
 }
 
-/// <summary>Character rules for <see cref="ResourceId"/> — the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[domain-language]]).</summary>
+/// <summary>Character rules for <see cref="ResourceId"/>: the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[domain-language]]).</summary>
 internal static partial class ResourceIdPatterns
 {
     private const RegexOptions PatternOptions =

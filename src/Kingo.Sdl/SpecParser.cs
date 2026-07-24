@@ -8,33 +8,37 @@ namespace Kingo.Sdl;
 
 /// <summary>
 /// The parse half of the SDL adapter: Schema Definition Language document text ([[specs]]) to the core spec model
-/// (<see cref="SpecPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map; each relationship's optional rewrite
-/// expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and <see cref="RewriteExpressionPrinter"/>. Parsing exits through
-/// the core's validating factories — <c>RelationshipName.Parse</c>, <c>NamespaceName.Parse</c>, <c>SpecName.Parse</c>, <c>Namespace.Create</c>,
-/// <c>Spec.Create</c> — accumulating every document-level, identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
+/// (<see cref="SpecPrinter.Print"/> renders the other direction). YAML carries the spec name and the outer namespace map. Each relationship's
+/// optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
+/// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationshipName.Parse</c>,
+/// <c>NamespaceName.Parse</c>, <c>SpecName.Parse</c>, <c>Namespace.Create</c>, <c>Spec.Create</c>), accumulating every document-level,
+/// identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
 public static class SpecParser
 {
     private const string NameKey = "spec";
     private const string NamespacesKey = "namespaces";
 
-    /// <summary>
-    /// Parses untrusted SDL text, returning the defined <see cref="Spec"/> or every accumulated validation <see cref="Error"/> in document order: <c>spec.syntax</c>
-    /// (malformed YAML), <c>spec.document</c> (not a single mapping, or missing/misshapen <c>spec:</c> / <c>namespaces:</c> keys),
-    /// <c>spec.namespace</c> / <c>spec.relationship</c> (wrong node shapes, or a <c>&lt;name&gt;:</c> pair missing its rewrite expression),
-    /// <c>spec.relationship.reserved</c> (a relationship named by a rewrite-grammar reserved word), <c>spec.rewrite</c> (bad rewrite expressions), plus whatever
-    /// the core factories reject: identifier grammars, <c>namespace.duplicate_relationship</c> / <c>namespace.dangling_reference</c> /
-    /// <c>namespace.rewrite_cycle</c> via <c>Namespace.Create</c>, and <c>spec.empty</c> /
-    /// <c>spec.duplicate_namespace</c> via <c>Spec.Create</c> — YAML keys are case-sensitive but namespace identity is not, so case-variant keys collapse
-    /// to one identity after lowercase normalization and fail as duplicates.
-    /// </summary>
+    /// <summary>Parses untrusted SDL text into the defined <see cref="Spec"/>.</summary>
+    /// <returns>
+    /// A successful <see cref="Result{T}"/> carrying the defined <see cref="Spec"/>, or every accumulated validation <see cref="Error"/> in
+    /// document order. <c>spec.syntax</c> for malformed YAML. <c>spec.document</c> when the text is not a single mapping, or the <c>spec:</c>
+    /// or <c>namespaces:</c> keys are missing or misshapen. <c>spec.namespace</c> or <c>spec.relationship</c> for wrong node shapes, or a
+    /// <c>&lt;name&gt;:</c> pair missing its rewrite expression. <c>spec.rewrite</c> for bad rewrite expressions. <c>spec.relationship.reserved</c>
+    /// when a relationship is named by a rewrite-grammar reserved word (<c>this</c>). Whatever the core factories reject: identifier grammars,
+    /// <c>namespace.duplicate_relationship</c>, <c>namespace.dangling_reference</c>, and <c>namespace.rewrite_cycle</c> via
+    /// <c>Namespace.Create</c>. <c>spec.empty</c> and <c>spec.duplicate_namespace</c> via <c>Spec.Create</c>. YAML keys are case-sensitive but
+    /// namespace identity is not, so case-variant keys collapse to one identity after lowercase normalization and fail as duplicates.
+    /// </returns>
     public static Result<Spec> Parse(string text) =>
         LoadDocument(text).Bind(ParseDocument);
 
     /// <summary>
-    /// The two halves of the envelope are parsed independently and accumulated, so a bad spec name never masks namespace defects: neither half needs anything
-    /// from the other, because a namespace key is a bare name that the enclosing spec qualifies by containment rather than by string.
+    /// Parses the two halves of the envelope independently and accumulates them, so a bad spec name never masks namespace defects. Neither
+    /// half needs anything from the other, because a namespace key is a bare name that the enclosing spec qualifies by containment rather
+    /// than by string.
     /// </summary>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="Spec"/>, or the accumulated failures from both halves and <c>Spec.Create</c>.</returns>
     private static Result<Spec> ParseDocument(YamlMappingNode document) =>
         Result.Apply(
             ParseName(document).Map<Func<ImmutableArray<Namespace>, (SpecName Name, ImmutableArray<Namespace> Namespaces)>>(
@@ -42,7 +46,8 @@ public static class SpecParser
             ParseNamespaces(document))
             .Bind(spec => Spec.Create(spec.Name, spec.Namespaces));
 
-    /// <summary>The document's <c>spec:</c> key — the spec's name, and its domain key (<see cref="SpecName"/> owns the grammar).</summary>
+    /// <summary>Parses the document's <c>spec:</c> key, the spec's name and domain key (<see cref="SpecName"/> owns the grammar).</summary>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the <see cref="SpecName"/>, or a <c>spec.document</c> failure when the <c>spec:</c> key is missing or its value is not a scalar.</returns>
     private static Result<SpecName> ParseName(YamlMappingNode document) =>
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
@@ -50,9 +55,11 @@ public static class SpecParser
             : Result.Failure<SpecName>(Error.Validation("spec.document", $"a SDL document requires a '{NameKey}:' key naming the spec, with a scalar value"));
 
     /// <summary>
-    /// The document's <c>namespaces:</c> key — the namespace map. Its emptiness is <c>Spec.Create</c>'s call (<c>spec.empty</c>), not this adapter's. Each key
-    /// is a bare <see cref="NamespaceName"/>; the spec it belongs to is the document's own, supplied by containment.
+    /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Spec.Create</c>'s call (<c>spec.empty</c>), not
+    /// this adapter's. Each key is a bare <see cref="NamespaceName"/>, and the spec it belongs to is the document's own, supplied by
+    /// containment.
     /// </summary>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed namespaces, or a <c>spec.document</c> failure when the <c>namespaces:</c> key is missing or is not a mapping.</returns>
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
         document.Children.TryGetValue(new YamlScalarNode(NamespacesKey), out var namespaces) && namespaces is YamlMappingNode map
             ? map.Children.Select(ParseNamespace).Sequence()
@@ -124,23 +131,28 @@ public static class SpecParser
             : Result.Failure<Relationship>(Error.Validation("spec.relationship", "a relationship is a bare name or a single '<name>: <rewrite expression>' pair"));
 
     /// <summary>
-    /// The value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain empty scalar — a plain
-    /// scalar cannot spell an empty string, so this shape is always a forgotten expression and gets a pointed error instead of the mini-language's generic
-    /// unexpected-end-of-input. Any other scalar hands its raw text to the expression parser: SDL owns the text, not YAML's scalar typing, so a plain
-    /// <c>null</c> is the identifier <c>null</c> — which is also what keeps a relationship so named round-tripping, since the renderer emits it unquoted.
+    /// Parses the value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain
+    /// empty scalar. A plain scalar cannot spell an empty string, so this shape is always a forgotten expression and gets a pointed error
+    /// rather than the mini-language's generic unexpected-end-of-input. Any other scalar hands its raw text to the expression parser, because
+    /// SDL owns the text rather than YAML's scalar typing. A plain <c>null</c> is the identifier <c>null</c>, which keeps a relationship so
+    /// named round-tripping, because the renderer emits it unquoted.
     /// </summary>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>spec.relationship</c> failure when the expression is missing, or the expression parser's failures.</returns>
     private static Result<SubjectSetRewrite> ParseRewriteExpression(YamlScalarNode name, YamlScalarNode expression) =>
         expression is { Style: ScalarStyle.Plain, Value: null or "" }
             ? Result.Failure<SubjectSetRewrite>(Error.Validation("spec.relationship", $"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name"))
             : RewriteExpressionParser.Parse(expression.Value!);
 
     /// <summary>
-    /// A relationship name in SDL must survive the rewrite grammar: <c>this</c> always lexes as the keyword (a relationship so named could never be referenced
-    /// — or worse, a reference would silently mean direct membership), so it is reserved. The name stays bare — the enclosing <see cref="Namespace"/> supplies
-    /// the qualification, and the definition is stored under the name so it is in the same currency as the names its rewrites reference. (<c>...</c> needs no
-    /// guard here: it is not a relationship name — it is the <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production — so it fails
-    /// <see cref="RelationshipName.Parse"/> upstream.)
+    /// Parses a relationship name and rejects the rewrite-grammar reserved word <c>this</c>. The name <c>this</c> always lexes as the keyword, so a relationship
+    /// so named could never be referenced, and a reference would silently read as direct membership. SDL reserves it. The name stays bare, because the enclosing
+    /// <see cref="Namespace"/> supplies the qualification.
     /// </summary>
+    /// <returns>
+    /// A successful <see cref="Result{T}"/> carrying the <see cref="RelationshipName"/>, a <c>spec.relationship.reserved</c> failure when the name is a
+    /// rewrite-grammar reserved word, or the identifier-grammar failures (<c>relationship_name.empty</c>, <c>relationship_name.invalid</c>) that
+    /// <c>RelationshipName.Parse</c> raises.
+    /// </returns>
     private static Result<RelationshipName> ParseRelationshipName(string name) =>
         RelationshipName.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
             ? Result.Failure<RelationshipName>(Error.Validation("spec.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))

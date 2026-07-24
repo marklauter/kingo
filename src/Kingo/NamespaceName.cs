@@ -6,9 +6,9 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// Names a <see cref="Schemas.Namespace"/> within its spec — one segment of the identifier grammar ([[identifiers]]): <c>file</c>. Bare, because the config
-/// side is a tree: a namespace lives inside the spec that owns it, so containment supplies the qualification and nothing on that side ever holds a qualified
-/// path. The fact side is the other case — a fact points at a namespace it does not live inside, so its reference carries the qualifier as a
+/// The name of a <see cref="Schemas.Namespace"/> within its spec, one segment of the identifier grammar ([[identifiers]]): <c>file</c>. Bare, because the
+/// config side is a tree. A namespace lives inside the spec that owns it, so containment supplies the qualification and nothing on that side ever holds a
+/// qualified path. The fact side is the other case: a fact points at a namespace it does not live inside, so its reference carries the qualifier as a
 /// <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct NamespaceName
@@ -31,7 +31,8 @@ public readonly record struct NamespaceName
 
     private NamespaceName(string value) => Value = value;
 
-    /// <summary>Canonical text form: the underlying string value, unquoted and undecorated.</summary>
+    /// <summary>Returns the canonical text form of the value.</summary>
+    /// <returns>The underlying string, unquoted and undecorated.</returns>
     public override string ToString() => Value;
 
     /// <inheritdoc/>
@@ -51,7 +52,7 @@ public readonly record struct NamespaceName
 
 }
 
-/// <summary>Character rules for <see cref="NamespaceName"/> — one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
+/// <summary>Character rules for <see cref="NamespaceName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
 internal static partial class NamespaceNamePatterns
 {
     private const RegexOptions PatternOptions =

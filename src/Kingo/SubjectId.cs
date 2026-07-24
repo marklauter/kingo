@@ -5,10 +5,10 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// References a subject — the <c>&lt;subject-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). A subject is the unified identity a
-/// set of authn-side principals maps to; it need not be human and need not have authenticated. The caller owns this value: Kingo compares it and never
+/// A reference to a subject, the <c>&lt;subject-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). A subject is the unified identity a
+/// set of authn-side principals maps to. It need not be human and need not have authenticated. The caller owns this value: Kingo compares it and never
 /// interprets it ([[split-identities-at-ownership-boundaries]]). The rule is shared with <see cref="ResourceId"/> as <see cref="IdentifierGrammar.IdPattern"/>
-/// and admits the real shapes callers bring — GUIDs, integers, URNs, URIs, emails, UPNs — requiring only a non-empty run of visible characters with no
+/// and admits the real shapes callers bring: GUIDs, integers, URNs, URIs, emails, and UPNs. It requires only a non-empty run of visible characters with no
 /// whitespace and no control characters.
 /// </summary>
 public readonly record struct SubjectId
@@ -30,7 +30,8 @@ public readonly record struct SubjectId
 
     private SubjectId(string value) => Value = value;
 
-    /// <summary>Canonical text form: the underlying string value, unquoted and undecorated.</summary>
+    /// <summary>Returns the canonical text form of the value.</summary>
+    /// <returns>The underlying string, unquoted and undecorated.</returns>
     public override string ToString() => Value;
 
     /// <inheritdoc/>
@@ -50,7 +51,7 @@ public readonly record struct SubjectId
 
 }
 
-/// <summary>Character rules for <see cref="SubjectId"/> — the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[domain-language]]).</summary>
+/// <summary>Character rules for <see cref="SubjectId"/>: the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[domain-language]]).</summary>
 internal static partial class SubjectIdPatterns
 {
     private const RegexOptions PatternOptions =

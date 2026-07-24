@@ -9,16 +9,24 @@ using System.Collections.Immutable;
 namespace Kingo.Sdl;
 
 /// <summary>
-/// Parses the rewrite-expression mini-language embedded in SDL relationship values — e.g. <c>(this | editor | (parent, viewer)) ! banned</c> — into the core
-/// <c>SubjectSetRewrite</c> algebra. Grammar and precedence: [[specs]] — a standard cascade, tightest first: <c>!</c> exclusion, then
-/// <c>&amp;</c> intersection, then <c>|</c> union, each level left-associative, so <c>a | b &amp; c</c> is <c>a | (b &amp; c)</c>. The Superpower grammar
-/// produces the internal <see cref="RewriteNode"/> tree; the transform at the exit parses every identifier through <c>RelationshipName.Parse</c> and
-/// accumulates the errors, so bad input surfaces as <see cref="Result{T}"/> validation failures, never exceptions. The expression language writes bare names
-/// and nothing else, so the transform needs no namespace to qualify against — the rewrite algebra stores names, and evaluation qualifies them against the
-/// resource in hand ([[identifiers]]).
+/// Recursive-descent parser for the rewrite-expression mini-language embedded in SDL relationship values, for example
+/// <c>(this | editor | (parent, viewer)) ! banned</c>. Produces the core <c>SubjectSetRewrite</c> algebra. The grammar and its precedence
+/// are given in [[specs]]: a cascade, tightest first, <c>!</c> exclusion, then <c>&amp;</c> intersection, then <c>|</c> union. Each level is
+/// left-associative, so <c>a | b &amp; c</c> is <c>a | (b &amp; c)</c>. The Superpower grammar produces the internal <see cref="RewriteNode"/>
+/// tree. The transform at the exit parses every identifier through <c>RelationshipName.Parse</c> and accumulates the errors, so bad input
+/// surfaces as <see cref="Result{T}"/> validation failures rather than exceptions. The expression language writes bare names only, so the
+/// transform needs no namespace to qualify against. The rewrite algebra stores names, and evaluation qualifies them against the resource in
+/// hand ([[identifiers]]).
 /// </summary>
 internal static class RewriteExpressionParser
 {
+    /// <summary>Parses <paramref name="expression"/> into the core <c>SubjectSetRewrite</c> algebra.</summary>
+    /// <returns>
+    /// A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>. A <c>spec.rewrite</c> validation failure when the
+    /// text does not tokenize, when parenthesis nesting exceeds <c>SubjectSetRewrite.MaxDepth</c>, or when the token stream does not parse.
+    /// A <c>rewrite.depth</c> failure when the parsed tree exceeds <c>SubjectSetRewrite.MaxDepth</c>. Identifier validation failures from
+    /// <c>RelationshipName.Parse</c> when any name in the expression is not a valid relationship name.
+    /// </returns>
     public static Result<SubjectSetRewrite> Parse(string expression)
     {
         var tokens = Tokenizer.TryTokenize(expression);
@@ -38,13 +46,14 @@ internal static class RewriteExpressionParser
     }
 
     /// <summary>
-    /// The grammar-recursion guard: <c>Superpower.Parse.Ref</c> recurses one ~2-3KB combinator frame per grouping-parenthesis level and nothing else in the
-    /// grammar recurses (operator chains, exclusion links included, are iterative <c>Many()</c> folds), so on untrusted text the grouping <em>nesting</em> is
-    /// the one quantity that must stay bounded before the grammar runs. A running counter measures it exactly: a factset — lexically unmistakable as the
-    /// five-token window <c>( identifier , identifier )</c>, which the grammar always parses without recursing — is skipped whole, every other <c>(</c>
-    /// counts, and a stray <c>)</c> below level zero is ignored here and fails as plain bad syntax in the grammar. Tree depth is not this guard's business —
-    /// <see cref="ExceedsMaxDepth"/> measures it on the parsed tree, where it is exact.
+    /// Bounds grouping-parenthesis nesting before the grammar runs. <c>Superpower.Parse.Ref</c> recurses one combinator frame per
+    /// grouping-parenthesis level. Nothing else in the grammar recurses, because operator chains and exclusion links are iterative
+    /// <c>Many()</c> folds, so grouping nesting is the one quantity that must stay bounded on untrusted text. A running counter measures it.
+    /// A factset is the five-token window <c>( identifier , identifier )</c>, which the grammar parses without recursing, so it is skipped
+    /// whole. Every other <c>(</c> counts, and a stray <c>)</c> below level zero is ignored here and fails as bad syntax in the grammar.
+    /// Tree depth is measured separately by <see cref="ExceedsMaxDepth"/> on the parsed tree.
     /// </summary>
+    /// <returns><see langword="true"/> when grouping nesting exceeds <c>SubjectSetRewrite.MaxDepth</c>; otherwise <see langword="false"/>.</returns>
     private static bool WouldOverflowTheParserStack(Superpower.Model.TokenList<RewriteExpressionToken> tokens)
     {
         var kinds = tokens.Select(token => token.Kind).ToArray();
@@ -71,7 +80,8 @@ internal static class RewriteExpressionParser
         return false;
     }
 
-    /// <summary>The exact factset window starting at <paramref name="openParen"/>: <c>( identifier , identifier )</c>. Anything looser is grouping to the grammar too, so it counts.</summary>
+    /// <summary>Reports whether the five tokens starting at <paramref name="openParen"/> form the factset window <c>( identifier , identifier )</c>. Anything looser is grouping and counts toward nesting.</summary>
+    /// <returns><see langword="true"/> when the window is an exact factset; otherwise <see langword="false"/>.</returns>
     private static bool IsFactsetShape(RewriteExpressionToken[] kinds, int openParen) =>
         openParen + 4 < kinds.Length
         && kinds[openParen + 1] == RewriteExpressionToken.Identifier
@@ -80,11 +90,12 @@ internal static class RewriteExpressionParser
         && kinds[openParen + 4] == RewriteExpressionToken.RightParen;
 
     /// <summary>
-    /// The transform-recursion guard: <see cref="Transform"/> recurses per tree level, so before it runs the parsed tree's height is measured against
-    /// <c>SubjectSetRewrite.MaxDepth</c> — on the tree itself, not a token-shape estimate, so it cannot misjudge association. An explicit stack keeps the
-    /// measurement itself depth-proof, and a too-deep tree is refused with the same <c>rewrite.depth</c> error the operator factories issue: one invariant,
-    /// one code.
+    /// Measures the parsed tree's height against <c>SubjectSetRewrite.MaxDepth</c> before <see cref="Transform"/> runs, which recurses per
+    /// tree level. The height is measured on the tree itself rather than a token-shape estimate, so it cannot misjudge association. An
+    /// explicit stack keeps the measurement depth-proof. A too-deep tree is refused with the same <c>rewrite.depth</c> error the operator
+    /// factories issue.
     /// </summary>
+    /// <returns><see langword="true"/> when the tree height exceeds <c>SubjectSetRewrite.MaxDepth</c>; otherwise <see langword="false"/>.</returns>
     private static bool ExceedsMaxDepth(RewriteNode root)
     {
         var pending = new Stack<(RewriteNode Node, int Depth)>();
@@ -228,10 +239,12 @@ internal static class RewriteExpressionParser
     }
 
     /// <summary>
-    /// Collapses one precedence level's run into a single n-ary node: <c>a | b | c</c> is a single three-child union, and a lone operand passes through
-    /// untouched so the level costs nothing when its operator is absent. Only the operands this level parsed are gathered — a parenthesized operand arrives as
-    /// an opaque <see cref="RewriteNode"/> and is never absorbed, so <c>(a | b) | c</c> keeps its nested shape and round-trips structurally.
+    /// Collapses one precedence level's run into a single n-ary node. <c>a | b | c</c> becomes a single three-child union, and a lone operand
+    /// passes through untouched, so the level costs nothing when its operator is absent. Only the operands this level parsed are gathered. A
+    /// parenthesized operand arrives as an opaque <see cref="RewriteNode"/> and is never absorbed, so <c>(a | b) | c</c> keeps its nested
+    /// shape and round-trips structurally.
     /// </summary>
+    /// <returns><paramref name="first"/> when <paramref name="rest"/> is empty; otherwise a node built by <paramref name="materialize"/> over all operands.</returns>
     private static RewriteNode Chain(RewriteNode first, RewriteNode[] rest, Func<ImmutableArray<RewriteNode>, RewriteNode> materialize) =>
         rest.Length == 0 ? first : materialize([first, .. rest]);
 }
