@@ -97,15 +97,15 @@ internal static class RewriteExpressionParser
 
             switch (node)
             {
-                case UnionNode union:
+                case RewriteNode.Union union:
                     foreach (var child in union.Children)
                         pending.Push((child, depth + 1));
                     break;
-                case IntersectionNode intersection:
+                case RewriteNode.Intersection intersection:
                     foreach (var child in intersection.Children)
                         pending.Push((child, depth + 1));
                     break;
-                case ExclusionNode exclusion:
+                case RewriteNode.Exclusion exclusion:
                     pending.Push((exclusion.Include, depth + 1));
                     pending.Push((exclusion.Exclude, depth + 1));
                     break;
@@ -120,23 +120,23 @@ internal static class RewriteExpressionParser
     private static Result<SubjectSetRewrite> Transform(RewriteNode node) =>
         node switch
         {
-            ThisNode => Result.Success<SubjectSetRewrite>(SubjectSetRewrite.This.Default),
-            ComputedSubjectSetNode computed => RelationshipName.Parse(computed.Relationship)
+            RewriteNode.This => Result.Success<SubjectSetRewrite>(SubjectSetRewrite.This.Default),
+            RewriteNode.ComputedSubjectSet computed => RelationshipName.Parse(computed.Relationship)
                 .Map(SubjectSetRewrite (relationship) => SubjectSetRewrite.ComputedSubjectSet.Create(relationship)),
-            FactToSubjectSetNode factTo => Result.Apply(
+            RewriteNode.FactToSubjectSet factTo => Result.Apply(
                 RelationshipName.Parse(factTo.FactsetRelationship)
                     .Map(Func<RelationshipName, SubjectSetRewrite> (factset) => computed => SubjectSetRewrite.FactToSubjectSet.Create(factset, computed)),
                 RelationshipName.Parse(factTo.ComputedSubjectSetRelationship)),
-            UnionNode union => union.Children.Select(Transform).Sequence()
+            RewriteNode.Union union => union.Children.Select(Transform).Sequence()
                 .Bind(children => SubjectSetRewrite.Union.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
-            IntersectionNode intersection => intersection.Children.Select(Transform).Sequence()
+            RewriteNode.Intersection intersection => intersection.Children.Select(Transform).Sequence()
                 .Bind(children => SubjectSetRewrite.Intersection.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             // the last inhabitant of the closed hierarchy: a discard arm (rather than a type pattern)
             // keeps the compiler from synthesizing an unreachable default branch under the switch
-            _ => TransformExclusion((ExclusionNode)node),
+            _ => TransformExclusion((RewriteNode.Exclusion)node),
         };
 
-    private static Result<SubjectSetRewrite> TransformExclusion(ExclusionNode exclusion) =>
+    private static Result<SubjectSetRewrite> TransformExclusion(RewriteNode.Exclusion exclusion) =>
         Result.Apply(
             Transform(exclusion.Include)
                 .Map(Func<SubjectSetRewrite, (SubjectSetRewrite Include, SubjectSetRewrite Exclude)> (include) => exclude => (include, exclude)),
@@ -192,9 +192,9 @@ internal static class RewriteExpressionParser
     {
         var identifier = Token.EqualTo(RewriteExpressionToken.Identifier).Select(token => token.ToStringValue());
 
-        var thisTerm = Token.EqualTo(RewriteExpressionToken.This).Select(_ => (RewriteNode)ThisNode.Instance);
+        var thisTerm = Token.EqualTo(RewriteExpressionToken.This).Select(_ => (RewriteNode)RewriteNode.This.Instance);
 
-        var computed = identifier.Select(name => (RewriteNode)new ComputedSubjectSetNode(name));
+        var computed = identifier.Select(name => (RewriteNode)new RewriteNode.ComputedSubjectSet(name));
 
         var factToSubjectSet =
             from lparen in Token.EqualTo(RewriteExpressionToken.LeftParen)
@@ -202,7 +202,7 @@ internal static class RewriteExpressionParser
             from comma in Token.EqualTo(RewriteExpressionToken.Comma)
             from computedSubjectSetRelationship in identifier
             from rparen in Token.EqualTo(RewriteExpressionToken.RightParen)
-            select (RewriteNode)new FactToSubjectSetNode(factset, computedSubjectSetRelationship);
+            select (RewriteNode)new RewriteNode.FactToSubjectSet(factset, computedSubjectSetRelationship);
 
         TokenListParser<RewriteExpressionToken, RewriteNode>? expressionRef = null;
         var term = factToSubjectSet.Try().Or(thisTerm.Try()).Or(computed)
@@ -212,17 +212,17 @@ internal static class RewriteExpressionParser
         var exclusion =
             from include in term
             from excludes in Token.EqualTo(RewriteExpressionToken.Exclusion).IgnoreThen(term).Many()
-            select excludes.Aggregate(include, (accumulated, exclude) => new ExclusionNode(accumulated, exclude));
+            select excludes.Aggregate(include, (accumulated, exclude) => new RewriteNode.Exclusion(accumulated, exclude));
 
         var intersection =
             from first in exclusion
             from rest in Token.EqualTo(RewriteExpressionToken.Intersection).IgnoreThen(exclusion).Many()
-            select Chain(first, rest, static children => new IntersectionNode(children));
+            select Chain(first, rest, static children => new RewriteNode.Intersection(children));
 
         expressionRef =
             from first in intersection
             from rest in Token.EqualTo(RewriteExpressionToken.Union).IgnoreThen(intersection).Many()
-            select Chain(first, rest, static children => new UnionNode(children));
+            select Chain(first, rest, static children => new RewriteNode.Union(children));
 
         return expressionRef;
     }
