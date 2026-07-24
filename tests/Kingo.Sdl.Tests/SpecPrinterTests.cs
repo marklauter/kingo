@@ -16,7 +16,7 @@ public sealed class SpecPrinterTests
                     Bare("owner"),
                     new Relationship(
                         Rel("editor"),
-                        Union([ThisRewrite.Default, Computed("owner")])),
+                        Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 ]),
         ]);
 
@@ -38,9 +38,9 @@ public sealed class SpecPrinterTests
                     Bare("direct"),
                     new Relationship(Rel("computed"), Computed("owner")),
                     new Relationship(Rel("factset"), FactTo("parent", "viewer")),
-                    new Relationship(Rel("union"), Union([ThisRewrite.Default, Computed("owner")])),
-                    new Relationship(Rel("intersection"), Intersection([ThisRewrite.Default, Computed("viewer")])),
-                    new Relationship(Rel("exclusion"), Exclusion(ThisRewrite.Default, Computed("banned"))),
+                    new Relationship(Rel("union"), Union([SubjectSetRewrite.This.Default, Computed("owner")])),
+                    new Relationship(Rel("intersection"), Intersection([SubjectSetRewrite.This.Default, Computed("viewer")])),
+                    new Relationship(Rel("exclusion"), Exclusion(SubjectSetRewrite.This.Default, Computed("banned"))),
                 ]),
         ]);
 
@@ -81,7 +81,7 @@ public sealed class SpecPrinterTests
         [
             MakeNs(
                 Ns("file"),
-                [Bare("owner"), new Relationship(Rel("editor"), ThisRewrite.Default)]),
+                [Bare("owner"), new Relationship(Rel("editor"), SubjectSetRewrite.This.Default)]),
         ]);
 
         Assert.DoesNotContain("\r", spec.Print(), StringComparison.Ordinal);
@@ -110,7 +110,7 @@ public sealed class SpecPrinterTests
     [Fact]
     public void Print_ReservedReferenceInRewrite_IsCallerDefect()
     {
-        // a computed reference to 'this' would silently reparse as ThisRewrite — direct membership
+        // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
         // instead of a relationship reference — so emitting it is corruption, not serialization
         var spec = MakeSpec(
         [

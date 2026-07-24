@@ -4,22 +4,22 @@ namespace Kingo.Schemas.Tests;
 
 public sealed class RelationshipTests
 {
-    private static RelationshipPath Id(string value) => RelationshipPath.Unchecked(value);
+    private static RelationshipName Id(string value) => RelationshipName.Unchecked(value);
 
     [Fact]
-    public void SecondaryCtor_DefaultsRewriteToThisRewriteDefaultSingleton()
+    public void SecondaryCtor_DefaultsRewriteToThisDefaultSingleton()
     {
         var relationship = new Relationship(Id("viewer"));
 
-        var rewrite = Assert.IsType<ThisRewrite>(relationship.Rewrite);
-        Assert.Same(ThisRewrite.Default, rewrite);
+        var rewrite = Assert.IsType<SubjectSetRewrite.This>(relationship.Rewrite);
+        Assert.Same(SubjectSetRewrite.This.Default, rewrite);
     }
 
     [Fact]
-    public void SecondaryCtor_EqualsExplicitThisRewriteDefaultConstruction()
+    public void SecondaryCtor_EqualsExplicitThisDefaultConstruction()
     {
         var implicitRewrite = new Relationship(Id("viewer"));
-        var explicitRewrite = new Relationship(Id("viewer"), ThisRewrite.Default);
+        var explicitRewrite = new Relationship(Id("viewer"), SubjectSetRewrite.This.Default);
 
         Assert.Equal(explicitRewrite, implicitRewrite);
     }
@@ -46,7 +46,7 @@ public sealed class RelationshipTests
     [Fact]
     public void Equals_DifferentRewrite_NotEqual()
     {
-        var a = new Relationship(Id("viewer"), ThisRewrite.Default);
+        var a = new Relationship(Id("viewer"), SubjectSetRewrite.This.Default);
         var b = new Relationship(Id("viewer"), Computed("editor"));
 
         Assert.NotEqual(a, b);

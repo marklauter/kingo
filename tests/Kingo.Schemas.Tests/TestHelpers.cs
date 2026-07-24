@@ -6,19 +6,19 @@ namespace Kingo.Schemas.Tests;
 /// <summary>Shared construction and unwrap helpers for the spec-model tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
-    public static RelationshipPath Rel(string value) => RelationshipPath.Unchecked(value);
+    public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
 
-    public static ComputedSubjectSetRewrite Computed(string name) => ComputedSubjectSetRewrite.Create(Rel(name));
+    public static SubjectSetRewrite.ComputedSubjectSet Computed(string name) => SubjectSetRewrite.ComputedSubjectSet.Create(Rel(name));
 
-    public static FactToSubjectSetRewrite FactTo(string factset, string computed) =>
-        FactToSubjectSetRewrite.Create(Rel(factset), Rel(computed));
+    public static SubjectSetRewrite.FactToSubjectSet FactTo(string factset, string computed) =>
+        SubjectSetRewrite.FactToSubjectSet.Create(Rel(factset), Rel(computed));
 
-    public static UnionRewrite Union(ImmutableArray<SubjectSetRewrite> children) =>
-        Assert.IsType<Result<UnionRewrite>.Success>(UnionRewrite.Create(children)).Value;
+    public static SubjectSetRewrite.Union Union(ImmutableArray<SubjectSetRewrite> children) =>
+        Assert.IsType<Result<SubjectSetRewrite.Union>.Success>(SubjectSetRewrite.Union.Create(children)).Value;
 
-    public static IntersectionRewrite Intersection(ImmutableArray<SubjectSetRewrite> children) =>
-        Assert.IsType<Result<IntersectionRewrite>.Success>(IntersectionRewrite.Create(children)).Value;
+    public static SubjectSetRewrite.Intersection Intersection(ImmutableArray<SubjectSetRewrite> children) =>
+        Assert.IsType<Result<SubjectSetRewrite.Intersection>.Success>(SubjectSetRewrite.Intersection.Create(children)).Value;
 
-    public static ExclusionRewrite Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
-        Assert.IsType<Result<ExclusionRewrite>.Success>(ExclusionRewrite.Create(include, exclude)).Value;
+    public static SubjectSetRewrite.Exclusion Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
+        Assert.IsType<Result<SubjectSetRewrite.Exclusion>.Success>(SubjectSetRewrite.Exclusion.Create(include, exclude)).Value;
 }

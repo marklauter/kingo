@@ -26,7 +26,7 @@ public sealed class SpecParseTests
                     Bare("owner"),
                     new Relationship(
                         Rel("editor"),
-                        Union([ThisRewrite.Default, Computed("owner")])),
+                        Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 ]),
         ];
 
@@ -36,7 +36,7 @@ public sealed class SpecParseTests
     [Fact]
     public void Parse_ComplexDocument_ReturnsDefinedNamespaces()
     {
-        // the example document from [[schema-definition-language]]: comments, a folded block scalar, two namespaces
+        // the example document from [[specs]]: comments, a folded block scalar, two namespaces
         const string sdl = """
             # rewrite set operators:
             #   ! = exclusion operator
@@ -70,20 +70,20 @@ public sealed class SpecParseTests
                 Bare("parent"),
                 new Relationship(
                     Rel("editor"),
-                    Union([ThisRewrite.Default, Computed("owner")])),
+                    Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 new Relationship(
                     Rel("viewer"),
                     Exclusion(
                         Union(
                         [
-                            ThisRewrite.Default,
+                            SubjectSetRewrite.This.Default,
                             Computed("editor"),
                             FactTo("parent", "viewer"),
                         ]),
                         Computed("banned"))),
                 new Relationship(
                     Rel("auditor"),
-                    Intersection([ThisRewrite.Default, Computed("viewer")])),
+                    Intersection([SubjectSetRewrite.This.Default, Computed("viewer")])),
                 Bare("banned"),
             ]);
 
@@ -97,7 +97,7 @@ public sealed class SpecParseTests
                     Exclusion(
                         Union(
                         [
-                            ThisRewrite.Default,
+                            SubjectSetRewrite.This.Default,
                             FactTo("parent", "viewer"),
                         ]),
                         Computed("banned"))),
@@ -122,47 +122,47 @@ public sealed class SpecParseTests
         _ = ParseSuccess(Document(namespaceMap));
 
     [Theory]
-    [InlineData("invalid: yaml: content", "sdl.syntax")]
-    [InlineData("file:\n  - viewer: | this", "sdl.syntax")]
-    [InlineData("file:\n  - a\nfile:\n  - b", "sdl.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
-    [InlineData("file:\n  - a: this\n    a: owner", "sdl.syntax")] // duplicate keys inside a relationship mapping, likewise
-    [InlineData("file: *missing", "sdl.syntax")] // unresolved alias
-    [InlineData("file: 5", "sdl.namespace")]
-    [InlineData("file:\n  a: b", "sdl.namespace")]
-    [InlineData("file: ''", "sdl.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
-    [InlineData("file: 'null'", "sdl.namespace")]
-    [InlineData("file: NuLL", "sdl.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
-    [InlineData("'':\n  - owner", "namespace_path.empty")]
-    [InlineData("file name:\n  - owner", "namespace_path.invalid")]
-    [InlineData("file-name:\n  - owner", "namespace_path.invalid")]
-    [InlineData("123file:\n  - owner", "namespace_path.invalid")]
-    [InlineData("file.ext:\n  - owner", "namespace_path.invalid")]
-    [InlineData("file:\n  - owner-name", "relationship_path.invalid")]
-    [InlineData("file:\n  - 123owner", "relationship_path.invalid")]
-    [InlineData("file:\n  - owner.ext", "relationship_path.invalid")]
-    [InlineData("file:\n  - ", "relationship_path.empty")]
-    [InlineData("file:\n  - : this", "sdl.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
-    [InlineData("file:\n  - [nested]", "sdl.relationship")]
-    [InlineData("file: &a [*a]", "sdl.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
-    [InlineData("file:\n  - a: this\n    b: this", "sdl.relationship")]
-    [InlineData("file:\n  - viewer:", "sdl.relationship")] // a pair missing its rewrite expression; the bare-name form is how SDL spells "no rewrite"
-    [InlineData("file:\n  - viewer: ''", "sdl.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
-    [InlineData("file:\n  - viewer: ~", "sdl.rewrite")] // plain scalar text is expression source, and '~' cannot lex
-    [InlineData("? [complex, key]\n: - owner", "sdl.namespace")]
-    [InlineData("file:\n  - ? [complex, key]\n    : this", "sdl.relationship")]
-    [InlineData("file:\n  - viewer:\n      - nested", "sdl.relationship")]
-    [InlineData("file:\n  - owner: invalid expression syntax", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: this |", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: this & & owner", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: invalid-identifier", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: (incomplete factset", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: (parent, child, extra)", "sdl.rewrite")]
-    [InlineData("file:\n  - viewer: 123invalid", "sdl.rewrite")]
-    [InlineData("file:\n  - this", "sdl.relationship.reserved")]
-    [InlineData("file:\n  - THIS", "sdl.relationship.reserved")]
-    [InlineData("file:\n  - this: owner", "sdl.relationship.reserved")]
-    [InlineData("file:\n  - '...'", "relationship_path.invalid")]
-    [InlineData("file:\n  - '...': owner", "relationship_path.invalid")]
+    [InlineData("invalid: yaml: content", "spec.syntax")]
+    [InlineData("file:\n  - viewer: | this", "spec.syntax")]
+    [InlineData("file:\n  - a\nfile:\n  - b", "spec.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
+    [InlineData("file:\n  - a: this\n    a: owner", "spec.syntax")] // duplicate keys inside a relationship mapping, likewise
+    [InlineData("file: *missing", "spec.syntax")] // unresolved alias
+    [InlineData("file: 5", "spec.namespace")]
+    [InlineData("file:\n  a: b", "spec.namespace")]
+    [InlineData("file: ''", "spec.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
+    [InlineData("file: 'null'", "spec.namespace")]
+    [InlineData("file: NuLL", "spec.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
+    [InlineData("'':\n  - owner", "namespace_name.empty")]
+    [InlineData("file name:\n  - owner", "namespace_name.invalid")]
+    [InlineData("file-name:\n  - owner", "namespace_name.invalid")]
+    [InlineData("123file:\n  - owner", "namespace_name.invalid")]
+    [InlineData("file.ext:\n  - owner", "namespace_name.invalid")]
+    [InlineData("file:\n  - owner-name", "relationship_name.invalid")]
+    [InlineData("file:\n  - 123owner", "relationship_name.invalid")]
+    [InlineData("file:\n  - owner.ext", "relationship_name.invalid")]
+    [InlineData("file:\n  - ", "relationship_name.empty")]
+    [InlineData("file:\n  - : this", "spec.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
+    [InlineData("file:\n  - [nested]", "spec.relationship")]
+    [InlineData("file: &a [*a]", "spec.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
+    [InlineData("file:\n  - a: this\n    b: this", "spec.relationship")]
+    [InlineData("file:\n  - viewer:", "spec.relationship")] // a pair missing its rewrite expression; the bare-name form is how SDL spells "no rewrite"
+    [InlineData("file:\n  - viewer: ''", "spec.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
+    [InlineData("file:\n  - viewer: ~", "spec.rewrite")] // plain scalar text is expression source, and '~' cannot lex
+    [InlineData("? [complex, key]\n: - owner", "spec.namespace")]
+    [InlineData("file:\n  - ? [complex, key]\n    : this", "spec.relationship")]
+    [InlineData("file:\n  - viewer:\n      - nested", "spec.relationship")]
+    [InlineData("file:\n  - owner: invalid expression syntax", "spec.rewrite")]
+    [InlineData("file:\n  - viewer: this |", "spec.rewrite")]
+    [InlineData("file:\n  - viewer: this & & owner", "spec.rewrite")]
+    [InlineData("file:\n  - viewer: invalid-identifier", "spec.rewrite")]
+    [InlineData("file:\n  - viewer: (incomplete factset", "spec.rewrite")]
+    [InlineData("file:\n  - viewer: (parent, child, extra)", "spec.rewrite")]
+    [InlineData("file:\n  - viewer: 123invalid", "spec.rewrite")]
+    [InlineData("file:\n  - this", "spec.relationship.reserved")]
+    [InlineData("file:\n  - THIS", "spec.relationship.reserved")]
+    [InlineData("file:\n  - this: owner", "spec.relationship.reserved")]
+    [InlineData("file:\n  - '...'", "relationship_name.invalid")]
+    [InlineData("file:\n  - '...': owner", "relationship_name.invalid")]
     [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")] // the namespace gate runs on the parse path too
     [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")] // a factset's first element resolves here; its second does not
     [InlineData("file:\n  - viewer: viewer", "namespace.rewrite_cycle")]
@@ -176,24 +176,24 @@ public sealed class SpecParseTests
     }
 
     [Theory]
-    [InlineData("", "sdl.document")]
-    [InlineData("   ", "sdl.document")]
-    [InlineData("null", "sdl.document")]
-    [InlineData("scalar", "sdl.document")]
-    [InlineData("[]", "sdl.document")]
-    [InlineData("{}", "sdl.document")] // neither key present
-    [InlineData("spec: acme\n---\nspec: other", "sdl.document")] // a SDL document is a single YAML document
-    [InlineData("namespaces:\n  file:\n    - owner", "sdl.document")] // no 'spec:' key
-    [InlineData("spec: acme", "sdl.document")] // no 'namespaces:' key
-    [InlineData("spec: acme\nnamespaces: 5", "sdl.document")] // 'namespaces:' is not a mapping
-    [InlineData("spec: acme\nnamespaces: []", "sdl.document")]
-    [InlineData("spec: [acme]\nnamespaces:\n  file:\n    - owner", "sdl.document")] // 'spec:' is not a scalar
-    [InlineData("spec:\nnamespaces:\n  file:\n    - owner", "spec_path.empty")] // a valueless 'spec:' loads as an empty scalar, which the identifier grammar rejects
-    [InlineData("file:\n  - owner", "sdl.document")] // the bare namespace map is no longer a document
-    [InlineData("spec: ''\nnamespaces:\n  file:\n    - owner", "spec_path.empty")]
-    [InlineData("spec: acme corp\nnamespaces:\n  file:\n    - owner", "spec_path.invalid")]
-    [InlineData("spec: 123acme\nnamespaces:\n  file:\n    - owner", "spec_path.invalid")]
-    [InlineData("spec: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_path.invalid")]
+    [InlineData("", "spec.document")]
+    [InlineData("   ", "spec.document")]
+    [InlineData("null", "spec.document")]
+    [InlineData("scalar", "spec.document")]
+    [InlineData("[]", "spec.document")]
+    [InlineData("{}", "spec.document")] // neither key present
+    [InlineData("spec: acme\n---\nspec: other", "spec.document")] // a SDL document is a single YAML document
+    [InlineData("namespaces:\n  file:\n    - owner", "spec.document")] // no 'spec:' key
+    [InlineData("spec: acme", "spec.document")] // no 'namespaces:' key
+    [InlineData("spec: acme\nnamespaces: 5", "spec.document")] // 'namespaces:' is not a mapping
+    [InlineData("spec: acme\nnamespaces: []", "spec.document")]
+    [InlineData("spec: [acme]\nnamespaces:\n  file:\n    - owner", "spec.document")] // 'spec:' is not a scalar
+    [InlineData("spec:\nnamespaces:\n  file:\n    - owner", "spec_name.empty")] // a valueless 'spec:' loads as an empty scalar, which the identifier grammar rejects
+    [InlineData("file:\n  - owner", "spec.document")] // the bare namespace map is no longer a document
+    [InlineData("spec: ''\nnamespaces:\n  file:\n    - owner", "spec_name.empty")]
+    [InlineData("spec: acme corp\nnamespaces:\n  file:\n    - owner", "spec_name.invalid")]
+    [InlineData("spec: 123acme\nnamespaces:\n  file:\n    - owner", "spec_name.invalid")]
+    [InlineData("spec: acme-corp\nnamespaces:\n  file:\n    - owner", "spec_name.invalid")]
     public void Parse_InvalidEnvelope_FailsWithExpectedCode(string sdl, string expectedCode)
     {
         var errors = ParseFailure(sdl);
@@ -207,7 +207,7 @@ public sealed class SpecParseTests
     {
         var spec = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
-        Assert.Equal(SpecId("acme"), spec.Path);
+        Assert.Equal(SpecId("acme"), spec.Name);
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public sealed class SpecParseTests
     {
         var spec = ParseSuccess(Document("file:\n  - owner", name: "ACME"));
 
-        Assert.Equal(SpecId("acme"), spec.Path);
+        Assert.Equal(SpecId("acme"), spec.Name);
     }
 
     [Fact]
@@ -225,8 +225,8 @@ public sealed class SpecParseTests
         var errors = ParseFailure("spec: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
-        Assert.Equal("spec_path.invalid", errors[0].Code);
-        Assert.Equal("namespace_path.invalid", errors[1].Code);
+        Assert.Equal("spec_name.invalid", errors[0].Code);
+        Assert.Equal("namespace_name.invalid", errors[1].Code);
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public sealed class SpecParseTests
         var errors = ParseFailure(Document("file:\n  - viewer:"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("sdl.relationship", error.Code);
+        Assert.Equal("spec.relationship", error.Code);
         Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
     }
 
@@ -258,9 +258,9 @@ public sealed class SpecParseTests
         var errors = ParseFailure(Document("123file:\n  - 456bad: this |"));
 
         Assert.Equal(3, errors.Length);
-        Assert.Equal("namespace_path.invalid", errors[0].Code);
-        Assert.Equal("relationship_path.invalid", errors[1].Code);
-        Assert.Equal("sdl.rewrite", errors[2].Code);
+        Assert.Equal("namespace_name.invalid", errors[0].Code);
+        Assert.Equal("relationship_name.invalid", errors[1].Code);
+        Assert.Equal("spec.rewrite", errors[2].Code);
     }
 
     [Fact]
@@ -277,9 +277,9 @@ public sealed class SpecParseTests
         var errors = ParseFailure(Document(namespaceMap));
 
         Assert.Equal(3, errors.Length);
-        Assert.Equal("namespace_path.invalid", errors[0].Code);
-        Assert.Equal("relationship_path.invalid", errors[1].Code);
-        Assert.Equal("sdl.rewrite", errors[2].Code);
+        Assert.Equal("namespace_name.invalid", errors[0].Code);
+        Assert.Equal("relationship_name.invalid", errors[1].Code);
+        Assert.Equal("spec.rewrite", errors[2].Code);
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public sealed class SpecParseTests
                     Bare("owner"),
                     new Relationship(
                         Rel("editor"),
-                        Union([ThisRewrite.Default, Computed("owner")])),
+                        Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 ]),
         ];
 
@@ -346,7 +346,7 @@ public sealed class SpecParseTests
     {
         var ns = Assert.Single(ParseSuccess(Document(namespaceMap)).Namespaces);
 
-        Assert.Equal(Ns("file"), ns.Path);
+        Assert.Equal(Ns("file"), ns.Name);
         Assert.Empty(ns.Relationships);
     }
 }

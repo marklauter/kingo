@@ -7,15 +7,15 @@ namespace Kingo.Schemas.Tests;
 
 public sealed class SubjectSetRewriteTests
 {
-    // ---- ThisRewrite ----
+    // ---- SubjectSetRewrite.This ----
 
     [Fact]
-    public void ThisRewrite_Default_ReturnsSameInstanceOnRepeatedAccess() => Assert.Same(ThisRewrite.Default, ThisRewrite.Default);
+    public void This_Default_ReturnsSameInstanceOnRepeatedAccess() => Assert.Same(SubjectSetRewrite.This.Default, SubjectSetRewrite.This.Default);
 
-    // ---- ComputedSubjectSetRewrite ----
+    // ---- SubjectSetRewrite.ComputedSubjectSet ----
 
     [Fact]
-    public void ComputedSubjectSetRewrite_SameRelationship_AreEqual()
+    public void ComputedSubjectSet_SameRelationship_AreEqual()
     {
         var a = Computed("editor");
         var b = Computed("editor");
@@ -25,7 +25,7 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void ComputedSubjectSetRewrite_DifferentRelationship_NotEqual()
+    public void ComputedSubjectSet_DifferentRelationship_NotEqual()
     {
         var a = Computed("editor");
         var b = Computed("viewer");
@@ -34,17 +34,17 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void ComputedSubjectSetRewrite_ExposesRelationship()
+    public void ComputedSubjectSet_ExposesRelationship()
     {
         var rewrite = Computed("editor");
 
         Assert.Equal(Rel("editor"), rewrite.Relationship);
     }
 
-    // ---- FactToSubjectSetRewrite ----
+    // ---- SubjectSetRewrite.FactToSubjectSet ----
 
     [Fact]
-    public void FactToSubjectSetRewrite_SameComponents_AreEqual()
+    public void FactToSubjectSet_SameComponents_AreEqual()
     {
         var a = FactTo("parent", "viewer");
         var b = FactTo("parent", "viewer");
@@ -54,7 +54,7 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void FactToSubjectSetRewrite_SwappedComponents_NotEqual()
+    public void FactToSubjectSet_SwappedComponents_NotEqual()
     {
         var a = FactTo("parent", "viewer");
         var swapped = FactTo("viewer", "parent");
@@ -63,7 +63,7 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void FactToSubjectSetRewrite_ExposesComponentsInDeclaredOrder()
+    public void FactToSubjectSet_ExposesComponentsInDeclaredOrder()
     {
         var rewrite = FactTo("parent", "viewer");
 
@@ -71,13 +71,13 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(Rel("viewer"), rewrite.ComputedSubjectSetRelationship);
     }
 
-    // ---- UnionRewrite ----
+    // ---- SubjectSetRewrite.Union ----
 
     [Fact]
-    public void UnionRewrite_SeparatelyConstructedEqualChildren_AreEqualWithMatchingHashCodes()
+    public void Union_SeparatelyConstructedEqualChildren_AreEqualWithMatchingHashCodes()
     {
-        ImmutableArray<SubjectSetRewrite> left = [Computed("editor"), ThisRewrite.Default];
-        ImmutableArray<SubjectSetRewrite> right = [Computed("editor"), ThisRewrite.Default];
+        ImmutableArray<SubjectSetRewrite> left = [Computed("editor"), SubjectSetRewrite.This.Default];
+        ImmutableArray<SubjectSetRewrite> right = [Computed("editor"), SubjectSetRewrite.This.Default];
 
         var a = Union(left);
         var b = Union(right);
@@ -87,18 +87,18 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void UnionRewrite_DifferentOrder_NotEqual()
+    public void Union_DifferentOrder_NotEqual()
     {
-        var a = Union([Computed("editor"), ThisRewrite.Default]);
-        var b = Union([ThisRewrite.Default, Computed("editor")]);
+        var a = Union([Computed("editor"), SubjectSetRewrite.This.Default]);
+        var b = Union([SubjectSetRewrite.This.Default, Computed("editor")]);
 
         Assert.NotEqual(a, b);
     }
 
     [Fact]
-    public void UnionRewrite_DifferentLength_NotEqual()
+    public void Union_DifferentLength_NotEqual()
     {
-        var a = Union([Computed("editor"), ThisRewrite.Default]);
+        var a = Union([Computed("editor"), SubjectSetRewrite.This.Default]);
         var b = Union([Computed("editor")]);
 
         Assert.NotEqual(a, b);
@@ -106,48 +106,48 @@ public sealed class SubjectSetRewriteTests
 
     [Fact]
     [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "always-false is the behavior under test: pins the null branch of the hand-written Equals")]
-    public void UnionRewrite_Null_IsFalse()
+    public void Union_Null_IsFalse()
     {
-        var a = Union([ThisRewrite.Default]);
+        var a = Union([SubjectSetRewrite.This.Default]);
 
         Assert.False(a.Equals(null));
     }
 
     [Fact]
-    public void UnionRewrite_Create_EmptyChildren_ReturnsValidationFailure()
+    public void Union_Create_EmptyChildren_ReturnsValidationFailure()
     {
-        var result = UnionRewrite.Create([]);
+        var result = SubjectSetRewrite.Union.Create([]);
 
-        var failure = Assert.IsType<Result<UnionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Union>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("rewrite.union.empty", error.Code);
     }
 
     [Fact]
-    public void UnionRewrite_Create_DefaultChildren_ReturnsValidationFailure()
+    public void Union_Create_DefaultChildren_ReturnsValidationFailure()
     {
-        var result = UnionRewrite.Create(default);
+        var result = SubjectSetRewrite.Union.Create(default);
 
-        var failure = Assert.IsType<Result<UnionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Union>.Failure>(result);
         Assert.Equal("rewrite.union.empty", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
-    public void UnionRewrite_Create_ChildrenAreCarriedOntoTheRewrite()
+    public void Union_Create_ChildrenAreCarriedOntoTheRewrite()
     {
-        ImmutableArray<SubjectSetRewrite> children = [ThisRewrite.Default, Computed("editor")];
+        ImmutableArray<SubjectSetRewrite> children = [SubjectSetRewrite.This.Default, Computed("editor")];
 
         Assert.Equal(children, Union(children).Children);
     }
 
-    // ---- IntersectionRewrite ----
+    // ---- SubjectSetRewrite.Intersection ----
 
     [Fact]
-    public void IntersectionRewrite_SeparatelyConstructedEqualChildren_AreEqualWithMatchingHashCodes()
+    public void Intersection_SeparatelyConstructedEqualChildren_AreEqualWithMatchingHashCodes()
     {
-        ImmutableArray<SubjectSetRewrite> left = [Computed("editor"), ThisRewrite.Default];
-        ImmutableArray<SubjectSetRewrite> right = [Computed("editor"), ThisRewrite.Default];
+        ImmutableArray<SubjectSetRewrite> left = [Computed("editor"), SubjectSetRewrite.This.Default];
+        ImmutableArray<SubjectSetRewrite> right = [Computed("editor"), SubjectSetRewrite.This.Default];
 
         var a = Intersection(left);
         var b = Intersection(right);
@@ -157,18 +157,18 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void IntersectionRewrite_DifferentOrder_NotEqual()
+    public void Intersection_DifferentOrder_NotEqual()
     {
-        var a = Intersection([Computed("editor"), ThisRewrite.Default]);
-        var b = Intersection([ThisRewrite.Default, Computed("editor")]);
+        var a = Intersection([Computed("editor"), SubjectSetRewrite.This.Default]);
+        var b = Intersection([SubjectSetRewrite.This.Default, Computed("editor")]);
 
         Assert.NotEqual(a, b);
     }
 
     [Fact]
-    public void IntersectionRewrite_DifferentLength_NotEqual()
+    public void Intersection_DifferentLength_NotEqual()
     {
-        var a = Intersection([Computed("editor"), ThisRewrite.Default]);
+        var a = Intersection([Computed("editor"), SubjectSetRewrite.This.Default]);
         var b = Intersection([Computed("editor")]);
 
         Assert.NotEqual(a, b);
@@ -176,37 +176,37 @@ public sealed class SubjectSetRewriteTests
 
     [Fact]
     [SuppressMessage("Maintainability", "CA1508:Avoid dead conditional code", Justification = "always-false is the behavior under test: pins the null branch of the hand-written Equals")]
-    public void IntersectionRewrite_Null_IsFalse()
+    public void Intersection_Null_IsFalse()
     {
-        var a = Intersection([ThisRewrite.Default]);
+        var a = Intersection([SubjectSetRewrite.This.Default]);
 
         Assert.False(a.Equals(null));
     }
 
     [Fact]
-    public void IntersectionRewrite_Create_EmptyChildren_ReturnsValidationFailure()
+    public void Intersection_Create_EmptyChildren_ReturnsValidationFailure()
     {
-        var result = IntersectionRewrite.Create([]);
+        var result = SubjectSetRewrite.Intersection.Create([]);
 
-        var failure = Assert.IsType<Result<IntersectionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Intersection>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("rewrite.intersection.empty", error.Code);
     }
 
     [Fact]
-    public void IntersectionRewrite_Create_DefaultChildren_ReturnsValidationFailure()
+    public void Intersection_Create_DefaultChildren_ReturnsValidationFailure()
     {
-        var result = IntersectionRewrite.Create(default);
+        var result = SubjectSetRewrite.Intersection.Create(default);
 
-        var failure = Assert.IsType<Result<IntersectionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Intersection>.Failure>(result);
         Assert.Equal("rewrite.intersection.empty", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
-    public void IntersectionRewrite_Create_ChildrenAreCarriedOntoTheRewrite()
+    public void Intersection_Create_ChildrenAreCarriedOntoTheRewrite()
     {
-        ImmutableArray<SubjectSetRewrite> children = [ThisRewrite.Default, Computed("editor")];
+        ImmutableArray<SubjectSetRewrite> children = [SubjectSetRewrite.This.Default, Computed("editor")];
 
         Assert.Equal(children, Intersection(children).Children);
     }
@@ -223,20 +223,29 @@ public sealed class SubjectSetRewriteTests
         Assert.False(union.Equals((object)intersection));
     }
 
-    // ---- ExclusionRewrite ----
+    [Fact]
+    public void UnionAndIntersection_IdenticalChildren_DoNotShareAHashCode()
+    {
+        SubjectSetRewrite union = Union([Computed("editor")]);
+        SubjectSetRewrite intersection = Intersection([Computed("editor")]);
+
+        Assert.NotEqual(union.GetHashCode(), intersection.GetHashCode());
+    }
+
+    // ---- SubjectSetRewrite.Exclusion ----
 
     [Fact]
-    public void ExclusionRewrite_SameComponents_AreEqual()
+    public void Exclusion_SameComponents_AreEqual()
     {
-        var a = Exclusion(ThisRewrite.Default, Computed("banned"));
-        var b = Exclusion(ThisRewrite.Default, Computed("banned"));
+        var a = Exclusion(SubjectSetRewrite.This.Default, Computed("banned"));
+        var b = Exclusion(SubjectSetRewrite.This.Default, Computed("banned"));
 
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
     }
 
     [Fact]
-    public void ExclusionRewrite_SwappedIncludeExclude_NotEqual()
+    public void Exclusion_SwappedIncludeExclude_NotEqual()
     {
         var include = Computed("member");
         var exclude = Computed("banned");
@@ -248,7 +257,7 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void ExclusionRewrite_ExposesIncludeAndExcludeInDeclaredOrder()
+    public void Exclusion_ExposesIncludeAndExcludeInDeclaredOrder()
     {
         var include = Computed("member");
         var exclude = Computed("banned");
@@ -267,12 +276,12 @@ public sealed class SubjectSetRewriteTests
         var a = Union(
         [
             Computed("a"),
-            Exclusion(ThisRewrite.Default, Computed("b")),
+            Exclusion(SubjectSetRewrite.This.Default, Computed("b")),
         ]);
         var b = Union(
         [
             Computed("a"),
-            Exclusion(ThisRewrite.Default, Computed("b")),
+            Exclusion(SubjectSetRewrite.This.Default, Computed("b")),
         ]);
 
         Assert.Equal(a, b);
@@ -285,12 +294,12 @@ public sealed class SubjectSetRewriteTests
         var a = Union(
         [
             Computed("a"),
-            Exclusion(ThisRewrite.Default, Computed("b")),
+            Exclusion(SubjectSetRewrite.This.Default, Computed("b")),
         ]);
         var b = Union(
         [
             Computed("a"),
-            Exclusion(ThisRewrite.Default, Computed("c")),
+            Exclusion(SubjectSetRewrite.This.Default, Computed("c")),
         ]);
 
         Assert.NotEqual(a, b);
@@ -301,7 +310,7 @@ public sealed class SubjectSetRewriteTests
     [Fact]
     public void Depth_Leaves_AreDepthOne()
     {
-        Assert.Equal(1, ThisRewrite.Default.Depth);
+        Assert.Equal(1, SubjectSetRewrite.This.Default.Depth);
         Assert.Equal(1, Computed("editor").Depth);
         Assert.Equal(1, FactTo("parent", "viewer").Depth);
     }
@@ -309,46 +318,46 @@ public sealed class SubjectSetRewriteTests
     [Fact]
     public void Depth_OperatorNodes_AreOneMoreThanTheirDeepestChild()
     {
-        var exclusion = Exclusion(ThisRewrite.Default, Computed("banned"));
+        var exclusion = Exclusion(SubjectSetRewrite.This.Default, Computed("banned"));
 
         Assert.Equal(2, exclusion.Depth);
-        Assert.Equal(3, Union([ThisRewrite.Default, exclusion]).Depth);
-        Assert.Equal(3, Intersection([exclusion, ThisRewrite.Default]).Depth);
+        Assert.Equal(3, Union([SubjectSetRewrite.This.Default, exclusion]).Depth);
+        Assert.Equal(3, Intersection([exclusion, SubjectSetRewrite.This.Default]).Depth);
     }
 
     [Fact]
-    public void ExclusionRewrite_Create_PastTheDepthBound_ReturnsValidationFailure()
+    public void Exclusion_Create_PastTheDepthBound_ReturnsValidationFailure()
     {
-        var result = ExclusionRewrite.Create(NestedToTheBound(), ThisRewrite.Default);
+        var result = SubjectSetRewrite.Exclusion.Create(NestedToTheBound(), SubjectSetRewrite.This.Default);
 
-        var failure = Assert.IsType<Result<ExclusionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Exclusion>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
         Assert.Equal("rewrite.depth", error.Code);
     }
 
     [Fact]
-    public void UnionRewrite_Create_PastTheDepthBound_ReturnsValidationFailure()
+    public void Union_Create_PastTheDepthBound_ReturnsValidationFailure()
     {
-        var result = UnionRewrite.Create([NestedToTheBound()]);
+        var result = SubjectSetRewrite.Union.Create([NestedToTheBound()]);
 
-        var failure = Assert.IsType<Result<UnionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Union>.Failure>(result);
         Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
-    public void IntersectionRewrite_Create_PastTheDepthBound_ReturnsValidationFailure()
+    public void Intersection_Create_PastTheDepthBound_ReturnsValidationFailure()
     {
-        var result = IntersectionRewrite.Create([NestedToTheBound()]);
+        var result = SubjectSetRewrite.Intersection.Create([NestedToTheBound()]);
 
-        var failure = Assert.IsType<Result<IntersectionRewrite>.Failure>(result);
+        var failure = Assert.IsType<Result<SubjectSetRewrite.Intersection>.Failure>(result);
         Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
     }
 
     /// <summary>The deepest constructible tree — an exclusion chain whose <c>Depth</c> is exactly <see cref="SubjectSetRewrite.MaxDepth"/>.</summary>
     private static SubjectSetRewrite NestedToTheBound() =>
         Enumerable.Range(0, SubjectSetRewrite.MaxDepth - 1)
-            .Aggregate((SubjectSetRewrite)ThisRewrite.Default, (accumulated, _) => Exclusion(accumulated, ThisRewrite.Default));
+            .Aggregate((SubjectSetRewrite)SubjectSetRewrite.This.Default, (accumulated, _) => Exclusion(accumulated, SubjectSetRewrite.This.Default));
 
     // ---- Exhaustive pattern match ----
 
@@ -357,22 +366,22 @@ public sealed class SubjectSetRewriteTests
     {
         List<SubjectSetRewrite> variants =
         [
-            ThisRewrite.Default,
+            SubjectSetRewrite.This.Default,
             Computed("editor"),
             FactTo("parent", "viewer"),
-            Union([ThisRewrite.Default]),
-            Intersection([ThisRewrite.Default]),
-            Exclusion(ThisRewrite.Default, ThisRewrite.Default),
+            Union([SubjectSetRewrite.This.Default]),
+            Intersection([SubjectSetRewrite.This.Default]),
+            Exclusion(SubjectSetRewrite.This.Default, SubjectSetRewrite.This.Default),
         ];
 
         var labels = variants.Select(rewrite => rewrite switch
         {
-            ThisRewrite => "this",
-            ComputedSubjectSetRewrite => "computed",
-            FactToSubjectSetRewrite => "fact-to",
-            UnionRewrite => "union",
-            IntersectionRewrite => "intersection",
-            ExclusionRewrite => "exclusion",
+            SubjectSetRewrite.This => "this",
+            SubjectSetRewrite.ComputedSubjectSet => "computed",
+            SubjectSetRewrite.FactToSubjectSet => "fact-to",
+            SubjectSetRewrite.Union => "union",
+            SubjectSetRewrite.Intersection => "intersection",
+            SubjectSetRewrite.Exclusion => "exclusion",
             _ => throw new InvalidOperationException("unreachable: the union is closed"),
         }).ToList();
 

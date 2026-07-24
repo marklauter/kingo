@@ -1,164 +1,61 @@
-using Results;
 using static Kingo.Graphs.Fact;
 
 namespace Kingo.Graphs.Tests;
 
 public sealed class FactTests
 {
-    [Fact]
-    public void Parse_SubjectFact_SucceedsAndRoundTrips()
-    {
-        var result = Fact.Parse("doc:readme#viewer@user:anne");
+    private static SubjectSet Set(string namespacePath, string resourceId, string relationship) =>
+        new(
+            new Resource(NamespacePath.Unchecked(namespacePath), ResourceId.Unchecked(resourceId)),
+            RelationshipName.Unchecked(relationship));
 
-        var success = Assert.IsType<Result<Fact>.Success>(result);
-        var fact = Assert.IsType<SubjectFact>(success.Value);
-        Assert.Equal("doc:readme", fact.SubjectSet.Resource.ToString());
-        Assert.Equal("viewer", fact.SubjectSet.Relationship.Value);
-        Assert.Equal("user:anne", fact.Subject.Value);
-        Assert.Equal("doc:readme#viewer@user:anne", fact.ToString());
+    [Fact]
+    public void SubjectFact_HoldsSubjectSetAndSubjectId()
+    {
+        var set = Set("io/doc", "readme", "viewer");
+        var fact = new SubjectFact(set, SubjectId.Unchecked("anne"));
+
+        Assert.Equal(set, fact.SubjectSet);
+        Assert.Equal(SubjectId.Unchecked("anne"), fact.Subject);
     }
 
     [Fact]
-    public void Parse_ResourceFact_SucceedsAndRoundTrips()
+    public void SubjectSetFact_HoldsSubjectSetAndSubjectSet()
     {
-        var result = Fact.Parse("folder:x#parent@folder:y#...");
+        var set = Set("io/doc", "readme", "viewer");
+        var member = Set("io/team", "sales", "member");
+        var fact = new SubjectSetFact(set, member);
 
-        var success = Assert.IsType<Result<Fact>.Success>(result);
-        var fact = Assert.IsType<ResourceFact>(success.Value);
-        Assert.Equal("folder:x", fact.SubjectSet.Resource.ToString());
-        Assert.Equal("parent", fact.SubjectSet.Relationship.Value);
-        Assert.Equal("folder:y", fact.Subject.ToString());
-        Assert.Equal("folder:x#parent@folder:y#...", fact.ToString());
+        Assert.Equal(set, fact.SubjectSet);
+        Assert.Equal(member, fact.Subject);
     }
 
     [Fact]
-    public void Parse_ResourceFact_RoundTripsThroughToStringToParseStructurally()
+    public void ResourceFact_HoldsSubjectSetAndResource()
     {
-        var parsed = Assert.IsType<Result<Fact>.Success>(Fact.Parse("folder:x#parent@folder:y#...")).Value;
-        var reparsed = Assert.IsType<Result<Fact>.Success>(Fact.Parse(parsed.ToString())).Value;
+        var set = Set("io/folder", "x", "parent");
+        var resource = new Resource(NamespacePath.Unchecked("io/folder"), ResourceId.Unchecked("y"));
+        var fact = new ResourceFact(set, resource);
 
-        Assert.Equal(parsed, reparsed);
-        _ = Assert.IsType<ResourceFact>(reparsed);
+        Assert.Equal(set, fact.SubjectSet);
+        Assert.Equal(resource, fact.Subject);
     }
 
     [Fact]
-    public void Parse_SubjectSetFact_SucceedsAndRoundTrips()
+    public void Equality_EqualParts_ProduceEqualValues()
     {
-        var result = Fact.Parse("doc:readme#viewer@team:sales#member");
+        var left = new SubjectFact(Set("io/doc", "readme", "viewer"), SubjectId.Unchecked("anne"));
+        var right = new SubjectFact(Set("io/doc", "readme", "viewer"), SubjectId.Unchecked("anne"));
 
-        var success = Assert.IsType<Result<Fact>.Success>(result);
-        var fact = Assert.IsType<SubjectSetFact>(success.Value);
-        Assert.Equal("team:sales#member", fact.Subject.ToString());
-        Assert.Equal("doc:readme#viewer@team:sales#member", fact.ToString());
+        Assert.Equal(left, right);
     }
 
     [Fact]
-    public void Parse_SubjectSet_IsTheLeftHandSide()
+    public void Equality_AcrossFactKinds_ProducesUnequalValues()
     {
-        var success = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne"));
-        var fact = Assert.IsType<SubjectFact>(success.Value);
+        Fact subject = new SubjectFact(Set("io/doc", "readme", "viewer"), SubjectId.Unchecked("anne"));
+        Fact subjectSet = new SubjectSetFact(Set("io/doc", "readme", "viewer"), Set("io/team", "sales", "member"));
 
-        Assert.Equal(
-            new SubjectSet(
-                new Resource(NamespacePath.Unchecked("doc"), ResourceId.Unchecked("readme")),
-                RelationshipPath.Unchecked("viewer")),
-            fact.SubjectSet);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Parse_EmptyOrWhitespace_ReturnsSingleEmptyError(string input)
-    {
-        var result = Fact.Parse(input);
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal("fact.empty", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void Parse_NoSeparator_ReturnsSingleFormatError()
-    {
-        var result = Fact.Parse("doc:readme#viewer");
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal("fact.format", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void Parse_EmptySubjectSet_ReturnsSingleSubjectSetEmptyError()
-    {
-        var result = Fact.Parse("@user:anne");
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal("subjectset.empty", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void Parse_SubjectSetMissingHash_ReturnsSingleSubjectSetFormatError()
-    {
-        var result = Fact.Parse("doc:readme@user:anne");
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal("subjectset.format", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void Parse_SecondAtInSubject_ReturnsSingleSubjectIdInvalidError()
-    {
-        // split at the FIRST '@' leaves "a@b" as the subject; no '#', so Subject rejects '@'
-        var result = Fact.Parse("doc:x#viewer@a@b");
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal("subject_id.invalid", Assert.Single(failure.Errors).Code);
-    }
-
-    [Fact]
-    public void Parse_BothSidesInvalid_AccumulatesRelationshipThenSubjectIdInvalid()
-    {
-        var result = Fact.Parse("doc:x#vie-wer@an@ne");
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal(["relationship_path.invalid", "subject_id.invalid"], failure.Errors.Select(e => e.Code));
-    }
-
-    [Fact]
-    public void Parse_ResourceFactBothSidesInvalid_AccumulatesRelationshipThenNamespaceIdInvalid()
-    {
-        // '#...' routes to ResourceFact; set side rejects '-' in the relationship, resource side rejects '-' in the namespace
-        var result = Fact.Parse("doc:x#vie-wer@fol-der:y#...");
-
-        var failure = Assert.IsType<Result<Fact>.Failure>(result);
-        Assert.Equal(["relationship_path.invalid", "namespace_path.invalid"], failure.Errors.Select(e => e.Code));
-    }
-
-    [Fact]
-    public void Parse_MixedCase_CanonicalizesThroughToString()
-    {
-        var success = Assert.IsType<Result<Fact>.Success>(Fact.Parse("DOC:x#VIEWER@user:anne"));
-
-        Assert.Equal("doc:x#viewer@user:anne", success.Value.ToString());
-    }
-
-    [Fact]
-    public void Parse_EqualInputs_ProduceEqualValues()
-    {
-        var left = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
-        var right = new SubjectFact(
-            new SubjectSet(
-                new Resource(NamespacePath.Unchecked("doc"), ResourceId.Unchecked("readme")),
-                RelationshipPath.Unchecked("viewer")),
-            SubjectId.Unchecked("user:anne"));
-
-        Assert.Equal(right, left);
-    }
-
-    [Fact]
-    public void Parse_DifferentSubject_ProducesUnequalValues()
-    {
-        var left = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@user:anne")).Value;
-        var right = Assert.IsType<Result<Fact>.Success>(Fact.Parse("doc:readme#viewer@team:sales#member")).Value;
-
-        Assert.NotEqual(left, right);
+        Assert.NotEqual(subject, subjectSet);
     }
 }

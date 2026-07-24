@@ -7,7 +7,7 @@ public sealed class RewriteExpressionPrinterTests
 {
     [Fact]
     public void Print_This_EmitsKeyword() =>
-        Assert.Equal("this", RewriteExpressionPrinter.Print(ThisRewrite.Default));
+        Assert.Equal("this", RewriteExpressionPrinter.Print(SubjectSetRewrite.This.Default));
 
     [Fact]
     public void Print_Computed_EmitsIdentifier() =>
@@ -31,23 +31,49 @@ public sealed class RewriteExpressionPrinterTests
     }
 
     [Fact]
-    public void Print_CompoundOperandOfBinaryOperator_IsParenthesized()
+    public void Print_IntersectionOperandOfUnion_IsBare()
     {
-        // the operator chain would otherwise absorb or regroup the nested node on reparse
+        // a union's operand sits at the <intersection> level: & binds tighter, so the nested
+        // intersection reparses as the same child either side of the union
         Assert.Equal(
-            "(a & b) | c",
+            "a & b | c",
             RewriteExpressionPrinter.Print(Union([Intersection([Computed("a"), Computed("b")]), Computed("c")])));
         Assert.Equal(
-            "a | (b | c)",
-            RewriteExpressionPrinter.Print(Union([Computed("a"), Union([Computed("b"), Computed("c")])])));
+            "a | b & c",
+            RewriteExpressionPrinter.Print(Union([Computed("a"), Intersection([Computed("b"), Computed("c")])])));
     }
 
     [Fact]
-    public void Print_ExclusionOperandOfBinaryOperator_IsBare() =>
-        // ! binds tighter than | so no parentheses are needed: a ! b | c reparses as (a ! b) | c
+    public void Print_NestedUnionOperandOfUnion_IsParenthesized() =>
+        // the chain would otherwise absorb it into one n-ary union
+        Assert.Equal(
+            "a | (b | c)",
+            RewriteExpressionPrinter.Print(Union([Computed("a"), Union([Computed("b"), Computed("c")])])));
+
+    [Fact]
+    public void Print_CompoundOperandOfIntersection_IsParenthesized()
+    {
+        // an intersection's operand sits at the <exclusion> level: a union would regroup and a
+        // nested intersection would be absorbed
+        Assert.Equal(
+            "(a | b) & c",
+            RewriteExpressionPrinter.Print(Intersection([Union([Computed("a"), Computed("b")]), Computed("c")])));
+        Assert.Equal(
+            "a & (b & c)",
+            RewriteExpressionPrinter.Print(Intersection([Computed("a"), Intersection([Computed("b"), Computed("c")])])));
+    }
+
+    [Fact]
+    public void Print_ExclusionOperandOfBinaryOperator_IsBare()
+    {
+        // ! binds tighter than both, so no parentheses are needed either side
         Assert.Equal(
             "a ! b | c",
             RewriteExpressionPrinter.Print(Union([Exclusion(Computed("a"), Computed("b")), Computed("c")])));
+        Assert.Equal(
+            "a ! b & c",
+            RewriteExpressionPrinter.Print(Intersection([Exclusion(Computed("a"), Computed("b")), Computed("c")])));
+    }
 
     [Fact]
     public void Print_CompoundIncludeSideOfExclusion_IsParenthesized() =>

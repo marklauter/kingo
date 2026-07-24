@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class RelationshipPathTests
+public sealed class RelationshipNameTests
 {
     [Theory]
     [InlineData("owner")]
@@ -12,7 +12,7 @@ public sealed class RelationshipPathTests
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<RelationshipPath>.Success>(RelationshipPath.Parse(input));
+        var s = Assert.IsType<Result<RelationshipName>.Success>(RelationshipName.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -22,7 +22,7 @@ public sealed class RelationshipPathTests
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<RelationshipPath>.Success>(RelationshipPath.Parse(input));
+        var s = Assert.IsType<Result<RelationshipName>.Success>(RelationshipName.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class RelationshipPathTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<RelationshipPath>.Failure>(RelationshipPath.Parse(input!));
+        var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_path.empty", error.Code);
+        Assert.Equal("relationship_name.empty", error.Code);
     }
 
     [Theory]
@@ -50,57 +50,69 @@ public sealed class RelationshipPathTests
     [InlineData("café")]
     [InlineData("#")]
     [InlineData("@")]
+    // a name is one segment: a qualified path is not one
+    [InlineData("io/file#viewer")]
+    [InlineData("io/file")]
+    [InlineData("file#viewer")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<RelationshipPath>.Failure>(RelationshipPath.Parse(input));
+        var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_path.invalid", error.Code);
-    }
-
-    [Fact]
-    public void Parse_DotsMarker_IsRefused()
-    {
-        // '...' is not a relationship — it is the '#...' marker of the ResourceFact member production, fact-grammar
-        // punctuation. The identifier grammar is name-only, so '...' fails Parse rather than naming a sentinel relationship.
-        var f = Assert.IsType<Result<RelationshipPath>.Failure>(RelationshipPath.Parse("..."));
-        var error = Assert.Single(f.Errors);
-        Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_path.invalid", error.Code);
+        Assert.Equal("relationship_name.invalid", error.Code);
     }
 
     [Theory]
+    [InlineData("...")] // the '#...' marker of the ResourceFact member production is punctuation, not a name
     [InlineData("..")]
     [InlineData("....")]
     [InlineData("a...")]
     [InlineData("...a")]
-    public void Parse_PartialDots_ReturnsInvalidValidationFailure(string input)
+    public void Parse_DotsMarkerAndPartialDots_AreRefused(string input)
     {
-        var f = Assert.IsType<Result<RelationshipPath>.Failure>(RelationshipPath.Parse(input));
+        var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_path.invalid", error.Code);
+        Assert.Equal("relationship_name.invalid", error.Code);
+    }
+
+    [Fact]
+    public void Parse_AcceptsTheSameGrammarAsTheOtherNames()
+    {
+        // a spec name, a namespace name, and a relationship name are the same production — one segment
+        // ([[identifiers]]); this pins that the three do not drift apart silently
+        string[] inputs = ["viewer", "VIEWER", "_x", "a1", "0abc", "a-b", "a.b", "a b", "", "io/file"];
+
+        foreach (var input in inputs)
+        {
+            Assert.Equal(
+                RelationshipName.Parse(input) is Result<RelationshipName>.Success,
+                SpecName.Parse(input) is Result<SpecName>.Success);
+            Assert.Equal(
+                RelationshipName.Parse(input) is Result<RelationshipName>.Success,
+                NamespaceName.Parse(input) is Result<NamespaceName>.Success);
+        }
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = RelationshipPath.Unchecked("0-not.valid:");
+        var id = RelationshipName.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = RelationshipPath.Unchecked("OWNER");
+        var id = RelationshipName.Unchecked("OWNER");
         Assert.Equal("OWNER", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = RelationshipPath.Unchecked("owner");
-        var b = RelationshipPath.Unchecked("owner");
+        var a = RelationshipName.Unchecked("owner");
+        var b = RelationshipName.Unchecked("owner");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -111,8 +123,8 @@ public sealed class RelationshipPathTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = RelationshipPath.Unchecked("owner");
-        var b = RelationshipPath.Unchecked("editor");
+        var a = RelationshipName.Unchecked("owner");
+        var b = RelationshipName.Unchecked("editor");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -122,8 +134,8 @@ public sealed class RelationshipPathTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = RelationshipPath.Unchecked("a");
-        var b = RelationshipPath.Unchecked("b");
+        var a = RelationshipName.Unchecked("a");
+        var b = RelationshipName.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -140,7 +152,7 @@ public sealed class RelationshipPathTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = RelationshipPath.Unchecked("owner");
+        var id = RelationshipName.Unchecked("owner");
         Assert.Equal("owner", id.ToString());
     }
 }

@@ -9,13 +9,26 @@ public sealed class SubjectIdTests
     [InlineData("_private")]
     [InlineData("a1")]
     [InlineData("a")]
-    [InlineData("user:anne")]
     [InlineData("a.b")]
     [InlineData("a-b")]
     [InlineData("0abc")]
-    [InlineData("a:")]
     [InlineData("a.")]
     [InlineData("a-")]
+    [InlineData(".a")]
+    [InlineData("-a")]
+    [InlineData("café")]
+    // the caller's shapes: a GUID, an integer, a URN, a URI, an email, and a UPN — a subject id is opaque to Kingo
+    [InlineData("550e8400-e29b-41d4-a716-446655440000")]
+    [InlineData("42")]
+    [InlineData("urn:isbn:0451450523")]
+    [InlineData("https://example.com/a#b")]
+    [InlineData("carol@example.com")]
+    [InlineData("carol@corp.onmicrosoft.com")]
+    [InlineData("user:anne")]
+    [InlineData("a:b")]
+    [InlineData("a#b")]
+    [InlineData("a@b")]
+    [InlineData("a/b")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
         var s = Assert.IsType<Result<SubjectId>.Success>(SubjectId.Parse(input));
@@ -23,7 +36,7 @@ public sealed class SubjectIdTests
     }
 
     [Theory]
-    [InlineData("User:Anne")]
+    [InlineData("Anne")]
     [InlineData("MixedCase")]
     public void Parse_PreservesCase(string input)
     {
@@ -47,16 +60,10 @@ public sealed class SubjectIdTests
     }
 
     [Theory]
-    [InlineData(":anne")]
-    [InlineData(".a")]
-    [InlineData("-a")]
     [InlineData("a b")]
-    [InlineData("café")]
-    [InlineData("a#b")]
-    [InlineData("a@b")]
-    [InlineData("#")]
-    [InlineData("@")]
-    public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
+    [InlineData("a\tb")]
+    [InlineData("a\nb")]
+    public void Parse_WhitespaceOrControlCharacters_ReturnsInvalidValidationFailure(string input)
     {
         var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input));
         var error = Assert.Single(f.Errors);
@@ -74,8 +81,8 @@ public sealed class SubjectIdTests
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SubjectId.Unchecked("user:anne");
-        var b = SubjectId.Unchecked("user:anne");
+        var a = SubjectId.Unchecked("anne");
+        var b = SubjectId.Unchecked("anne");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -86,8 +93,8 @@ public sealed class SubjectIdTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SubjectId.Unchecked("user:anne");
-        var b = SubjectId.Unchecked("user:bob");
+        var a = SubjectId.Unchecked("anne");
+        var b = SubjectId.Unchecked("bob");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -111,7 +118,7 @@ public sealed class SubjectIdTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SubjectId.Unchecked("user:anne");
-        Assert.Equal("user:anne", id.ToString());
+        var id = SubjectId.Unchecked("anne");
+        Assert.Equal("anne", id.ToString());
     }
 }

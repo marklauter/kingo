@@ -10,35 +10,36 @@ internal static class TestHelpers
     /// <summary>The spec name every fixture document carries unless it is testing the name itself.</summary>
     public const string DefaultSpecName = "test";
 
-    public static NamespacePath Ns(string value) => NamespacePath.Unchecked(value);
+    /// <summary>A namespace name — bare, exactly as an SDL document writes the key and as the spec tree stores it ([[identifiers]]).</summary>
+    public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
-    public static RelationshipPath Rel(string value) => RelationshipPath.Unchecked(value);
+    public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
 
-    public static SpecPath SpecId(string value) => SpecPath.Unchecked(value);
+    public static SpecName SpecId(string value) => SpecName.Unchecked(value);
 
     public static Relationship Bare(string name) => new(Rel(name));
 
-    public static ComputedSubjectSetRewrite Computed(string name) => ComputedSubjectSetRewrite.Create(Rel(name));
+    public static SubjectSetRewrite.ComputedSubjectSet Computed(string name) => SubjectSetRewrite.ComputedSubjectSet.Create(Rel(name));
 
-    public static FactToSubjectSetRewrite FactTo(string factset, string computed) =>
-        FactToSubjectSetRewrite.Create(Rel(factset), Rel(computed));
+    public static SubjectSetRewrite.FactToSubjectSet FactTo(string factset, string computed) =>
+        SubjectSetRewrite.FactToSubjectSet.Create(Rel(factset), Rel(computed));
 
-    public static UnionRewrite Union(ImmutableArray<SubjectSetRewrite> children) =>
-        Assert.IsType<Result<UnionRewrite>.Success>(UnionRewrite.Create(children)).Value;
+    public static SubjectSetRewrite.Union Union(ImmutableArray<SubjectSetRewrite> children) =>
+        Assert.IsType<Result<SubjectSetRewrite.Union>.Success>(SubjectSetRewrite.Union.Create(children)).Value;
 
-    public static IntersectionRewrite Intersection(ImmutableArray<SubjectSetRewrite> children) =>
-        Assert.IsType<Result<IntersectionRewrite>.Success>(IntersectionRewrite.Create(children)).Value;
+    public static SubjectSetRewrite.Intersection Intersection(ImmutableArray<SubjectSetRewrite> children) =>
+        Assert.IsType<Result<SubjectSetRewrite.Intersection>.Success>(SubjectSetRewrite.Intersection.Create(children)).Value;
 
-    public static ExclusionRewrite Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
-        Assert.IsType<Result<ExclusionRewrite>.Success>(ExclusionRewrite.Create(include, exclude)).Value;
+    public static SubjectSetRewrite.Exclusion Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
+        Assert.IsType<Result<SubjectSetRewrite.Exclusion>.Success>(SubjectSetRewrite.Exclusion.Create(include, exclude)).Value;
 
-    public static Namespace MakeNs(NamespacePath name, ImmutableArray<Relationship> relationships) =>
+    public static Namespace MakeNs(NamespaceName name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
     public static Spec MakeSpec(ImmutableArray<Namespace> namespaces) =>
         MakeSpec(SpecId(DefaultSpecName), namespaces);
 
-    public static Spec MakeSpec(SpecPath name, ImmutableArray<Namespace> namespaces) =>
+    public static Spec MakeSpec(SpecName name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Spec>.Success>(Spec.Create(name, namespaces)).Value;
 
     /// <summary>

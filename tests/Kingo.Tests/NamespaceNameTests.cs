@@ -2,27 +2,27 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class SpecPathTests
+public sealed class NamespaceNameTests
 {
     [Theory]
-    [InlineData("acme")]
-    [InlineData("acme_corp")]
+    [InlineData("file")]
+    [InlineData("file_share")]
     [InlineData("_private")]
     [InlineData("a1")]
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<SpecPath>.Success>(SpecPath.Parse(input));
+        var s = Assert.IsType<Result<NamespaceName>.Success>(NamespaceName.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
     [Theory]
-    [InlineData("ACME", "acme")]
-    [InlineData("Acme_Corp", "acme_corp")]
+    [InlineData("FILE", "file")]
+    [InlineData("File_Share", "file_share")]
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<SpecPath>.Success>(SpecPath.Parse(input));
+        var s = Assert.IsType<Result<NamespaceName>.Success>(NamespaceName.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class SpecPathTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<SpecPath>.Failure>(SpecPath.Parse(input!));
+        var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec_path.empty", error.Code);
+        Assert.Equal("namespace_name.empty", error.Code);
     }
 
     [Theory]
@@ -52,44 +52,54 @@ public sealed class SpecPathTests
     [InlineData("@")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<SpecPath>.Failure>(SpecPath.Parse(input));
+        var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("spec_path.invalid", error.Code);
+        Assert.Equal("namespace_name.invalid", error.Code);
+    }
+
+    [Theory]
+    [InlineData("io/file")]
+    [InlineData("io/file#viewer")]
+    public void Parse_QualifiedPath_IsNotANamespaceName(string input)
+    {
+        // a namespace name is one segment; the qualified form is a NamespacePath, and only the fact side holds one
+        var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input));
+        Assert.Equal("namespace_name.invalid", Assert.Single(f.Errors).Code);
     }
 
     [Fact]
-    public void Parse_AcceptsTheSameGrammarAsNamespacePath()
+    public void Parse_IsTheSecondSegmentOfANamespacePath()
     {
-        // spec and namespace names are the same kind of thing — authored vocabulary — and share a grammar
-        // ([[domain-language]]); this pins that they do not drift apart silently
-        string[] inputs = ["acme", "ACME", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
+        // a namespace path is a spec name and a namespace name joined by '/', so a bare name that parses here is
+        // exactly a bare name that can close one ([[identifiers]])
+        string[] inputs = ["file", "FILE", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 
         foreach (var input in inputs)
             Assert.Equal(
-                SpecPath.Parse(input) is Result<SpecPath>.Success,
-                NamespacePath.Parse(input) is Result<NamespacePath>.Success);
+                NamespaceName.Parse(input) is Result<NamespaceName>.Success,
+                NamespacePath.Parse($"io/{input}") is Result<NamespacePath>.Success);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SpecPath.Unchecked("0-not.valid:");
+        var id = NamespaceName.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = SpecPath.Unchecked("ACME");
-        Assert.Equal("ACME", id.Value);
+        var id = NamespaceName.Unchecked("FILE");
+        Assert.Equal("FILE", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SpecPath.Unchecked("acme");
-        var b = SpecPath.Unchecked("acme");
+        var a = NamespaceName.Unchecked("file");
+        var b = NamespaceName.Unchecked("file");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -100,8 +110,8 @@ public sealed class SpecPathTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SpecPath.Unchecked("acme");
-        var b = SpecPath.Unchecked("globex");
+        var a = NamespaceName.Unchecked("file");
+        var b = NamespaceName.Unchecked("folder");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -111,8 +121,8 @@ public sealed class SpecPathTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = SpecPath.Unchecked("a");
-        var b = SpecPath.Unchecked("b");
+        var a = NamespaceName.Unchecked("a");
+        var b = NamespaceName.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -129,7 +139,7 @@ public sealed class SpecPathTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SpecPath.Unchecked("acme");
-        Assert.Equal("acme", id.ToString());
+        var id = NamespaceName.Unchecked("file");
+        Assert.Equal("file", id.ToString());
     }
 }

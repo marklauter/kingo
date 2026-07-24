@@ -7,13 +7,14 @@ namespace Kingo.Schemas.Tests;
 
 public sealed class NamespaceTests
 {
-    private static NamespacePath Ns(string value) => NamespacePath.Unchecked(value);
+    // a namespace name is bare: the spec that owns it supplies the qualification ([[identifiers]])
+    private static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
-    private static Relationship Def(string name) => new(RelationshipPath.Unchecked(name));
+    private static Relationship Def(string name) => new(RelationshipName.Unchecked(name));
 
-    private static Relationship Def(string name, SubjectSetRewrite rewrite) => new(RelationshipPath.Unchecked(name), rewrite);
+    private static Relationship Def(string name, SubjectSetRewrite rewrite) => new(RelationshipName.Unchecked(name), rewrite);
 
-    private static Namespace Make(NamespacePath name, ImmutableArray<Relationship> relationships) =>
+    private static Namespace Make(NamespaceName name, ImmutableArray<Relationship> relationships) =>
         Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
 
     [Fact]
@@ -38,7 +39,7 @@ public sealed class NamespaceTests
 
         var ns = Make(Ns("doc"), relationships);
 
-        Assert.Equal(Ns("doc"), ns.Path);
+        Assert.Equal(Ns("doc"), ns.Name);
         Assert.Equal(relationships, ns.Relationships);
     }
 
@@ -250,7 +251,7 @@ public sealed class NamespaceTests
         var rewrite = Union(
         [
             Computed("a"),
-            Intersection([Computed("b"), Exclusion(ThisRewrite.Default, Computed("c"))]),
+            Intersection([Computed("b"), Exclusion(SubjectSetRewrite.This.Default, Computed("c"))]),
         ]);
 
         var result = Namespace.Create(Ns("doc"), [Def("viewer", rewrite)]);
@@ -282,8 +283,8 @@ public sealed class NamespaceTests
             [
                 Def("owner"),
                 Def("parent"),
-                Def("editor", Union([ThisRewrite.Default, Computed("owner")])),
-                Def("viewer", Exclusion(Union([ThisRewrite.Default, Computed("editor"), FactTo("parent", "viewer")]), Computed("owner"))),
+                Def("editor", Union([SubjectSetRewrite.This.Default, Computed("owner")])),
+                Def("viewer", Exclusion(Union([SubjectSetRewrite.This.Default, Computed("editor"), FactTo("parent", "viewer")]), Computed("owner"))),
             ]);
 
         _ = Assert.IsType<Result<Namespace>.Success>(result);
@@ -349,7 +350,7 @@ public sealed class NamespaceTests
         var result = Namespace.Create(
             Ns("doc"),
             [
-                Def("a", Union([ThisRewrite.Default, Exclusion(ThisRewrite.Default, Computed("b"))])),
+                Def("a", Union([SubjectSetRewrite.This.Default, Exclusion(SubjectSetRewrite.This.Default, Computed("b"))])),
                 Def("b", Computed("a")),
             ]);
 
@@ -403,7 +404,7 @@ public sealed class NamespaceTests
         // trees past MaxDepth are unrepresentable — the factories refuse them — so the deepest
         // constructible nest is the worst case the validation traversals can ever meet
         var rewrite = Enumerable.Range(0, SubjectSetRewrite.MaxDepth - 1)
-            .Aggregate((SubjectSetRewrite)ThisRewrite.Default, (accumulated, _) => Exclusion(accumulated, ThisRewrite.Default));
+            .Aggregate((SubjectSetRewrite)SubjectSetRewrite.This.Default, (accumulated, _) => Exclusion(accumulated, SubjectSetRewrite.This.Default));
 
         Assert.Equal(SubjectSetRewrite.MaxDepth, rewrite.Depth);
         _ = Assert.IsType<Result<Namespace>.Success>(Namespace.Create(Ns("doc"), [Def("viewer", rewrite)]));

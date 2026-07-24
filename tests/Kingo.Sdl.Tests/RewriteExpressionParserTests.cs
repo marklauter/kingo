@@ -14,7 +14,7 @@ public sealed class RewriteExpressionParserTests
     [InlineData("THIS")]
     [InlineData("(this)")]
     public void Parse_ThisKeyword_IsCaseInsensitive(string expression) =>
-        Assert.Equal(ThisRewrite.Default, ParseSuccess(expression));
+        Assert.Equal(SubjectSetRewrite.This.Default, ParseSuccess(expression));
 
     [Theory]
     [InlineData("owner", "owner")]
@@ -51,20 +51,27 @@ public sealed class RewriteExpressionParserTests
             ParseSuccess("(a | b) | c"));
 
     [Fact]
-    public void Parse_MixedOperators_GroupsConsecutiveRunsLeftToRight() =>
-        // & and | share precedence, left-associative: a & b | c parses as (a & b) | c
+    public void Parse_IntersectionBindsTighterThanUnion_OnTheLeft() =>
+        // & binds tighter than |: a & b | c parses as (a & b) | c
         Assert.Equal(
             Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
             ParseSuccess("a & b | c"));
 
     [Fact]
-    public void Parse_ExclusionBindsTighterThanBinaryOperators() =>
-        // ! is highest: a & b | c & d ! e parses as ((a & b) | c) & (d ! e)
+    public void Parse_IntersectionBindsTighterThanUnion_OnTheRight() =>
+        // the mirror case, and the one precedence decides: a | b & c parses as a | (b & c)
         Assert.Equal(
-            Intersection(
+            Union([Computed("a"), Intersection([Computed("b"), Computed("c")])]),
+            ParseSuccess("a | b & c"));
+
+    [Fact]
+    public void Parse_ExclusionBindsTighterThanBinaryOperators() =>
+        // the full cascade — ! tightest, then &, then |: a & b | c & d ! e parses as (a & b) | (c & (d ! e))
+        Assert.Equal(
+            Union(
             [
-                Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
-                Exclusion(Computed("d"), Computed("e")),
+                Intersection([Computed("a"), Computed("b")]),
+                Intersection([Computed("c"), Exclusion(Computed("d"), Computed("e"))]),
             ]),
             ParseSuccess("a & b | c & d ! e"));
 
@@ -81,7 +88,7 @@ public sealed class RewriteExpressionParserTests
             Exclusion(
                 Union(
                 [
-                    ThisRewrite.Default,
+                    SubjectSetRewrite.This.Default,
                     Computed("editor"),
                     FactTo("parent", "viewer"),
                 ]),
@@ -121,18 +128,18 @@ banned")]
 
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("sdl.rewrite", error.Code);
+        Assert.Equal("spec.rewrite", error.Code);
     }
 
     [Fact]
     public void Parse_IdentifiersOutsideTheCoreGrammar_SurfaceTheCoreErrorsAccumulated()
     {
         // Superpower's C-style identifier lexes Unicode letters, but the core identifier grammar is ASCII:
-        // the exit transform's RelationshipPath.Parse rejects each one and the errors accumulate
+        // the exit transform's RelationshipName.Parse rejects each one and the errors accumulate
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("café | naïve"));
 
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("relationship_path.invalid", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("relationship_name.invalid", error.Code));
     }
 
     [Fact]
@@ -144,7 +151,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("spec.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -157,7 +164,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("spec.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -168,7 +175,7 @@ banned")]
 
         var success = Assert.IsType<Result<SubjectSetRewrite>.Success>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Same(ThisRewrite.Default, success.Value);
+        Assert.Same(SubjectSetRewrite.This.Default, success.Value);
     }
 
     [Fact]
@@ -181,7 +188,7 @@ banned")]
 
         var success = Assert.IsType<Result<SubjectSetRewrite>.Success>(RewriteExpressionParser.Parse(expression));
 
-        _ = Assert.IsType<FactToSubjectSetRewrite>(success.Value);
+        _ = Assert.IsType<SubjectSetRewrite.FactToSubjectSet>(success.Value);
     }
 
     [Fact]
@@ -193,7 +200,7 @@ banned")]
         {
             var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-            Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
+            Assert.Equal("spec.rewrite", Assert.Single(failure.Errors).Code);
         }
     }
 
@@ -204,7 +211,7 @@ banned")]
         // ignored by the paren scan and fails as plain bad syntax
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(") this"));
 
-        Assert.Equal("sdl.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("spec.rewrite", Assert.Single(failure.Errors).Code);
     }
 
     [Fact]
@@ -216,7 +223,7 @@ banned")]
 
         var success = Assert.IsType<Result<SubjectSetRewrite>.Success>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal(500, Assert.IsType<UnionRewrite>(success.Value).Children.Length);
+        Assert.Equal(500, Assert.IsType<SubjectSetRewrite.Union>(success.Value).Children.Length);
     }
 
     [Fact]
@@ -255,7 +262,7 @@ banned")]
 
         var success = Assert.IsType<Result<SubjectSetRewrite>.Success>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal(SubjectSetRewrite.MaxDepth + 1, Assert.IsType<UnionRewrite>(success.Value).Children.Length);
+        Assert.Equal(SubjectSetRewrite.MaxDepth + 1, Assert.IsType<SubjectSetRewrite.Union>(success.Value).Children.Length);
     }
 
     [Fact]

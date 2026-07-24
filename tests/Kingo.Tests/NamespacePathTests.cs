@@ -5,11 +5,11 @@ namespace Kingo.Tests;
 public sealed class NamespacePathTests
 {
     [Theory]
-    [InlineData("doc")]
-    [InlineData("user_group")]
-    [InlineData("_private")]
-    [InlineData("a1")]
-    [InlineData("a")]
+    [InlineData("io/doc")]
+    [InlineData("io/user_group")]
+    [InlineData("_x/_private")]
+    [InlineData("a/a1")]
+    [InlineData("a/a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
         var s = Assert.IsType<Result<NamespacePath>.Success>(NamespacePath.Parse(input));
@@ -17,9 +17,9 @@ public sealed class NamespacePathTests
     }
 
     [Theory]
-    [InlineData("DOC", "doc")]
-    [InlineData("User_Group", "user_group")]
-    [InlineData("A1", "a1")]
+    [InlineData("IO/DOC", "io/doc")]
+    [InlineData("Io/User_Group", "io/user_group")]
+    [InlineData("A/A1", "a/a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
         var s = Assert.IsType<Result<NamespacePath>.Success>(NamespacePath.Parse(input));
@@ -42,14 +42,23 @@ public sealed class NamespacePathTests
     }
 
     [Theory]
-    [InlineData("0abc")]
-    [InlineData("a-b")]
-    [InlineData("a.b")]
-    [InlineData("a:b")]
-    [InlineData("a b")]
-    [InlineData("café")]
-    [InlineData("#")]
-    [InlineData("@")]
+    [InlineData("io/0abc")]
+    [InlineData("io/a-b")]
+    [InlineData("io/a.b")]
+    [InlineData("io/a:b")]
+    [InlineData("io/a b")]
+    [InlineData("io/café")]
+    [InlineData("io/#")]
+    [InlineData("io/@")]
+    [InlineData("0io/a")]
+    [InlineData("io-x/a")]
+    // one segment is not a namespace: there is no namespace called 'file' ([[identifiers]])
+    [InlineData("file")]
+    // three segments is not a namespace either, and neither is an empty one
+    [InlineData("io/file/extra")]
+    [InlineData("io/")]
+    [InlineData("/file")]
+    [InlineData("io/file#viewer")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
         var f = Assert.IsType<Result<NamespacePath>.Failure>(NamespacePath.Parse(input));
@@ -68,15 +77,15 @@ public sealed class NamespacePathTests
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = NamespacePath.Unchecked("DOC");
-        Assert.Equal("DOC", id.Value);
+        var id = NamespacePath.Unchecked("IO/DOC");
+        Assert.Equal("IO/DOC", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = NamespacePath.Unchecked("doc");
-        var b = NamespacePath.Unchecked("doc");
+        var a = NamespacePath.Unchecked("io/doc");
+        var b = NamespacePath.Unchecked("io/doc");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -87,8 +96,8 @@ public sealed class NamespacePathTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = NamespacePath.Unchecked("doc");
-        var b = NamespacePath.Unchecked("user");
+        var a = NamespacePath.Unchecked("io/doc");
+        var b = NamespacePath.Unchecked("io/user");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -98,8 +107,8 @@ public sealed class NamespacePathTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = NamespacePath.Unchecked("a");
-        var b = NamespacePath.Unchecked("b");
+        var a = NamespacePath.Unchecked("io/a");
+        var b = NamespacePath.Unchecked("io/b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -116,7 +125,16 @@ public sealed class NamespacePathTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = NamespacePath.Unchecked("doc");
-        Assert.Equal("doc", id.ToString());
+        var id = NamespacePath.Unchecked("io/doc");
+        Assert.Equal("io/doc", id.ToString());
+    }
+
+    [Fact]
+    public void SpecAndName_ProjectTheTwoSegments()
+    {
+        var path = Assert.IsType<Result<NamespacePath>.Success>(NamespacePath.Parse("io/file")).Value;
+
+        Assert.Equal(SpecName.Unchecked("io"), path.Spec);
+        Assert.Equal(NamespaceName.Unchecked("file"), path.Name);
     }
 }

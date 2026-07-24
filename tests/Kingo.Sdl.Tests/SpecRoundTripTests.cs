@@ -30,13 +30,13 @@ public sealed class SpecRoundTripTests
     // keyed by name so the theory rows stay xunit-serializable and enumerate individually
     private static readonly IReadOnlyDictionary<string, SubjectSetRewrite> RewriteCases = new Dictionary<string, SubjectSetRewrite>
     {
-        ["this"] = ThisRewrite.Default,
+        ["this"] = SubjectSetRewrite.This.Default,
         ["computed"] = Computed("owner"),
         ["computed null"] = Computed("null"), // rendered unquoted; survives because the parser treats scalar text as expression source
         ["fact-to-subjectset"] = FactTo("parent", "viewer"),
-        ["flat union"] = Union([ThisRewrite.Default, Computed("owner")]),
+        ["flat union"] = Union([SubjectSetRewrite.This.Default, Computed("owner")]),
         ["flat intersection"] = Intersection([Computed("a"), Computed("b"), Computed("c")]),
-        ["exclusion"] = Exclusion(ThisRewrite.Default, Computed("banned")),
+        ["exclusion"] = Exclusion(SubjectSetRewrite.This.Default, Computed("banned")),
         // nested compounds exercise the renderer's parenthesization: each shape below is
         // structurally distinct from its flattened or re-associated reading
         ["intersection in union"] = Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
@@ -52,7 +52,7 @@ public sealed class SpecRoundTripTests
         ["kitchen sink"] = Exclusion(
             Union(
             [
-                ThisRewrite.Default,
+                SubjectSetRewrite.This.Default,
                 Computed("editor"),
                 FactTo("parent", "viewer"),
             ]),
@@ -122,7 +122,7 @@ public sealed class SpecRoundTripTests
 
         var roundTripped = ParseSuccess(original.Print());
 
-        Assert.Equal(SpecId("acme"), roundTripped.Path);
+        Assert.Equal(SpecId("acme"), roundTripped.Name);
         Assert.Equal(original, roundTripped);
     }
 }
