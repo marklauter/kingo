@@ -4,13 +4,13 @@ using System.Collections.Immutable;
 
 namespace Kingo.Documents.Tests;
 
-/// <summary>Shared construction and unwrap helpers for the SDL adapter tests — import with <c>using static</c>.</summary>
+/// <summary>Shared construction and unwrap helpers for the domain document adapter tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
     /// <summary>The domain name every fixture document carries unless it is testing the name itself.</summary>
     public const string DefaultDomainName = "test";
 
-    /// <summary>A namespace name — bare, exactly as an SDL document writes the key and as the domain tree stores it ([[identifiers]]).</summary>
+    /// <summary>A namespace name — bare, exactly as a domain document writes the key and as the domain tree stores it ([[identifiers]]).</summary>
     public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
@@ -43,7 +43,7 @@ internal static class TestHelpers
         Assert.IsType<Result<Domain>.Success>(Domain.Create(name, namespaces)).Value;
 
     /// <summary>
-    /// Wraps a namespace-map fragment in the SDL document envelope — the <c>domain:</c> name plus the <c>namespaces:</c> key — so a
+    /// Wraps a namespace-map fragment in the domain document envelope — the <c>domain:</c> name plus the <c>namespaces:</c> key — so a
     /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
     /// <see cref="ParseFailure"/> directly.
     /// </summary>

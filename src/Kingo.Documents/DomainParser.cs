@@ -7,7 +7,7 @@ using YamlDotNet.RepresentationModel;
 namespace Kingo.Documents;
 
 /// <summary>
-/// The parse half of the SDL adapter: Schema Definition Language document text ([[specs]]) to the core domain model
+/// The parse half of the domain document adapter: domain document text ([[specs]]) to the core domain model
 /// (<see cref="DomainPrinter.Print"/> renders the other direction). YAML carries the domain name and the outer namespace map. Each relationship's
 /// optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
 /// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationshipName.Parse</c>,
@@ -19,7 +19,7 @@ public static class DomainParser
     private const string NameKey = "domain";
     private const string NamespacesKey = "namespaces";
 
-    /// <summary>Parses untrusted SDL text into the defined <see cref="Domain"/>.</summary>
+    /// <summary>Parses untrusted domain document text into the defined <see cref="Domain"/>.</summary>
     /// <returns>
     /// A successful <see cref="Result{T}"/> carrying the defined <see cref="Domain"/>, or every accumulated validation <see cref="Error"/> in
     /// document order. <c>domain.syntax</c> for malformed YAML. <c>domain.document</c> when the text is not a single mapping, or the <c>domain:</c>
@@ -52,7 +52,7 @@ public static class DomainParser
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(NameKey), out var name) && name is YamlScalarNode { Value: not null } scalar
             ? DomainName.Parse(scalar.Value!)
-            : Result.Failure<DomainName>(Error.Validation("domain.document", $"a SDL document requires a '{NameKey}:' key naming the domain, with a scalar value"));
+            : Result.Failure<DomainName>(Error.Validation("domain.document", $"a domain document requires a '{NameKey}:' key naming the domain, with a scalar value"));
 
     /// <summary>
     /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Domain.Create</c>'s call (<c>domain.empty</c>), not
@@ -63,7 +63,7 @@ public static class DomainParser
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
         document.Children.TryGetValue(new YamlScalarNode(NamespacesKey), out var namespaces) && namespaces is YamlMappingNode map
             ? map.Children.Select(ParseNamespace).Sequence()
-            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation("domain.document", $"a SDL document requires a '{NamespacesKey}:' key mapping namespace name to relationship list"));
+            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation("domain.document", $"a domain document requires a '{NamespacesKey}:' key mapping namespace name to relationship list"));
 
     private static Result<YamlMappingNode> LoadDocument(string text)
     {
@@ -74,7 +74,7 @@ public static class DomainParser
             stream.Load(reader);
             return stream.Documents is [{ RootNode: YamlMappingNode document }]
                 ? Result.Success(document)
-                : Result.Failure<YamlMappingNode>(Error.Validation("domain.document", $"a SDL document is a single YAML mapping carrying a '{NameKey}:' name and a '{NamespacesKey}:' map"));
+                : Result.Failure<YamlMappingNode>(Error.Validation("domain.document", $"a domain document is a single YAML mapping carrying a '{NameKey}:' name and a '{NamespacesKey}:' map"));
         }
         catch (YamlException ex)
         {
@@ -134,7 +134,7 @@ public static class DomainParser
     /// Parses the value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain
     /// empty scalar. A plain scalar cannot spell an empty string, so this shape is always a forgotten expression and gets a pointed error
     /// rather than the mini-language's generic unexpected-end-of-input. Any other scalar hands its raw text to the expression parser, because
-    /// SDL owns the text rather than YAML's scalar typing. A plain <c>null</c> is the identifier <c>null</c>, which keeps a relationship so
+    /// the domain document owns the text rather than YAML's scalar typing. A plain <c>null</c> is the identifier <c>null</c>, which keeps a relationship so
     /// named round-tripping, because the renderer emits it unquoted.
     /// </summary>
     /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>domain.relationship</c> failure when the expression is missing, or the expression parser's failures.</returns>
@@ -145,7 +145,7 @@ public static class DomainParser
 
     /// <summary>
     /// Parses a relationship name and rejects the rewrite-grammar reserved word <c>this</c>. The name <c>this</c> always lexes as the keyword, so a relationship
-    /// so named could never be referenced, and a reference would silently read as direct membership. SDL reserves it. The name stays bare, because the enclosing
+    /// so named could never be referenced, and a reference would silently read as direct membership. The domain document reserves it. The name stays bare, because the enclosing
     /// <see cref="Namespace"/> supplies the qualification.
     /// </summary>
     /// <returns>
@@ -155,6 +155,6 @@ public static class DomainParser
     /// </returns>
     private static Result<RelationshipName> ParseRelationshipName(string name) =>
         RelationshipName.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
-            ? Result.Failure<RelationshipName>(Error.Validation("domain.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in SDL"))
+            ? Result.Failure<RelationshipName>(Error.Validation("domain.relationship.reserved", $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in a domain document"))
             : Result.Success(relationship));
 }

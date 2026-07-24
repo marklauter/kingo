@@ -6,7 +6,7 @@ namespace Kingo;
 /// <see cref="Name"/> is the <c>⟨name⟩</c> production, the character rule behind all four name positions a document has: the <c>domain:</c> value, the namespace
 /// keys, the relationship names, and the names written inside a rewrite. <see cref="DomainName"/>, <see cref="NamespaceName"/>, and <see cref="RelationshipName"/>
 /// are exactly <see cref="NamePattern"/>. They share one const deliberately so the three rules stay identical. The reservation of <c>this</c> as a relationship
-/// name is the rewrite grammar's, enforced by the SDL parser ([[specs]]), not a character rule here. The one qualified path, <see cref="NamespacePath"/>, is two
+/// name is the rewrite grammar's, enforced by the domain parser ([[specs]]), not a character rule here. The one qualified path, <see cref="NamespacePath"/>, is two
 /// names joined by <see cref="DomainSeparator"/>. The
 /// rules live here rather than on one of the identifier types because none of them owns the production. Each type composes its anchored pattern from these
 /// constants, so the grammars cannot drift apart.

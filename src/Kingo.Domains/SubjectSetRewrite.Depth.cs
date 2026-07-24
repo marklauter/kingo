@@ -22,7 +22,7 @@ public abstract partial record SubjectSetRewrite
 
     private SubjectSetRewrite(int depth) => Depth = depth;
 
-    /// <summary>Builds the refusal a tree past <see cref="MaxDepth"/> receives. Shared by the operator factories and the SDL parse edge, one code for one invariant.</summary>
+    /// <summary>Builds the refusal a tree past <see cref="MaxDepth"/> receives. Shared by the operator factories and the domain parse edge, one code for one invariant.</summary>
     /// <returns>An <see cref="Error"/> with code <c>rewrite.depth</c>.</returns>
     public static Error DepthError() =>
         Error.Validation("rewrite.depth", $"a rewrite tree deeper than {MaxDepth} levels is refused");

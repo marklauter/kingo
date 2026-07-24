@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 namespace Kingo.Documents;
 
 /// <summary>
-/// Recursive-descent parser for the rewrite-expression mini-language embedded in SDL relationship values, for example
+/// Recursive-descent parser for the rewrite-expression mini-language embedded in domain document relationship values, for example
 /// <c>(this | editor | (parent, viewer)) ! banned</c>. Produces the core <c>SubjectSetRewrite</c> algebra. The grammar and its precedence
 /// are given in [[specs]]: a cascade, tightest first, <c>!</c> exclusion, then <c>&amp;</c> intersection, then <c>|</c> union. Each level is
 /// left-associative, so <c>a | b &amp; c</c> is <c>a | (b &amp; c)</c>. The Superpower grammar produces the internal <see cref="RewriteNode"/>

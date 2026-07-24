@@ -44,7 +44,7 @@ internal static class RewriteExpressionPrinter
 
     private static string PrintIdentifier(RelationshipName relationship) =>
         IsReserved(relationship)
-            ? throw new ArgumentException($"relationship '{relationship}' cannot be referenced in a SDL rewrite expression: 'this' is reserved by the grammar")
+            ? throw new ArgumentException($"relationship '{relationship}' cannot be referenced in a rewrite expression: 'this' is reserved by the grammar")
             : relationship.Value;
 
     /// <summary>

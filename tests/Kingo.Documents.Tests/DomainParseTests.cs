@@ -10,7 +10,7 @@ public sealed class DomainParseTests
     [Fact]
     public void Parse_SimpleDocument_ReturnsDefinedNamespaces()
     {
-        const string sdl = """
+        const string document = """
             domain: acme
             namespaces:
               file:
@@ -30,14 +30,14 @@ public sealed class DomainParseTests
                 ]),
         ];
 
-        Assert.Equal(MakeDomain(DomainId("acme"), expected), ParseSuccess(sdl));
+        Assert.Equal(MakeDomain(DomainId("acme"), expected), ParseSuccess(document));
     }
 
     [Fact]
     public void Parse_ComplexDocument_ReturnsDefinedNamespaces()
     {
         // the example document from [[specs]]: comments, a folded block scalar, two namespaces
-        const string sdl = """
+        const string document = """
             # rewrite set operators:
             #   ! = exclusion operator
             #   & = intersection operator
@@ -104,7 +104,7 @@ public sealed class DomainParseTests
                 Bare("banned"),
             ]);
 
-        Assert.Equal([file, folder], ParseSuccess(sdl).Namespaces);
+        Assert.Equal([file, folder], ParseSuccess(document).Namespaces);
     }
 
     [Theory]
@@ -145,7 +145,7 @@ public sealed class DomainParseTests
     [InlineData("file:\n  - [nested]", "domain.relationship")]
     [InlineData("file: &a [*a]", "domain.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
     [InlineData("file:\n  - a: this\n    b: this", "domain.relationship")]
-    [InlineData("file:\n  - viewer:", "domain.relationship")] // a pair missing its rewrite expression; the bare-name form is how SDL spells "no rewrite"
+    [InlineData("file:\n  - viewer:", "domain.relationship")] // a pair missing its rewrite expression; the bare-name form is how a domain document spells "no rewrite"
     [InlineData("file:\n  - viewer: ''", "domain.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
     [InlineData("file:\n  - viewer: ~", "domain.rewrite")] // plain scalar text is expression source, and '~' cannot lex
     [InlineData("? [complex, key]\n: - owner", "domain.namespace")]
@@ -182,7 +182,7 @@ public sealed class DomainParseTests
     [InlineData("scalar", "domain.document")]
     [InlineData("[]", "domain.document")]
     [InlineData("{}", "domain.document")] // neither key present
-    [InlineData("domain: acme\n---\ndomain: other", "domain.document")] // a SDL document is a single YAML document
+    [InlineData("domain: acme\n---\ndomain: other", "domain.document")] // a domain document is a single YAML document
     [InlineData("namespaces:\n  file:\n    - owner", "domain.document")] // no 'domain:' key
     [InlineData("domain: acme", "domain.document")] // no 'namespaces:' key
     [InlineData("domain: acme\nnamespaces: 5", "domain.document")] // 'namespaces:' is not a mapping
@@ -194,9 +194,9 @@ public sealed class DomainParseTests
     [InlineData("domain: acme corp\nnamespaces:\n  file:\n    - owner", "domain_name.invalid")]
     [InlineData("domain: 123acme\nnamespaces:\n  file:\n    - owner", "domain_name.invalid")]
     [InlineData("domain: acme-corp\nnamespaces:\n  file:\n    - owner", "domain_name.invalid")]
-    public void Parse_InvalidEnvelope_FailsWithExpectedCode(string sdl, string expectedCode)
+    public void Parse_InvalidEnvelope_FailsWithExpectedCode(string document, string expectedCode)
     {
-        var errors = ParseFailure(sdl);
+        var errors = ParseFailure(document);
 
         Assert.All(errors, error => Assert.Equal(ErrorType.Validation, error.Type));
         Assert.Contains(errors, error => error.Code == expectedCode);
@@ -242,7 +242,7 @@ public sealed class DomainParseTests
     [Fact]
     public void Parse_PlainNullExpressionText_IsTheNullIdentifier()
     {
-        // SDL owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
+        // the domain document owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
         // to a relationship named null — which is also what lets that name survive a round trip, since the
         // renderer emits it unquoted (DomainPrinter.Print)
         var ns = Assert.Single(ParseSuccess(Document("file:\n  - null\n  - viewer: null")).Namespaces);

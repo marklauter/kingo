@@ -44,14 +44,14 @@ public sealed class DomainPrinterTests
                 ]),
         ]);
 
-        var sdl = domain.Print();
+        var document = domain.Print();
 
-        Assert.Contains("- direct", sdl, StringComparison.Ordinal);
-        Assert.Contains("computed: owner", sdl, StringComparison.Ordinal);
-        Assert.Contains("factset: (parent, viewer)", sdl, StringComparison.Ordinal);
-        Assert.Contains("union: this | owner", sdl, StringComparison.Ordinal);
-        Assert.Contains("intersection: this & viewer", sdl, StringComparison.Ordinal);
-        Assert.Contains("exclusion: this ! banned", sdl, StringComparison.Ordinal);
+        Assert.Contains("- direct", document, StringComparison.Ordinal);
+        Assert.Contains("computed: owner", document, StringComparison.Ordinal);
+        Assert.Contains("factset: (parent, viewer)", document, StringComparison.Ordinal);
+        Assert.Contains("union: this | owner", document, StringComparison.Ordinal);
+        Assert.Contains("intersection: this & viewer", document, StringComparison.Ordinal);
+        Assert.Contains("exclusion: this ! banned", document, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public sealed class DomainPrinterTests
     [InlineData("THIS")] // Unchecked performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
     public void Print_ReservedRelationshipName_IsCallerDefect(string name)
     {
-        // SDL cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
+        // a domain document cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
         // never be referenced (a reference lexes as the keyword).
         var domain = MakeDomain([MakeNs(Ns("file"), [Bare(name)])]);
 
