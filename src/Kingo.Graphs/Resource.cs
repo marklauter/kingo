@@ -1,6 +1,3 @@
-using Results;
-using Values;
-
 namespace Kingo.Graphs;
 
 /// <summary>
@@ -10,28 +7,4 @@ namespace Kingo.Graphs;
 /// </summary>
 public sealed record Resource(
     NamespacePath Namespace,
-    ResourceId Id)
-    : IParse<Resource>
-{
-    private const char Separator = ':';
-
-    /// <summary>
-    /// Parses the canonical text form <c>&lt;namespace&gt;:&lt;resource-id&gt;</c> with full validation, accumulating errors across both parts in
-    /// left-to-right order.
-    /// </summary>
-    public static Result<Resource> Parse(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            return Result.Failure<Resource>(Error.Validation("resource.empty", "resource cannot be empty or whitespace"));
-
-        var separator = s.IndexOf(Separator, StringComparison.Ordinal);
-        return separator < 0
-            ? Result.Failure<Resource>(Error.Validation("resource.format", $"resource '{s}' is malformed; expected '<namespace>:<resource-id>'"))
-            : Result.Apply(
-                NamespacePath.Parse(s[..separator]).Map<Func<ResourceId, Resource>>(ns => id => new Resource(ns, id)),
-                ResourceId.Parse(s[(separator + 1)..]));
-    }
-
-    /// <summary>Canonical text form: <c>&lt;namespace&gt;:&lt;resource-id&gt;</c>.</summary>
-    public override string ToString() => $"{Namespace}{Separator}{Id}";
-}
+    ResourceId Id);
