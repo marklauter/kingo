@@ -1,9 +1,10 @@
 ---
 title: theory
+type: definition
 summary: "A scoped set of namespaces whose rewrites define how memberships derive."
 tags: [glossary, theory]
 created: 2026-07-22
-status: locked
+status: evolving
 has-a: "[[namespace]]"
 contrast:
   - "[[fact]]"

@@ -1,5 +1,6 @@
 ---
 title: obo-chain
+type: definition
 summary: "On-behalf-of: a service-to-service delegation chain, implying three distinct authorization decisions."
 tags: [glossary, host]
 created: 2026-07-18

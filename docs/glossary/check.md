@@ -1,9 +1,10 @@
 ---
 title: check
+type: definition
 summary: "The authorization query a caller makes at the host edge. Does a subject set contain a subject?"
 tags: [glossary, evaluation]
 created: 2026-07-18
-status: locked
+status: evolving
 contrast:
   - "[[contains]]"
 ---

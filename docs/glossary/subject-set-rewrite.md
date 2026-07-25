@@ -1,9 +1,10 @@
 ---
 title: subject-set-rewrite
+type: definition
 summary: "The closed set-algebra that computes a relationship's effective subject set."
 tags: [glossary, rewrite]
 created: 2026-07-18
-status: locked
+status: evolving
 ---
 
 The closed set-algebra that computes a relationship's effective subject set: this, computed subject set, fact-to-subject-set, union, intersection, and exclusion. Parse-agnostic — not an AST.

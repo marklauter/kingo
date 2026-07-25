@@ -1,9 +1,10 @@
 ---
 title: subject-set
+type: definition
 summary: "The subjects that hold a relationship on a resource, named resource#relationship."
 tags: [glossary, data]
 created: 2026-07-18
-status: locked
+status: evolving
 contrast:
   - "[[effective-subject-set]]"
 ---

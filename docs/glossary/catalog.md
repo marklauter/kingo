@@ -1,9 +1,10 @@
 ---
 title: catalog
+type: definition
 summary: "The complete set of theories — the global space every name resolves in, and the reach of consistency."
 tags: [glossary, theory]
 created: 2026-07-18
-status: locked
+status: evolving
 has-a: "[[theory]]"
 ---
 

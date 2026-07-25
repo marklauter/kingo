@@ -1,9 +1,10 @@
 ---
 title: this
+type: definition
 summary: "Direct membership — the subjects written directly under a subject set, plus the members of any subject-set-valued facts stored there."
 tags: [glossary, rewrite]
 created: 2026-07-18
-status: locked
+status: evolving
 is-a: "[[subject-set-rewrite]]"
 ---
 

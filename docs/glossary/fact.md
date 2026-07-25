@@ -1,9 +1,10 @@
 ---
 title: fact
+type: definition
 summary: "A stored set-membership assertion — the triple resource#relationship@member, read set-first: the subject set contains the member, a subject, another subject set, or a resource."
 tags: [glossary, data]
 created: 2026-07-18
-status: locked
+status: evolving
 contrast:
   - "[[putative-fact]]"
   - "[[theory]]"

@@ -1,9 +1,10 @@
 ---
 title: contains
+type: definition
 summary: "The membership predicate. It applies a relationship's rewrite as set algebra over the facts to decide whether the closure holds a putative fact."
 tags: [glossary, evaluation]
 created: 2026-07-18
-status: locked
+status: evolving
 contrast:
   - "[[check]]"
 applies: "[[subject-set-rewrite]]"

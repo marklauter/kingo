@@ -1,5 +1,6 @@
 ---
 title: effective-subject-set
+type: definition
 summary: "The subjects a relationship's rewrite resolves to on a resource."
 tags: [glossary, rewrite]
 created: 2026-07-24

@@ -1,9 +1,10 @@
 ---
 title: putative-fact
+type: definition
 summary: "The question Contains answers. A fact about one subject, held as a hypothesis rather than stored."
 tags: [glossary, evaluation]
 created: 2026-07-18
-status: locked
+status: evolving
 contrast:
   - "[[fact]]"
 ---
