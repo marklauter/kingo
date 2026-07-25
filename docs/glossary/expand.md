@@ -1,8 +1,8 @@
 ---
 title: expand
 type: definition
-summary: "The interpreter that materializes one relationship's rewrite tree for a subject set — referenced subject sets stay leaves."
-status: evolving
+summary: "To materialize one relation's rewrite tree, leaving referenced subjectsets as leaves."
+status: locked
 ---
 
-The interpreter that materializes one relationship's rewrite tree for a subject set — referenced subject sets stay leaves.
+To materialize one relation's rewrite tree, leaving referenced subjectsets as leaves.

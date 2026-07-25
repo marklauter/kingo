@@ -1,8 +1,8 @@
 ---
 title: decision
 type: definition
-summary: "The result of a Contains evaluation — the question judged, the verdict, the Kookie pin, the theory version, and a timestamp."
-status: evolving
+summary: "A judgment of one membership question, recorded with everything its replay needs."
+status: locked
 ---
 
-The result of a Contains evaluation — the question judged, the verdict, the Kookie pin, the theory version, and a timestamp.
+A judgment of one membership question, recorded with everything its replay needs.

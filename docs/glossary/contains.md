@@ -1,10 +1,8 @@
 ---
 title: contains
 type: definition
-summary: "The membership predicate. It applies a relationship's rewrite as set algebra over the facts to decide whether the closure holds a putative fact."
-status: evolving
-applies: "[[subject-set-rewrite]]"
-decides: "[[putative-fact]]"
+summary: "To judge whether a subject is a member of a subjectset's closure."
+status: locked
 ---
 
-The membership predicate. It applies a relationship's rewrite as set algebra over the facts to decide whether the closure holds a putative fact.
+To judge whether a subject is a member of a subjectset's closure.
