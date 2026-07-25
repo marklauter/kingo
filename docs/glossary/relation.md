@@ -3,7 +3,7 @@ title: relation
 type: definition
 summary: "A named rewrite."
 status: locked
-is-a: "[[subject-set-rewrite]]"
+is-a: "[[rewrite]]"
 ---
 
 A named rewrite.

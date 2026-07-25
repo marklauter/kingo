@@ -1,9 +1,9 @@
 ---
 title: factset
 type: definition
-summary: "The relation to follow in a fact-to-subject-set."
+summary: "The relation whose facts a walk follows."
 status: locked
 is-a: "[[relation]]"
 ---
 
-The relation to follow in a fact-to-subject-set.
+The relation whose facts a walk follows.
