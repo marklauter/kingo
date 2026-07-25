@@ -12,16 +12,13 @@ One file per term, each reduced to the word plus the smallest phrase that unpack
 
 ## Terms
 
-- [[caller-identity]]
 - [[catalog]]
 - [[check]]
 - [[closure]]
 - [[computed-subject-set]]
 - [[contains]]
 - [[decision]]
-- [[depth-bound]]
 - [[effective-subject-set]]
-- [[entitlement]]
 - [[exclusion]]
 - [[expand]]
 - [[expansion]]
