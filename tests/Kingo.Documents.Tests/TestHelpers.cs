@@ -13,11 +13,11 @@ internal static class TestHelpers
     /// <summary>A namespace name — bare, exactly as a domain document writes the key and as the domain tree stores it ([[identifiers]]).</summary>
     public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
-    public static RelationshipName Rel(string value) => RelationshipName.Unchecked(value);
+    public static RelationName Rel(string value) => RelationName.Unchecked(value);
 
     public static TheoryName TheoryId(string value) => TheoryName.Unchecked(value);
 
-    public static Relationship Bare(string name) => new(Rel(name));
+    public static Relation Bare(string name) => new(Rel(name));
 
     public static SubjectSetRewrite.ComputedSubjectSet Computed(string name) => SubjectSetRewrite.ComputedSubjectSet.Create(Rel(name));
 
@@ -33,8 +33,8 @@ internal static class TestHelpers
     public static SubjectSetRewrite.Exclusion Exclusion(SubjectSetRewrite include, SubjectSetRewrite exclude) =>
         Assert.IsType<Result<SubjectSetRewrite.Exclusion>.Success>(SubjectSetRewrite.Exclusion.Create(include, exclude)).Value;
 
-    public static Namespace MakeNs(NamespaceName name, ImmutableArray<Relationship> relationships) =>
-        Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relationships)).Value;
+    public static Namespace MakeNs(NamespaceName name, ImmutableArray<Relation> relations) =>
+        Assert.IsType<Result<Namespace>.Success>(Namespace.Create(name, relations)).Value;
 
     public static Theory MakeTheory(ImmutableArray<Namespace> namespaces) =>
         MakeTheory(TheoryId(DefaultTheoryName), namespaces);

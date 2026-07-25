@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class RelationshipNameTests
+public sealed class RelationNameTests
 {
     [Theory]
     [InlineData("owner")]
@@ -12,7 +12,7 @@ public sealed class RelationshipNameTests
     [InlineData("a")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<RelationshipName>.Success>(RelationshipName.Parse(input));
+        var s = Assert.IsType<Result<RelationName>.Success>(RelationName.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -22,7 +22,7 @@ public sealed class RelationshipNameTests
     [InlineData("A1", "a1")]
     public void Parse_MixedCaseInput_NormalizesToLowercase(string input, string expected)
     {
-        var s = Assert.IsType<Result<RelationshipName>.Success>(RelationshipName.Parse(input));
+        var s = Assert.IsType<Result<RelationName>.Success>(RelationName.Parse(input));
         Assert.Equal(expected, s.Value.Value);
         Assert.Equal(expected, s.Value.ToString());
     }
@@ -35,10 +35,10 @@ public sealed class RelationshipNameTests
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
         // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
-        var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input!));
+        var f = Assert.IsType<Result<RelationName>.Failure>(RelationName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_name.empty", error.Code);
+        Assert.Equal("relation_name.empty", error.Code);
     }
 
     [Theory]
@@ -56,10 +56,10 @@ public sealed class RelationshipNameTests
     [InlineData("file#viewer")]
     public void Parse_InvalidCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input));
+        var f = Assert.IsType<Result<RelationName>.Failure>(RelationName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_name.invalid", error.Code);
+        Assert.Equal("relation_name.invalid", error.Code);
     }
 
     [Theory]
@@ -70,16 +70,16 @@ public sealed class RelationshipNameTests
     [InlineData("...a")]
     public void Parse_DotsMarkerAndPartialDots_AreRefused(string input)
     {
-        var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input));
+        var f = Assert.IsType<Result<RelationName>.Failure>(RelationName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_name.invalid", error.Code);
+        Assert.Equal("relation_name.invalid", error.Code);
     }
 
     [Fact]
     public void Parse_AcceptsTheSameGrammarAsTheOtherNames()
     {
-        // a domain name, a namespace name, and a relationship name are the same production — one segment
+        // a domain name, a namespace name, and a relation name are the same production — one segment
         // ([[identifiers]]); this pins that the three do not drift apart silently. 'this' is included
         // deliberately: the core accepts it as a name, and reserving it is the domain parser's job, not this type's
         string[] inputs = ["viewer", "VIEWER", "_x", "a1", "this", "This", "0abc", "a-b", "a.b", "a b", "", "io/file"];
@@ -87,10 +87,10 @@ public sealed class RelationshipNameTests
         foreach (var input in inputs)
         {
             Assert.Equal(
-                RelationshipName.Parse(input) is Result<RelationshipName>.Success,
+                RelationName.Parse(input) is Result<RelationName>.Success,
                 TheoryName.Parse(input) is Result<TheoryName>.Success);
             Assert.Equal(
-                RelationshipName.Parse(input) is Result<RelationshipName>.Success,
+                RelationName.Parse(input) is Result<RelationName>.Success,
                 NamespaceName.Parse(input) is Result<NamespaceName>.Success);
         }
     }
@@ -98,22 +98,22 @@ public sealed class RelationshipNameTests
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = RelationshipName.Unchecked("0-not.valid:");
+        var id = RelationName.Unchecked("0-not.valid:");
         Assert.Equal("0-not.valid:", id.Value);
     }
 
     [Fact]
     public void Unchecked_DoesNotLowercase()
     {
-        var id = RelationshipName.Unchecked("OWNER");
+        var id = RelationName.Unchecked("OWNER");
         Assert.Equal("OWNER", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = RelationshipName.Unchecked("owner");
-        var b = RelationshipName.Unchecked("owner");
+        var a = RelationName.Unchecked("owner");
+        var b = RelationName.Unchecked("owner");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -124,8 +124,8 @@ public sealed class RelationshipNameTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = RelationshipName.Unchecked("owner");
-        var b = RelationshipName.Unchecked("editor");
+        var a = RelationName.Unchecked("owner");
+        var b = RelationName.Unchecked("editor");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -135,8 +135,8 @@ public sealed class RelationshipNameTests
     [Fact]
     public void CompareTo_IsOrdinal_AndConsistentWithOperators()
     {
-        var a = RelationshipName.Unchecked("a");
-        var b = RelationshipName.Unchecked("b");
+        var a = RelationName.Unchecked("a");
+        var b = RelationName.Unchecked("b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
@@ -153,7 +153,7 @@ public sealed class RelationshipNameTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = RelationshipName.Unchecked("owner");
+        var id = RelationName.Unchecked("owner");
         Assert.Equal("owner", id.ToString());
     }
 }

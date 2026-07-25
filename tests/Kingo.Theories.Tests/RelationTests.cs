@@ -2,24 +2,24 @@ using static Kingo.Theories.Tests.TestHelpers;
 
 namespace Kingo.Theories.Tests;
 
-public sealed class RelationshipTests
+public sealed class RelationTests
 {
-    private static RelationshipName Id(string value) => RelationshipName.Unchecked(value);
+    private static RelationName Id(string value) => RelationName.Unchecked(value);
 
     [Fact]
     public void SecondaryCtor_DefaultsRewriteToThisDefaultSingleton()
     {
-        var relationship = new Relationship(Id("viewer"));
+        var relation = new Relation(Id("viewer"));
 
-        var rewrite = Assert.IsType<SubjectSetRewrite.This>(relationship.Rewrite);
+        var rewrite = Assert.IsType<SubjectSetRewrite.This>(relation.Rewrite);
         Assert.Same(SubjectSetRewrite.This.Default, rewrite);
     }
 
     [Fact]
     public void SecondaryCtor_EqualsExplicitThisDefaultConstruction()
     {
-        var implicitRewrite = new Relationship(Id("viewer"));
-        var explicitRewrite = new Relationship(Id("viewer"), SubjectSetRewrite.This.Default);
+        var implicitRewrite = new Relation(Id("viewer"));
+        var explicitRewrite = new Relation(Id("viewer"), SubjectSetRewrite.This.Default);
 
         Assert.Equal(explicitRewrite, implicitRewrite);
     }
@@ -27,8 +27,8 @@ public sealed class RelationshipTests
     [Fact]
     public void Equals_SameNameAndRewrite_AreEqual()
     {
-        var a = new Relationship(Id("viewer"), Computed("editor"));
-        var b = new Relationship(Id("viewer"), Computed("editor"));
+        var a = new Relation(Id("viewer"), Computed("editor"));
+        var b = new Relation(Id("viewer"), Computed("editor"));
 
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
@@ -37,8 +37,8 @@ public sealed class RelationshipTests
     [Fact]
     public void Equals_DifferentName_NotEqual()
     {
-        var a = new Relationship(Id("viewer"));
-        var b = new Relationship(Id("editor"));
+        var a = new Relation(Id("viewer"));
+        var b = new Relation(Id("editor"));
 
         Assert.NotEqual(a, b);
     }
@@ -46,8 +46,8 @@ public sealed class RelationshipTests
     [Fact]
     public void Equals_DifferentRewrite_NotEqual()
     {
-        var a = new Relationship(Id("viewer"), SubjectSetRewrite.This.Default);
-        var b = new Relationship(Id("viewer"), Computed("editor"));
+        var a = new Relation(Id("viewer"), SubjectSetRewrite.This.Default);
+        var b = new Relation(Id("viewer"), Computed("editor"));
 
         Assert.NotEqual(a, b);
     }

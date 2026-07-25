@@ -28,7 +28,7 @@ public sealed class RewriteExpressionParserTests
     [InlineData("(parent, viewer)")]
     [InlineData("(parent,\nviewer)")]
     [InlineData("(PARENT, Viewer)")]
-    public void Parse_FactToSubjectSet_ReturnsBothRelationships(string expression) =>
+    public void Parse_FactToSubjectSet_ReturnsBothRelations(string expression) =>
         Assert.Equal(FactTo("parent", "viewer"), ParseSuccess(expression));
 
     [Fact]
@@ -119,7 +119,7 @@ banned")]
     [InlineData("a ! (b !")]
     [InlineData("a b")] // two terms with no operator between them
     [InlineData("()")]
-    [InlineData("(this, viewer)")] // a factset relationship is an identifier; 'this' lexes as the keyword
+    [InlineData("(this, viewer)")] // a factset relation is an identifier; 'this' lexes as the keyword
     [InlineData("this ! ! banned")]
     [InlineData("...")] // the fact grammar's '#...' marker punctuation cannot lex in a rewrite expression
     public void Parse_InvalidExpressions_FailsWithRewriteCode(string expression)
@@ -135,11 +135,11 @@ banned")]
     public void Parse_IdentifiersOutsideTheCoreGrammar_SurfaceTheCoreErrorsAccumulated()
     {
         // Superpower's C-style identifier lexes Unicode letters, but the core identifier grammar is ASCII:
-        // the exit transform's RelationshipName.Parse rejects each one and the errors accumulate
+        // the exit transform's RelationName.Parse rejects each one and the errors accumulate
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("café | naïve"));
 
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("relationship_name.invalid", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("relation_name.invalid", error.Code));
     }
 
     [Fact]

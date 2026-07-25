@@ -5,7 +5,7 @@ namespace Kingo.Documents;
 /// <summary>
 /// The parser-internal syntax tree for rewrite expressions, the shape Superpower produces before identifiers have crossed the trust
 /// boundary. Leaves carry raw <see cref="string"/>s. <see cref="RewriteExpressionParser"/> transforms the tree into the core
-/// <c>SubjectSetRewrite</c> algebra at its exit, parsing every identifier through <c>RelationshipName.Parse</c>. The tree is built once and
+/// <c>SubjectSetRewrite</c> algebra at its exit, parsing every identifier through <c>RelationName.Parse</c>. The tree is built once and
 /// transformed once, and nodes are never compared, so these are plain sealed classes rather than records. Reference equality is the right
 /// identity for a tree built once and consumed once, and it keeps <see cref="This"/> a singleton.
 /// <para>
@@ -28,20 +28,20 @@ internal abstract class RewriteNode
         private This() { }
     }
 
-    /// <summary>A bare identifier naming another relationship on the same resource.</summary>
-    internal sealed class ComputedSubjectSet(string relationship)
+    /// <summary>A bare identifier naming another relation on the same resource.</summary>
+    internal sealed class ComputedSubjectSet(string relation)
         : RewriteNode
     {
-        public string Relationship { get; } = relationship;
+        public string Relation { get; } = relation;
     }
 
-    /// <summary>A <c>(factset, computed)</c> pair walking through a factset relationship.</summary>
-    internal sealed class FactToSubjectSet(string factsetRelationship, string computedSubjectSetRelationship)
+    /// <summary>A <c>(factset, computed)</c> pair walking through a factset relation.</summary>
+    internal sealed class FactToSubjectSet(string factsetRelation, string computedSubjectSetRelation)
         : RewriteNode
     {
-        public string FactsetRelationship { get; } = factsetRelationship;
+        public string FactsetRelation { get; } = factsetRelation;
 
-        public string ComputedSubjectSetRelationship { get; } = computedSubjectSetRelationship;
+        public string ComputedSubjectSetRelation { get; } = computedSubjectSetRelation;
     }
 
     /// <summary>A run of <c>|</c>-joined operands.</summary>

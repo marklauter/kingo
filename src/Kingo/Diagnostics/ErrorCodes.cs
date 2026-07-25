@@ -18,10 +18,10 @@ public static class ErrorCodes
         public const string Invalid = "namespace_path.invalid";
     }
 
-    public static class RelationshipName
+    public static class RelationName
     {
-        public const string Empty = "relationship_name.empty";
-        public const string Invalid = "relationship_name.invalid";
+        public const string Empty = "relation_name.empty";
+        public const string Invalid = "relation_name.invalid";
     }
 
     public static class ResourceId

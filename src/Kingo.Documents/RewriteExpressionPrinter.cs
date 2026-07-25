@@ -14,24 +14,24 @@ namespace Kingo.Documents;
 internal static class RewriteExpressionPrinter
 {
     /// <summary>
-    /// Reports whether <paramref name="relationship"/> is the rewrite grammar's reserved word. <c>this</c> always lexes as the
+    /// Reports whether <paramref name="relation"/> is the rewrite grammar's reserved word. <c>this</c> always lexes as the
     /// direct-membership keyword, so emitting it as an identifier would silently reparse a computed reference into
     /// <c>SubjectSetRewrite.This</c>. The comparison is case-insensitive because the tokenizer matches the keyword case-insensitively while
     /// <c>Unchecked</c> performs no normalization. Reservation is on names, not paths, because the grammar only ever writes bare names.
     /// </summary>
-    /// <returns><see langword="true"/> when <paramref name="relationship"/> is <c>this</c> (case-insensitive); otherwise <see langword="false"/>.</returns>
-    public static bool IsReserved(RelationshipName relationship) =>
-        string.Equals(relationship.Value, "this", StringComparison.OrdinalIgnoreCase);
+    /// <returns><see langword="true"/> when <paramref name="relation"/> is <c>this</c> (case-insensitive); otherwise <see langword="false"/>.</returns>
+    public static bool IsReserved(RelationName relation) =>
+        string.Equals(relation.Value, "this", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Renders <paramref name="rewrite"/> as rewrite-expression text.</summary>
     /// <returns>The rewrite-expression text that reparses to a structurally equal tree.</returns>
-    /// <exception cref="ArgumentException"><paramref name="rewrite"/> references the reserved relationship name <c>this</c>, which cannot be expressed in a rewrite expression.</exception>
+    /// <exception cref="ArgumentException"><paramref name="rewrite"/> references the reserved relation name <c>this</c>, which cannot be expressed in a rewrite expression.</exception>
     public static string Print(SubjectSetRewrite rewrite) =>
         rewrite switch
         {
             SubjectSetRewrite.This => "this",
-            SubjectSetRewrite.ComputedSubjectSet computed => PrintIdentifier(computed.Relationship),
-            SubjectSetRewrite.FactToSubjectSet factTo => $"({PrintIdentifier(factTo.FactsetRelationship)}, {PrintIdentifier(factTo.ComputedSubjectSetRelationship)})",
+            SubjectSetRewrite.ComputedSubjectSet computed => PrintIdentifier(computed.Relation),
+            SubjectSetRewrite.FactToSubjectSet factTo => $"({PrintIdentifier(factTo.FactsetRelation)}, {PrintIdentifier(factTo.ComputedSubjectSetRelation)})",
             SubjectSetRewrite.Union union => string.Join(" | ", union.Children.Select(PrintUnionOperand)),
             SubjectSetRewrite.Intersection intersection => string.Join(" & ", intersection.Children.Select(PrintExclusionOperand)),
             // the last inhabitant of the closed hierarchy: a discard arm (rather than a type pattern)
@@ -42,10 +42,10 @@ internal static class RewriteExpressionPrinter
     private static string PrintExclusion(SubjectSetRewrite.Exclusion exclusion) =>
         $"{PrintExclusionOperand(exclusion.Include)} ! {PrintTerm(exclusion.Exclude)}";
 
-    private static string PrintIdentifier(RelationshipName relationship) =>
-        IsReserved(relationship)
-            ? throw new ArgumentException($"relationship '{relationship}' cannot be referenced in a rewrite expression: 'this' is reserved by the grammar")
-            : relationship.Value;
+    private static string PrintIdentifier(RelationName relation) =>
+        IsReserved(relation)
+            ? throw new ArgumentException($"relation '{relation}' cannot be referenced in a rewrite expression: 'this' is reserved by the grammar")
+            : relation.Value;
 
     /// <summary>
     /// Renders an operand of <c>|</c>, which sits at the <c>&lt;intersection&gt;</c> level. Because <c>&amp;</c> binds tighter, an intersection

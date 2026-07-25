@@ -20,12 +20,12 @@ public static class TheoryPrinter
     /// ([[identifiers]]). The domain's own invariants make the mapping well-formed by construction, because namespace names are unique.
     /// </summary>
     /// <returns>The domain document text for <paramref name="domain"/>.</returns>
-    /// <exception cref="ArgumentException">A relationship name or rewrite reference is the reserved word of the rewrite grammar (<c>this</c>), which cannot be expressed in a domain document.</exception>
+    /// <exception cref="ArgumentException">A relation name or rewrite reference is the reserved word of the rewrite grammar (<c>this</c>), which cannot be expressed in a domain document.</exception>
     public static string Print(this Theory domain)
     {
         OrderedDictionary<string, List<object>> namespaces = new(domain.Namespaces.Length);
         foreach (var ns in domain.Namespaces)
-            namespaces.Add(ns.Name.Value, [.. ns.Relationships.Select(PrintRelationship)]);
+            namespaces.Add(ns.Name.Value, [.. ns.Relations.Select(PrintRelation)]);
 
         return DocumentSerializer.Serialize(
             new OrderedDictionary<string, object>
@@ -35,10 +35,10 @@ public static class TheoryPrinter
             });
     }
 
-    private static object PrintRelationship(Relationship relationship) =>
-        RewriteExpressionPrinter.IsReserved(relationship.Name)
-            ? throw new ArgumentException($"relationship '{relationship.Name}' cannot be expressed in a domain document: '{relationship.Name}' is reserved by the rewrite grammar")
-            : relationship.Rewrite is SubjectSetRewrite.This
-                ? relationship.Name.Value
-                : new Dictionary<string, string> { [relationship.Name.Value] = RewriteExpressionPrinter.Print(relationship.Rewrite) };
+    private static object PrintRelation(Relation relation) =>
+        RewriteExpressionPrinter.IsReserved(relation.Name)
+            ? throw new ArgumentException($"relation '{relation.Name}' cannot be expressed in a domain document: '{relation.Name}' is reserved by the rewrite grammar")
+            : relation.Rewrite is SubjectSetRewrite.This
+                ? relation.Name.Value
+                : new Dictionary<string, string> { [relation.Name.Value] = RewriteExpressionPrinter.Print(relation.Rewrite) };
 }

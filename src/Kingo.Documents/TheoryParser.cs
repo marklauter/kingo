@@ -8,9 +8,9 @@ namespace Kingo.Documents;
 
 /// <summary>
 /// The parse half of the domain document adapter: domain document text ([[specs]]) to the core domain model
-/// (<see cref="TheoryPrinter.Print"/> renders the other direction). YAML carries the domain name and the outer namespace map. Each relationship's
+/// (<see cref="TheoryPrinter.Print"/> renders the other direction). YAML carries the domain name and the outer namespace map. Each relation's
 /// optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
-/// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationshipName.Parse</c>,
+/// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationName.Parse</c>,
 /// <c>NamespaceName.Parse</c>, <c>TheoryName.Parse</c>, <c>Namespace.Create</c>, <c>Theory.Create</c>), accumulating every document-level,
 /// identifier-level, and expression-level error into one <see cref="Result{T}"/> failure.
 /// </summary>
@@ -20,10 +20,10 @@ public static class TheoryParser
     /// <returns>
     /// A successful <see cref="Result{T}"/> carrying the defined <see cref="Theory"/>, or every accumulated validation <see cref="Error"/> in
     /// document order. <c>theory.syntax</c> for malformed YAML. <c>theory.document</c> when the text is not a single mapping, or the <c>domain:</c>
-    /// or <c>namespaces:</c> keys are missing or misshapen. <c>theory.namespace</c> or <c>theory.relationship</c> for wrong node shapes, or a
-    /// <c>&lt;name&gt;:</c> pair missing its rewrite expression. <c>theory.rewrite</c> for bad rewrite expressions. <c>theory.relationship.reserved</c>
-    /// when a relationship is named by a rewrite-grammar reserved word (<c>this</c>). Whatever the core factories reject: identifier grammars,
-    /// <c>namespace.duplicate_relationship</c>, <c>namespace.dangling_reference</c>, and <c>namespace.rewrite_cycle</c> via
+    /// or <c>namespaces:</c> keys are missing or misshapen. <c>theory.namespace</c> or <c>theory.relation</c> for wrong node shapes, or a
+    /// <c>&lt;name&gt;:</c> pair missing its rewrite expression. <c>theory.rewrite</c> for bad rewrite expressions. <c>theory.relation.reserved</c>
+    /// when a relation is named by a rewrite-grammar reserved word (<c>this</c>). Whatever the core factories reject: identifier grammars,
+    /// <c>namespace.duplicate_relation</c>, <c>namespace.dangling_reference</c>, and <c>namespace.rewrite_cycle</c> via
     /// <c>Namespace.Create</c>. <c>theory.empty</c> and <c>theory.duplicate_namespace</c> via <c>Theory.Create</c>. YAML keys are case-sensitive but
     /// namespace identity is not, so case-variant keys collapse to one identity after lowercase normalization and fail as duplicates.
     /// </returns>
@@ -60,7 +60,7 @@ public static class TheoryParser
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
         document.Children.TryGetValue(new YamlScalarNode(DocumentKeys.Namespaces), out var namespaces) && namespaces is YamlMappingNode map
             ? map.Children.Select(ParseNamespace).Sequence()
-            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, $"a domain document requires a '{DocumentKeys.Namespaces}:' key mapping namespace name to relationship list"));
+            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, $"a domain document requires a '{DocumentKeys.Namespaces}:' key mapping namespace name to relation list"));
 
     private static Result<YamlMappingNode> LoadDocument(string text)
     {
@@ -94,64 +94,64 @@ public static class TheoryParser
             : Result.Failure<NamespaceName>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, "a namespace name must be a scalar"));
 
         return Result.Apply(
-            name.Map<Func<ImmutableArray<Relationship>, (NamespaceName Name, ImmutableArray<Relationship> Relationships)>>(n => relationships => (n, relationships)),
-            ParseRelationships(entry.Value))
-            .Bind(ns => Namespace.Create(ns.Name, ns.Relationships));
+            name.Map<Func<ImmutableArray<Relation>, (NamespaceName Name, ImmutableArray<Relation> Relations)>>(n => relations => (n, relations)),
+            ParseRelations(entry.Value))
+            .Bind(ns => Namespace.Create(ns.Name, ns.Relations));
     }
 
-    private static Result<ImmutableArray<Relationship>> ParseRelationships(YamlNode node) =>
+    private static Result<ImmutableArray<Relation>> ParseRelations(YamlNode node) =>
         node switch
         {
-            YamlSequenceNode sequence => sequence.Children.Select(ParseRelationship).Sequence(),
-            // "file:" with no value — a namespace with no relationships — parses as a plain null scalar (core-schema null forms)
-            YamlScalarNode { Style: ScalarStyle.Plain, Value: null or "" or "null" or "Null" or "NULL" or "~" } => Result.Success<ImmutableArray<Relationship>>([]),
-            _ => Result.Failure<ImmutableArray<Relationship>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, "a namespace defines a sequence of relationships")),
+            YamlSequenceNode sequence => sequence.Children.Select(ParseRelation).Sequence(),
+            // "file:" with no value — a namespace with no relations — parses as a plain null scalar (core-schema null forms)
+            YamlScalarNode { Style: ScalarStyle.Plain, Value: null or "" or "null" or "Null" or "NULL" or "~" } => Result.Success<ImmutableArray<Relation>>([]),
+            _ => Result.Failure<ImmutableArray<Relation>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, "a namespace defines a sequence of relations")),
         };
 
-    private static Result<Relationship> ParseRelationship(YamlNode node) =>
+    private static Result<Relation> ParseRelation(YamlNode node) =>
         node switch
         {
             // "- owner" — a bare name, implicit this (Value is never null on a node loaded from text)
-            YamlScalarNode scalar => ParseRelationshipName(scalar.Value!).Map(relationship => new Relationship(relationship)),
+            YamlScalarNode scalar => ParseRelationName(scalar.Value!).Map(relation => new Relation(relation)),
             // "- editor: this | owner" — a single-pair mapping of name to rewrite expression
-            YamlMappingNode { Children.Count: 1 } mapping => ParseRewriteRelationship(mapping.Children.First()),
-            _ => Result.Failure<Relationship>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, "a relationship is a bare name or a single '<name>: <rewrite expression>' pair")),
+            YamlMappingNode { Children.Count: 1 } mapping => ParseRewriteRelation(mapping.Children.First()),
+            _ => Result.Failure<Relation>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relation, "a relation is a bare name or a single '<name>: <rewrite expression>' pair")),
         };
 
-    private static Result<Relationship> ParseRewriteRelationship(KeyValuePair<YamlNode, YamlNode> entry) =>
+    private static Result<Relation> ParseRewriteRelation(KeyValuePair<YamlNode, YamlNode> entry) =>
         // Key.Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         entry is { Key: YamlScalarNode name, Value: YamlScalarNode expression }
             ? Result.Apply(
-                ParseRelationshipName(name.Value!)
-                    .Map<Func<SubjectSetRewrite, Relationship>>(relationship => rewrite => new Relationship(relationship, rewrite)),
+                ParseRelationName(name.Value!)
+                    .Map<Func<SubjectSetRewrite, Relation>>(relation => rewrite => new Relation(relation, rewrite)),
                 ParseRewriteExpression(name, expression))
-            : Result.Failure<Relationship>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, "a relationship is a bare name or a single '<name>: <rewrite expression>' pair"));
+            : Result.Failure<Relation>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relation, "a relation is a bare name or a single '<name>: <rewrite expression>' pair"));
 
     /// <summary>
     /// Parses the value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain
     /// empty scalar. A plain scalar cannot spell an empty string, so this shape is always a forgotten expression and gets a pointed error
     /// rather than the mini-language's generic unexpected-end-of-input. Any other scalar hands its raw text to the expression parser, because
-    /// the domain document owns the text rather than YAML's scalar typing. A plain <c>null</c> is the identifier <c>null</c>, which keeps a relationship so
+    /// the domain document owns the text rather than YAML's scalar typing. A plain <c>null</c> is the identifier <c>null</c>, which keeps a relation so
     /// named round-tripping, because the renderer emits it unquoted.
     /// </summary>
-    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>theory.relationship</c> failure when the expression is missing, or the expression parser's failures.</returns>
+    /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>theory.relation</c> failure when the expression is missing, or the expression parser's failures.</returns>
     private static Result<SubjectSetRewrite> ParseRewriteExpression(YamlScalarNode name, YamlScalarNode expression) =>
         expression is { Style: ScalarStyle.Plain, Value: null or "" }
-            ? Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, $"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name"))
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relation, $"relation '{name.Value}' is missing its rewrite expression; a relation without a rewrite is a bare name"))
             : RewriteExpressionParser.Parse(expression.Value!);
 
     /// <summary>
-    /// Parses a relationship name and rejects the rewrite-grammar reserved word <c>this</c>. The name <c>this</c> always lexes as the keyword, so a relationship
+    /// Parses a relation name and rejects the rewrite-grammar reserved word <c>this</c>. The name <c>this</c> always lexes as the keyword, so a relation
     /// so named could never be referenced, and a reference would silently read as direct membership. The domain document reserves it. The name stays bare, because the enclosing
     /// <see cref="Namespace"/> supplies the qualification.
     /// </summary>
     /// <returns>
-    /// A successful <see cref="Result{T}"/> carrying the <see cref="RelationshipName"/>, a <c>theory.relationship.reserved</c> failure when the name is a
-    /// rewrite-grammar reserved word, or the identifier-grammar failures (<c>relationship_name.empty</c>, <c>relationship_name.invalid</c>) that
-    /// <c>RelationshipName.Parse</c> raises.
+    /// A successful <see cref="Result{T}"/> carrying the <see cref="RelationName"/>, a <c>theory.relation.reserved</c> failure when the name is a
+    /// rewrite-grammar reserved word, or the identifier-grammar failures (<c>relation_name.empty</c>, <c>relation_name.invalid</c>) that
+    /// <c>RelationName.Parse</c> raises.
     /// </returns>
-    private static Result<RelationshipName> ParseRelationshipName(string name) =>
-        RelationshipName.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
-            ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.Theory.RelationshipReserved, $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in a domain document"))
-            : Result.Success(relationship));
+    private static Result<RelationName> ParseRelationName(string name) =>
+        RelationName.Parse(name).Bind(relation => RewriteExpressionPrinter.IsReserved(relation)
+            ? Result.Failure<RelationName>(Error.Validation(Diagnostics.ErrorCodes.Theory.RelationReserved, $"'{relation}' is reserved by the rewrite grammar and cannot name a relation in a domain document"))
+            : Result.Success(relation));
 }

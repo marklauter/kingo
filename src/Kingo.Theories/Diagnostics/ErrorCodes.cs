@@ -14,7 +14,7 @@ public static class ErrorCodes
 
     public static class Namespace
     {
-        public const string DuplicateRelationship = "namespace.duplicate_relationship";
+        public const string DuplicateRelation = "namespace.duplicate_relation";
         public const string DanglingReference = "namespace.dangling_reference";
         public const string RewriteCycle = "namespace.rewrite_cycle";
     }

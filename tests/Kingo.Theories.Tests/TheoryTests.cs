@@ -6,11 +6,11 @@ namespace Kingo.Theories.Tests;
 
 public sealed class TheoryTests
 {
-    private static Namespace Ns(string name, params string[] relationships) =>
+    private static Namespace Ns(string name, params string[] relations) =>
         Assert.IsType<Result<Namespace>.Success>(
             Namespace.Create(
                 NamespaceName.Unchecked(name),
-                [.. relationships.Select(r => new Relationship(RelationshipName.Unchecked(r)))])).Value;
+                [.. relations.Select(r => new Relation(RelationName.Unchecked(r)))])).Value;
 
     private static TheoryName Id(string name) => TheoryName.Unchecked(name);
 

@@ -9,11 +9,11 @@ using System.Collections.Immutable;
 namespace Kingo.Documents;
 
 /// <summary>
-/// Recursive-descent parser for the rewrite-expression mini-language embedded in domain document relationship values, for example
+/// Recursive-descent parser for the rewrite-expression mini-language embedded in domain document relation values, for example
 /// <c>(this | editor | (parent, viewer)) ! banned</c>. Produces the core <c>SubjectSetRewrite</c> algebra. The grammar and its precedence
 /// are given in [[specs]]: a cascade, tightest first, <c>!</c> exclusion, then <c>&amp;</c> intersection, then <c>|</c> union. Each level is
 /// left-associative, so <c>a | b &amp; c</c> is <c>a | (b &amp; c)</c>. The Superpower grammar produces the internal <see cref="RewriteNode"/>
-/// tree. The transform at the exit parses every identifier through <c>RelationshipName.Parse</c> and accumulates the errors, so bad input
+/// tree. The transform at the exit parses every identifier through <c>RelationName.Parse</c> and accumulates the errors, so bad input
 /// surfaces as <see cref="Result{T}"/> validation failures rather than exceptions. The expression language writes bare names only, so the
 /// transform needs no namespace to qualify against. The rewrite algebra stores names, and evaluation qualifies them against the resource in
 /// hand ([[identifiers]]).
@@ -25,7 +25,7 @@ internal static class RewriteExpressionParser
     /// A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>. A <c>theory.rewrite</c> validation failure when the
     /// text does not tokenize, when parenthesis nesting exceeds <c>SubjectSetRewrite.MaxDepth</c>, or when the token stream does not parse.
     /// A <c>rewrite.depth</c> failure when the parsed tree exceeds <c>SubjectSetRewrite.MaxDepth</c>. Identifier validation failures from
-    /// <c>RelationshipName.Parse</c> when any name in the expression is not a valid relationship name.
+    /// <c>RelationName.Parse</c> when any name in the expression is not a valid relation name.
     /// </returns>
     public static Result<SubjectSetRewrite> Parse(string expression)
     {
@@ -132,12 +132,12 @@ internal static class RewriteExpressionParser
         node switch
         {
             RewriteNode.This => Result.Success<SubjectSetRewrite>(SubjectSetRewrite.This.Default),
-            RewriteNode.ComputedSubjectSet computed => RelationshipName.Parse(computed.Relationship)
-                .Map(SubjectSetRewrite (relationship) => SubjectSetRewrite.ComputedSubjectSet.Create(relationship)),
+            RewriteNode.ComputedSubjectSet computed => RelationName.Parse(computed.Relation)
+                .Map(SubjectSetRewrite (relation) => SubjectSetRewrite.ComputedSubjectSet.Create(relation)),
             RewriteNode.FactToSubjectSet factTo => Result.Apply(
-                RelationshipName.Parse(factTo.FactsetRelationship)
-                    .Map(Func<RelationshipName, SubjectSetRewrite> (factset) => computed => SubjectSetRewrite.FactToSubjectSet.Create(factset, computed)),
-                RelationshipName.Parse(factTo.ComputedSubjectSetRelationship)),
+                RelationName.Parse(factTo.FactsetRelation)
+                    .Map(Func<RelationName, SubjectSetRewrite> (factset) => computed => SubjectSetRewrite.FactToSubjectSet.Create(factset, computed)),
+                RelationName.Parse(factTo.ComputedSubjectSetRelation)),
             RewriteNode.Union union => union.Children.Select(Transform).Sequence()
                 .Bind(children => SubjectSetRewrite.Union.Create(children).Map(SubjectSetRewrite (rewrite) => rewrite)),
             RewriteNode.Intersection intersection => intersection.Children.Select(Transform).Sequence()
@@ -158,7 +158,7 @@ internal static class RewriteExpressionParser
     {
         None,
 
-        [Token(Category = "identifier", Example = "myRelationship")]
+        [Token(Category = "identifier", Example = "myRelation")]
         Identifier,
 
         [Token(Category = "keyword", Example = "this")]
@@ -211,9 +211,9 @@ internal static class RewriteExpressionParser
             from lparen in Token.EqualTo(RewriteExpressionToken.LeftParen)
             from factset in identifier
             from comma in Token.EqualTo(RewriteExpressionToken.Comma)
-            from computedSubjectSetRelationship in identifier
+            from computedSubjectSetRelation in identifier
             from rparen in Token.EqualTo(RewriteExpressionToken.RightParen)
-            select (RewriteNode)new RewriteNode.FactToSubjectSet(factset, computedSubjectSetRelationship);
+            select (RewriteNode)new RewriteNode.FactToSubjectSet(factset, computedSubjectSetRelation);
 
         TokenListParser<RewriteExpressionToken, RewriteNode>? expressionRef = null;
         var term = factToSubjectSet.Try().Or(thisTerm.Try()).Or(computed)

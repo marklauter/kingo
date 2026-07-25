@@ -11,8 +11,8 @@ public static class ErrorCodes
         public const string Document = "theory.document";
         public const string Syntax = "theory.syntax";
         public const string Namespace = "theory.namespace";
-        public const string Relationship = "theory.relationship";
-        public const string RelationshipReserved = "theory.relationship.reserved";
+        public const string Relation = "theory.relation";
+        public const string RelationReserved = "theory.relation.reserved";
         public const string Rewrite = "theory.rewrite";
     }
 }

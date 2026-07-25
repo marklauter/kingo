@@ -4,10 +4,10 @@ namespace Kingo.Facts.Tests;
 
 public sealed class FactTests
 {
-    private static SubjectSet Set(string namespacePath, string resourceId, string relationship) =>
+    private static SubjectSet Set(string namespacePath, string resourceId, string relation) =>
         new(
             new Resource(NamespacePath.Unchecked(namespacePath), ResourceId.Unchecked(resourceId)),
-            RelationshipName.Unchecked(relationship));
+            RelationName.Unchecked(relation));
 
     [Fact]
     public void SubjectFact_HoldsSubjectSetAndSubjectId()

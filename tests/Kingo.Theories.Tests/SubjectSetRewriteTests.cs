@@ -15,7 +15,7 @@ public sealed class SubjectSetRewriteTests
     // ---- SubjectSetRewrite.ComputedSubjectSet ----
 
     [Fact]
-    public void ComputedSubjectSet_SameRelationship_AreEqual()
+    public void ComputedSubjectSet_SameRelation_AreEqual()
     {
         var a = Computed("editor");
         var b = Computed("editor");
@@ -25,7 +25,7 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void ComputedSubjectSet_DifferentRelationship_NotEqual()
+    public void ComputedSubjectSet_DifferentRelation_NotEqual()
     {
         var a = Computed("editor");
         var b = Computed("viewer");
@@ -34,11 +34,11 @@ public sealed class SubjectSetRewriteTests
     }
 
     [Fact]
-    public void ComputedSubjectSet_ExposesRelationship()
+    public void ComputedSubjectSet_ExposesRelation()
     {
         var rewrite = Computed("editor");
 
-        Assert.Equal(Rel("editor"), rewrite.Relationship);
+        Assert.Equal(Rel("editor"), rewrite.Relation);
     }
 
     // ---- SubjectSetRewrite.FactToSubjectSet ----
@@ -67,8 +67,8 @@ public sealed class SubjectSetRewriteTests
     {
         var rewrite = FactTo("parent", "viewer");
 
-        Assert.Equal(Rel("parent"), rewrite.FactsetRelationship);
-        Assert.Equal(Rel("viewer"), rewrite.ComputedSubjectSetRelationship);
+        Assert.Equal(Rel("parent"), rewrite.FactsetRelation);
+        Assert.Equal(Rel("viewer"), rewrite.ComputedSubjectSetRelation);
     }
 
     // ---- SubjectSetRewrite.Union ----

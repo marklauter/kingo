@@ -5,11 +5,11 @@ using System.Diagnostics.CodeAnalysis;
 namespace Kingo.Theories;
 
 /// <summary>
-/// The rewrite algebra: a closed discriminated union describing how a relationship's effective subject set is computed. The cases are direct membership
-/// (<see cref="This"/>), another relationship on the same resource (<see cref="ComputedSubjectSet"/>), a walk through a factset (<see cref="FactToSubjectSet"/>),
+/// The rewrite algebra: a closed discriminated union describing how a relation's effective subject set is computed. The cases are direct membership
+/// (<see cref="This"/>), another relation on the same resource (<see cref="ComputedSubjectSet"/>), a walk through a factset (<see cref="FactToSubjectSet"/>),
 /// and the set operators (<see cref="Union"/>, <see cref="Intersection"/>, <see cref="Exclusion"/>). The cases nest under the base, and the base constructor is
 /// private, so the case set is closed by the compiler, not by convention. No seventh inhabitant is declarable anywhere. The algebra is namespace-agnostic: every
-/// name position holds a bare <see cref="RelationshipName"/>, because the namespace always comes from the resource being evaluated and never from the stored node
+/// name position holds a bare <see cref="RelationName"/>, because the namespace always comes from the resource being evaluated and never from the stored node
 /// ([[identifiers]]). It is parse-agnostic, produced equally by the domain document adapter, other serialization adapters, or the Write API. Every producer constructs through
 /// the static <c>Create</c> factories, or, for the stateless <see cref="This"/>, its <see cref="This.Default"/> singleton, so a rewrite that exists satisfies its
 /// invariants. The operator factories return <see cref="Result{T}"/>: they refuse empty operand lists and trees past <see cref="MaxDepth"/>. The leaves return the
@@ -20,7 +20,7 @@ namespace Kingo.Theories;
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "SubjectSetRewrite is a discriminated union; This, ComputedSubjectSet, FactToSubjectSet, Union, Intersection, and Exclusion are its cases, nested under the closed base and deliberately public — SubjectSetRewrite.Union reads as the case it is, and the nesting is what closes the case set against a seventh inhabitant.")]
 public abstract partial record SubjectSetRewrite
 {
-    /// <summary>Direct membership: the subjects written in facts for this relationship.</summary>
+    /// <summary>Direct membership: the subjects written in facts for this relation.</summary>
     public sealed record This
         : SubjectSetRewrite
     {
@@ -34,53 +34,53 @@ public abstract partial record SubjectSetRewrite
     }
 
     /// <summary>
-    /// The subject set of another relationship on the same resource. A bare <see cref="RelationshipName"/>, not a path: the re-evaluation happens on the resource
+    /// The subject set of another relation on the same resource. A bare <see cref="RelationName"/>, not a path: the re-evaluation happens on the resource
     /// in hand, so that resource's namespace is the only namespace there is. Storing a path here would be a second source of truth that could disagree with it.
     /// </summary>
     public sealed record ComputedSubjectSet
         : SubjectSetRewrite
     {
-        public RelationshipName Relationship { get; }
+        public RelationName Relation { get; }
 
-        private ComputedSubjectSet(RelationshipName relationship)
+        private ComputedSubjectSet(RelationName relation)
             : base(depth: 1)
-            => Relationship = relationship;
+            => Relation = relation;
 
         /// <summary>
-        /// Constructs a computed subject set naming <paramref name="relationship"/>. The only construction path. Infallible, because <paramref name="relationship"/>
-        /// is already a valid name. Whether it names a defined relationship is <c>Namespace.Create</c>'s check.
+        /// Constructs a computed subject set naming <paramref name="relation"/>. The only construction path. Infallible, because <paramref name="relation"/>
+        /// is already a valid name. Whether it names a defined relation is <c>Namespace.Create</c>'s check.
         /// </summary>
-        /// <returns>A <see cref="ComputedSubjectSet"/> naming <paramref name="relationship"/>.</returns>
-        public static ComputedSubjectSet Create(RelationshipName relationship) => new(relationship);
+        /// <returns>A <see cref="ComputedSubjectSet"/> naming <paramref name="relation"/>.</returns>
+        public static ComputedSubjectSet Create(RelationName relation) => new(relation);
     }
 
     /// <summary>
-    /// Walks the facts of <see cref="FactsetRelationship"/> on the resource and, for each resource found, evaluates <see cref="ComputedSubjectSetRelationship"/>
-    /// on that resource. This is how inherited permissions are expressed: one relationship on the resource grants a relationship on each of the resources its facts
+    /// Walks the facts of <see cref="FactsetRelation"/> on the resource and, for each resource found, evaluates <see cref="ComputedSubjectSetRelation"/>
+    /// on that resource. This is how inherited permissions are expressed: one relation on the resource grants a relation on each of the resources its facts
     /// point to. Only <c>Fact.ResourceFact</c> members traverse. Subject- and subjectset-shaped members are modeled errors ([[rewrite-interpreters]] conditions
-    /// 5–6). The second relationship names a computed subject set on each resolved resource, the same construct as <see cref="ComputedSubjectSet"/>, applied to the
-    /// factset's resources rather than to this resource. Both are bare <see cref="RelationshipName"/>s, not paths: the factset's facts are read on the resource in
+    /// 5–6). The second relation names a computed subject set on each resolved resource, the same construct as <see cref="ComputedSubjectSet"/>, applied to the
+    /// factset's resources rather than to this resource. Both are bare <see cref="RelationName"/>s, not paths: the factset's facts are read on the resource in
     /// hand, and the computed half evaluates on whatever resource the walk arrives at, a namespace not known until the facts are read. Neither namespace can come
     /// from the stored node.
     /// </summary>
     public sealed record FactToSubjectSet
         : SubjectSetRewrite
     {
-        public RelationshipName FactsetRelationship { get; }
+        public RelationName FactsetRelation { get; }
 
-        public RelationshipName ComputedSubjectSetRelationship { get; }
+        public RelationName ComputedSubjectSetRelation { get; }
 
-        private FactToSubjectSet(RelationshipName factsetRelationship, RelationshipName computedSubjectSetRelationship)
+        private FactToSubjectSet(RelationName factsetRelation, RelationName computedSubjectSetRelation)
             : base(depth: 1)
-            => (FactsetRelationship, ComputedSubjectSetRelationship) = (factsetRelationship, computedSubjectSetRelationship);
+            => (FactsetRelation, ComputedSubjectSetRelation) = (factsetRelation, computedSubjectSetRelation);
 
         /// <summary>
-        /// Constructs a factset walk pairing <paramref name="factsetRelationship"/> with <paramref name="computedSubjectSetRelationship"/>. The only construction
+        /// Constructs a factset walk pairing <paramref name="factsetRelation"/> with <paramref name="computedSubjectSetRelation"/>. The only construction
         /// path. Infallible, because both names are already valid. The factset reference's definedness is <c>Namespace.Create</c>'s check.
         /// </summary>
-        /// <returns>A <see cref="FactToSubjectSet"/> pairing <paramref name="factsetRelationship"/> with <paramref name="computedSubjectSetRelationship"/>.</returns>
-        public static FactToSubjectSet Create(RelationshipName factsetRelationship, RelationshipName computedSubjectSetRelationship) =>
-            new(factsetRelationship, computedSubjectSetRelationship);
+        /// <returns>A <see cref="FactToSubjectSet"/> pairing <paramref name="factsetRelation"/> with <paramref name="computedSubjectSetRelation"/>.</returns>
+        public static FactToSubjectSet Create(RelationName factsetRelation, RelationName computedSubjectSetRelation) =>
+            new(factsetRelation, computedSubjectSetRelation);
     }
 
     /// <summary>Union of the child rewrites' subject sets. Equality is structural over <see cref="Children"/> (element-wise, order-sensitive).</summary>

@@ -16,7 +16,7 @@ public sealed class TheoryRoundTripTests
     [InlineData("file:\n  - owner\n  - parent\n  - banned\n  - viewer: this | (parent, child) & owner ! banned")]
     [InlineData("file:\n  - owner\nfolder:\n  - parent\n  - banned\n  - viewer: (this | (parent, viewer)) ! banned")]
     [InlineData("file:")]
-    // 'null' is a legal relationship name; the renderer emits it as unquoted plain text and the parser reads
+    // 'null' is a legal relation name; the renderer emits it as unquoted plain text and the parser reads
     // raw scalar text, so the pair stays inverse even where YAML's own typing would read a null
     [InlineData("file:\n  - null\n  - viewer: null")]
     public void RoundTrip_FromText_PreservesTheoryValues(string namespaceMap)
@@ -65,7 +65,7 @@ public sealed class TheoryRoundTripTests
     [MemberData(nameof(RewriteCaseKeys))]
     public void RoundTrip_FromTheory_PreservesTreeStructure(string key)
     {
-        // every relationship the rewrite cases reference, defined bare so the namespace gate passes
+        // every relation the rewrite cases reference, defined bare so the namespace gate passes
         var original = MakeTheory(
         [
             MakeNs(
@@ -79,7 +79,7 @@ public sealed class TheoryRoundTripTests
                     Bare("a"),
                     Bare("b"),
                     Bare("c"),
-                    new Relationship(Rel("viewer"), RewriteCases[key]),
+                    new Relation(Rel("viewer"), RewriteCases[key]),
                 ]),
         ]);
 
