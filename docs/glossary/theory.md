@@ -23,4 +23,3 @@ It is also the unit of ownership, authoring, and atomic change.
 ## Contrasts
 
 - `fact` — a fact records a membership that holds; a theory defines how memberships are derived. Facts are what a theory is read against; the theory is the shape they are read through.
-- `namespace` — the stored unit within a theory; a theory is the set that owns and names them.

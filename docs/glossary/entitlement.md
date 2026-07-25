@@ -1,9 +1,16 @@
 ---
 title: entitlement
-summary: "A derived membership — one that holds in the closure without being stored; rules plus facts entail entitlements."
+summary: "A derived membership. It holds in the closure without being stored, entailed by the rules and the facts together."
 tags: [glossary, evaluation]
 created: 2026-07-18
 status: locked
+holds-in: "[[closure]]"
+contrast:
+  - "[[fact]]"
 ---
 
-A derived membership — one that holds in the closure without being stored; rules plus facts entail entitlements. A stored fact is a premise; an entitlement is a conclusion.
+A derived membership. It holds in the closure without being stored, entailed by the rules and the facts together.
+
+## Contrasts
+
+- `fact` — a stored fact is a premise. An entitlement is a conclusion drawn from the facts through the theory.

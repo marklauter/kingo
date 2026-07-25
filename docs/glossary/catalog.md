@@ -13,7 +13,3 @@ The complete set of theories — the global space every name resolves in, and th
 
 - `sales/documents` and `support/documents` sit in one catalog. Each theory scopes its local name; the catalog is where the qualified names are unique.
 - A rule in one theory references a relationship in another. The reference resolves against the catalog, so consistency is checked across the whole set, not within the theory that authored it.
-
-## Contrasts
-
-- `theory` — one scoped set of namespaces within the catalog; the catalog is every theory together.

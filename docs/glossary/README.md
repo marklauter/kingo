@@ -20,6 +20,7 @@ One file per term, each reduced to the word plus the smallest phrase that unpack
 - [[contains]]
 - [[decision]]
 - [[depth-bound]]
+- [[effective-subject-set]]
 - [[entitlement]]
 - [[exclusion]]
 - [[expand]]
