@@ -1,9 +1,11 @@
 ---
 title: fact
 type: definition
-summary: "A stored assertion joining a subjectset to a subject."
+summary: "An assertion joining a subjectset to a subject."
 status: locked
-has-a: "[[subjectset]]"
+has-a:
+  - "[[subjectset]]"
+  - "[[subject]]"
 ---
 
-A stored assertion joining a subjectset to a subject.
+An assertion joining a subjectset to a subject.

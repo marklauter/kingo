@@ -3,7 +3,7 @@ title: resource
 type: definition
 summary: "An object a fact is about, identified by a namespace and an id."
 status: locked
-has-a: "[[namespace]]"
+scoped-by: "[[namespace]]"
 ---
 
 An object a fact is about, identified by a namespace and an id.
