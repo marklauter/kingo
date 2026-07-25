@@ -1,9 +1,9 @@
 ---
 title: exclusion
 type: definition
-summary: "The rewrite operator (!) whose effective subject set is its first operand minus its second — set difference, not a deny rule."
-status: evolving
+summary: "A rewrite pairing a set to take with a set to remove from it."
+status: locked
 is-a: "[[subject-set-rewrite]]"
 ---
 
-The rewrite operator (!) whose effective subject set is its first operand minus its second — set difference, not a deny rule.
+A rewrite pairing a set to take with a set to remove from it.

@@ -1,9 +1,9 @@
 ---
 title: computed-subject-set
 type: definition
-summary: "A rewrite that references another relationship on the same resource, adopting its effective subject set."
-status: evolving
+summary: "A rewrite naming another relation on the same resource."
+status: locked
 is-a: "[[subject-set-rewrite]]"
 ---
 
-A rewrite that references another relationship on the same resource, adopting its effective subject set.
+A rewrite naming another relation on the same resource.

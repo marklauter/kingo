@@ -1,9 +1,9 @@
 ---
 title: this
 type: definition
-summary: "Direct membership — the subjects written directly under a subject set, plus the members of any subject-set-valued facts stored there."
-status: evolving
+summary: "A rewrite naming the subject set's own facts."
+status: locked
 is-a: "[[subject-set-rewrite]]"
 ---
 
-Direct membership — the subjects written directly under a subject set, plus the members of any subject-set-valued facts stored there.
+A rewrite naming the subject set's own facts.

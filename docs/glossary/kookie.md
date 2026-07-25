@@ -1,8 +1,8 @@
 ---
 title: kookie
 type: definition
-summary: "Kingo's snapshot token naming a point in the store's timeline — a floor on the request, the pin on a decision."
-status: evolving
+summary: "A token naming a point in the store's timeline."
+status: locked
 ---
 
-Kingo's snapshot token naming a point in the store's timeline — a floor on the request, the pin on a decision.
+A token naming a point in the store's timeline.

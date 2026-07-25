@@ -1,10 +1,9 @@
 ---
 title: putative-fact
 type: definition
-summary: "The question Contains answers. A fact about one subject, held as a hypothesis rather than stored."
-status: evolving
-contrast:
-  - "[[fact]]"
+summary: "A fact about one subject, held as a hypothesis."
+status: locked
+is-a: "[[fact]]"
 ---
 
-The question Contains answers. A fact about one subject, held as a hypothesis rather than stored.
+A fact about one subject, held as a hypothesis.

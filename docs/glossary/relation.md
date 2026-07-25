@@ -1,5 +1,5 @@
 ---
-title: relationship
+title: relation
 type: definition
 summary: "A named rewrite."
 status: locked

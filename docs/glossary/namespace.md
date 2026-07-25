@@ -1,8 +1,9 @@
 ---
 title: namespace
 type: definition
-summary: "A named grouping of relationship definitions — an entity within a theory, identified by name."
-status: evolving
+summary: "A set of relations sharing one name scope."
+status: locked
+has-a: "[[relation]]"
 ---
 
-A named grouping of relationship definitions — an entity within a theory, identified by name.
+A set of relations sharing one name scope.

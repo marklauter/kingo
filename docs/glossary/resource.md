@@ -1,8 +1,9 @@
 ---
 title: resource
 type: definition
-summary: "The namespaced object a fact is about — namespace:resource-id, such as doc:readme."
-status: evolving
+summary: "An object a fact is about, identified by a namespace and an id."
+status: locked
+has-a: "[[namespace]]"
 ---
 
-The namespaced object a fact is about — namespace:resource-id, such as doc:readme.
+An object a fact is about, identified by a namespace and an id.

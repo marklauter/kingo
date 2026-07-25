@@ -1,8 +1,9 @@
 ---
 title: factset
 type: definition
-summary: "The set of facts under one relationship on a resource, supplying the resources a fact-to-subject-set rewrite re-evaluates on."
-status: evolving
+summary: "The relation to follow in a fact-to-subject-set."
+status: locked
+is-a: "[[relation]]"
 ---
 
-The set of facts under one relationship on a resource, supplying the resources a fact-to-subject-set rewrite re-evaluates on.
+The relation to follow in a fact-to-subject-set.
