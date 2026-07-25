@@ -37,7 +37,7 @@ touch:
   - group:eng#member@user:dave
 ```
 
-Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relationship>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
+Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relation>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
 
 Sections are the natural fit for a bulk loader — the common document is "here are 400 facts to create" and a per-entry operation tag would be noise on every line. The cost is that operation order becomes *implicit in section order*, which is a real constraint (see open questions).
 
@@ -96,7 +96,7 @@ These are storage questions, which is why they travel with the ports project rat
 - **Section order.** With section blocks, a document cannot interleave: it cannot say "delete X, then create X". Either the sections have a fixed defined order (delete-then-create is the usual choice — it makes a document idempotent-ish and lets a section pair express replacement), or a document that both deletes and creates the same fact is rejected as ambiguous. Worth deciding before the format hardens, because it is unfixable afterward without a breaking change.
 - **Same fact in two sections** — a defect at parse time, or resolved by section order? Follows directly from the question above.
 - **Preconditions.** SpiceDB's `WriteRelationships` carries optional preconditions (must-match / must-not-match filters) so a batch can assert state before applying. Out of scope for a first document format, but worth knowing it is the next thing bulk callers ask for.
-- **Delete by filter.** Zanzibar and SpiceDB both offer delete-by-filter (wildcards over resource/relationship/subject) separately from delete-by-tuple. A document listing every fact to delete cannot express "drop every viewer of `doc:readme`". Likely a Write API concern rather than a document one, but it is the other half of what "bulk mutator" usually means.
+- **Delete by filter.** Zanzibar and SpiceDB both offer delete-by-filter (wildcards over resource/relation/subject) separately from delete-by-tuple. A document listing every fact to delete cannot express "drop every viewer of `doc:readme`". Likely a Write API concern rather than a document one, but it is the other half of what "bulk mutator" usually means.
 
 ## Next
 

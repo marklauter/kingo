@@ -8,14 +8,14 @@ status: locked
 
 # Drift prevention at the write edges
 
-Facts and theories are separately writable artifacts that reference each other. Drift — a stored fact naming a namespace or relationship the theory no longer defines — has exactly two producers, and the Write service, as sole writer of both artifacts ([[four-service-split-by-load-profile]]), closes both:
+Facts and theories are separately writable artifacts that reference each other. Drift — a stored fact naming a namespace or relation the theory no longer defines — has exactly two producers, and the Write service, as sole writer of both artifacts ([[four-service-split-by-load-profile]]), closes both:
 
-1. **Facts can't lead the theory.** Every fact write is validated against the current theory: the namespace is defined, the relationship is defined, and factset-consumed members have the exactly-specified shape.
-2. **Theories can't abandon facts.** A theory write that removes a namespace or relationship is refused while live facts reference it. The check is a reverse existence query — do any live facts reference this name — at theory-write time, cold path. Removal becomes a two-step migration: migrate the facts, then land the removal. Whole-namespace and whole-theory deletion are the limiting case of the same ceremony.
+1. **Facts can't lead the theory.** Every fact write is validated against the current theory: the namespace is defined, the relation is defined, and factset-consumed members have the exactly-specified shape.
+2. **Theories can't abandon facts.** A theory write that removes a namespace or relation is refused while live facts reference it. The check is a reverse existence query — do any live facts reference this name — at theory-write time, cold path. Removal becomes a two-step migration: migrate the facts, then land the removal. Whole-namespace and whole-theory deletion are the limiting case of the same ceremony.
 
 A third element makes the invariants hold at read time as well as write time: evaluation and replay always read a coherent ([[kookie]], theory version) pair, both artifacts versioned on the one store timeline ([[storage-versioning-design]]). The two invariants make every moment coherent; the coupled read makes every evaluation see one moment.
 
-Consequences: the evaluator's undefined-namespace-or-relationship error ([[rewrite-interpreters]] condition 4) is a never-in-practice backstop, reachable only through a mismatched pair or a coupling bug; and facts carry no theory version, because valid-at-write-time now implies valid-under-every-theory-since.
+Consequences: the evaluator's undefined-namespace-or-relation error ([[rewrite-interpreters]] condition 4) is a never-in-practice backstop, reachable only through a mismatched pair or a coupling bug; and facts carry no theory version, because valid-at-write-time now implies valid-under-every-theory-since.
 
 ## Alternatives
 

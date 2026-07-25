@@ -16,10 +16,10 @@ Zanzibar's data model is essentially specified in DynamoDB-shaped primitives. Th
 
 | Zanzibar / Kingo concept | DynamoDB primitive |
 |---|---|
-| `(object#relation, subject)` tuples | `(PK, SK)` items |
+| `(resource#relation, subject)` facts | `(PK, SK)` items |
 | `DocumentWriter` version-conflict CAS | `[DynamoDBVersion]` optimistic locking |
-| Atomic multi-tuple writes | `TransactWriteItems` |
-| Reverse index ("what can user X see?") | GSI on `subject` |
+| Atomic multi-fact writes | `TransactWriteItems` |
+| Reverse index ("what can subject X see?") | GSI on `subject` |
 | Watch API / change feed | DynamoDB Streams |
 | MVCC header + journal split | Items + separate journal table |
 | Range scan in `SubjectSetRewrite.FactToSubjectSet` | `Query` with `KeyConditionExpression` |
@@ -28,12 +28,12 @@ Zanzibar production runs on Spanner, but the abstract model is a partition+sort 
 
 ## What this dissolves from earlier production-gap reviews
 
-Several gaps called out in [[sources]] and earlier reviews collapse the moment Kingo's domain sits on top of DynamoDB:
+Several gaps called out in earlier reviews collapse the moment Kingo's domain sits on top of DynamoDB:
 
 - **Persistence** — substrate handles it
 - **Watch API** — DynamoDB Streams
 - **Reverse index** — GSI
-- **Atomic multi-tuple writes** — `TransactWriteItems`
+- **Atomic multi-fact writes** — `TransactWriteItems`
 - **Optimistic locking** — `[DynamoDBVersion]` natively
 - **Pagination** — SDK handles it
 
@@ -41,7 +41,7 @@ Several gaps called out in [[sources]] and earlier reviews collapse the moment K
 
 DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problems:
 
-- **Zookies / external consistency** — needs an app-layer commit-timestamp protocol. No store gives you this for free.
+- **Kookies / external consistency** — needs an app-layer commit-timestamp protocol. No store gives you this for free.
 - **Leopard-style set-fold caching** — application concern.
 - **Theory administration** — separate from storage. The YAML PDL parser on the `dictionary-encoding` quarry is the closest existing work.
 
@@ -54,8 +54,8 @@ DynamoDb-as-substrate is neutral on the genuinely hard Zanzibar-specific problem
 
 The decision stands; three rows of the picture above gained specifics:
 
-- **Item shape.** Fact items are interval-stamped — created/tombstoned Kookie attributes; delete is a tombstone write, a snapshot read filters at the pin, and GC advances a store-wide retention horizon. The flat `tuples → (PK, SK) items` mapping now carries those attributes, and "MVCC header + journal split" is superseded by this model.
-- **A second reverse access pattern.** Beyond the subject GSI, the theory-write guard needs a reverse existence query — do any live facts reference this namespace or relationship. Cold path, theory-write time only.
+- **Item shape.** Fact items are interval-stamped — created/tombstoned [[kookie]] attributes; delete is a tombstone write, a snapshot read filters at the pin, and GC advances a store-wide retention horizon. The flat `facts → (PK, SK) items` mapping now carries those attributes, and "MVCC header + journal split" is superseded by this model.
+- **A second reverse access pattern.** Beyond the subject GSI, the theory-write guard needs a reverse existence query — do any live facts reference this namespace or relation. Cold path, theory-write time only.
 - **Theory storage is first-class.** Theories live in the store as an append-only changelog of whole `Theory` values, versioned on the same timeline as facts (intervals close by supersession; whole-theory deletion is a terminal marker entry). "Theory administration — separate from storage" above still describes the admin workflow, not the storage artifact.
 
 ## Caveats
