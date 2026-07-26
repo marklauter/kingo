@@ -3,10 +3,10 @@ namespace Kingo;
 /// <summary>
 /// The character rules and delimiters the identifier grammar is built from ([[identifiers]]).
 /// <para>
-/// <see cref="Name"/> is the <c>⟨name⟩</c> production, the character rule behind all four name positions a document has: the <c>domain:</c> value, the namespace
+/// <see cref="Name"/> is the <c>⟨name⟩</c> production, the character rule behind all four name positions a document has: the <c>theory:</c> value, the namespace
 /// keys, the relation names, and the names written inside a rewrite. <see cref="TheoryName"/>, <see cref="NamespaceName"/>, and <see cref="RelationName"/>
 /// are exactly <see cref="NamePattern"/>. They share one const deliberately so the three rules stay identical. The reservation of <c>this</c> as a relation
-/// name is the rewrite grammar's, enforced by the domain parser ([[specs]]), not a character rule here. The one qualified path, <see cref="NamespacePath"/>, is two
+/// name is the rewrite grammar's, enforced by the theory document parser ([[theories]]), not a character rule here. The one qualified path, <see cref="NamespacePath"/>, is two
 /// names joined by <see cref="TheorySeparator"/>. The
 /// rules live here rather than on one of the identifier types because none of them owns the production. Each type composes its anchored pattern from these
 /// constants, so the grammars cannot drift apart.
@@ -17,7 +17,7 @@ public static class IdentifierGrammar
     /// <summary>One name: a letter or underscore, then letters, digits, and underscores.</summary>
     public const string Name = "[A-Za-z_][A-Za-z0-9_]*";
 
-    /// <summary>The delimiter between a domain and a namespace.</summary>
+    /// <summary>The delimiter between a theory and a namespace.</summary>
     public const char TheorySeparator = '/';
 
     /// <summary>The delimiter between a namespace and a resource id.</summary>
@@ -26,7 +26,7 @@ public static class IdentifierGrammar
     /// <summary>The marker that introduces a relation.</summary>
     public const char RelationSeparator = '#';
 
-    /// <summary>The delimiter between a subject-set and a subject.</summary>
+    /// <summary>The delimiter between a subjectset and a subject.</summary>
     public const char SubjectSeparator = '@';
 
     /// <summary>A bare name, for example <c>io</c>, <c>file</c>, or <c>viewer</c>.</summary>

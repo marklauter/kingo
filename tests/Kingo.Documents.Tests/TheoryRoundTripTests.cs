@@ -117,7 +117,7 @@ public sealed class TheoryRoundTripTests
     [Fact]
     public void RoundTrip_TheoryName_SurvivesTheDocument()
     {
-        // the name is in the document, so parse ∘ print = id covers the domain's key too
+        // the name is in the document, so parse ∘ print = id covers the theory's key too
         var original = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
         var roundTripped = ParseSuccess(original.Print());

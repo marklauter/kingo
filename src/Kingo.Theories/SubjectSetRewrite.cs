@@ -10,12 +10,12 @@ namespace Kingo.Theories;
 /// and the set operators (<see cref="Union"/>, <see cref="Intersection"/>, <see cref="Exclusion"/>). The cases nest under the base, and the base constructor is
 /// private, so the case set is closed by the compiler, not by convention. No seventh inhabitant is declarable anywhere. The algebra is namespace-agnostic: every
 /// name position holds a bare <see cref="RelationName"/>, because the namespace always comes from the resource being evaluated and never from the stored node
-/// ([[identifiers]]). It is parse-agnostic, produced equally by the domain document adapter, other serialization adapters, or the Write API. Every producer constructs through
+/// ([[identifiers]]). It is parse-agnostic, produced equally by the theory document adapter, other serialization adapters, or the Write API. Every producer constructs through
 /// the static <c>Create</c> factories, or, for the stateless <see cref="This"/>, its <see cref="This.Default"/> singleton, so a rewrite that exists satisfies its
 /// invariants. The operator factories return <see cref="Result{T}"/>: they refuse empty operand lists and trees past <see cref="MaxDepth"/>. The leaves return the
 /// bare type, because a <c>Result</c> on a construction that cannot fail would claim a fallibility that does not exist. Records carry structural equality only.
 /// Properties are get-only with no <c>init</c> setters, so a <c>with</c> expression cannot bypass the factories. The depth bound and the gate every operator
-/// factory constructs through live in <c>SubjectSetRewrite.Depth.cs</c>. Authoring syntax and precedence: [[specs]].
+/// factory constructs through live in <c>SubjectSetRewrite.Depth.cs</c>. Authoring syntax and precedence: [[theories]].
 /// </summary>
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "SubjectSetRewrite is a discriminated union; This, ComputedSubjectSet, FactToSubjectSet, Union, Intersection, and Exclusion are its cases, nested under the closed base and deliberately public — SubjectSetRewrite.Union reads as the case it is, and the nesting is what closes the case set against a seventh inhabitant.")]
 public abstract partial record SubjectSetRewrite
@@ -34,7 +34,7 @@ public abstract partial record SubjectSetRewrite
     }
 
     /// <summary>
-    /// The subject set of another relation on the same resource. A bare <see cref="RelationName"/>, not a path: the re-evaluation happens on the resource
+    /// The subjectset of another relation on the same resource. A bare <see cref="RelationName"/>, not a path: the re-evaluation happens on the resource
     /// in hand, so that resource's namespace is the only namespace there is. Storing a path here would be a second source of truth that could disagree with it.
     /// </summary>
     public sealed record ComputedSubjectSet
@@ -47,7 +47,7 @@ public abstract partial record SubjectSetRewrite
             => Relation = relation;
 
         /// <summary>
-        /// Constructs a computed subject set naming <paramref name="relation"/>. The only construction path. Infallible, because <paramref name="relation"/>
+        /// Constructs a computed subjectset naming <paramref name="relation"/>. The only construction path. Infallible, because <paramref name="relation"/>
         /// is already a valid name. Whether it names a defined relation is <c>Namespace.Create</c>'s check.
         /// </summary>
         /// <returns>A <see cref="ComputedSubjectSet"/> naming <paramref name="relation"/>.</returns>
@@ -55,10 +55,10 @@ public abstract partial record SubjectSetRewrite
     }
 
     /// <summary>
-    /// Walks the facts of <see cref="FactsetRelation"/> on the resource and, for each resource found, evaluates <see cref="ComputedSubjectSetRelation"/>
-    /// on that resource. This is how inherited permissions are expressed: one relation on the resource grants a relation on each of the resources its facts
-    /// point to. Only <c>Fact.ResourceFact</c> members traverse. Subject- and subjectset-shaped members are modeled errors ([[rewrite-interpreters]] conditions
-    /// 5–6). The second relation names a computed subject set on each resolved resource, the same construct as <see cref="ComputedSubjectSet"/>, applied to the
+    /// A walk through a factset: the facts of <see cref="FactsetRelation"/> on the resource, and the subjects of <see cref="ComputedSubjectSetRelation"/> on
+    /// each resource those facts name. This is the shape inherited permissions take: the subjects of one relation on every resource another relation's facts
+    /// name. Only <c>Fact.ResourceFact</c> subjects traverse. Subject- and subjectset-shaped subjects are modeled errors ([[rewrite-interpreters]] conditions
+    /// 5–6). The second relation is a computed subjectset on each resolved resource, the same construct as <see cref="ComputedSubjectSet"/>, applied to the
     /// factset's resources rather than to this resource. Both are bare <see cref="RelationName"/>s, not paths: the factset's facts are read on the resource in
     /// hand, and the computed half evaluates on whatever resource the walk arrives at, a namespace not known until the facts are read. Neither namespace can come
     /// from the stored node.
@@ -83,7 +83,7 @@ public abstract partial record SubjectSetRewrite
             new(factsetRelation, computedSubjectSetRelation);
     }
 
-    /// <summary>Union of the child rewrites' subject sets. Equality is structural over <see cref="Children"/> (element-wise, order-sensitive).</summary>
+    /// <summary>Union of the child rewrites' subjectsets. Equality is structural over <see cref="Children"/> (element-wise, order-sensitive).</summary>
     public sealed record Union
         : SubjectSetRewrite
     {
@@ -96,7 +96,7 @@ public abstract partial record SubjectSetRewrite
         /// <summary>Constructs a union over <paramref name="children"/>. The only construction path.</summary>
         /// <returns>
         /// A successful <see cref="Result{T}"/> carrying the <see cref="Union"/>. Otherwise a failure when <paramref name="children"/> is empty
-        /// (<c>rewrite.union.empty</c>: the domain document grammar cannot produce the shape, and an empty union has no members to take, so the shape is refused rather than
+        /// (<c>rewrite.union.empty</c>: the theory document grammar cannot produce the shape, and an empty union has no members to take, so the shape is refused rather than
         /// given semantics), or when the tree is past <see cref="SubjectSetRewrite.MaxDepth"/> (<c>rewrite.depth</c>).
         /// </returns>
         public static Result<Union> Create(ImmutableArray<SubjectSetRewrite> children) =>
@@ -112,7 +112,7 @@ public abstract partial record SubjectSetRewrite
         public override int GetHashCode() => HashCode.Combine(EqualityContract, SequenceHash.Of(Children));
     }
 
-    /// <summary>Intersection of the child rewrites' subject sets. Equality is structural over <see cref="Children"/> (element-wise, order-sensitive).</summary>
+    /// <summary>Intersection of the child rewrites' subjectsets. Equality is structural over <see cref="Children"/> (element-wise, order-sensitive).</summary>
     public sealed record Intersection
         : SubjectSetRewrite
     {
@@ -125,7 +125,7 @@ public abstract partial record SubjectSetRewrite
         /// <summary>Constructs an intersection over <paramref name="children"/>. The only construction path.</summary>
         /// <returns>
         /// A successful <see cref="Result{T}"/> carrying the <see cref="Intersection"/>. Otherwise a failure when <paramref name="children"/> is empty
-        /// (<c>rewrite.intersection.empty</c>: the domain document grammar cannot produce the shape, and the conventional reading of an empty intersection is the universal set,
+        /// (<c>rewrite.intersection.empty</c>: the theory document grammar cannot produce the shape, and the conventional reading of an empty intersection is the universal set,
         /// with everyone a member, so the shape is refused rather than given semantics), or when the tree is past <see cref="SubjectSetRewrite.MaxDepth"/>
         /// (<c>rewrite.depth</c>).
         /// </returns>

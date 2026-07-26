@@ -5,7 +5,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// A reference to a subject, the <c>&lt;subject-id&gt;</c> terminal of the fact grammar (see [[domain-language]]). A subject is the unified identity a
+/// A reference to a subject, the <c>⟨subject id⟩</c> terminal of the fact grammar (see [[ubiquitous-language]]). A subject is the unified identity a
 /// set of authn-side principals maps to. It need not be human and need not have authenticated. The caller owns this value: Kingo compares it and never
 /// interprets it ([[split-identities-at-ownership-boundaries]]). The rule is shared with <see cref="ResourceId"/> as <see cref="IdentifierGrammar.IdPattern"/>
 /// and admits the real shapes callers bring: GUIDs, integers, URNs, URIs, emails, and UPNs. It requires only a non-empty run of visible characters with no
@@ -51,7 +51,7 @@ public readonly record struct SubjectId
 
 }
 
-/// <summary>Character rules for <see cref="SubjectId"/>: the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[domain-language]]).</summary>
+/// <summary>Character rules for <see cref="SubjectId"/>: the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[ubiquitous-language]]).</summary>
 internal static partial class SubjectIdPatterns
 {
     private const RegexOptions PatternOptions =
@@ -59,7 +59,7 @@ internal static partial class SubjectIdPatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    // provisional per [[domain-language]]: the same rule as a resource id;
+    // provisional per [[ubiquitous-language]]: the same rule as a resource id;
     // must never contain the fact-grammar delimiters '/' ':' '#' '@'
     [GeneratedRegex(IdentifierGrammar.IdPattern, PatternOptions)]
     public static partial Regex Validation();

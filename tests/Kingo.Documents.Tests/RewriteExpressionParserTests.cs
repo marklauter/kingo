@@ -294,7 +294,7 @@ banned")]
     [Fact]
     public void Parse_InvalidExpression_MessageEmbedsTheOffendingText()
     {
-        // the domain document author sees the error, not the document position: the message must carry the expression itself
+        // the theory document author sees the error, not the document position: the message must carry the expression itself
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("this |"));
 
         var error = Assert.Single(failure.Errors);

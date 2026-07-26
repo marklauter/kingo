@@ -13,7 +13,8 @@ public abstract partial record SubjectSetRewrite
     /// <summary>
     /// Upper bound on <see cref="Depth"/>, enforced by every operator factory (<c>rewrite.depth</c>). With the bound, no constructible tree can drive a recursion
     /// over the algebra (structural equality, hashing, printing, interpretation) deep enough to exhaust a stack, even a 1MB service thread's. Generous against real
-    /// rewrites of a handful of levels. Distinct from the evaluator's fact-driven [[depth-bound]], which counts stored-fact re-entries at runtime, not tree shape.
+    /// rewrites of a handful of levels. Distinct from the evaluator's fact-driven depth bound, which counts stored-fact re-entries at runtime, not tree shape
+    /// ([[rewrite-interpreters]] condition 3).
     /// </summary>
     public const int MaxDepth = 100;
 
@@ -22,7 +23,7 @@ public abstract partial record SubjectSetRewrite
 
     private SubjectSetRewrite(int depth) => Depth = depth;
 
-    /// <summary>Builds the refusal a tree past <see cref="MaxDepth"/> receives. Shared by the operator factories and the domain parse edge, one code for one invariant.</summary>
+    /// <summary>Builds the refusal a tree past <see cref="MaxDepth"/> receives. Shared by the operator factories and the theory document parse edge, one code for one invariant.</summary>
     /// <returns>An <see cref="Error"/> with code <c>rewrite.depth</c>.</returns>
     public static Error DepthError() =>
         Error.Validation(Diagnostics.ErrorCodes.Rewrite.Depth, $"a rewrite tree deeper than {MaxDepth} levels is refused");

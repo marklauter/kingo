@@ -35,7 +35,7 @@ internal abstract class RewriteNode
         public string Relation { get; } = relation;
     }
 
-    /// <summary>A <c>(factset, computed)</c> pair walking through a factset relation.</summary>
+    /// <summary>A <c>(factset, computed)</c> pair: the factset relation a walk follows, and the relation computed on the far side.</summary>
     internal sealed class FactToSubjectSet(string factsetRelation, string computedSubjectSetRelation)
         : RewriteNode
     {
