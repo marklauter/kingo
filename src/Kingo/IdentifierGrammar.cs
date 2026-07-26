@@ -39,15 +39,15 @@ public static class IdentifierGrammar
     // The caller's grammar, not Kingo's.
     //
     // Everything above this line is a rule Kingo owns and interprets. Everything below is a rule about data the caller
-    // owns: a resource id and a subject id are the caller's to shape, and Kingo only compares them
-    // ([[split-identities-at-ownership-boundaries]]). The rule below is not the name rule, is not composed from
+    // owns: a resource id and a subject id are the caller's to shape, and Kingo only compares them.
+    // The rule below is not the name rule, is not composed from
     // <see cref="Name"/>, and must never be tidied into it.
     // ---------------------------------------------------------------------------------------------------------------
 
     /// <summary>
     /// An id the caller owns, either a resource id or a subject id. Kingo does not interpret it, so the rule admits the real shapes callers bring: GUIDs,
     /// integers, URNs, URIs, emails, and UPNs. It requires only a non-empty run of visible characters with no whitespace and no control characters. It is
-    /// deliberately not composed from <see cref="Name"/>: an id is the caller's to shape, not Kingo's ([[split-identities-at-ownership-boundaries]]).
+    /// deliberately not composed from <see cref="Name"/>: an id is the caller's to shape, not Kingo's.
     /// </summary>
     public const string IdPattern = @"^[^\s\p{C}]+$";
 }

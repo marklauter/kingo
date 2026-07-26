@@ -7,7 +7,7 @@ namespace Kingo.Theories;
 /// A set of one or more namespaces sharing one name scope, <b>as a value</b>: immutable, with structural equality. The theory-side aggregate root,
 /// with <see cref="Namespace"/> an entity within it. Namespace-name uniqueness is an intra-aggregate invariant, and the theory is the unit of atomic
 /// change. <see cref="Create"/> is the only construction path, so a <c>Theory</c> that exists satisfies its invariants. The root of the theory tree: it owns its
-/// namespaces, so it supplies their qualification, and nothing beneath it carries a qualified path ([[split-identities-at-ownership-boundaries]]).
+/// namespaces, so it supplies their qualification, and nothing beneath it carries a qualified path.
 /// </summary>
 public sealed record Theory
 {

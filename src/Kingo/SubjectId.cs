@@ -7,7 +7,7 @@ namespace Kingo;
 /// <summary>
 /// A reference to a subject, the <c>⟨subject id⟩</c> terminal of the fact grammar (see [[ubiquitous-language]]). A subject is the unified identity a
 /// set of authn-side principals maps to. It need not be human and need not have authenticated. The caller owns this value: Kingo compares it and never
-/// interprets it ([[split-identities-at-ownership-boundaries]]). The rule is shared with <see cref="ResourceId"/> as <see cref="IdentifierGrammar.IdPattern"/>
+/// interprets it. The rule is shared with <see cref="ResourceId"/> as <see cref="IdentifierGrammar.IdPattern"/>
 /// and admits the real shapes callers bring: GUIDs, integers, URNs, URIs, emails, and UPNs. It requires only a non-empty run of visible characters with no
 /// whitespace and no control characters.
 /// </summary>

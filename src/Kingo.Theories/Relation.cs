@@ -7,7 +7,7 @@ namespace Kingo.Theories;
 /// <para>
 /// <see cref="Name"/> is bare, like every name in the theory tree. A relation exists only inside a <see cref="Namespace"/>, which exists only inside a
 /// <see cref="Theory"/>, so containment already says which relation this is. A qualified path held here would be a second source of truth that could disagree
-/// with its container ([[split-identities-at-ownership-boundaries]]). It also puts the definition's own name in the same currency as the names its rewrite
+/// with its container. It also puts the definition's own name in the same currency as the names its rewrite
 /// references, so <c>Namespace.Create</c> resolves them without qualifying either side.
 /// </para>
 /// </summary>

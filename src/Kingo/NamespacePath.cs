@@ -9,8 +9,8 @@ namespace Kingo;
 /// A qualified reference to a namespace, the <c>⟨namespace path⟩</c> production of the identifier grammar ([[identifiers]]): a theory name, <c>/</c>, a
 /// namespace name, as in <c>io/file</c>. There is no namespace called <c>file</c>. The only qualified identifier Kingo holds, and it exists for the fact side
 /// alone: a <c>Kingo.Facts.Resource</c> points at a namespace it does not live inside, so the qualifier has to travel with the reference. The theory side is a
-/// tree, because a theory owns its namespaces, so containment supplies the qualification there and nothing in <c>Kingo.Theories</c> holds one of these
-/// ([[split-identities-at-ownership-boundaries]]). One string with one representation, ordered so a theory's namespaces are contiguous in the key space. The theory
+/// tree, because a theory owns its namespaces, so containment supplies the qualification there and nothing in <c>Kingo.Theories</c> holds one of these.
+/// One string with one representation, ordered so a theory's namespaces are contiguous in the key space. The theory
 /// and namespace segments are deliberately not projected off it: the value is stored, compared, and sorted whole, and nothing reads the halves. Deriving them
 /// would cost a character scan (at construction if eager, per read if lazy) that no caller needs today, so it is deferred to an extension method if a use ever
 /// arises. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.

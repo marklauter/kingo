@@ -6,7 +6,7 @@ namespace Kingo;
 
 /// <summary>
 /// An identifier for a resource within a namespace, the <c>⟨resource id⟩</c> terminal of the fact grammar (see [[ubiquitous-language]]). The caller owns this
-/// value: Kingo compares it and never interprets it ([[split-identities-at-ownership-boundaries]]). The rule is shared with <see cref="SubjectId"/> as
+/// value: Kingo compares it and never interprets it. The rule is shared with <see cref="SubjectId"/> as
 /// <see cref="IdentifierGrammar.IdPattern"/> and admits the real shapes callers bring: GUIDs, integers, URNs, and URIs. It requires only a non-empty run of
 /// visible characters with no whitespace and no control characters.
 /// </summary>
