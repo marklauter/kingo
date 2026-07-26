@@ -7,7 +7,6 @@ namespace Kingo.Theories.Tests;
 
 public sealed class NamespaceTests
 {
-    // a namespace name is bare: the theory that owns it supplies the qualification
     private static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     private static Relation Def(string name) => new(RelationName.Unchecked(name));
@@ -20,8 +19,6 @@ public sealed class NamespaceTests
     [Fact]
     public void Equals_SameNameAndElementWiseEqualRelations_AreEqualWithMatchingHashCodes()
     {
-        // Separately-constructed ImmutableArray instances with element-wise-equal contents.
-        // Default record equality over ImmutableArray compares references and would fail this.
         ImmutableArray<Relation> left = [Def("viewer"), Def("editor")];
         ImmutableArray<Relation> right = [Def("viewer"), Def("editor")];
 
@@ -146,8 +143,6 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_DefaultRelations_NormalizesToEmpty()
     {
-        // a default (uninitialized) array is the empty namespace, not an unmodeled crash:
-        // construction is total, and the stored value always enumerates
         var result = Namespace.Create(Ns("doc"), default);
 
         var success = Assert.IsType<Result<Namespace>.Success>(result);
@@ -171,8 +166,6 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_SameNameDifferentRewrites_IsStillADuplicate()
     {
-        // Uniqueness is by Name alone — two definitions for the same relation are
-        // the conflict, regardless of whether their rewrites agree.
         var viewerDirect = Def("viewer");
         var viewerComputed = Def("viewer", Computed("editor"));
 
@@ -200,15 +193,10 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_NamesDifferingOnlyByCase_AreDistinct()
     {
-        // Uniqueness is ordinal over canonical values. Parsed relation names are
-        // always lowercase; mixed case here is only reachable through the trusted
-        // Create path, and Create compares what it is given.
         var result = Namespace.Create(Ns("doc"), [Def("viewer"), Def("Viewer")]);
 
         _ = Assert.IsType<Result<Namespace>.Success>(result);
     }
-
-    // ---- Dangling references ----
 
     [Fact]
     public void Create_DanglingComputedReference_ReturnsValidationFailure()
@@ -238,8 +226,6 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_FactsetComputedSubjectSetRelation_IsNotValidated()
     {
-        // the factset's second element resolves in another namespace, unknown until facts resolve
-        // the factset's resources — it stays the interpreter's condition 4, not a construction check
         var result = Namespace.Create(Ns("doc"), [Def("parent"), Def("viewer", FactTo("parent", "missing"))]);
 
         _ = Assert.IsType<Result<Namespace>.Success>(result);
@@ -290,12 +276,9 @@ public sealed class NamespaceTests
         _ = Assert.IsType<Result<Namespace>.Success>(result);
     }
 
-    // ---- Staging ----
-
     [Fact]
     public void Create_DuplicateNames_MaskDanglingAndCycleChecks()
     {
-        // duplicates make reference resolution ambiguous, so later stages never run
         var result = Namespace.Create(
             Ns("doc"),
             [Def("viewer", Computed("missing")), Def("viewer", Computed("viewer"))]);
@@ -307,7 +290,6 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_DanglingReferences_MaskCycleCheck()
     {
-        // dangling references make the cycle graph ill-defined, so the cycle stage never runs
         var result = Namespace.Create(
             Ns("doc"),
             [Def("a", Computed("a")), Def("b", Computed("missing"))]);
@@ -315,8 +297,6 @@ public sealed class NamespaceTests
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         Assert.All(failure.Errors, error => Assert.Equal("namespace.dangling_reference", error.Code));
     }
-
-    // ---- Cycles ----
 
     [Fact]
     public void Create_SelfReference_ReturnsCycleFailure()
@@ -373,21 +353,14 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_FactsetArm_IsNotACycleEdge()
     {
-        // a factset walk cannot recurse without consuming a stored fact: it belongs to the
-        // evaluator's depth bound, not the zero-fact recursion graph
         var result = Namespace.Create(Ns("doc"), [Def("viewer", FactTo("viewer", "viewer"))]);
 
         _ = Assert.IsType<Result<Namespace>.Success>(result);
     }
 
-    // ---- Stack depth ----
-
     [Fact]
     public void Create_LongAcyclicReferenceChain_DoesNotOverflowTheStack()
     {
-        // untrusted input must not pick the validation gate's stack depth: a flat chain
-        // r0 -> r1 -> ... -> rN is linear in relations, not in expression nesting,
-        // so it reaches Create without stressing any parser first
         const int depth = 20_000;
         ImmutableArray<Relation> relations =
         [
@@ -401,8 +374,6 @@ public sealed class NamespaceTests
     [Fact]
     public void Create_OperatorTreeAtTheDepthBound_Validates()
     {
-        // trees past MaxDepth are unrepresentable — the factories refuse them — so the deepest
-        // constructible nest is the worst case the validation traversals can ever meet
         var rewrite = Enumerable.Range(0, SubjectSetRewrite.MaxDepth - 1)
             .Aggregate((SubjectSetRewrite)SubjectSetRewrite.This.Default, (accumulated, _) => Exclusion(accumulated, SubjectSetRewrite.This.Default));
 

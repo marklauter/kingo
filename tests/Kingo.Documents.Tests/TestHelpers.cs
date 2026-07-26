@@ -4,13 +4,10 @@ using System.Collections.Immutable;
 
 namespace Kingo.Documents.Tests;
 
-/// <summary>Shared construction and unwrap helpers for the theory document adapter tests — import with <c>using static</c>.</summary>
 internal static class TestHelpers
 {
-    /// <summary>The theory name every fixture document carries unless it is testing the name itself.</summary>
     public const string DefaultTheoryName = "test";
 
-    /// <summary>A namespace name — bare, exactly as a theory document writes the key and as the theory tree stores it.</summary>
     public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     public static RelationName Rel(string value) => RelationName.Unchecked(value);
@@ -42,11 +39,6 @@ internal static class TestHelpers
     public static Theory MakeTheory(TheoryName name, ImmutableArray<Namespace> namespaces) =>
         Assert.IsType<Result<Theory>.Success>(Theory.Create(name, namespaces)).Value;
 
-    /// <summary>
-    /// Wraps a namespace-map fragment in the theory document envelope — the <c>theory:</c> name plus the <c>namespaces:</c> key — so a
-    /// fixture can state only the part it is about. Tests of the envelope itself pass whole documents to <see cref="ParseSuccess"/> /
-    /// <see cref="ParseFailure"/> directly.
-    /// </summary>
     public static string Document(string namespaceMap, string name = DefaultTheoryName) =>
         $"theory: {name}\nnamespaces:\n{Indent(namespaceMap)}";
 

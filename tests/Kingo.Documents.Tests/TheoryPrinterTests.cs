@@ -97,11 +97,9 @@ public sealed class TheoryPrinterTests
 
     [Theory]
     [InlineData("this")]
-    [InlineData("THIS")] // Unchecked performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
+    [InlineData("THIS")]
     public void Print_ReservedRelationName_IsCallerDefect(string name)
     {
-        // a theory document cannot express a relation named by the rewrite-grammar reserved word: 'this' could
-        // never be referenced (a reference lexes as the keyword).
         var theory = MakeTheory([MakeNs(Ns("file"), [Bare(name)])]);
 
         _ = Assert.Throws<ArgumentException>(theory.Print);
@@ -110,8 +108,6 @@ public sealed class TheoryPrinterTests
     [Fact]
     public void Print_ReservedReferenceInRewrite_IsCallerDefect()
     {
-        // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
-        // instead of a relation reference — so emitting it is corruption, not serialization
         var theory = MakeTheory(
         [
             MakeNs(Ns("file"), [Bare("this"), new Relation(Rel("viewer"), Computed("this"))]),
@@ -123,7 +119,6 @@ public sealed class TheoryPrinterTests
     [Fact]
     public void Print_ReservedReferenceInFactset_IsCallerDefect()
     {
-        // pins that the factset arm routes both components through the reserved-word gate
         var theory = MakeTheory(
         [
             MakeNs(

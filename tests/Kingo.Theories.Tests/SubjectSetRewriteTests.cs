@@ -7,12 +7,9 @@ namespace Kingo.Theories.Tests;
 
 public sealed class SubjectSetRewriteTests
 {
-    // ---- SubjectSetRewrite.This ----
 
     [Fact]
     public void This_Default_ReturnsSameInstanceOnRepeatedAccess() => Assert.Same(SubjectSetRewrite.This.Default, SubjectSetRewrite.This.Default);
-
-    // ---- SubjectSetRewrite.ComputedSubjectSet ----
 
     [Fact]
     public void ComputedSubjectSet_SameRelation_AreEqual()
@@ -41,8 +38,6 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(Rel("editor"), rewrite.Relation);
     }
 
-    // ---- SubjectSetRewrite.FactToSubjectSet ----
-
     [Fact]
     public void FactToSubjectSet_SameComponents_AreEqual()
     {
@@ -70,8 +65,6 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(Rel("parent"), rewrite.FactsetRelation);
         Assert.Equal(Rel("viewer"), rewrite.ComputedSubjectSetRelation);
     }
-
-    // ---- SubjectSetRewrite.Union ----
 
     [Fact]
     public void Union_SeparatelyConstructedEqualChildren_AreEqualWithMatchingHashCodes()
@@ -141,8 +134,6 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(children, Union(children).Children);
     }
 
-    // ---- SubjectSetRewrite.Intersection ----
-
     [Fact]
     public void Intersection_SeparatelyConstructedEqualChildren_AreEqualWithMatchingHashCodes()
     {
@@ -211,8 +202,6 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(children, Intersection(children).Children);
     }
 
-    // ---- Cross-type ----
-
     [Fact]
     public void UnionAndIntersection_IdenticalChildren_AreNotEqual()
     {
@@ -231,8 +220,6 @@ public sealed class SubjectSetRewriteTests
 
         Assert.NotEqual(union.GetHashCode(), intersection.GetHashCode());
     }
-
-    // ---- SubjectSetRewrite.Exclusion ----
 
     [Fact]
     public void Exclusion_SameComponents_AreEqual()
@@ -268,8 +255,6 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal(exclude, rewrite.Exclude);
     }
 
-    // ---- Nested composites ----
-
     [Fact]
     public void NestedComposite_IndependentlyConstructedIdenticalTrees_AreEqualWithMatchingHashCodes()
     {
@@ -304,8 +289,6 @@ public sealed class SubjectSetRewriteTests
 
         Assert.NotEqual(a, b);
     }
-
-    // ---- Depth bound ----
 
     [Fact]
     public void Depth_Leaves_AreDepthOne()
@@ -354,12 +337,9 @@ public sealed class SubjectSetRewriteTests
         Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
     }
 
-    /// <summary>The deepest constructible tree — an exclusion chain whose <c>Depth</c> is exactly <see cref="SubjectSetRewrite.MaxDepth"/>.</summary>
     private static SubjectSetRewrite NestedToTheBound() =>
         Enumerable.Range(0, SubjectSetRewrite.MaxDepth - 1)
             .Aggregate((SubjectSetRewrite)SubjectSetRewrite.This.Default, (accumulated, _) => Exclusion(accumulated, SubjectSetRewrite.This.Default));
-
-    // ---- Exhaustive pattern match ----
 
     [Fact]
     public void PatternMatch_OverEveryVariant_DistinguishesEachAtMatchSites()

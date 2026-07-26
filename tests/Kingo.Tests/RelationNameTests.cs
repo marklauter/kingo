@@ -34,7 +34,6 @@ public sealed class RelationNameTests
     [InlineData("\t")]
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
         var f = Assert.IsType<Result<RelationName>.Failure>(RelationName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
@@ -50,7 +49,6 @@ public sealed class RelationNameTests
     [InlineData("café")]
     [InlineData("#")]
     [InlineData("@")]
-    // a name is one segment: a qualified path is not one
     [InlineData("io/file#viewer")]
     [InlineData("io/file")]
     [InlineData("file#viewer")]
@@ -63,7 +61,7 @@ public sealed class RelationNameTests
     }
 
     [Theory]
-    [InlineData("...")] // the '#...' marker of the ResourceFact member production is punctuation, not a name
+    [InlineData("...")]
     [InlineData("..")]
     [InlineData("....")]
     [InlineData("a...")]
@@ -79,9 +77,6 @@ public sealed class RelationNameTests
     [Fact]
     public void Parse_AcceptsTheSameGrammarAsTheOtherNames()
     {
-        // a theory name, a namespace name, and a relation name are the same production — one segment;
-        // this pins that the three do not drift apart silently. 'this' is included
-        // deliberately: the core accepts it as a name, and reserving it is the theory document parser's job, not this type's
         string[] inputs = ["viewer", "VIEWER", "_x", "a1", "this", "This", "0abc", "a-b", "a.b", "a b", "", "io/file"];
 
         foreach (var input in inputs)

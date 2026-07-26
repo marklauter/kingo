@@ -36,7 +36,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_ComplexDocument_ReturnsDefinedNamespaces()
     {
-        // a complex document: comments, a folded block scalar, two namespaces
         const string document = """
             # rewrite set operators:
             #   ! = exclusion operator
@@ -117,21 +116,21 @@ public sealed class TheoryParseTests
     [InlineData("file:\n  - viewer: this # comment")]
     [InlineData("file:\n  - parent\n  - viewer: (parent, child)")]
     [InlineData("file:\n  - owner\n  - parent\n  - banned\n  - viewer: this | (parent, child) & owner ! banned")]
-    [InlineData("base: &shared\n  - owner\nfile: *shared")] // anchor reuse is plain YAML; both namespaces get the shared relation list
+    [InlineData("base: &shared\n  - owner\nfile: *shared")]
     public void Parse_ValidNamespaceMaps_Succeeds(string namespaceMap) =>
         _ = ParseSuccess(Document(namespaceMap));
 
     [Theory]
     [InlineData("invalid: yaml: content", "theory.syntax")]
     [InlineData("file:\n  - viewer: | this", "theory.syntax")]
-    [InlineData("file:\n  - a\nfile:\n  - b", "theory.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
-    [InlineData("file:\n  - a: this\n    a: owner", "theory.syntax")] // duplicate keys inside a relation mapping, likewise
-    [InlineData("file: *missing", "theory.syntax")] // unresolved alias
+    [InlineData("file:\n  - a\nfile:\n  - b", "theory.syntax")]
+    [InlineData("file:\n  - a: this\n    a: owner", "theory.syntax")]
+    [InlineData("file: *missing", "theory.syntax")]
     [InlineData("file: 5", "theory.namespace")]
     [InlineData("file:\n  a: b", "theory.namespace")]
-    [InlineData("file: ''", "theory.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
+    [InlineData("file: ''", "theory.namespace")]
     [InlineData("file: 'null'", "theory.namespace")]
-    [InlineData("file: NuLL", "theory.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
+    [InlineData("file: NuLL", "theory.namespace")]
     [InlineData("'':\n  - owner", "namespace_name.empty")]
     [InlineData("file name:\n  - owner", "namespace_name.invalid")]
     [InlineData("file-name:\n  - owner", "namespace_name.invalid")]
@@ -141,13 +140,13 @@ public sealed class TheoryParseTests
     [InlineData("file:\n  - 123owner", "relation_name.invalid")]
     [InlineData("file:\n  - owner.ext", "relation_name.invalid")]
     [InlineData("file:\n  - ", "relation_name.empty")]
-    [InlineData("file:\n  - : this", "theory.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
+    [InlineData("file:\n  - : this", "theory.syntax")]
     [InlineData("file:\n  - [nested]", "theory.relation")]
-    [InlineData("file: &a [*a]", "theory.relation")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
+    [InlineData("file: &a [*a]", "theory.relation")]
     [InlineData("file:\n  - a: this\n    b: this", "theory.relation")]
-    [InlineData("file:\n  - viewer:", "theory.relation")] // a pair missing its rewrite expression; the bare-name form is how a theory document spells "no rewrite"
-    [InlineData("file:\n  - viewer: ''", "theory.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
-    [InlineData("file:\n  - viewer: ~", "theory.rewrite")] // plain scalar text is expression source, and '~' cannot lex
+    [InlineData("file:\n  - viewer:", "theory.relation")]
+    [InlineData("file:\n  - viewer: ''", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: ~", "theory.rewrite")]
     [InlineData("? [complex, key]\n: - owner", "theory.namespace")]
     [InlineData("file:\n  - ? [complex, key]\n    : this", "theory.relation")]
     [InlineData("file:\n  - viewer:\n      - nested", "theory.relation")]
@@ -163,8 +162,8 @@ public sealed class TheoryParseTests
     [InlineData("file:\n  - this: owner", "theory.relation.reserved")]
     [InlineData("file:\n  - '...'", "relation_name.invalid")]
     [InlineData("file:\n  - '...': owner", "relation_name.invalid")]
-    [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")] // the namespace gate runs on the parse path too
-    [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")] // a factset's first element resolves here; its second does not
+    [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")]
+    [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")]
     [InlineData("file:\n  - viewer: viewer", "namespace.rewrite_cycle")]
     [InlineData("file:\n  - editor: viewer\n  - viewer: editor", "namespace.rewrite_cycle")]
     public void Parse_InvalidNamespaceMaps_FailsWithExpectedCode(string namespaceMap, string expectedCode)
@@ -181,15 +180,15 @@ public sealed class TheoryParseTests
     [InlineData("null", "theory.document")]
     [InlineData("scalar", "theory.document")]
     [InlineData("[]", "theory.document")]
-    [InlineData("{}", "theory.document")] // neither key present
-    [InlineData("theory: acme\n---\ntheory: other", "theory.document")] // a theory document is a single YAML document
-    [InlineData("namespaces:\n  file:\n    - owner", "theory.document")] // no 'theory:' key
-    [InlineData("theory: acme", "theory.document")] // no 'namespaces:' key
-    [InlineData("theory: acme\nnamespaces: 5", "theory.document")] // 'namespaces:' is not a mapping
+    [InlineData("{}", "theory.document")]
+    [InlineData("theory: acme\n---\ntheory: other", "theory.document")]
+    [InlineData("namespaces:\n  file:\n    - owner", "theory.document")]
+    [InlineData("theory: acme", "theory.document")]
+    [InlineData("theory: acme\nnamespaces: 5", "theory.document")]
     [InlineData("theory: acme\nnamespaces: []", "theory.document")]
-    [InlineData("theory: [acme]\nnamespaces:\n  file:\n    - owner", "theory.document")] // 'theory:' is not a scalar
-    [InlineData("theory:\nnamespaces:\n  file:\n    - owner", "theory_name.empty")] // a valueless 'theory:' loads as an empty scalar, which the identifier grammar rejects
-    [InlineData("file:\n  - owner", "theory.document")] // the bare namespace map is no longer a document
+    [InlineData("theory: [acme]\nnamespaces:\n  file:\n    - owner", "theory.document")]
+    [InlineData("theory:\nnamespaces:\n  file:\n    - owner", "theory_name.empty")]
+    [InlineData("file:\n  - owner", "theory.document")]
     [InlineData("theory: ''\nnamespaces:\n  file:\n    - owner", "theory_name.empty")]
     [InlineData("theory: acme corp\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
     [InlineData("theory: 123acme\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
@@ -221,7 +220,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_DefectsInNameAndNamespaces_AccumulateAcrossBoth()
     {
-        // Result.Apply accumulates the envelope's two halves: a bad theory name does not mask namespace defects
         var errors = ParseFailure("theory: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
@@ -242,9 +240,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_PlainNullExpressionText_IsTheNullIdentifier()
     {
-        // the theory document owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
-        // to a relation named null — which is also what lets that name survive a round trip, since the
-        // renderer emits it unquoted (TheoryPrinter.Print)
         var ns = Assert.Single(ParseSuccess(Document("file:\n  - null\n  - viewer: null")).Namespaces);
 
         ImmutableArray<Relation> expected = [Bare("null"), new Relation(Rel("viewer"), Computed("null"))];
@@ -254,7 +249,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_DefectsInOneRelationPair_AccumulateAcrossNameAndExpression()
     {
-        // Result.Apply accumulates both sides of a single '<name>: <expression>' pair, and the namespace name on top
         var errors = ParseFailure(Document("123file:\n  - 456bad: this |"));
 
         Assert.Equal(3, errors.Length);
@@ -285,7 +279,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_CaseVariantNamespaceKeys_FailsAsDuplicate()
     {
-        // distinct YAML keys, one namespace identity after Parse's lowercase normalization
         var errors = ParseFailure(Document("file:\n  - owner\nFILE:\n  - viewer"));
 
         var error = Assert.Single(errors);
@@ -329,7 +322,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_EmptyNamespaceMap_FailsAsEmptyTheory()
     {
-        // a theory is never empty: the absence of namespaces is the absence of a theory
         var errors = ParseFailure(Document("{}"));
 
         Assert.Equal("theory.empty", Assert.Single(errors).Code);

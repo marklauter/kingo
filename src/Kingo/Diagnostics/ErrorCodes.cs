@@ -1,9 +1,5 @@
 namespace Kingo.Diagnostics;
 
-/// <summary>
-/// The identifier-grammar validation failure codes emitted by the value types in <c>Kingo</c>. The code string is the wire contract; this class is the single
-/// source for emission, grouped by the type that raises it. Tests pin the literal values independently.
-/// </summary>
 public static class ErrorCodes
 {
     public static class NamespaceName

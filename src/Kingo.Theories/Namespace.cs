@@ -3,14 +3,6 @@ using System.Collections.Immutable;
 
 namespace Kingo.Theories;
 
-/// <summary>
-/// A namespace's definition <b>as a value</b>: an immutable snapshot of its relations and their rewrites, with structural equality. Parse-agnostic and
-/// storable. An entity within the <see cref="Theory"/> aggregate, not a root. Its identity is local: <see cref="Name"/> is unique within its theory. Names arrive
-/// canonical lowercase through <c>Parse</c>, and the comparison here is ordinal. It is immutable, so there is no rename, only a new namespace.
-/// <see cref="Create"/> is the only construction path, so a <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
-/// concurrency, authorship) is the Write context's wrapper and never lives in core. If this type ever grows a version field, a timestamp, or a mutation method,
-/// it has crossed the line and belongs to a service.
-/// </summary>
 public sealed record Namespace
 {
     public NamespaceName Name { get; }
@@ -23,25 +15,8 @@ public sealed record Namespace
         Relations = relations;
     }
 
-    /// <summary>
-    /// Constructs a namespace from its name and relations, validating for untrusted and trusted callers alike. The checks are staged because each makes the
-    /// next well-defined: duplicates make reference resolution ambiguous, and dangling references make the cycle graph ill-defined. Each stage accumulates every
-    /// <see cref="ErrorType.Validation"/> error it finds before returning. The domain model has no core <c>Parse</c>. Its text forms live in serialization adapters,
-    /// which call this after decoding. The only construction path.
-    /// </summary>
-    /// <returns>
-    /// A successful <see cref="Result{T}"/> carrying the namespace when every stage passes. Otherwise a failure carrying, in order: duplicate relation names
-    /// (<c>namespace.duplicate_relation</c>, one error per duplicated name in first-occurrence order); then dangling intra-namespace references
-    /// (<c>namespace.dangling_reference</c>, where every <see cref="SubjectSetRewrite.ComputedSubjectSet.Relation"/> and every
-    /// <see cref="SubjectSetRewrite.FactToSubjectSet.FactsetRelation"/> names a relation defined here, while the factset's
-    /// <see cref="SubjectSetRewrite.FactToSubjectSet.ComputedSubjectSetRelation"/> targets another namespace and stays the interpreter's concern); then
-    /// cycles in the zero-fact recursion graph (<c>namespace.rewrite_cycle</c>, each error carrying the full cycle path, where edges are
-    /// <see cref="SubjectSetRewrite.ComputedSubjectSet"/> references, and factset arms cannot recurse without consuming a stored fact, so they belong to the
-    /// evaluator's depth bound, not this check).
-    /// </returns>
     public static Result<Namespace> Create(NamespaceName name, ImmutableArray<Relation> relations)
     {
-        // a default array is the empty namespace: normalized here so construction is total and the stored value always enumerates
         if (relations.IsDefault)
             relations = [];
 
@@ -55,7 +30,6 @@ public sealed record Namespace
         if (!duplicates.IsEmpty)
             return Result.Failure<Namespace>(duplicates);
 
-        // one tree walk per relation: the references materialize here and both remaining stages consume them
         var references = relations.ToImmutableDictionary(
             relation => relation.Name,
             relation => IntraNamespaceReferences(relation.Rewrite).Distinct().ToImmutableArray());
@@ -64,7 +38,6 @@ public sealed record Namespace
         var dangling = relations
             .SelectMany(relation => references[relation.Name]
                 .Select(reference => reference.Target)
-                // not redundant with the tuple-level Distinct above: one target can appear under both edge kinds
                 .Distinct()
                 .Where(target => !defined.Contains(target))
                 .Select(target => Error.Validation(
@@ -80,11 +53,6 @@ public sealed record Namespace
             : Result.Failure<Namespace>(cycles);
     }
 
-    /// <summary>
-    /// Yields every node of a rewrite tree in tree order, the root first. Operator nesting is flattened, and factset arms are terminal because they hold no nested
-    /// rewrites. Uses an explicit stack rather than recursion: this runs on untrusted input, and a modeled-error gate must not let input depth pick its stack depth.
-    /// </summary>
-    /// <returns>The rewrite's nodes in tree order, root first.</returns>
     private static IEnumerable<SubjectSetRewrite> Flatten(SubjectSetRewrite rewrite)
     {
         var pending = new Stack<SubjectSetRewrite>();
@@ -99,8 +67,6 @@ public sealed record Namespace
         }
     }
 
-    /// <summary>Returns the operand list of an operator node. Leaves have none. Exhaustive over the closed hierarchy, so every traversal built on it is too.</summary>
-    /// <returns>The node's operands, or an empty array for a leaf.</returns>
     private static ImmutableArray<SubjectSetRewrite> Children(SubjectSetRewrite rewrite) =>
         rewrite switch
         {
@@ -108,39 +74,19 @@ public sealed record Namespace
             SubjectSetRewrite.Intersection intersection => intersection.Children,
             SubjectSetRewrite.Exclusion exclusion => [exclusion.Include, exclusion.Exclude],
             SubjectSetRewrite.This or SubjectSetRewrite.ComputedSubjectSet => [],
-            // the last inhabitant of the closed hierarchy: a discard arm with a cast (rather than a type pattern)
-            // keeps the compiler from synthesizing an unreachable default branch under the switch, and fails
-            // loudly if the union ever grows a variant this traversal has not met
             _ => LeafChildren((SubjectSetRewrite.FactToSubjectSet)rewrite),
         };
 
     private static ImmutableArray<SubjectSetRewrite> LeafChildren(SubjectSetRewrite.FactToSubjectSet _) => [];
 
-    /// <summary>
-    /// Returns the relations a rewrite names within its own namespace. One extraction feeds both validation stages, so the two can never disagree on what a
-    /// reference is. Computed subjectset targets are zero-fact edges: they recurse without consuming a stored fact, so they feed the cycle stage. Factset first
-    /// elements are references only, because a factset hop consumes a fact, so it counts against the evaluator's depth bound instead. The factset's second element
-    /// resolves in another namespace and is not referenced here.
-    /// </summary>
-    /// <returns>Each referenced relation name paired with whether it is a zero-fact edge.</returns>
     private static IEnumerable<(RelationName Target, bool IsZeroFactEdge)> IntraNamespaceReferences(SubjectSetRewrite rewrite) =>
         Flatten(rewrite).SelectMany(IEnumerable<(RelationName, bool)> (node) => node switch
         {
             SubjectSetRewrite.ComputedSubjectSet computed => [(computed.Relation, true)],
             SubjectSetRewrite.FactToSubjectSet factTo => [(factTo.FactsetRelation, false)],
-            // operator nodes carry no references of their own; an unrecognized variant already failed loudly in Children
             _ => [],
         });
 
-    /// <summary>
-    /// Searches the zero-fact recursion graph depth-first for cycles. Nodes are the namespace's relations, and edges are its
-    /// <see cref="SubjectSetRewrite.ComputedSubjectSet"/> references. Reports one error per back edge the search meets, not one per elementary cycle: cycles
-    /// sharing a node can collapse into one report, and a defective theory always fails, though fixing one cycle can surface another. Each error carries the full
-    /// cycle path, so the theory is diagnosable without re-deriving the graph. Runs after the dangling-reference stage, so every edge target is a defined node. Uses
-    /// mutable three-color bookkeeping with an explicit frame stack rather than an expression pipeline or recursion: the path that makes the error message is
-    /// inherently stateful, and this runs on untrusted input, so input shape must not pick the stack depth.
-    /// </summary>
-    /// <returns>One <see cref="Error"/> per back edge found, empty when the graph is acyclic.</returns>
     private static ImmutableArray<Error> DetectCycles(
         NamespaceName name,
         ImmutableArray<Relation> relations,

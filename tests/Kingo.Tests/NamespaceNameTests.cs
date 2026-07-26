@@ -34,7 +34,6 @@ public sealed class NamespaceNameTests
     [InlineData("\t")]
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
         var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
@@ -63,7 +62,6 @@ public sealed class NamespaceNameTests
     [InlineData("io/file#viewer")]
     public void Parse_QualifiedPath_IsNotANamespaceName(string input)
     {
-        // a namespace name is one segment; the qualified form is a NamespacePath, and only the fact side holds one
         var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input));
         Assert.Equal("namespace_name.invalid", Assert.Single(f.Errors).Code);
     }
@@ -71,8 +69,6 @@ public sealed class NamespaceNameTests
     [Fact]
     public void Parse_IsTheSecondSegmentOfANamespacePath()
     {
-        // a namespace path is a theory name and a namespace name joined by '/', so a bare name that parses here is
-        // exactly a bare name that can close one
         string[] inputs = ["file", "FILE", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 
         foreach (var input in inputs)

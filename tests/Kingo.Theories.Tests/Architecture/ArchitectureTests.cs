@@ -6,11 +6,6 @@ namespace Kingo.Theories.Tests.Architecture;
 public sealed class ArchitectureTests()
     : ArchitectureTestsBase(Assembly.Load("Kingo.Theories"), @"^Kingo\.Theories(\..*)?$")
 {
-    /// <summary>
-    /// The theory side and the fact side are independent halves of the domain — they meet only in the rewrite
-    /// interpreter, which consumes both. Neither references the other; their only shared vocabulary is the identifiers
-    /// in <c>Kingo</c>.
-    /// </summary>
     [Fact]
     public void DoesNotDependOnFacts()
     {
