@@ -1,10 +1,9 @@
 ---
 title: Reconcile the rewrite-interpreters branch
+type: todo
 summary: "Verdict on the 26 doc files the rewrite-interpreters branch carries: four specs and one todo port forward, four files give up a paragraph and go, the rest is casualty of the reversed schema dissolution."
-tags: [todo, corpus, acl]
 created: 2026-07-25
 priority: high
-effort: medium
 status: open
 ---
 
