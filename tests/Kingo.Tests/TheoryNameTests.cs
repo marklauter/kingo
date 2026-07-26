@@ -62,7 +62,7 @@ public sealed class TheoryNameTests
     public void Parse_IsOneSegment_AndAgreesWithTheSegmentInsideANamespacePath()
     {
         // theory and namespace names are the same kind of thing — authored vocabulary — and share the segment
-        // grammar ([[identifiers]]); a namespace path is two of those segments, so a theory name that parses is
+        // grammar; a namespace path is two of those segments, so a theory name that parses is
         // exactly a theory name that can lead one
         string[] inputs = ["acme", "ACME", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 

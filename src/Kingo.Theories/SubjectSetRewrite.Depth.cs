@@ -13,8 +13,7 @@ public abstract partial record SubjectSetRewrite
     /// <summary>
     /// Upper bound on <see cref="Depth"/>, enforced by every operator factory (<c>rewrite.depth</c>). With the bound, no constructible tree can drive a recursion
     /// over the algebra (structural equality, hashing, printing, interpretation) deep enough to exhaust a stack, even a 1MB service thread's. Generous against real
-    /// rewrites of a handful of levels. Distinct from the evaluator's fact-driven depth bound, which counts stored-fact re-entries at runtime, not tree shape
-    /// ([[rewrite-interpreters]] condition 3).
+    /// rewrites of a handful of levels. Distinct from the evaluator's fact-driven depth bound, which counts stored-fact re-entries at runtime, not tree shape.
     /// </summary>
     public const int MaxDepth = 100;
 

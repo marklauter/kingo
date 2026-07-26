@@ -5,7 +5,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// An identifier for a resource within a namespace, the <c>⟨resource id⟩</c> terminal of the fact grammar (see [[ubiquitous-language]]). The caller owns this
+/// An identifier for a resource within a namespace, the <c>⟨resource id⟩</c> terminal of the fact grammar. The caller owns this
 /// value: Kingo compares it and never interprets it. The rule is shared with <see cref="SubjectId"/> as
 /// <see cref="IdentifierGrammar.IdPattern"/> and admits the real shapes callers bring: GUIDs, integers, URNs, and URIs. It requires only a non-empty run of
 /// visible characters with no whitespace and no control characters.
@@ -50,7 +50,7 @@ public readonly record struct ResourceId
 
 }
 
-/// <summary>Character rules for <see cref="ResourceId"/>: the caller's grammar, held in <see cref="IdentifierGrammar"/> ([[ubiquitous-language]]).</summary>
+/// <summary>Character rules for <see cref="ResourceId"/>: the caller's grammar, held in <see cref="IdentifierGrammar"/>.</summary>
 internal static partial class ResourceIdPatterns
 {
     private const RegexOptions PatternOptions =
@@ -58,8 +58,6 @@ internal static partial class ResourceIdPatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    // provisional per [[ubiquitous-language]]: resource ids need dots (e.g. readme.md);
-    // must never contain the fact-grammar delimiters '/' ':' '#' '@'
     [GeneratedRegex(IdentifierGrammar.IdPattern, PatternOptions)]
     public static partial Regex Validation();
 }

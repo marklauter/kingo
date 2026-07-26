@@ -79,8 +79,8 @@ public sealed class RelationNameTests
     [Fact]
     public void Parse_AcceptsTheSameGrammarAsTheOtherNames()
     {
-        // a theory name, a namespace name, and a relation name are the same production — one segment
-        // ([[identifiers]]); this pins that the three do not drift apart silently. 'this' is included
+        // a theory name, a namespace name, and a relation name are the same production — one segment;
+        // this pins that the three do not drift apart silently. 'this' is included
         // deliberately: the core accepts it as a name, and reserving it is the theory document parser's job, not this type's
         string[] inputs = ["viewer", "VIEWER", "_x", "a1", "this", "This", "0abc", "a-b", "a.b", "a b", "", "io/file"];
 

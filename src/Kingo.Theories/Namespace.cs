@@ -9,7 +9,7 @@ namespace Kingo.Theories;
 /// canonical lowercase through <c>Parse</c>, and the comparison here is ordinal. It is immutable, so there is no rename, only a new namespace.
 /// <see cref="Create"/> is the only construction path, so a <c>Namespace</c> that exists satisfies its invariants. Entity-ness (versioning, lifecycle, optimistic
 /// concurrency, authorship) is the Write context's wrapper and never lives in core. If this type ever grows a version field, a timestamp, or a mutation method,
-/// it has crossed the line and belongs to a service ([[ubiquitous-language]]).
+/// it has crossed the line and belongs to a service.
 /// </summary>
 public sealed record Namespace
 {
@@ -27,17 +27,17 @@ public sealed record Namespace
     /// Constructs a namespace from its name and relations, validating for untrusted and trusted callers alike. The checks are staged because each makes the
     /// next well-defined: duplicates make reference resolution ambiguous, and dangling references make the cycle graph ill-defined. Each stage accumulates every
     /// <see cref="ErrorType.Validation"/> error it finds before returning. The domain model has no core <c>Parse</c>. Its text forms live in serialization adapters,
-    /// which call this after decoding ([[ubiquitous-language]]). The only construction path.
+    /// which call this after decoding. The only construction path.
     /// </summary>
     /// <returns>
     /// A successful <see cref="Result{T}"/> carrying the namespace when every stage passes. Otherwise a failure carrying, in order: duplicate relation names
     /// (<c>namespace.duplicate_relation</c>, one error per duplicated name in first-occurrence order); then dangling intra-namespace references
     /// (<c>namespace.dangling_reference</c>, where every <see cref="SubjectSetRewrite.ComputedSubjectSet.Relation"/> and every
     /// <see cref="SubjectSetRewrite.FactToSubjectSet.FactsetRelation"/> names a relation defined here, while the factset's
-    /// <see cref="SubjectSetRewrite.FactToSubjectSet.ComputedSubjectSetRelation"/> targets another namespace and stays the interpreter's condition 4); then
+    /// <see cref="SubjectSetRewrite.FactToSubjectSet.ComputedSubjectSetRelation"/> targets another namespace and stays the interpreter's concern); then
     /// cycles in the zero-fact recursion graph (<c>namespace.rewrite_cycle</c>, each error carrying the full cycle path, where edges are
     /// <see cref="SubjectSetRewrite.ComputedSubjectSet"/> references, and factset arms cannot recurse without consuming a stored fact, so they belong to the
-    /// evaluator's depth bound, not this check; [[rewrite-interpreters]]).
+    /// evaluator's depth bound, not this check).
     /// </returns>
     public static Result<Namespace> Create(NamespaceName name, ImmutableArray<Relation> relations)
     {

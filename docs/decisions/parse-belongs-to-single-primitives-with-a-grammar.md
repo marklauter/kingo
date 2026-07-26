@@ -8,19 +8,19 @@ status: locked
 
 # Parse belongs to single primitives with a grammar
 
-A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. In code that set is exactly the `IValue<TSelf, TValue>` implementers: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `SubjectId`. The grammar is the whole contract of such a type, so parsing it is the type's own business.
+A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. The contract is `IParse<TSelf>`, which declares the `static abstract Result<TSelf> Parse(string s)`; `IValue<TSelf, TValue>` inherits it and constrains `TSelf` to a struct, so implementing `IValue` is how a terminal picks the contract up. In code that set is exactly six types: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `SubjectId`. The grammar is the whole contract of such a type.
 
-Every other type is constructed, not parsed. Composites reach their invariants through a validating factory — `Create` — and never through text. This covers the aggregates `Fact` and `Theory`, the entity `Namespace`, and the value objects `Resource`, `SubjectSet`, and `Relation` alike. A [[fact]] is an aggregate and a [[subjectset]] is a value object, and composition puts both on the same side.
+Every other type is constructed, not parsed. Where the invariants are relational, construction runs through a validating factory: `Theory.Create` and `Namespace.Create`. Where the typed components are the whole contract, the primary constructor is enough, which is the case for `Resource`, `SubjectSet`, `Relation`, and the three `Fact` cases. Neither route goes through text. Composition decides the side a type lands on.
 
 Text formats belong to adapters. `Kingo.Documents` owns the theory document and the rewrite expression language, and any future format owns itself the same way.
 
-A terminal can lose its `Parse` too. If a canonical notation ever needs escaping, quoting, encoding variants, or versioning, it has become a wire format: the whole pair, `Parse` and `ToString`, moves to a serialization adapter and core keeps structured construction only. The criterion also decides where a new notation lands.
+A terminal can lose its `Parse` too. If a canonical notation ever needs escaping, quoting, encoding variants, or versioning, it has become a wire format: the whole pair, `Parse` and `ToString`, moves to a serialization adapter and core keeps structured construction only.
 
-A notation can be a language, which is the edge case worth naming. A type may parse a notation that represents it — a fixed composition of terminals, no recursion, with a byte-stable `ToString` inverse, the shape an ISO 8601 date has. A recursive grammar is a language, and languages get parsers that live in adapters. The rewrite expression language has operators, precedence, and parentheses, which is why it was born in `Kingo.Documents` and stays there.
+A notation can be a language, and the boundary between the two decides where a new notation belongs. A type may parse a notation that represents it — a fixed composition of terminals, no recursion, with a byte-stable `ToString` inverse, the shape an ISO 8601 date has. A recursive grammar is a language, and languages get parsers that live in adapters. The rewrite expression language has operators, precedence, and parentheses, which is why it was born in `Kingo.Documents` and stays there.
 
-A terminal carrying `Parse` does not make it wire-aware. It makes the value capable of crossing a boundary; the format on that boundary is the converter's, including whether a JSON payload spells it as a string token or a structured object. Converters call `Parse` at the trust boundary, and nothing about the format travels inward.
+A terminal carrying `Parse` is a value capable of crossing a boundary. The format on that boundary is the converter's, including whether a JSON payload spells the value as a string token or a structured object. Converters call `Parse` at the trust boundary, and nothing about the format travels inward.
 
-The line is mechanical enough to enforce. No type outside the `IValue` implementers declares a public `Parse`, and an architecture test can assert that, alongside the tests that already pin each half of the model against referencing the other.
+The line is mechanical enough to enforce. Inside `Kingo`, `Kingo.Facts`, and `Kingo.Theories`, no type outside the `IParse` implementers declares a public `Parse`. An architecture test can assert that, alongside the tests that already pin each half of the model against referencing the other. The scope matters: `Kingo.Documents.TheoryParser.Parse` is public and correct, because an adapter's job is exactly the thing the core declines.
 
 ## Alternatives
 
@@ -28,16 +28,16 @@ The line is mechanical enough to enforce. No type outside the `IValue` implement
 
 **Escape or quote the notation to make it parseable.** Reserving an escape character recovers an unambiguous grammar. It also makes the notation a wire format, which brings encoding variants, versioning, and a compatibility burden on a public contract. Nothing needs it: there is no fact markup language planned, and structured construction serves every present caller.
 
-**Push all parsing to adapters, terminals included.** Uniform, and it moves validity out of the type. A terminal's grammar is its contract, so relocating `Parse` lets an invalid `RelationName` exist inside the core. Validity becomes an adapter's promise rather than a type's guarantee.
+**Push all parsing to adapters, terminals included.** Uniform, and it moves validity out of the type. A terminal's grammar is its contract, so relocating `Parse` lets an invalid `RelationName` exist inside the core, and validity becomes an adapter's promise instead of a type's guarantee.
 
 ## Why
 
 The rule buys invariants that hold by construction. A value that exists satisfies its grammar, and a composite that exists satisfies its relational invariants. Neither depends on which edge built it.
 
-It also keeps third-party parsers out of core signatures. A `YamlDotNet` or combinator type in a domain method is the tell that the code belongs in an adapter. The [[theories]] side shows the scale a text form can hide: two complete parsers, one recursive descent over the document and one combinator over the rewrite expressions, both in `Kingo.Documents`.
+It also keeps third-party parsers out of core signatures. A `YamlDotNet` or combinator type in a domain method is the tell that the code belongs in an adapter. The [[theories]] side shows the scale a text form can hide. Reading a theory document takes a third-party YAML parser, a recursive walk from its node model into domain values, and a combinator parser for the rewrite expressions nested inside the scalars. All of it lives in `Kingo.Documents`.
 
 It costs facts their round-trip text form. Anything needing to move a [[fact]] as a string must define that format in an adapter and own the escaping question this decision declines to answer.
 
-Two consequences follow for the corpus. The grammar in [[facts]] describes the structure of the `Fact` cases rather than a format anything parses. And if a fact markup language ever arrives, the `Kingo.Facts` types are its abstract syntax, never its parser — the parser is new code in an adapter, and these types stay the thing it produces.
+The grammar in [[facts]] describes the structure of the `Fact` cases rather than a format anything parses. If a fact markup language ever arrives, the `Kingo.Facts` types are its abstract syntax, never its parser — the parser is new code in an adapter, and these types stay the thing it produces.
 
-One document still assumes the superseded rule: [[rewrite-interpreters]] error condition 1 pins a `SubjectSet.Parse` refusal, and that method no longer exists. Reword it when the interpreter work starts.
+One document still assumes the superseded rule: [[rewrite-interpreters]] error condition 2 pins a `SubjectSet.Parse` refusal, and that method no longer exists. Reword it when the interpreter work starts.

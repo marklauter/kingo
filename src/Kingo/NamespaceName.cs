@@ -6,7 +6,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// The name of a <c>Kingo.Theories.Namespace</c> within its theory, one segment of the identifier grammar ([[identifiers]]): <c>file</c>. Bare, because the
+/// The name of a <c>Kingo.Theories.Namespace</c> within its theory, one segment of the identifier grammar: <c>file</c>. Bare, because the
 /// theory side is a tree. A namespace lives inside the theory that owns it, so containment supplies the qualification and nothing on that side ever holds a
 /// qualified path. The fact side is the other case: a fact points at a namespace it does not live inside, so its reference carries the qualifier as a
 /// <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
@@ -52,7 +52,7 @@ public readonly record struct NamespaceName
 
 }
 
-/// <summary>Character rules for <see cref="NamespaceName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
+/// <summary>Character rules for <see cref="NamespaceName"/>: one name, composed from <see cref="IdentifierGrammar"/>.</summary>
 internal static partial class NamespaceNamePatterns
 {
     private const RegexOptions PatternOptions =

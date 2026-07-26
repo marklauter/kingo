@@ -6,7 +6,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// A bare relation name, the <c>⟨relation name⟩</c> production of the identifier grammar ([[identifiers]]), one segment: <c>viewer</c>. Not an
+/// A bare relation name, the <c>⟨relation name⟩</c> production of the identifier grammar, one segment: <c>viewer</c>. Not an
 /// identity on its own: it names a relation only against a namespace supplied from elsewhere. Two places supply one: a
 /// <see cref="Kingo.Facts.SubjectSet"/>, where the resource carries the namespace, and the rewrite algebra, where the resource under evaluation does. There is
 /// no qualified relation type. Nothing holds one, so the qualified form is composed at the point of use if a use ever arises. Case-insensitive:
@@ -54,7 +54,7 @@ public readonly record struct RelationName
 
 }
 
-/// <summary>Character rules for <see cref="RelationName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
+/// <summary>Character rules for <see cref="RelationName"/>: one name, composed from <see cref="IdentifierGrammar"/>.</summary>
 internal static partial class RelationNamePatterns
 {
     private const RegexOptions PatternOptions =
@@ -62,7 +62,7 @@ internal static partial class RelationNamePatterns
         RegexOptions.Singleline |
         RegexOptions.CultureInvariant;
 
-    // name-only: '...' is not a relation — it is the '#...' marker of the ResourceFact member production ([[identifiers]])
+    // name-only: '...' is not a relation — it is the '#...' marker of the ResourceFact member production
     [GeneratedRegex(IdentifierGrammar.NamePattern, PatternOptions)]
     public static partial Regex Validation();
 }

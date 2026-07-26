@@ -10,13 +10,13 @@ namespace Kingo.Documents;
 
 /// <summary>
 /// Recursive-descent parser for the rewrite-expression mini-language embedded in theory document relation values, for example
-/// <c>(this | editor | (parent, viewer)) ! banned</c>. Produces the core <c>SubjectSetRewrite</c> algebra. The grammar and its precedence
-/// are given in [[theories]]: a cascade, tightest first, <c>!</c> exclusion, then <c>&amp;</c> intersection, then <c>|</c> union. Each level is
+/// <c>(this | editor | (parent, viewer)) ! banned</c>. Produces the core <c>SubjectSetRewrite</c> algebra. Precedence is a cascade,
+/// tightest first: <c>!</c> exclusion, then <c>&amp;</c> intersection, then <c>|</c> union. Each level is
 /// left-associative, so <c>a | b &amp; c</c> is <c>a | (b &amp; c)</c>. The Superpower grammar produces the internal <see cref="RewriteNode"/>
 /// tree. The transform at the exit parses every identifier through <c>RelationName.Parse</c> and accumulates the errors, so bad input
 /// surfaces as <see cref="Result{T}"/> validation failures rather than exceptions. The expression language writes bare names only, so the
 /// transform needs no namespace to qualify against. The rewrite algebra stores names, and evaluation qualifies them against the resource in
-/// hand ([[identifiers]]).
+/// hand.
 /// </summary>
 internal static class RewriteExpressionParser
 {

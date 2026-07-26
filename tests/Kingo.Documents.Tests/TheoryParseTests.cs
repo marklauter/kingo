@@ -36,7 +36,7 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_ComplexDocument_ReturnsDefinedNamespaces()
     {
-        // the example document from [[theories]]: comments, a folded block scalar, two namespaces
+        // a complex document: comments, a folded block scalar, two namespaces
         const string document = """
             # rewrite set operators:
             #   ! = exclusion operator

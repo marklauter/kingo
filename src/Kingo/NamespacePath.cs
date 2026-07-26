@@ -6,7 +6,7 @@ using Values;
 namespace Kingo;
 
 /// <summary>
-/// A qualified reference to a namespace, the <c>⟨namespace path⟩</c> production of the identifier grammar ([[identifiers]]): a theory name, <c>/</c>, a
+/// A qualified reference to a namespace, the <c>⟨namespace path⟩</c> production of the identifier grammar: a theory name, <c>/</c>, a
 /// namespace name, as in <c>io/file</c>. There is no namespace called <c>file</c>. The only qualified identifier Kingo holds, and it exists for the fact side
 /// alone: a <c>Kingo.Facts.Resource</c> points at a namespace it does not live inside, so the qualifier has to travel with the reference. The theory side is a
 /// tree, because a theory owns its namespaces, so containment supplies the qualification there and nothing in <c>Kingo.Theories</c> holds one of these.
@@ -56,7 +56,7 @@ public readonly record struct NamespacePath
 
 }
 
-/// <summary>Character rules for <see cref="NamespacePath"/>: two names around a <c>/</c>, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
+/// <summary>Character rules for <see cref="NamespacePath"/>: two names around a <c>/</c>, composed from <see cref="IdentifierGrammar"/>.</summary>
 internal static partial class NamespacePathPatterns
 {
     private const RegexOptions PatternOptions =

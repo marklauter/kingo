@@ -9,13 +9,13 @@ namespace Kingo.Theories;
 /// (<see cref="This"/>), another relation on the same resource (<see cref="ComputedSubjectSet"/>), a walk through a factset (<see cref="FactToSubjectSet"/>),
 /// and the set operators (<see cref="Union"/>, <see cref="Intersection"/>, <see cref="Exclusion"/>). The cases nest under the base, and the base constructor is
 /// private, so the case set is closed by the compiler, not by convention. No seventh inhabitant is declarable anywhere. The algebra is namespace-agnostic: every
-/// name position holds a bare <see cref="RelationName"/>, because the namespace always comes from the resource being evaluated and never from the stored node
-/// ([[identifiers]]). It is parse-agnostic, produced equally by the theory document adapter, other serialization adapters, or the Write API. Every producer constructs through
+/// name position holds a bare <see cref="RelationName"/>, because the namespace always comes from the resource being evaluated and never from the stored node.
+/// It is parse-agnostic, produced equally by the theory document adapter, other serialization adapters, or the Write API. Every producer constructs through
 /// the static <c>Create</c> factories, or, for the stateless <see cref="This"/>, its <see cref="This.Default"/> singleton, so a rewrite that exists satisfies its
 /// invariants. The operator factories return <see cref="Result{T}"/>: they refuse empty operand lists and trees past <see cref="MaxDepth"/>. The leaves return the
 /// bare type, because a <c>Result</c> on a construction that cannot fail would claim a fallibility that does not exist. Records carry structural equality only.
 /// Properties are get-only with no <c>init</c> setters, so a <c>with</c> expression cannot bypass the factories. The depth bound and the gate every operator
-/// factory constructs through live in <c>SubjectSetRewrite.Depth.cs</c>. Authoring syntax and precedence: [[theories]].
+/// factory constructs through live in <c>SubjectSetRewrite.Depth.cs</c>.
 /// </summary>
 [SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "SubjectSetRewrite is a discriminated union; This, ComputedSubjectSet, FactToSubjectSet, Union, Intersection, and Exclusion are its cases, nested under the closed base and deliberately public — SubjectSetRewrite.Union reads as the case it is, and the nesting is what closes the case set against a seventh inhabitant.")]
 public abstract partial record SubjectSetRewrite
@@ -57,8 +57,8 @@ public abstract partial record SubjectSetRewrite
     /// <summary>
     /// A walk through a factset: the facts of <see cref="FactsetRelation"/> on the resource, and the subjects of <see cref="ComputedSubjectSetRelation"/> on
     /// each resource those facts name. This is the shape inherited permissions take: the subjects of one relation on every resource another relation's facts
-    /// name. Only <c>Fact.ResourceFact</c> subjects traverse. Subject- and subjectset-shaped subjects are modeled errors ([[rewrite-interpreters]] conditions
-    /// 5–6). The second relation is a computed subjectset on each resolved resource, the same construct as <see cref="ComputedSubjectSet"/>, applied to the
+    /// name. Only <c>Fact.ResourceFact</c> subjects traverse. Subject- and subjectset-shaped subjects are modeled errors.
+    /// The second relation is a computed subjectset on each resolved resource, the same construct as <see cref="ComputedSubjectSet"/>, applied to the
     /// factset's resources rather than to this resource. Both are bare <see cref="RelationName"/>s, not paths: the factset's facts are read on the resource in
     /// hand, and the computed half evaluates on whatever resource the walk arrives at, a namespace not known until the facts are read. Neither namespace can come
     /// from the stored node.

@@ -72,7 +72,7 @@ public sealed class NamespaceNameTests
     public void Parse_IsTheSecondSegmentOfANamespacePath()
     {
         // a namespace path is a theory name and a namespace name joined by '/', so a bare name that parses here is
-        // exactly a bare name that can close one ([[identifiers]])
+        // exactly a bare name that can close one
         string[] inputs = ["file", "FILE", "_x", "a1", "0abc", "a-b", "a.b", "a b", ""];
 
         foreach (var input in inputs)

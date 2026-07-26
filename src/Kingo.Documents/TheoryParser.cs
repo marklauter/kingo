@@ -7,7 +7,7 @@ using YamlDotNet.RepresentationModel;
 namespace Kingo.Documents;
 
 /// <summary>
-/// The parse half of the theory document adapter: theory document text ([[theories]]) to the core domain model
+/// The parse half of the theory document adapter: theory document text to the core domain model
 /// (<see cref="TheoryPrinter.Print"/> renders the other direction). YAML carries the theory name and the outer namespace map. Each relation's
 /// optional rewrite expression is an embedded mini-language handled by <see cref="RewriteExpressionParser"/> and
 /// <see cref="RewriteExpressionPrinter"/>. Parsing exits through the core's validating factories (<c>RelationName.Parse</c>,

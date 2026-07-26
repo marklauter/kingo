@@ -10,7 +10,7 @@ internal static class TestHelpers
     /// <summary>The theory name every fixture document carries unless it is testing the name itself.</summary>
     public const string DefaultTheoryName = "test";
 
-    /// <summary>A namespace name — bare, exactly as a theory document writes the key and as the theory tree stores it ([[identifiers]]).</summary>
+    /// <summary>A namespace name — bare, exactly as a theory document writes the key and as the theory tree stores it.</summary>
     public static NamespaceName Ns(string name) => NamespaceName.Unchecked(name);
 
     public static RelationName Rel(string value) => RelationName.Unchecked(value);

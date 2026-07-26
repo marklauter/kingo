@@ -3,7 +3,7 @@ using Kingo.Theories;
 namespace Kingo.Documents;
 
 /// <summary>
-/// Renders a <c>SubjectSetRewrite</c> tree as rewrite-expression text (grammar: [[theories]]). Parenthesization is decided by grammar position,
+/// Renders a <c>SubjectSetRewrite</c> tree as rewrite-expression text. Parenthesization is decided by grammar position,
 /// so the emitted text reparses to a structurally equal tree. The grammar is the precedence cascade <c>union → intersection → exclusion →
 /// term</c>, and each position takes exactly what its level admits. A union's operand is an <c>&lt;intersection&gt;</c>, so only a nested
 /// union needs parentheses. An intersection's operand and the include side of <c>!</c> are an <c>&lt;exclusion&gt;</c>, so a union or a

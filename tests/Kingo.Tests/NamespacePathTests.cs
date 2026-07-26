@@ -52,7 +52,7 @@ public sealed class NamespacePathTests
     [InlineData("io/@")]
     [InlineData("0io/a")]
     [InlineData("io-x/a")]
-    // one segment is not a namespace: there is no namespace called 'file' ([[identifiers]])
+    // one segment is not a namespace: there is no namespace called 'file'
     [InlineData("file")]
     // three segments is not a namespace either, and neither is an empty one
     [InlineData("io/file/extra")]
