@@ -1,12 +1,12 @@
 ---
-title: Quarries — prior work preserved on other branches
+title: Quary sources — prior work preserved on other branches
 summary: "The reboot branch is an orphan; main-archive and dictionary-encoding remain on the remote as reference material. Cherry-pick files as needed; do not merge."
 tags: [note, reference, quarry]
 created: 2026-05-12
 status: locked
 ---
 
-# Quarries — prior work preserved on other branches
+# Quary sources — prior work preserved on other branches
 
 The `reboot` branch is an orphan with no shared history. Two earlier lines of work remain on the remote as reference material. Cherry-pick files from them as needed; do not try to merge.
 

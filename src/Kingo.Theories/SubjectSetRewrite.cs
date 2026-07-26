@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Kingo.Theories;
 
 /// <summary>
-/// The rewrite algebra: a closed discriminated union describing how a relation's effective subject set is computed. The cases are direct membership
+/// The rewrite algebra: a closed discriminated union describing how the subjects of a relation are derived. The cases are direct membership
 /// (<see cref="This"/>), another relation on the same resource (<see cref="ComputedSubjectSet"/>), a walk through a factset (<see cref="FactToSubjectSet"/>),
 /// and the set operators (<see cref="Union"/>, <see cref="Intersection"/>, <see cref="Exclusion"/>). The cases nest under the base, and the base constructor is
 /// private, so the case set is closed by the compiler, not by convention. No seventh inhabitant is declarable anywhere. The algebra is namespace-agnostic: every

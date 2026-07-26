@@ -22,7 +22,7 @@ The interpreter ruling in [[rewrite-interpreters]] (2026-07-17) put caller ident
 
 An OBO call implies three distinct authorization decisions, not one:
 
-1. **Does service A have OBO rights to the resource/action?** This is just another ACL check — the OBO grant is expressible as relationships in the graph, no new machinery.
+1. **Does service A have OBO rights to the resource/action?** This is just another ACL check — the OBO grant is expressible as facts in the graph, no new machinery.
 2. **Does the user service A is passing have rights to the resource/action?** The ordinary check.
 3. **Does the caller have rights to call Kingo's ACL at all?** Kingo authorizing access to itself — a check about the API surface, upstream of the question being asked.
 
@@ -31,7 +31,7 @@ Decisions 1 and 2 are two `Contains` questions in one request; decision 3 is edg
 ## Next
 
 - Decide the envelope shape: which identity facets (network context, principal, OBO chain) the Check host records per request, feeding the audit event (envelope + serialized `Decision`, per [[rewrite-interpreters]]).
-- Decide whether the OBO pattern is one API call carrying both questions or two calls, and whether Kingo models the OBO grant as ordinary relationships (Mark's read, 2026-07-17: yes, decision 1 is just another check).
+- Decide whether the OBO pattern is one API call carrying both questions or two calls, and whether Kingo models the OBO grant as ordinary facts (Mark's read, 2026-07-17: yes, decision 1 is just another check).
 - Decide how decision 3 is enforced — Kingo checking against its own namespace vs. host-level authn policy — and whether that self-check bootstraps cleanly.
 
 ## Related

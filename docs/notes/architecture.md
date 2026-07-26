@@ -16,7 +16,7 @@ The project follows hexagonal architecture with a DDD core at the center. Projec
 
 The center. Pure types describing the ubiquitous domain per [[ubiquitous-language]]: the identifier IValues (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Theories` (the config side: the `Theory` root over its `Namespace` entities, plus the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST) and `Facts` (the data side: the `Fact` root with its value objects `Resource` and `SubjectSet`; the party seats as `SubjectId` directly — [[resource-fact-case]] dissolved the `Subject` wrapper, 2026-07-21). No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
 
-The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry was dissolved and deleted per [[dissolve-kingo-pdl-under-hexagonal-layout]]; it survives only on the archive branches ([[sources]]).
+The foundational primitives — `Result<T>` / `Error` (Results project) and `IValue<TSelf, TValue>` / `IParse<TSelf>` / `ITryParse<TSelf>` (Values project) — sit *below* the domain core as separate assemblies; `Kingo` consumes them. The legacy `Kingo.Pdl` quarry was dissolved and deleted per [[dissolve-kingo-pdl-under-hexagonal-layout]]; it survives only on the archive branches ([[quary-sources]]).
 
 ### Ports — future `Kingo.Storage`, etc.
 

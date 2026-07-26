@@ -1,7 +1,7 @@
 namespace Kingo.Theories;
 
 /// <summary>
-/// A named relation and the rewrite that computes its effective subject set. Theory-side: this is the definition inside a <see cref="Namespace"/>, not the
+/// A named rewrite. Theory-side: this is the definition inside a <see cref="Namespace"/>, not the
 /// stored fact (that is <c>Kingo.Facts.Fact</c>). A bare definition with no rewrite specified defaults to <see cref="SubjectSetRewrite.This"/>, direct membership
 /// only.
 /// <para>
