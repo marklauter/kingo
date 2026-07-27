@@ -7,7 +7,8 @@ namespace Results;
 /// <summary>
 /// A discriminated result of a domain operation: either a successful <typeparamref name="T"/> value (<see cref="Result{T}.Success"/>) or a non-empty
 /// collection of <see cref="Error"/>s (<see cref="Result{T}.Failure"/>). Consume the result with <see cref="Match"/>, transform it with <see cref="Map"/>, and
-/// chain it with <see cref="Bind"/> or <see cref="BindAsync"/>. <see cref="Select"/> and the
+/// chain it with <see cref="Bind"/> or <see cref="BindAsync"/>; once a chain is asynchronous it continues through the <see cref="ResultAsync"/> extensions on
+/// <see cref="ValueTask{TResult}"/>. <see cref="Select"/> and the
 /// <see cref="SelectMany{TIntermediate, TResult}(Func{T, Result{TIntermediate}}, Func{T, TIntermediate, TResult})"/> shapes are LINQ-named aliases of those
 /// operations. Combine independent results with <see cref="Result.Apply{T, TResult}(Result{System.Func{T, TResult}}, Result{T})"/>, the applicative overload
 /// that accumulates errors on the failure path, or with the Unit-keyed <c>Result.Apply</c> overload for effect sequencing. The hierarchy is closed:
@@ -33,7 +34,7 @@ public abstract record Result<T>
         public override Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn) => fn(Value);
 
         /// <inheritdoc/>
-        public override Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn) => fn(Value);
+        public override ValueTask<Result<TResult>> BindAsync<TResult>(Func<T, ValueTask<Result<TResult>>> fn) => fn(Value);
     }
 
     /// <summary>
@@ -58,7 +59,7 @@ public abstract record Result<T>
         public override Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn) => new Result<TResult>.Failure(Errors);
 
         /// <inheritdoc/>
-        public override Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn) => Task.FromResult<Result<TResult>>(new Result<TResult>.Failure(Errors));
+        public override ValueTask<Result<TResult>> BindAsync<TResult>(Func<T, ValueTask<Result<TResult>>> fn) => ValueTask.FromResult<Result<TResult>>(new Result<TResult>.Failure(Errors));
 
         public bool Equals(Failure? other) =>
             other is not null && Errors.AsSpan().SequenceEqual(other.Errors.AsSpan());
@@ -89,12 +90,14 @@ public abstract record Result<T>
     public abstract Result<TResult> Bind<TResult>(Func<T, Result<TResult>> fn);
 
     /// <summary>
-    /// Async monadic bind. Chains a result-returning async function after a successful result and short-circuits on failure. Cancellation is the responsibility
-    /// of <paramref name="fn"/>: the API threads no <see cref="System.Threading.CancellationToken"/>, so a caller needing cancellation passes a lambda that
-    /// captures the token from its enclosing scope.
+    /// Async monadic bind, the entry point into a <see cref="ValueTask{TResult}"/> chain from a synchronous result. Chains a result-returning async function
+    /// after a successful result and short-circuits on failure. <see cref="ValueTask{TResult}"/> is the async currency of the whole surface, so a continuation
+    /// that completes synchronously — a cache hit, a memoized read — allocates nothing; a continuation holding a <see cref="Task{TResult}"/> wraps it with
+    /// <c>new ValueTask&lt;Result&lt;TResult&gt;&gt;(task)</c>. Cancellation is the responsibility of <paramref name="fn"/>: the API threads no
+    /// <see cref="System.Threading.CancellationToken"/>, so a caller needing cancellation passes a lambda that captures the token from its enclosing scope.
     /// </summary>
-    /// <returns>A task for the result of <paramref name="fn"/> applied to the success value, or the original failure unchanged.</returns>
-    public abstract Task<Result<TResult>> BindAsync<TResult>(Func<T, Task<Result<TResult>>> fn);
+    /// <returns>A value task for the result of <paramref name="fn"/> applied to the success value, or the original failure unchanged.</returns>
+    public abstract ValueTask<Result<TResult>> BindAsync<TResult>(Func<T, ValueTask<Result<TResult>>> fn);
 
     /// <summary>
     /// LINQ-named alias of <see cref="Map"/>. Transforms the success value with <paramref name="selector"/> and passes a failure through unchanged.
