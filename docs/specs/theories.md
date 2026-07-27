@@ -1,7 +1,8 @@
 ---
 title: theories
+type: specification
 summary: "A theory is a named grouping of namespaces of relations, each relation a named rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
-tags: [spec, theory]
+tags: [theory]
 created: 2026-07-23
 status: evolving
 cites:

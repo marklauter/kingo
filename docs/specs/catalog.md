@@ -1,7 +1,8 @@
 ---
 title: catalog
+type: specification
 summary: "The complete set of theories: the containment that holds the model and the space every name resolves in."
-tags: [spec, theory]
+tags: [theory]
 created: 2026-07-24
 status: evolving
 cites:
