@@ -1,7 +1,7 @@
 ---
 title: closures
 type: specification
-summary: "A Closure is one derived closure, fixed by a theory version and a snapshot. Its prepared rewrites, pinned fact reader, clock, and depth bound are constructor state, never per-call arguments."
+summary: "A Closure is one derived closure, fixed by one pin. Its prepared rewrites, pinned fact reader, clock, and depth bound are constructor state, never per-call arguments."
 tags: [evaluation]
 created: 2026-07-27
 status: evolving
@@ -22,7 +22,7 @@ cites:
 
 # Closures
 
-A [[closure]] is the set of subjects derivable for a [[subjectset]] from the stored facts and the catalog's rewrites. `Closure` (`Kingo.Closures`) names one such set as a value, fixed by a theory version and a snapshot, carrying [[contains]] and [[expand]] as the two questions asked of it. Contains judges one membership; Expand materializes one relation's [[rewrite]] tree, leaving referenced subjectsets as leaves.
+A [[closure]] is the set of subjects derivable for a [[subjectset]] from the stored facts and the catalog's rewrites. `Closure` (`Kingo.Closures`) names one such set as a value, fixed by one pin, carrying [[contains]] and [[expand]] as the two questions asked of it. Contains judges one membership; Expand materializes one relation's [[rewrite]] tree, leaving referenced subjectsets as leaves.
 
 ## The assembly
 
@@ -33,7 +33,7 @@ A [[closure]] is the set of subjects derivable for a [[subjectset]] from the sto
 - **The clock** — an injected `TimeProvider`, supplying the wall timestamp on [[decision]] and [[expansion]].
 - **The depth bound** — `Contains`-only configuration. `Expand` never recurses and ignores it.
 
-The two move at different rates: rewrites change on admin action, the snapshot per request. The prepared projection is shared, and a fresh reader is assembled per snapshot. Everything inside is immutable, so requests at the same (`TheoryVersion`, `Kookie`) pair may share one instance.
+There is one pin. A [[kookie]] names a point on the store's one timeline, and the covering `TheoryVersion` is derivable from it — the theory at K ([[storage-versioning-design]]). What differs is churn: the theory changelog advances on admin action, fact intervals on every write. So one prepared projection serves many closures while the reader is pinned per request, and requests at the same coherent pair may share one instance, everything inside being immutable.
 
 ## Open question: what the prepared projection spans
 
@@ -43,4 +43,4 @@ Version pulls the other way. Each theory carries its own and is the unit of atom
 
 ## Open question: the factory's shape
 
-A `ClosureFactory` holds the long-lived context (the reader for prepared rewrites, the `TimeProvider`, the depth bound) and assembles a `Closure` per request. Unsettled: whether `Create` receives an already-pinned `IFactReader` from the host edge, or takes the pair and pins the reader itself through a third port. The second moves mechanical pinning off the host edge. The host edge keeps the semantic work either way — resolving the request's kookie floor to a coherent (`Kookie`, `TheoryVersion`) pair ([[drift-prevention-at-the-write-edges]], [[storage-versioning-design]]).
+A `ClosureFactory` holds the long-lived context (the reader for prepared rewrites, the `TimeProvider`, the depth bound) and assembles a `Closure` per request. Unsettled: whether `Create` receives an already-pinned `IFactReader` from the host edge, or takes the pin and pins the reader itself through a third port. The second moves mechanical pinning off the host edge. The host edge keeps the semantic work either way — resolving the request's kookie floor to a coherent (`Kookie`, `TheoryVersion`) pair ([[drift-prevention-at-the-write-edges]], [[storage-versioning-design]]).
