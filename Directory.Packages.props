@@ -13,7 +13,7 @@
 	<ItemGroup>
 		<!-- SDL parser / serializer -->
 		<PackageVersion Include="Superpower" Version="3.2.1" />
-		<PackageVersion Include="YamlDotNet" Version="16.3.0" />
+		<PackageVersion Include="YamlDotNet" Version="18.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
