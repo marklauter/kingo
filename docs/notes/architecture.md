@@ -14,14 +14,14 @@ Hexagonal, with a DDD core at the center. Projects layer outward from pure domai
 
 Listed bottom-up, each with what it references.
 
-- `Results` — `Result<T>` and `Error`. References nothing.
-- `Values` — `IValue`, `IParse`, `ITryParse`. References `Results`.
-- `Kingo` — the shared kernel, holding the identifier types. References `Results` and `Values`.
-- `Kingo.Facts` — the fact side: the `Fact` root, `Resource`, `SubjectSet`. References `Kingo`, `Results`, `Values`.
-- `Kingo.Theories` — the theory side: the `Theory` root, `Namespace`, `Relation`, `SubjectSetRewrite`. References `Kingo` and `Results`.
-- `Kingo.Closures` — the interpreters over both halves, carrying `Decision` and `Expansion`. References `Kingo`, `Kingo.Facts`, `Kingo.Theories`, `Results`.
-- `Kingo.Documents` — the theory document codec. References `Kingo.Theories` and `Results`.
+- `Kingo` — the shared kernel, holding the identifier types. References the `MSL.Results` and `MSL.ValueTypes` packages, and the rest of the tree inherits them through it.
+- `Kingo.Facts` — the fact side: the `Fact` root, `Resource`, `SubjectSet`. References `Kingo`.
+- `Kingo.Theories` — the theory side: the `Theory` root, `Namespace`, `Relation`, `SubjectSetRewrite`. References `Kingo`.
+- `Kingo.Closures` — the interpreters over both halves, carrying `Decision` and `Expansion`. References `Kingo`, `Kingo.Facts`, `Kingo.Theories`.
+- `Kingo.Documents` — the theory document codec. References `Kingo.Theories`.
 - `Kingo.Serialization.Json` — a converter pack for the `Kingo` value types. References `Kingo`.
+
+The foundational primitives sit below all of it, and since 2026-07-29 they sit outside the repository: `Result<T>`, `Error`, `ErrorCode`, and `ErrorMessage` come from `MSL.Results`, and `IValueType<TSelf, TValue>`, `IParse<TSelf>`, and `ITryParse<TSelf>` from `MSL.ValueTypes`. They were vendored as the `Results` and `Values` projects until then; both projects were deleted, and the package versions are declared in `Directory.Packages.props` like every other dependency. Two of their shapes reach into the core. An error code and an error message are distinct types rather than two strings, so each project's `Diagnostics.ErrorCodes` catalog is the one place a code literal is lifted. Validation lives in `Checked` (`TValue → Result<TSelf>`) and `Parse` delegates to it, so the text and primitive entry points cannot disagree about what is valid.
 
 ## Domain core
 
@@ -49,7 +49,7 @@ These rules run as tests, so the structure is checked rather than described. Eac
 
 - `Kingo.Facts` and `Kingo.Theories` each refuse an assembly reference to the other.
 - Every type sits in the namespace its project declares, so `Kingo` stays flat and nothing gets parked in the kernel.
-- `IValue` implementers are `readonly record struct`s.
+- `IValueType` implementers are `readonly record struct`s.
 - Concrete classes are sealed, and instance fields are never public.
 - An adapter defines no exception types: parse failures surface as `Result` values, and substrate faults propagate as the substrate's own exceptions.
 

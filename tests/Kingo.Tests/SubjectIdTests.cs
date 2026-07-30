@@ -54,7 +54,7 @@ public sealed class SubjectIdTests
         var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("subject_id.empty", error.Code);
+        Assert.Equal("subject_id.empty", error.Code.Value);
     }
 
     [Theory]
@@ -66,7 +66,7 @@ public sealed class SubjectIdTests
         var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("subject_id.invalid", error.Code);
+        Assert.Equal("subject_id.invalid", error.Code.Value);
     }
 
     [Fact]

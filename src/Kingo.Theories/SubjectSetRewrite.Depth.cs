@@ -12,7 +12,7 @@ public abstract partial record SubjectSetRewrite
     private SubjectSetRewrite(int depth) => Depth = depth;
 
     public static Error DepthError() =>
-        Error.Validation(Diagnostics.ErrorCodes.Rewrite.Depth, $"a rewrite tree deeper than {MaxDepth} levels is refused");
+        Error.Validation(Diagnostics.ErrorCodes.Rewrite.Depth, ErrorMessage.Unchecked($"a rewrite tree deeper than {MaxDepth} levels is refused"));
 
     private static int DepthOver(ImmutableArray<SubjectSetRewrite> children) => 1 + children.Max(child => child.Depth);
 

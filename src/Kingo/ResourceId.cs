@@ -1,22 +1,24 @@
 using Results;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
 public readonly record struct ResourceId
-    : IValue<ResourceId, string>
+    : IValueType<ResourceId, string>
 {
     public string Value { get; }
 
     public static ResourceId Unchecked(string value) => new(value);
 
-    public static Result<ResourceId> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<ResourceId>(Error.Validation(Diagnostics.ErrorCodes.ResourceId.Empty, "resource identifier cannot be empty or whitespace"))
-            : !ResourceIdPatterns.Validation().IsMatch(s)
-                ? Result.Failure<ResourceId>(Error.Validation(Diagnostics.ErrorCodes.ResourceId.Invalid, $"resource identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
-                : Result.Success(new ResourceId(s));
+    public static Result<ResourceId> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<ResourceId>(Error.Validation(Diagnostics.ErrorCodes.ResourceId.Empty, ErrorMessage.Unchecked("resource identifier cannot be empty or whitespace")))
+            : !ResourceIdPatterns.Validation().IsMatch(value)
+                ? Result.Failure<ResourceId>(Error.Validation(Diagnostics.ErrorCodes.ResourceId.Invalid, ErrorMessage.Unchecked($"resource identifier '{value}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'")))
+                : Result.Success(new ResourceId(value));
+
+    public static Result<ResourceId> Parse(string s) => Checked(s);
 
     private ResourceId(string value) => Value = value;
 

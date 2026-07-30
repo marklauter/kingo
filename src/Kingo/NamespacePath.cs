@@ -1,24 +1,26 @@
 using Results;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
 public readonly record struct NamespacePath
-    : IValue<NamespacePath, string>
+    : IValueType<NamespacePath, string>
 {
     public string Value { get; }
 
     public static NamespacePath Unchecked(string value) => new(value);
 
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<NamespacePath> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Empty, "namespace path cannot be empty or whitespace"))
-            : !NamespacePathPatterns.Validation().IsMatch(s)
-                ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Invalid, $"namespace path '{s}' is malformed; expected '{IdentifierGrammar.NamespacePathPattern}'"))
-                : Result.Success(new NamespacePath(s.ToLowerInvariant()));
+    public static Result<NamespacePath> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Empty, ErrorMessage.Unchecked("namespace path cannot be empty or whitespace")))
+            : !NamespacePathPatterns.Validation().IsMatch(value)
+                ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Invalid, ErrorMessage.Unchecked($"namespace path '{value}' is malformed; expected '{IdentifierGrammar.NamespacePathPattern}'")))
+                : Result.Success(new NamespacePath(value.ToLowerInvariant()));
+
+    public static Result<NamespacePath> Parse(string s) => Checked(s);
 
     private NamespacePath(string value) => Value = value;
 

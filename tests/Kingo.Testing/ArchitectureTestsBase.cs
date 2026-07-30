@@ -52,17 +52,17 @@ public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expe
     public void ValueWrappersAreReadonlyRecordStructs()
     {
         var violations = targetAssembly.GetTypes()
-            .Where(ImplementsIValue)
+            .Where(ImplementsIValueType)
             .Where(type => !IsReadonlyRecordStruct(type))
             .Select(type => type.FullName)
             .ToList();
 
         if (violations.Count > 0)
-            Assert.Fail($"writing-csharp: IValue<TSelf, TValue> implementors must be readonly record structs. Violations: {string.Join(", ", violations)}");
+            Assert.Fail($"writing-csharp: IValueType<TSelf, TValue> implementors must be readonly record structs. Violations: {string.Join(", ", violations)}");
     }
 
-    private static bool ImplementsIValue(System.Type type) =>
-        type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition().FullName == "Values.IValue`2");
+    private static bool ImplementsIValueType(System.Type type) =>
+        type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition().FullName == "ValueTypes.IValueType`2");
 
     private static bool IsReadonlyRecordStruct(System.Type type) =>
         type.IsValueType

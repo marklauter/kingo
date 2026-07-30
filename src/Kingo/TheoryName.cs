@@ -1,24 +1,26 @@
 using Results;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
 public readonly record struct TheoryName
-    : IValue<TheoryName, string>
+    : IValueType<TheoryName, string>
 {
     public string Value { get; }
 
     public static TheoryName Unchecked(string value) => new(value);
 
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<TheoryName> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Empty, "theory name cannot be empty or whitespace"))
-            : !TheoryNamePatterns.Validation().IsMatch(s)
-                ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Invalid, $"theory name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
-                : Result.Success(new TheoryName(s.ToLowerInvariant()));
+    public static Result<TheoryName> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Empty, ErrorMessage.Unchecked("theory name cannot be empty or whitespace")))
+            : !TheoryNamePatterns.Validation().IsMatch(value)
+                ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Invalid, ErrorMessage.Unchecked($"theory name '{value}' is malformed; expected '{IdentifierGrammar.NamePattern}'")))
+                : Result.Success(new TheoryName(value.ToLowerInvariant()));
+
+    public static Result<TheoryName> Parse(string s) => Checked(s);
 
     private TheoryName(string value) => Value = value;
 

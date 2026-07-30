@@ -56,7 +56,7 @@ public abstract partial record SubjectSetRewrite
 
         public static Result<Union> Create(ImmutableArray<SubjectSetRewrite> children) =>
             children.IsDefaultOrEmpty
-                ? Result.Failure<Union>(Error.Validation(Diagnostics.ErrorCodes.Rewrite.UnionEmpty, "a union requires at least one child rewrite"))
+                ? Result.Failure<Union>(Error.Validation(Diagnostics.ErrorCodes.Rewrite.UnionEmpty, ErrorMessage.Unchecked("a union requires at least one child rewrite")))
                 : BoundedAt(DepthOver(children), depth => new Union(children, depth));
 
         public bool Equals(Union? other) =>
@@ -76,7 +76,7 @@ public abstract partial record SubjectSetRewrite
 
         public static Result<Intersection> Create(ImmutableArray<SubjectSetRewrite> children) =>
             children.IsDefaultOrEmpty
-                ? Result.Failure<Intersection>(Error.Validation(Diagnostics.ErrorCodes.Rewrite.IntersectionEmpty, "an intersection requires at least one child rewrite"))
+                ? Result.Failure<Intersection>(Error.Validation(Diagnostics.ErrorCodes.Rewrite.IntersectionEmpty, ErrorMessage.Unchecked("an intersection requires at least one child rewrite")))
                 : BoundedAt(DepthOver(children), depth => new Intersection(children, depth));
 
         public bool Equals(Intersection? other) =>

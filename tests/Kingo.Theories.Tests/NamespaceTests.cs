@@ -158,9 +158,9 @@ public sealed class NamespaceTests
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace.duplicate_relation", error.Code);
-        Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
-        Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("namespace.duplicate_relation", error.Code.Value);
+        Assert.Contains("'viewer'", error.Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'doc'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public sealed class NamespaceTests
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("namespace.duplicate_relation", error.Code);
+        Assert.Equal("namespace.duplicate_relation", error.Code.Value);
     }
 
     [Fact]
@@ -185,9 +185,9 @@ public sealed class NamespaceTests
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("namespace.duplicate_relation", error.Code));
-        Assert.Contains("'viewer'", failure.Errors[0].Message, StringComparison.Ordinal);
-        Assert.Contains("'editor'", failure.Errors[1].Message, StringComparison.Ordinal);
+        Assert.All(failure.Errors, error => Assert.Equal("namespace.duplicate_relation", error.Code.Value));
+        Assert.Contains("'viewer'", failure.Errors[0].Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'editor'", failure.Errors[1].Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -206,10 +206,10 @@ public sealed class NamespaceTests
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace.dangling_reference", error.Code);
-        Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
-        Assert.Contains("'editor'", error.Message, StringComparison.Ordinal);
-        Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("namespace.dangling_reference", error.Code.Value);
+        Assert.Contains("'viewer'", error.Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'editor'", error.Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'doc'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -219,8 +219,8 @@ public sealed class NamespaceTests
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("namespace.dangling_reference", error.Code);
-        Assert.Contains("'parent'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("namespace.dangling_reference", error.Code.Value);
+        Assert.Contains("'parent'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -244,10 +244,10 @@ public sealed class NamespaceTests
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         Assert.Equal(3, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("namespace.dangling_reference", error.Code));
-        Assert.Contains("'a'", failure.Errors[0].Message, StringComparison.Ordinal);
-        Assert.Contains("'b'", failure.Errors[1].Message, StringComparison.Ordinal);
-        Assert.Contains("'c'", failure.Errors[2].Message, StringComparison.Ordinal);
+        Assert.All(failure.Errors, error => Assert.Equal("namespace.dangling_reference", error.Code.Value));
+        Assert.Contains("'a'", failure.Errors[0].Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'b'", failure.Errors[1].Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'c'", failure.Errors[2].Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public sealed class NamespaceTests
             [Def("viewer", Computed("missing")), Def("viewer", Computed("viewer"))]);
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
-        Assert.All(failure.Errors, error => Assert.Equal("namespace.duplicate_relation", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("namespace.duplicate_relation", error.Code.Value));
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public sealed class NamespaceTests
             [Def("a", Computed("a")), Def("b", Computed("missing"))]);
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
-        Assert.All(failure.Errors, error => Assert.Equal("namespace.dangling_reference", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("namespace.dangling_reference", error.Code.Value));
     }
 
     [Fact]
@@ -306,9 +306,9 @@ public sealed class NamespaceTests
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace.rewrite_cycle", error.Code);
-        Assert.Contains("'viewer' -> 'viewer'", error.Message, StringComparison.Ordinal);
-        Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("namespace.rewrite_cycle", error.Code.Value);
+        Assert.Contains("'viewer' -> 'viewer'", error.Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'doc'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -320,8 +320,8 @@ public sealed class NamespaceTests
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("namespace.rewrite_cycle", error.Code);
-        Assert.Contains("'a' -> 'b' -> 'c' -> 'a'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("namespace.rewrite_cycle", error.Code.Value);
+        Assert.Contains("'a' -> 'b' -> 'c' -> 'a'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -335,7 +335,7 @@ public sealed class NamespaceTests
             ]);
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
-        Assert.Contains(failure.Errors, error => error.Code == "namespace.rewrite_cycle");
+        Assert.Contains(failure.Errors, error => error.Code.Value == "namespace.rewrite_cycle");
     }
 
     [Fact]
@@ -347,7 +347,7 @@ public sealed class NamespaceTests
 
         var failure = Assert.IsType<Result<Namespace>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("namespace.rewrite_cycle", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("namespace.rewrite_cycle", error.Code.Value));
     }
 
     [Fact]

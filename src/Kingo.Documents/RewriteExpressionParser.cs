@@ -14,15 +14,15 @@ internal static class RewriteExpressionParser
     {
         var tokens = Tokenizer.TryTokenize(expression);
         if (!tokens.HasValue)
-            return Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Rewrite, $"invalid rewrite expression '{expression}': {tokens}"));
+            return Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Rewrite, ErrorMessage.Unchecked($"invalid rewrite expression '{expression}': {tokens}")));
 
         if (WouldOverflowTheParserStack(tokens.Value))
             return Result.Failure<SubjectSetRewrite>(
-                Error.Validation(Diagnostics.ErrorCodes.Theory.Rewrite, $"invalid rewrite expression '{expression}': parenthesis nesting exceeds {SubjectSetRewrite.MaxDepth} levels"));
+                Error.Validation(Diagnostics.ErrorCodes.Theory.Rewrite, ErrorMessage.Unchecked($"invalid rewrite expression '{expression}': parenthesis nesting exceeds {SubjectSetRewrite.MaxDepth} levels")));
 
         var parsed = Expression.AtEnd().TryParse(tokens.Value);
         return !parsed.HasValue
-            ? Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Rewrite, $"invalid rewrite expression '{expression}': {parsed}"))
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Rewrite, ErrorMessage.Unchecked($"invalid rewrite expression '{expression}': {parsed}")))
             : ExceedsMaxDepth(parsed.Value)
                 ? Result.Failure<SubjectSetRewrite>(SubjectSetRewrite.DepthError())
                 : Transform(parsed.Value);

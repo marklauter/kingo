@@ -16,14 +16,14 @@ public sealed record Theory
     {
         if (namespaces.IsDefaultOrEmpty)
             return Result.Failure<Theory>(
-                Error.Validation(Diagnostics.ErrorCodes.Theory.Empty, "a theory requires at least one namespace; the absence of namespaces is the absence of a theory"));
+                Error.Validation(Diagnostics.ErrorCodes.Theory.Empty, ErrorMessage.Unchecked("a theory requires at least one namespace; the absence of namespaces is the absence of a theory")));
 
         var duplicates = namespaces
             .GroupBy(ns => ns.Name)
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
                 Diagnostics.ErrorCodes.Theory.DuplicateNamespace,
-                $"namespace '{group.Key}' is defined more than once in the theory"))
+                ErrorMessage.Unchecked($"namespace '{group.Key}' is defined more than once in the theory")))
             .ToImmutableArray();
 
         return duplicates.IsEmpty

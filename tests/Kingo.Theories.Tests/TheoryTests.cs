@@ -126,7 +126,7 @@ public sealed class TheoryTests
         var failure = Assert.IsType<Result<Theory>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("theory.empty", error.Code);
+        Assert.Equal("theory.empty", error.Code.Value);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class TheoryTests
 
         var failure = Assert.IsType<Result<Theory>.Failure>(result);
         var error = Assert.Single(failure.Errors);
-        Assert.Equal("theory.empty", error.Code);
+        Assert.Equal("theory.empty", error.Code.Value);
     }
 
     [Fact]
@@ -147,8 +147,8 @@ public sealed class TheoryTests
         var failure = Assert.IsType<Result<Theory>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("theory.duplicate_namespace", error.Code);
-        Assert.Contains("'doc'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("theory.duplicate_namespace", error.Code.Value);
+        Assert.Contains("'doc'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -158,9 +158,9 @@ public sealed class TheoryTests
 
         var failure = Assert.IsType<Result<Theory>.Failure>(result);
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("theory.duplicate_namespace", error.Code));
-        Assert.Contains("'doc'", failure.Errors[0].Message, StringComparison.Ordinal);
-        Assert.Contains("'folder'", failure.Errors[1].Message, StringComparison.Ordinal);
+        Assert.All(failure.Errors, error => Assert.Equal("theory.duplicate_namespace", error.Code.Value));
+        Assert.Contains("'doc'", failure.Errors[0].Message.Value, StringComparison.Ordinal);
+        Assert.Contains("'folder'", failure.Errors[1].Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]

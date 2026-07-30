@@ -37,7 +37,7 @@ public sealed class NamespaceNameTests
         var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace_name.empty", error.Code);
+        Assert.Equal("namespace_name.empty", error.Code.Value);
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public sealed class NamespaceNameTests
         var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace_name.invalid", error.Code);
+        Assert.Equal("namespace_name.invalid", error.Code.Value);
     }
 
     [Theory]
@@ -63,7 +63,7 @@ public sealed class NamespaceNameTests
     public void Parse_QualifiedPath_IsNotANamespaceName(string input)
     {
         var f = Assert.IsType<Result<NamespaceName>.Failure>(NamespaceName.Parse(input));
-        Assert.Equal("namespace_name.invalid", Assert.Single(f.Errors).Code);
+        Assert.Equal("namespace_name.invalid", Assert.Single(f.Errors).Code.Value);
     }
 
     [Fact]

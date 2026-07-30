@@ -123,7 +123,7 @@ banned")]
 
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("theory.rewrite", error.Code);
+        Assert.Equal("theory.rewrite", error.Code.Value);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ banned")]
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("café | naïve"));
 
         Assert.Equal(2, failure.Errors.Length);
-        Assert.All(failure.Errors, error => Assert.Equal("relation_name.invalid", error.Code));
+        Assert.All(failure.Errors, error => Assert.Equal("relation_name.invalid", error.Code.Value));
     }
 
     [Fact]
@@ -142,7 +142,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -183,7 +183,7 @@ banned")]
         {
             var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-            Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
+            Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code.Value);
         }
     }
 
@@ -192,7 +192,7 @@ banned")]
     {
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(") this"));
 
-        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code);
+        Assert.Equal("theory.rewrite", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -213,7 +213,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -223,7 +223,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ banned")]
 
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse(expression));
 
-        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -262,6 +262,6 @@ banned")]
         var failure = Assert.IsType<Result<SubjectSetRewrite>.Failure>(RewriteExpressionParser.Parse("this |"));
 
         var error = Assert.Single(failure.Errors);
-        Assert.Contains("'this |'", error.Message, StringComparison.Ordinal);
+        Assert.Contains("'this |'", error.Message.Value, StringComparison.Ordinal);
     }
 }

@@ -114,7 +114,7 @@ public sealed class SubjectSetRewriteTests
         var failure = Assert.IsType<Result<SubjectSetRewrite.Union>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("rewrite.union.empty", error.Code);
+        Assert.Equal("rewrite.union.empty", error.Code.Value);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public sealed class SubjectSetRewriteTests
         var result = SubjectSetRewrite.Union.Create(default);
 
         var failure = Assert.IsType<Result<SubjectSetRewrite.Union>.Failure>(result);
-        Assert.Equal("rewrite.union.empty", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.union.empty", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public sealed class SubjectSetRewriteTests
         var failure = Assert.IsType<Result<SubjectSetRewrite.Intersection>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("rewrite.intersection.empty", error.Code);
+        Assert.Equal("rewrite.intersection.empty", error.Code.Value);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public sealed class SubjectSetRewriteTests
         var result = SubjectSetRewrite.Intersection.Create(default);
 
         var failure = Assert.IsType<Result<SubjectSetRewrite.Intersection>.Failure>(result);
-        Assert.Equal("rewrite.intersection.empty", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.intersection.empty", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -316,7 +316,7 @@ public sealed class SubjectSetRewriteTests
         var failure = Assert.IsType<Result<SubjectSetRewrite.Exclusion>.Failure>(result);
         var error = Assert.Single(failure.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("rewrite.depth", error.Code);
+        Assert.Equal("rewrite.depth", error.Code.Value);
     }
 
     [Fact]
@@ -325,7 +325,7 @@ public sealed class SubjectSetRewriteTests
         var result = SubjectSetRewrite.Union.Create([NestedToTheBound()]);
 
         var failure = Assert.IsType<Result<SubjectSetRewrite.Union>.Failure>(result);
-        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code.Value);
     }
 
     [Fact]
@@ -334,7 +334,7 @@ public sealed class SubjectSetRewriteTests
         var result = SubjectSetRewrite.Intersection.Create([NestedToTheBound()]);
 
         var failure = Assert.IsType<Result<SubjectSetRewrite.Intersection>.Failure>(result);
-        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code);
+        Assert.Equal("rewrite.depth", Assert.Single(failure.Errors).Code.Value);
     }
 
     private static SubjectSetRewrite NestedToTheBound() =>

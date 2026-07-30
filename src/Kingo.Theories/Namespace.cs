@@ -25,7 +25,7 @@ public sealed record Namespace
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
                 Diagnostics.ErrorCodes.Namespace.DuplicateRelation,
-                $"relation '{group.Key}' is defined more than once in namespace '{name}'"))
+                ErrorMessage.Unchecked($"relation '{group.Key}' is defined more than once in namespace '{name}'")))
             .ToImmutableArray();
         if (!duplicates.IsEmpty)
             return Result.Failure<Namespace>(duplicates);
@@ -42,7 +42,7 @@ public sealed record Namespace
                 .Where(target => !defined.Contains(target))
                 .Select(target => Error.Validation(
                     Diagnostics.ErrorCodes.Namespace.DanglingReference,
-                    $"relation '{relation.Name}' references '{target}', which is not defined in namespace '{name}'")))
+                    ErrorMessage.Unchecked($"relation '{relation.Name}' references '{target}', which is not defined in namespace '{name}'"))))
             .ToImmutableArray();
         if (!dangling.IsEmpty)
             return Result.Failure<Namespace>(dangling);
@@ -136,7 +136,7 @@ public sealed record Namespace
                     var cycle = path.Skip(path.IndexOf(target)).Append(target);
                     errors.Add(Error.Validation(
                         Diagnostics.ErrorCodes.Namespace.RewriteCycle,
-                        $"rewrite cycle in namespace '{name}': {string.Join(" -> ", cycle.Select(step => $"'{step}'"))}"));
+                        ErrorMessage.Unchecked($"rewrite cycle in namespace '{name}': {string.Join(" -> ", cycle.Select(step => $"'{step}'"))}")));
                     continue;
                 }
 
