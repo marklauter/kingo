@@ -32,14 +32,14 @@ public sealed record Theory
     {
         if (namespaces.IsDefaultOrEmpty)
             return Result.Failure<Theory>(
-                Error.Validation(Diagnostics.ErrorCodes.Theory.Empty, "a domain requires at least one namespace; the absence of namespaces is the absence of a domain"));
+                Error.Validation(Diagnostics.ErrorCodes.Theory.Empty, ErrorMessage.Unchecked("a domain requires at least one namespace; the absence of namespaces is the absence of a domain")));
 
         var duplicates = namespaces
             .GroupBy(ns => ns.Name)
             .Where(group => group.Count() > 1)
             .Select(group => Error.Validation(
                 Diagnostics.ErrorCodes.Theory.DuplicateNamespace,
-                $"namespace '{group.Key}' is defined more than once in the domain"))
+                ErrorMessage.Unchecked($"namespace '{group.Key}' is defined more than once in the domain")))
             .ToImmutableArray();
 
         return duplicates.IsEmpty

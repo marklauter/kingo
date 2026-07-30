@@ -1,7 +1,7 @@
 using Results;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
@@ -10,11 +10,11 @@ namespace Kingo;
 /// identity on its own: it names a relationship only against a namespace supplied from elsewhere. Two places supply one: a
 /// <see cref="Kingo.Facts.SubjectSet"/>, where the resource carries the namespace, and the rewrite algebra, where the resource under evaluation does. There is
 /// no qualified relationship type. Nothing holds one, so the qualified form is composed at the point of use if a use ever arises. Case-insensitive:
-/// <see cref="Parse"/> normalizes to lowercase, the canonical form. The grammar is name-only, so <c>...</c> fails to parse here. That form is the
+/// <see cref="Checked"/> normalizes to lowercase, the canonical form. The grammar is name-only, so <c>...</c> fails to parse here. That form is the
 /// <c>#...</c> marker of the <c>Fact.ResourceFact</c> member production, fact-grammar punctuation rather than a relationship concept.
 /// </summary>
 public readonly record struct RelationshipName
-    : IValue<RelationshipName, string>
+    : IValueType<RelationshipName, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
@@ -24,12 +24,15 @@ public readonly record struct RelationshipName
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<RelationshipName> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.RelationshipName.Empty, "relationship name cannot be empty or whitespace"))
-            : !RelationshipNamePatterns.Validation().IsMatch(s)
-                ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.RelationshipName.Invalid, $"relationship name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
-                : Result.Success(new RelationshipName(s.ToLowerInvariant()));
+    public static Result<RelationshipName> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.RelationshipName.Empty, ErrorMessage.Unchecked("relationship name cannot be empty or whitespace")))
+            : !RelationshipNamePatterns.Validation().IsMatch(value)
+                ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.RelationshipName.Invalid, ErrorMessage.Unchecked($"relationship name '{value}' is malformed; expected '{IdentifierGrammar.NamePattern}'")))
+                : Result.Success(new RelationshipName(value.ToLowerInvariant()));
+
+    /// <inheritdoc/>
+    public static Result<RelationshipName> Parse(string s) => Checked(s);
 
     private RelationshipName(string value) => Value = value;
 

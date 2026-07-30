@@ -1,7 +1,7 @@
 using Results;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
@@ -13,10 +13,10 @@ namespace Kingo;
 /// ([[split-identities-at-ownership-boundaries]]). One string with one representation, ordered so a domain's namespaces are contiguous in the key space. The domain
 /// and namespace segments are deliberately not projected off it: the value is stored, compared, and sorted whole, and nothing reads the halves. Deriving them
 /// would cost a character scan (at construction if eager, per read if lazy) that no caller needs today, so it is deferred to an extension method if a use ever
-/// arises. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
+/// arises. Case-insensitive: <see cref="Checked"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct NamespacePath
-    : IValue<NamespacePath, string>
+    : IValueType<NamespacePath, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
@@ -26,12 +26,15 @@ public readonly record struct NamespacePath
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<NamespacePath> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Empty, "namespace path cannot be empty or whitespace"))
-            : !NamespacePathPatterns.Validation().IsMatch(s)
-                ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Invalid, $"namespace path '{s}' is malformed; expected '{IdentifierGrammar.NamespacePathPattern}'"))
-                : Result.Success(new NamespacePath(s.ToLowerInvariant()));
+    public static Result<NamespacePath> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Empty, ErrorMessage.Unchecked("namespace path cannot be empty or whitespace")))
+            : !NamespacePathPatterns.Validation().IsMatch(value)
+                ? Result.Failure<NamespacePath>(Error.Validation(Diagnostics.ErrorCodes.NamespacePath.Invalid, ErrorMessage.Unchecked($"namespace path '{value}' is malformed; expected '{IdentifierGrammar.NamespacePathPattern}'")))
+                : Result.Success(new NamespacePath(value.ToLowerInvariant()));
+
+    /// <inheritdoc/>
+    public static Result<NamespacePath> Parse(string s) => Checked(s);
 
     private NamespacePath(string value) => Value = value;
 

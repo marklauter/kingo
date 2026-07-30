@@ -172,7 +172,7 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(Document(namespaceMap));
 
         Assert.All(errors, error => Assert.Equal(ErrorType.Validation, error.Type));
-        Assert.Contains(errors, error => error.Code == expectedCode);
+        Assert.Contains(errors, error => error.Code.Value == expectedCode);
     }
 
     [Theory]
@@ -199,7 +199,7 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(document);
 
         Assert.All(errors, error => Assert.Equal(ErrorType.Validation, error.Type));
-        Assert.Contains(errors, error => error.Code == expectedCode);
+        Assert.Contains(errors, error => error.Code.Value == expectedCode);
     }
 
     [Fact]
@@ -225,8 +225,8 @@ public sealed class TheoryParseTests
         var errors = ParseFailure("theory: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
-        Assert.Equal("theory_name.invalid", errors[0].Code);
-        Assert.Equal("namespace_name.invalid", errors[1].Code);
+        Assert.Equal("theory_name.invalid", errors[0].Code.Value);
+        Assert.Equal("namespace_name.invalid", errors[1].Code.Value);
     }
 
     [Fact]
@@ -235,8 +235,8 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(Document("file:\n  - viewer:"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("theory.relationship", error.Code);
-        Assert.Contains("'viewer'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("theory.relationship", error.Code.Value);
+        Assert.Contains("'viewer'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -258,9 +258,9 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(Document("123file:\n  - 456bad: this |"));
 
         Assert.Equal(3, errors.Length);
-        Assert.Equal("namespace_name.invalid", errors[0].Code);
-        Assert.Equal("relationship_name.invalid", errors[1].Code);
-        Assert.Equal("theory.rewrite", errors[2].Code);
+        Assert.Equal("namespace_name.invalid", errors[0].Code.Value);
+        Assert.Equal("relationship_name.invalid", errors[1].Code.Value);
+        Assert.Equal("theory.rewrite", errors[2].Code.Value);
     }
 
     [Fact]
@@ -277,9 +277,9 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(Document(namespaceMap));
 
         Assert.Equal(3, errors.Length);
-        Assert.Equal("namespace_name.invalid", errors[0].Code);
-        Assert.Equal("relationship_name.invalid", errors[1].Code);
-        Assert.Equal("theory.rewrite", errors[2].Code);
+        Assert.Equal("namespace_name.invalid", errors[0].Code.Value);
+        Assert.Equal("relationship_name.invalid", errors[1].Code.Value);
+        Assert.Equal("theory.rewrite", errors[2].Code.Value);
     }
 
     [Fact]
@@ -289,8 +289,8 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(Document("file:\n  - owner\nFILE:\n  - viewer"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("theory.duplicate_namespace", error.Code);
-        Assert.Contains("'file'", error.Message, StringComparison.Ordinal);
+        Assert.Equal("theory.duplicate_namespace", error.Code.Value);
+        Assert.Contains("'file'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public sealed class TheoryParseTests
         var errors = ParseFailure(Document("file:\n  - owner\n  - owner"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("namespace.duplicate_relationship", error.Code);
+        Assert.Equal("namespace.duplicate_relationship", error.Code.Value);
     }
 
     [Fact]
@@ -332,7 +332,7 @@ public sealed class TheoryParseTests
         // a domain is never empty: the absence of namespaces is the absence of a domain
         var errors = ParseFailure(Document("{}"));
 
-        Assert.Equal("theory.empty", Assert.Single(errors).Code);
+        Assert.Equal("theory.empty", Assert.Single(errors).Code.Value);
     }
 
     [Theory]

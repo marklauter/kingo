@@ -6,8 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Results\Results.csproj" />
-		<ProjectReference Include="..\Values\Values.csproj" />
+		<PackageReference Include="MSL.Results" />
+		<PackageReference Include="MSL.ValueTypes" />
 	</ItemGroup>
 
 </Project>

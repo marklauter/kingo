@@ -38,7 +38,7 @@ public sealed class NamespacePathTests
         var f = Assert.IsType<Result<NamespacePath>.Failure>(NamespacePath.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace_path.empty", error.Code);
+        Assert.Equal("namespace_path.empty", error.Code.Value);
     }
 
     [Theory]
@@ -64,7 +64,7 @@ public sealed class NamespacePathTests
         var f = Assert.IsType<Result<NamespacePath>.Failure>(NamespacePath.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("namespace_path.invalid", error.Code);
+        Assert.Equal("namespace_path.invalid", error.Code.Value);
     }
 
     [Fact]

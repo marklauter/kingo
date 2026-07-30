@@ -9,7 +9,6 @@
 		<ProjectReference Include="..\Kingo\Kingo.csproj" />
 		<ProjectReference Include="..\Kingo.Facts\Kingo.Facts.csproj" />
 		<ProjectReference Include="..\Kingo.Theories\Kingo.Theories.csproj" />
-		<ProjectReference Include="..\Results\Results.csproj" />
 	</ItemGroup>
 
 </Project>
