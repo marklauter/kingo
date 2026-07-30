@@ -38,7 +38,7 @@ public sealed class TheoryNameTests
         var f = Assert.IsType<Result<TheoryName>.Failure>(TheoryName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("theory_name.empty", error.Code);
+        Assert.Equal("theory_name.empty", error.Code.Value);
     }
 
     [Theory]
@@ -55,7 +55,7 @@ public sealed class TheoryNameTests
         var f = Assert.IsType<Result<TheoryName>.Failure>(TheoryName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("theory_name.invalid", error.Code);
+        Assert.Equal("theory_name.invalid", error.Code.Value);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class TheoryNameTests
     {
         // a domain is one segment; anything carrying a separator names something below it
         var f = Assert.IsType<Result<TheoryName>.Failure>(TheoryName.Parse(input));
-        Assert.Equal("theory_name.invalid", Assert.Single(f.Errors).Code);
+        Assert.Equal("theory_name.invalid", Assert.Single(f.Errors).Code.Value);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 using Results;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
@@ -12,7 +12,7 @@ namespace Kingo;
 /// whitespace and no control characters.
 /// </summary>
 public readonly record struct SubjectId
-    : IValue<SubjectId, string>
+    : IValueType<SubjectId, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
@@ -21,12 +21,15 @@ public readonly record struct SubjectId
     public static SubjectId Unchecked(string value) => new(value);
 
     /// <inheritdoc/>
-    public static Result<SubjectId> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<SubjectId>(Error.Validation(Diagnostics.ErrorCodes.SubjectId.Empty, "subject identifier cannot be empty or whitespace"))
-            : !SubjectIdPatterns.Validation().IsMatch(s)
-                ? Result.Failure<SubjectId>(Error.Validation(Diagnostics.ErrorCodes.SubjectId.Invalid, $"subject identifier '{s}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'"))
-                : Result.Success(new SubjectId(s));
+    public static Result<SubjectId> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<SubjectId>(Error.Validation(Diagnostics.ErrorCodes.SubjectId.Empty, ErrorMessage.Unchecked("subject identifier cannot be empty or whitespace")))
+            : !SubjectIdPatterns.Validation().IsMatch(value)
+                ? Result.Failure<SubjectId>(Error.Validation(Diagnostics.ErrorCodes.SubjectId.Invalid, ErrorMessage.Unchecked($"subject identifier '{value}' contains invalid characters; expected '{IdentifierGrammar.IdPattern}'")))
+                : Result.Success(new SubjectId(value));
+
+    /// <inheritdoc/>
+    public static Result<SubjectId> Parse(string s) => Checked(s);
 
     private SubjectId(string value) => Value = value;
 

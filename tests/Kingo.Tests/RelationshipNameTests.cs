@@ -38,7 +38,7 @@ public sealed class RelationshipNameTests
         var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_name.empty", error.Code);
+        Assert.Equal("relationship_name.empty", error.Code.Value);
     }
 
     [Theory]
@@ -59,7 +59,7 @@ public sealed class RelationshipNameTests
         var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_name.invalid", error.Code);
+        Assert.Equal("relationship_name.invalid", error.Code.Value);
     }
 
     [Theory]
@@ -73,7 +73,7 @@ public sealed class RelationshipNameTests
         var f = Assert.IsType<Result<RelationshipName>.Failure>(RelationshipName.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("relationship_name.invalid", error.Code);
+        Assert.Equal("relationship_name.invalid", error.Code.Value);
     }
 
     [Fact]

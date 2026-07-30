@@ -49,7 +49,7 @@ public static class TheoryParser
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         document.Children.TryGetValue(new YamlScalarNode(DocumentKeys.Name), out var name) && name is YamlScalarNode { Value: not null } scalar
             ? TheoryName.Parse(scalar.Value!)
-            : Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, $"a domain document requires a '{DocumentKeys.Name}:' key naming the domain, with a scalar value"));
+            : Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, ErrorMessage.Unchecked($"a domain document requires a '{DocumentKeys.Name}:' key naming the domain, with a scalar value")));
 
     /// <summary>
     /// Parses the document's <c>namespaces:</c> key, the namespace map. Its emptiness is <c>Theory.Create</c>'s call (<c>theory.empty</c>), not
@@ -60,7 +60,7 @@ public static class TheoryParser
     private static Result<ImmutableArray<Namespace>> ParseNamespaces(YamlMappingNode document) =>
         document.Children.TryGetValue(new YamlScalarNode(DocumentKeys.Namespaces), out var namespaces) && namespaces is YamlMappingNode map
             ? map.Children.Select(ParseNamespace).Sequence()
-            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, $"a domain document requires a '{DocumentKeys.Namespaces}:' key mapping namespace name to relationship list"));
+            : Result.Failure<ImmutableArray<Namespace>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, ErrorMessage.Unchecked($"a domain document requires a '{DocumentKeys.Namespaces}:' key mapping namespace name to relationship list")));
 
     private static Result<YamlMappingNode> LoadDocument(string text)
     {
@@ -71,18 +71,18 @@ public static class TheoryParser
             stream.Load(reader);
             return stream.Documents is [{ RootNode: YamlMappingNode document }]
                 ? Result.Success(document)
-                : Result.Failure<YamlMappingNode>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, $"a domain document is a single YAML mapping carrying a '{DocumentKeys.Name}:' name and a '{DocumentKeys.Namespaces}:' map"));
+                : Result.Failure<YamlMappingNode>(Error.Validation(Diagnostics.ErrorCodes.Theory.Document, ErrorMessage.Unchecked($"a domain document is a single YAML mapping carrying a '{DocumentKeys.Name}:' name and a '{DocumentKeys.Namespaces}:' map")));
         }
         catch (YamlException ex)
         {
             // substrate fault translated at the boundary: malformed text is a modeled outcome of parsing untrusted input
-            return Result.Failure<YamlMappingNode>(Error.Validation(Diagnostics.ErrorCodes.Theory.Syntax, $"malformed YAML: {ex.Message}"));
+            return Result.Failure<YamlMappingNode>(Error.Validation(Diagnostics.ErrorCodes.Theory.Syntax, ErrorMessage.Unchecked($"malformed YAML: {ex.Message}")));
         }
         catch (ArgumentException ex)
         {
             // YamlDotNet leaks ArgumentException for shapes its representation model cannot load (e.g. "- : this"
             // dies in YamlNode.ParseNode with "current event is of an unsupported type") — same modeled outcome
-            return Result.Failure<YamlMappingNode>(Error.Validation(Diagnostics.ErrorCodes.Theory.Syntax, $"malformed YAML: {ex.Message}"));
+            return Result.Failure<YamlMappingNode>(Error.Validation(Diagnostics.ErrorCodes.Theory.Syntax, ErrorMessage.Unchecked($"malformed YAML: {ex.Message}")));
         }
     }
 
@@ -91,7 +91,7 @@ public static class TheoryParser
         // Value is never null on a node loaded from text; the nullable annotation exists for hand-built nodes
         var name = entry.Key is YamlScalarNode key
             ? NamespaceName.Parse(key.Value!)
-            : Result.Failure<NamespaceName>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, "a namespace name must be a scalar"));
+            : Result.Failure<NamespaceName>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, ErrorMessage.Unchecked("a namespace name must be a scalar")));
 
         return Result.Apply(
             name.Map<Func<ImmutableArray<Relationship>, (NamespaceName Name, ImmutableArray<Relationship> Relationships)>>(n => relationships => (n, relationships)),
@@ -105,7 +105,7 @@ public static class TheoryParser
             YamlSequenceNode sequence => sequence.Children.Select(ParseRelationship).Sequence(),
             // "file:" with no value — a namespace with no relationships — parses as a plain null scalar (core-schema null forms)
             YamlScalarNode { Style: ScalarStyle.Plain, Value: null or "" or "null" or "Null" or "NULL" or "~" } => Result.Success<ImmutableArray<Relationship>>([]),
-            _ => Result.Failure<ImmutableArray<Relationship>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, "a namespace defines a sequence of relationships")),
+            _ => Result.Failure<ImmutableArray<Relationship>>(Error.Validation(Diagnostics.ErrorCodes.Theory.Namespace, ErrorMessage.Unchecked("a namespace defines a sequence of relationships"))),
         };
 
     private static Result<Relationship> ParseRelationship(YamlNode node) =>
@@ -115,7 +115,7 @@ public static class TheoryParser
             YamlScalarNode scalar => ParseRelationshipName(scalar.Value!).Map(relationship => new Relationship(relationship)),
             // "- editor: this | owner" — a single-pair mapping of name to rewrite expression
             YamlMappingNode { Children.Count: 1 } mapping => ParseRewriteRelationship(mapping.Children.First()),
-            _ => Result.Failure<Relationship>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, "a relationship is a bare name or a single '<name>: <rewrite expression>' pair")),
+            _ => Result.Failure<Relationship>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, ErrorMessage.Unchecked("a relationship is a bare name or a single '<name>: <rewrite expression>' pair"))),
         };
 
     private static Result<Relationship> ParseRewriteRelationship(KeyValuePair<YamlNode, YamlNode> entry) =>
@@ -125,7 +125,7 @@ public static class TheoryParser
                 ParseRelationshipName(name.Value!)
                     .Map<Func<SubjectSetRewrite, Relationship>>(relationship => rewrite => new Relationship(relationship, rewrite)),
                 ParseRewriteExpression(name, expression))
-            : Result.Failure<Relationship>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, "a relationship is a bare name or a single '<name>: <rewrite expression>' pair"));
+            : Result.Failure<Relationship>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, ErrorMessage.Unchecked("a relationship is a bare name or a single '<name>: <rewrite expression>' pair")));
 
     /// <summary>
     /// Parses the value side of a <c>&lt;name&gt;: &lt;rewrite expression&gt;</c> pair. A missing value (<c>- viewer:</c>) loads as a plain
@@ -137,7 +137,7 @@ public static class TheoryParser
     /// <returns>A successful <see cref="Result{T}"/> carrying the parsed <c>SubjectSetRewrite</c>, or a <c>theory.relationship</c> failure when the expression is missing, or the expression parser's failures.</returns>
     private static Result<SubjectSetRewrite> ParseRewriteExpression(YamlScalarNode name, YamlScalarNode expression) =>
         expression is { Style: ScalarStyle.Plain, Value: null or "" }
-            ? Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, $"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name"))
+            ? Result.Failure<SubjectSetRewrite>(Error.Validation(Diagnostics.ErrorCodes.Theory.Relationship, ErrorMessage.Unchecked($"relationship '{name.Value}' is missing its rewrite expression; a relationship without a rewrite is a bare name")))
             : RewriteExpressionParser.Parse(expression.Value!);
 
     /// <summary>
@@ -152,6 +152,6 @@ public static class TheoryParser
     /// </returns>
     private static Result<RelationshipName> ParseRelationshipName(string name) =>
         RelationshipName.Parse(name).Bind(relationship => RewriteExpressionPrinter.IsReserved(relationship)
-            ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.Theory.RelationshipReserved, $"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in a domain document"))
+            ? Result.Failure<RelationshipName>(Error.Validation(Diagnostics.ErrorCodes.Theory.RelationshipReserved, ErrorMessage.Unchecked($"'{relationship}' is reserved by the rewrite grammar and cannot name a relationship in a domain document")))
             : Result.Success(relationship));
 }

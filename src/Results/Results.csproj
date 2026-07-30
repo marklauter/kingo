@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<IsPackable>false</IsPackable>
-		<KingoDomainLibrary>true</KingoDomainLibrary>
-	</PropertyGroup>
-
-</Project>

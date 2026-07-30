@@ -1,7 +1,7 @@
 using Results;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using Values;
+using ValueTypes;
 
 namespace Kingo;
 
@@ -9,10 +9,10 @@ namespace Kingo;
 /// The name of a <see cref="Domains.Domain"/>, the config-side aggregate root's domain key, one segment of the identifier grammar ([[identifiers]]): <c>io</c>.
 /// Name-as-identity (settled 2026-07-15, provisionally: no rename, only a new domain. The surrogate-key alternative stays available if admin rename-freedom is
 /// worth more than the identity being legible. See [[domain-language]]). The domain is the root of the config tree, so this name is never itself qualified. It
-/// is instead what qualifies a <see cref="NamespacePath"/>. Case-insensitive: <see cref="Parse"/> normalizes to lowercase, the canonical form.
+/// is instead what qualifies a <see cref="NamespacePath"/>. Case-insensitive: <see cref="Checked"/> normalizes to lowercase, the canonical form.
 /// </summary>
 public readonly record struct TheoryName
-    : IValue<TheoryName, string>
+    : IValueType<TheoryName, string>
 {
     /// <inheritdoc/>
     public string Value { get; }
@@ -22,12 +22,15 @@ public readonly record struct TheoryName
 
     /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
-    public static Result<TheoryName> Parse(string s) =>
-        string.IsNullOrWhiteSpace(s)
-            ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Empty, "theory name cannot be empty or whitespace"))
-            : !TheoryNamePatterns.Validation().IsMatch(s)
-                ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Invalid, $"theory name '{s}' is malformed; expected '{IdentifierGrammar.NamePattern}'"))
-                : Result.Success(new TheoryName(s.ToLowerInvariant()));
+    public static Result<TheoryName> Checked(string value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Empty, ErrorMessage.Unchecked("theory name cannot be empty or whitespace")))
+            : !TheoryNamePatterns.Validation().IsMatch(value)
+                ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Invalid, ErrorMessage.Unchecked($"theory name '{value}' is malformed; expected '{IdentifierGrammar.NamePattern}'")))
+                : Result.Success(new TheoryName(value.ToLowerInvariant()));
+
+    /// <inheritdoc/>
+    public static Result<TheoryName> Parse(string s) => Checked(s);
 
     private TheoryName(string value) => Value = value;
 
