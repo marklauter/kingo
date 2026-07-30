@@ -15,7 +15,7 @@ effort: medium
 Kingo.Pdl currently contains:
 
 - AST records: `PdlDocument`, `Namespace`, `Relation`, `SubjectSetRewrite` (abstract) and its sealed inhabitants (`ThisRewrite`, `ComputedSubjectSetRewrite`, `TupleToSubjectSetRewrite`, `UnionRewrite`, `IntersectionRewrite`, `ExclusionRewrite`).
-- Value-type wrappers: `NamespaceIdentifier`, `RelationIdentifier` (now implementing `IValue<TSelf, string>` additively).
+- Value-type wrappers: `NamespaceIdentifier`, `RelationIdentifier` (now implementing `IValueType<TSelf, string>` additively).
 - Helpers: `PolicyHash`, `RegExPatterns`.
 - Parser/serializer: `PdlParser` (YAML via YamlDotNet), `PdlSerializer`, `RewriteExpressionParser` (Superpower), `Converters/RelationTypeConverter`, `Converters/YamlStringConvertible`, `PdlParseException`.
 
@@ -29,7 +29,7 @@ PDL is a distinct format — YAML outer structure plus a Superpower-parsed embed
 
 ## Next
 
-**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [[ubiquitous-language]]: identifier IValues (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
+**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [[ubiquitous-language]]: identifier value types (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
 
 Remaining work:
 

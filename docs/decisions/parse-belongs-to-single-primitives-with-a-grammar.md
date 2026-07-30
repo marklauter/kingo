@@ -8,7 +8,7 @@ status: locked
 
 # Parse belongs to single primitives with a grammar
 
-A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. The contract is `IParse<TSelf>`, which declares the `static abstract Result<TSelf> Parse(string s)`; `IValue<TSelf, TValue>` inherits it and constrains `TSelf` to a struct, so implementing `IValue` is how a terminal picks the contract up. In code that set is exactly six types: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `SubjectId`. The grammar is the whole contract of such a type.
+A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. The contract is `IParse<TSelf>`, which declares the `static abstract Result<TSelf> Parse(string s)`; `IValueType<TSelf, TValue>` inherits it and constrains `TSelf` to a struct, so implementing `IValueType` is how a terminal picks the contract up. In code that set is exactly six types: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `SubjectId`. The grammar is the whole contract of such a type.
 
 Every other type is constructed, not parsed. Where the invariants are relational, construction runs through a validating factory: `Theory.Create` and `Namespace.Create`. Where the typed components are the whole contract, the primary constructor is enough, which is the case for `Resource`, `SubjectSet`, `Relation`, and the three `Fact` cases. Neither route goes through text. Composition decides the side a type lands on.
 
