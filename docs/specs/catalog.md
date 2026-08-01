@@ -6,7 +6,7 @@ tags: [theory]
 created: 2026-07-24
 status: evolving
 cites:
-  - "[[catalog]]"
+  - "[[glossary/catalog]]"
   - "[[theory]]"
   - "[[namespace]]"
   - "[[relation]]"

@@ -7,7 +7,7 @@ created: 2026-07-23
 status: evolving
 cites:
   - "[[theory]]"
-  - "[[catalog]]"
+  - "[[glossary/catalog]]"
   - "[[namespace]]"
   - "[[relation]]"
 ---
@@ -22,7 +22,7 @@ Three kinds of thing carry one, and each contains the one above it:
 - A [[namespace]] is `<theory>/<namespace>`: `io/file`.
 - A [[relation]] is `<theory>/<namespace>#<relation>`: `io/file#viewer`.
 
-Each segment is unique within the segment that precedes it. Theory names are unique across the [[catalog]], namespace names within their theory, relation names within their namespace. Composing unique segments makes the whole path unique. `io/file` is the namespace's name, and there is no namespace called `file`.
+Each segment is unique within the segment that precedes it. Theory names are unique across the catalog, namespace names within their theory, relation names within their namespace. Composing unique segments makes the whole path unique. `io/file` is the namespace's name, and there is no namespace called `file`.
 
 ## The path is one value
 
