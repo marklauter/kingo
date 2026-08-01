@@ -15,9 +15,11 @@ blocked-by: "[[storage-versioning-design]]"
 
 `GraphParser` / `GraphPrinter` were stubbed 2026-07-15 as the fact-side mirror of the theory pair ([[theories]]): `Parse(text) → Result<Graph>` plus a `graph.Print()` extension, with the document format left open. Mark's aspiration for that format (2026-07-15) is **bulk DML** — a loader/mutator, not a serialized state. You can add, delete, and (in SQL's frame) patch; patch is empty for a fact, because a fact's domain key is the whole triple and there is no non-key field left to change — a "patched" fact is a different fact. That leaves **create, touch, delete**, which is exactly Zanzibar's `RelationTupleUpdate` set (§2.4) and the set SpiceDB's `RelationshipUpdate` kept unchanged. Two independent designs landing on the same three is evidence the space is that shape:
 
+<!--scrutinize: superseded by spec: graph-operations.md section: The two fact operations — the set is apply/drop (Mark, 2026-07-31). A strict create contradicts the idempotence ruling, since re-running a document carrying one fails by design; asserting against known state becomes the precondition question in Open questions below. reconcile.md 3.4, which ruled create/touch/delete on provenance rather than merit, is reversed with it.-->
 - `create` — assert, conflict if the fact already exists.
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
 - `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal (dry-run finding F8); the operation vocabulary is unchanged by that.
+<!--/scrutinize-->
 
 The SQL frame names the split cleanly: the theory document is the schema half ([[theories]]) — the rules — while this document is the data half, mutating the facts the rules range over. The analogy is not exact — SQL's DML is a language of statements against a live store, while a fact document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
@@ -45,6 +47,7 @@ Sections are the natural fit for a bulk loader — the common document is "here 
 
 ## `GraphOperation` — and why it is not a domain type
 
+<!--scrutinize: superseded by spec: graph-operations.md section: Graph operations — the two names swapped (Mark, 2026-07-31). A fact operation is one row; a graph operation is the atomic set of them, and the set is the unit that spans the graph. So this DU is FactOperation, with ApplyOperation and DropOperation as its cases, and GraphOperation names the batch above it. The 2026-07-15 objection below survives the swap one level down: a drop-by-filter row would be a fact operation naming no single fact. The batch type this implies is also where "Is a document a transaction?" in Open questions lands, which graph-operations.md now answers as yes under its own scrutinize block.-->
 The document parses to a closed DU over the three cases. Sketch:
 
 ```csharp
@@ -55,7 +58,8 @@ public sealed record TouchOperation(Fact Fact) : GraphOperation(Fact);
 public sealed record DeleteOperation(Fact Fact) : GraphOperation(Fact);
 ```
 
-`Graph` beats `Fact` as the qualifier (Mark, 2026-07-15). `FactOperation(Fact Fact)` promises every operation names exactly one fact — true today, false the moment delete-by-filter lands, since "drop every viewer of `doc:readme`" acts on the graph and names no single fact. `GraphOperation` makes no such promise, so the DU can grow a filter case without the base lying. (Closing the DU is an implementation detail left open: `SubjectSetRewrite` uses a bare `private protected` ctor, which works because it declares no primary constructor. A base that takes one cannot cleanly also expose a parameterless ctor, so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention.)
+`Graph` beats `Fact` as the qualifier (Mark, 2026-07-15). `FactOperation(Fact Fact)` promises every operation names exactly one fact — true today, false the moment delete-by-filter lands, since "drop every viewer of `doc:readme`" acts on the graph and names no single fact. `GraphOperation` makes no such promise, so the DU can grow a filter case without the base lying.
+<!--/scrutinize--> (Closing the DU is an implementation detail left open: `SubjectSetRewrite` uses a bare `private protected` ctor, which works because it declares no primary constructor. A base that takes one cannot cleanly also expose a parameterless ctor, so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention.)
 
 **It does not live in the domain layer** (Mark, 2026-07-15 — correcting this note's first draft, which put it in `Kingo.Facts`). An operation sits **between two edges**: born at user IO (a document, a REST call), dead at storage IO (a conditional write). The tell is that every rule it carries is storage semantics, not a domain invariant:
 
