@@ -1,7 +1,7 @@
 ---
 title: Reconcile the rewrite-interpreters branch
 type: todo
-summary: "Verdict on the 26 doc files the rewrite-interpreters branch carries: four specs and one todo port forward, four files give up a paragraph and go, the rest is casualty of the reversed schema dissolution."
+summary: "Verdict on the 26 doc files the rewrite-interpreters branch carries: three specs port forward, four files give up a paragraph and go, the rest is casualty of the reversed schema dissolution. Section 1 is closed."
 created: 2026-07-25
 priority: high
 status: open
@@ -19,7 +19,7 @@ No code on that branch — 26 doc files and one stray transcript. The good news:
 
 1.3. **`docs/specs/fact-documents.md`** — RECONCILED 2026-07-31 (`dad8a6c`). Landed as **`docs/specs/graph-operations.md`**, named for the concept rather than the file: a fact operation is one row, a graph operation is the atomic set of them, and the spec defines the operation with YAML as its projection. The substance ported — atomic batch, one Write transaction, validated on end state, idempotent, no script identity — with the first two marked `scrutinize` because the design record still holds the transaction question open. Two things changed. The notation went to a property per part rather than to qualified names: [[parse-belongs-to-single-primitives-with-a-grammar]] is locked and `Fact.Parse` is gone from `src`, because user-owned ids may carry the notation's own delimiters, so a flat triple has nothing to read it. And 3.4 reverses — see below.
 
-1.4. **`docs/todos/sdl-parse-layer-has-no-input-size-bound.md`** — a real finding from an adversarial review, entirely independent of the schema question. Depth is bounded exactly; total input size isn't, and error messages echo the full expression. Still true. Retitle off "SDL."
+1.4. **`docs/todos/sdl-parse-layer-has-no-input-size-bound.md`** — RECONCILED 2026-08-01. **Discarded, not ported.** This verdict was wrong. The depth half already landed: `RewriteExpressionParser` carries both guards, the paren scan (`WouldOverflowTheParserStack`) and the tree-height walk (`ExceedsMaxDepth`), and [[theories]] documents the bounds. The size half is not a design question. A theory document arrives as a request body, the endpoint bounds it, and rate limiting covers repetition — ordinary host configuration, with no host yet to configure. The error echo was raised as a second finding and dismissed with it (Mark, 2026-08-01): nobody logs a request body, so a full-expression echo threatens neither the log nor the service.
 
 ## 2. Salvage a paragraph, then discard the file
 
@@ -49,7 +49,7 @@ No code on that branch — 26 doc files and one stray transcript. The good news:
 
 4.2. Copy the four keepers out of the sibling clone into `reconcile` by hand, then translate.
 
-4.3. Open two todos: the static-reference fork (2.2) and the parse size bound (1.4).
+4.3. Open one todo: the static-reference fork (2.2). The parse size bound is discarded — see 1.4.
 
 4.4. Fold the three salvaged paragraphs into [[specs/catalog]] and `fact-documents.md`.
 
