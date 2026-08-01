@@ -23,11 +23,13 @@ No code on that branch — 26 doc files and one stray transcript. The good news:
 
 ## 2. Salvage a paragraph, then discard the file
 
-2.1. **`docs/decisions/schema-dissolves-into-administration.md`** — the decision is reversed, but its *shared-groups argument* is load-bearing and survived the reversal: an org-wide `org/group:eng#member` has no owner that can hold it usefully, so every wall would force a membership copy and resurrect group-sync drift. That's the argument for why a theory is not a referential wall. [[specs/catalog]] asserts this ("a rewrite in one theory may reference a relation in another") but doesn't argue it. Move the argument into [[specs/catalog]] or a decision record; drop the file.
+2.1. **`docs/decisions/schema-dissolves-into-administration.md`** — RECONCILED 2026-08-01. **Dropped whole; nothing salvaged.** The shared-groups argument does not survive. Its premise was that an org-wide group has no owner that can hold it usefully, and qualification falsifies that in the writing: `org/group:eng#member` names its owner. The argument also turned on reading a referential wall as a barrier that would force a membership copy. A referential wall is scoping — namespaces are scoped by theory, so a bare name never escapes its theory and a cross-theory reference is spelled in full. It never forced a copy, so there was nothing to argue against. A theory **is** a referential wall (Mark, 2026-08-01), and [[specs/catalog]] stands as written.
 
-2.2. **`docs/notes/spec-as-owned-qualifier.md`** — mostly superseded, but it holds one thing your corpus doesn't settle: **the static-reference fork.** Today's rewrite grammar has no cross-theory reference at all — computed-subjectset is a bare name in the same namespace, the factset half likewise, and the computed half resolves dynamically wherever the walked-to facts land. So "references resolve against the catalog" currently has nothing static to resolve. Either you add qualified references to the rewrite grammar (`io/file#viewer` as a term) or cross-theory coupling stays entirely fact-driven. You leaned toward adding them. That belongs in a todo.
+2.2. **`docs/notes/spec-as-owned-qualifier.md`** — RECONCILED 2026-08-01. **Dropped whole; no todo opened.** The static-reference fork is not a fork. It assumes a reference must name the theory it reaches, and a reference never does: a computed-subjectset is evaluated on the resource in hand, and that resource already carries its namespace and therefore its theory. Qualification would only be needed to evaluate some *other* namespace's relation on a resource, which the algebra never does. So nothing is missing from the rewrite grammar, and `io/file#viewer` as a term answers a question that does not exist.
 
-2.3. **`docs/todos/sdl-becomes-a-script-language.md`** — closed without landing, but the resolution paragraph is a real finding worth one line somewhere: the flyway apparatus (script identity, run history, series ordering) exists to make non-idempotent scripts safe, and the documents came out idempotent upserts, so it protected nothing. `fact-documents.md` already cites it; inline the reason and drop the file.
+This file is evidence of how 2.1 arose (Mark, 2026-08-01). The same mistaken assumption — that a theory name has to be baked into a reference — is what produced the schema-dissolution panic in the first place. Dropping the SQL analogies is what made the real shape visible: a theory is a super-namespace *and* the atomic unit of relation-collection mutation, and the theory/fact continuum names itself.
+
+2.3. **`docs/todos/sdl-becomes-a-script-language.md`** — RECONCILED 2026-07-31 (`dad8a6c`). The reason is inlined in [[specs/graph-operations]]: there is no script identity, run history, or series ordering, because that apparatus exists to make non-idempotent scripts safe to re-run and a graph operation is already idempotent. Phrased without naming the tool. Drop the file.
 
 2.4. **`docs/specs/namespace-documents.md`** — superseded by [[theories]], which is better (it fixed the precedence bug: the branch has `&` and `|` sharing precedence; you now correctly bind `&` tighter). Two salvages only: the ruling that a rewrite may reference a not-yet-existing target and Write tolerates it because evaluation fails closed, and the `DELETE` endpoint question. Note that [[theories]] reverses the branch's "removal is not expressible" — omitting a relation now removes it.
 
@@ -49,7 +51,7 @@ No code on that branch — 26 doc files and one stray transcript. The good news:
 
 4.2. Copy the four keepers out of the sibling clone into `reconcile` by hand, then translate.
 
-4.3. Open one todo: the static-reference fork (2.2). The parse size bound is discarded — see 1.4.
+4.3. ~~Open two todos.~~ Neither is opened. The parse size bound is discarded (1.4) and the static-reference fork dissolved (2.2).
 
 4.4. Fold the three salvaged paragraphs into [[specs/catalog]] and `fact-documents.md`.
 
