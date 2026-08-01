@@ -1,7 +1,8 @@
 ---
 title: Parse belongs to single primitives with a grammar
+type: decision
 summary: "A type parses its own text only when it is a single primitive whose grammar Kingo owns. Composites are constructed, never parsed, and text formats live in adapters."
-tags: [decision, core]
+tags: [core]
 created: 2026-07-25
 status: locked
 ---

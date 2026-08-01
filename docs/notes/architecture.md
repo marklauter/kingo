@@ -1,7 +1,8 @@
 ---
 title: Architecture
+type: note
 summary: "Hexagonal with a DDD core: Kingo holds the identifiers, Kingo.Facts and Kingo.Theories hold the two halves of the model, Kingo.Closures is where they meet, and adapters own every text format."
-tags: [note, architecture, hexagonal, ddd]
+tags: [architecture, hexagonal, ddd]
 created: 2026-05-13
 status: evolving
 ---

@@ -1,7 +1,8 @@
 ---
 title: Subjects exist only as identifiers inside facts
+type: decision
 summary: "Kingo keeps no record of the party a subject id names. The identifier arrives already resolved from the caller's principals, so nothing syncs with an identity provider."
-tags: [decision, core]
+tags: [core]
 created: 2026-07-25
 status: locked
 ---

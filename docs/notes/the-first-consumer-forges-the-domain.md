@@ -1,7 +1,8 @@
 ---
 title: The first consumer forges the domain
+type: note
 summary: "Building the theory-document codec pressure-tested the core: every weak name and misplaced boundary surfaced under a real consumer's load — get one real consumer onto a young domain early, before speculative design hardens the wrong vocabulary."
-tags: [note, ddd, design, vocabulary]
+tags: [ddd, design, vocabulary]
 created: 2026-07-15
 status: evolving
 ---

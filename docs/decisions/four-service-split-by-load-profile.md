@@ -1,7 +1,8 @@
 ---
 title: Four-service split by load profile
+type: decision
 summary: "Kingo exposes the five Zanzibar APIs (Read, Write, Watch, Check, Expand) across four separate ASP.NET Core hosts, grouped by load profile rather than one host per API: Write, Read+Expand, Watch, and ACL Check as the hot path."
-tags: [decision, architecture, services]
+tags: [architecture, services]
 created: 2026-07-14
 status: locked
 ---

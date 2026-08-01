@@ -1,7 +1,8 @@
 ---
 title: Drift prevention at the write edges
+type: decision
 summary: "Fact/theory drift is prevented at the Write service, not tolerated at the evaluator: fact writes validate against the current theory, theory writes that would abandon live facts are refused, and evaluation always reads a coherent snapshot pair. Removal becomes a two-step migration."
-tags: [decision, write, theory, storage]
+tags: [write, theory, storage]
 created: 2026-07-20
 status: locked
 ---

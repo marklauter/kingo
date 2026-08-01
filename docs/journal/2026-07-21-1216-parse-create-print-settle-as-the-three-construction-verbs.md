@@ -1,7 +1,8 @@
 ---
 title: Parse, create, print settle as the three construction verbs
+type: journal
 summary: "While reviewing the namespace-create-validation implementation, the test helpers' terse names (Ns, Rel) raised the question of hoisting them into production — and the answer settled the construction vocabulary instead: parse is the fallible lift from text, create the trusted construction, print the retraction, one verb per arrow."
-tags: [journal, schemas, vocabulary]
+tags: [schemas, vocabulary]
 created: 2026-07-21
 ---
 

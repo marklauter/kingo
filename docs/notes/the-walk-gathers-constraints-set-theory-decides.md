@@ -1,7 +1,8 @@
 ---
 title: The walk gathers constraints; set theory decides
+type: note
 summary: "Contains intermixes graph theory and set theory with separate guards: traversal over facts discovers which set expressions apply, and Kleene evaluation of the assembled expression produces the verdict. The walk assembles the question; it never answers it."
-tags: [note, interpreters, closures]
+tags: [interpreters, closures]
 created: 2026-07-21
 status: evolving
 ---

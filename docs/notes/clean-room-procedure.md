@@ -1,7 +1,8 @@
 ---
 title: Clean-room procedure
+type: note
 summary: "How a work item reaches a clean-room design session: a self-sufficient handoff note, an input closure by settled kind, a dry-run critique, and a findings ledger driven empty before the session runs."
-tags: [note, process, design]
+tags: [process, design]
 created: 2026-07-20
 status: evolving
 ---

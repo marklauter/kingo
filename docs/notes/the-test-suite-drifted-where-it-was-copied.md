@@ -1,7 +1,8 @@
 ---
 title: The test suite drifted where it was copied
+type: note
 summary: "Audit of the nine test projects the repository held on 2026-07-27 against the writing-csharp testing directives: 65 findings, 16 high. Every substantive project hand-rolled one case list into several near-identical files, and each copy lost a different case."
-tags: [note, testing, audit]
+tags: [testing, audit]
 created: 2026-07-27
 status: evolving
 ---
