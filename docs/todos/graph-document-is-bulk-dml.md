@@ -37,7 +37,9 @@ touch:
   - group:eng#member@user:dave
 ```
 
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — composites no longer parse text and Fact.Parse is gone from src, so the flat entries above have no parser and the delimiters collide with user-owned ids. The document format decomposes to a property per tuple part instead.-->
 Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relation>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
+<!--/scrutinize-->
 
 Sections are the natural fit for a bulk loader — the common document is "here are 400 facts to create" and a per-entry operation tag would be noise on every line. The cost is that operation order becomes *implicit in section order*, which is a real constraint (see open questions).
 
@@ -74,7 +76,9 @@ The fact document is a separate format from the theory document — the two shar
 It would be by far the thinner adapter, and the asymmetry is the design, not an accident:
 
 - **Parser only, no printer.** `parse ∘ print = id` pins the theory pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the claim that core owns the entry grammar no longer holds; with the text form gone the adapter owns the whole shape, not only the envelope.-->
 - **YamlDotNet, no Superpower.** The theory document needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. The fact document has no embedded language at all — every entry is a fact in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
+<!--/scrutinize-->
 - **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so the fact-document parser references ports *and* `Kingo.Facts`, and travels with the storage work rather than landing next.
 
 ## Consequences — the stubs are gone
@@ -82,7 +86,9 @@ It would be by far the thinner adapter, and the asymmetry is the design, not an 
 All three fact-side stubs from 2026-07-15 were removed the same day rather than left to rot:
 
 - **`GraphPrinter` — deleted.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset; the round-trip tests that pin the theory pair have no analogue here. Printing a graph back out is a *dump* — a different artifact that merely shares a vocabulary. If a dump format is ever wanted it returns under its own name.
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the closing clause is wrong now; the fact grammar did not stay in core.-->
 - **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the fact grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
+<!--/scrutinize-->
 - **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[ubiquitous-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
 
 `Kingo.Facts` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Documents` is back to the theory pair alone.
