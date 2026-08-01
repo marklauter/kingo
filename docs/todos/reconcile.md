@@ -1,7 +1,7 @@
 ---
 title: Reconcile the rewrite-interpreters branch
 type: todo
-summary: "Verdict on the 26 doc files the rewrite-interpreters branch carries: three specs port forward, four files give up a paragraph and go, the rest is casualty of the reversed schema dissolution. Section 1 is closed."
+summary: "Verdict on the 26 doc files the rewrite-interpreters branch carries: three specs port forward and nothing else does. Sections 1 and 2 are closed; section 2's four salvages were all one mistake, treating late-bound names as URNs."
 created: 2026-07-25
 priority: high
 status: open
@@ -31,7 +31,13 @@ This file is evidence of how 2.1 arose (Mark, 2026-08-01). The same mistaken ass
 
 2.3. **`docs/todos/sdl-becomes-a-script-language.md`** — RECONCILED 2026-07-31 (`dad8a6c`). The reason is inlined in [[specs/graph-operations]]: there is no script identity, run history, or series ordering, because that apparatus exists to make non-idempotent scripts safe to re-run and a graph operation is already idempotent. Phrased without naming the tool. Drop the file.
 
-2.4. **`docs/specs/namespace-documents.md`** — superseded by [[theories]], which is better (it fixed the precedence bug: the branch has `&` and `|` sharing precedence; you now correctly bind `&` tighter). Two salvages only: the ruling that a rewrite may reference a not-yet-existing target and Write tolerates it because evaluation fails closed, and the `DELETE` endpoint question. Note that [[theories]] reverses the branch's "removal is not expressible" — omitting a relation now removes it.
+2.4. **`docs/specs/namespace-documents.md`** — RECONCILED 2026-08-01. **Dropped whole; nothing salvaged.** It became [[theories]], which is better: the branch had `&` and `|` sharing precedence, and `&` now binds tighter. Neither salvage survives.
+
+"A rewrite may reference a not-yet-existing target, and Write tolerates it because evaluation fails closed" is a category error (Mark, 2026-08-01). It presupposes the identifier designates something. Relation identifiers declared with rewrites are late bound, not URNs, so there is no referent to be missing — the branch was guarding against a dangling pointer in a language that has no pointers. The one check that does exist ([[theories]]) is a well-formedness rule keeping a theory determinate within its own namespace, not a reference resolving.
+
+The `DELETE` endpoint question is a host question with no host to ask it of, the same shape as 1.4. And [[theories]] already settles what the branch called "removal is not expressible": a write carries the whole document, and omitting a relation removes it.
+
+**Section 2 carries nothing forward.** All four items were one mistake wearing four hats: treating late-bound names as URNs.
 
 ## 3. Discard outright
 
