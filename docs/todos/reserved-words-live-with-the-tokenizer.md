@@ -2,7 +2,7 @@
 title: Reserved words live with the tokenizer
 type: todo
 summary: "Relocate IsReserved beside the rewrite-expression token table: `this` is defined in three places (tokenizer keyword table, printer emit arm, IsReserved), so a future keyword added to the tokenizer would not automatically become reserved for the printers and TheoryParser."
-tags: [sdl]
+tags: [documents]
 created: 2026-07-21
 status: open
 priority: low

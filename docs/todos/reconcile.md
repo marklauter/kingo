@@ -69,7 +69,9 @@ RECONCILED 2026-08-01.
 
 ## 5. Flagged, not fixed
 
-5.1. [[realign-serialization-projects-around-their-real-consumers]] still calls the config aggregate `Spec` throughout. Out of scope for the reconcile: a rename sweep, not a verdict on the branch.
+5.1. ~~[[realign-serialization-projects-around-their-real-consumers]] still calls the config aggregate `Spec` throughout.~~ Swept 2026-08-01. That note is closed, so the names in it described current state rather than history: `Spec` is `Theory` in `Kingo.Theories`, and `Kingo.Sdl` is `Kingo.Documents` with `TheoryParser` and `TheoryPrinter`. A header records the sweep, and every ruling is unchanged. The `sdl` tag retired from the two live todos carrying it.
+
+Not swept: [[resource-fact-case]] still names `src/Kingo.Sdl/` and `src/Kingo.Graphs/` paths. Those sit in a landing record for commit `f23f9c8` on branch `reboot`, where they were the real paths. Rewriting them would make the record false.
 
 ## What the reconcile carries into the next branch
 

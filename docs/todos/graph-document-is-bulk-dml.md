@@ -2,7 +2,7 @@
 title: The graph document is bulk DML, not a state dump
 type: todo
 summary: "Proposal: the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU, which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
-tags: [sdl, fml, agl, graphs, dml, hexagonal]
+tags: [documents, graphs, dml, hexagonal]
 created: 2026-07-15
 status: open
 priority: medium
