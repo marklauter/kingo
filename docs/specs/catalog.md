@@ -23,6 +23,6 @@ A catalog is the complete set of theories, a containment four levels deep:
 
 A catalog holds theories, a theory holds namespaces, a namespace holds relations, and each relation is a named [[rewrite]]. Each level scopes the names beneath it: a relation name is unique within its namespace, a namespace name within its theory, a theory name across the catalog. Composing scoped segments makes every qualified name unique across the whole ([[identifiers]]).
 
-The catalog is the space every name resolves in. A rewrite in one theory may reference a relation in another, and that reference resolves against the catalog, not the theory that wrote it. A [[fact]] may span theories the same way, each side qualified independently ([[facts]]).
+The catalog is the space every name resolves in. Relation identifiers declared with rewrites don't require a namespace. They are late bound. A [[fact]] carries the qualification instead, each side named in full and qualified independently ([[facts]]).
 
-The catalog is also the reach of consistency: the boundary within which references resolve and consistency holds. A [[theory]] is the unit of atomic change and carries its own version; the catalog is the whole those versioned [[theories]] compose.
+The catalog is also the reach of consistency: the extent one pin covers. A [[theory]] is the unit of atomic change and carries its own version; the catalog is the whole those versioned [[theories]] compose.

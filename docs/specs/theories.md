@@ -90,7 +90,7 @@ EBNF conventions are given in [[identifiers]].
 
 `⟨factset⟩` names the relation whose facts the walk reads. `⟨computed-subjectset⟩` is evaluated on each resource that the walk reaches.
 
-Every name a rewrite holds is a `⟨relation name⟩`, evaluated against the resource in hand. Its character grammar — `⟨name-start⟩` through `⟨digit⟩` — also forms the `theory:` value and the namespace keys, the `⟨theory name⟩` and `⟨namespace name⟩` productions in [[identifiers]].
+Relation identifiers declared with rewrites don't require a namespace. They are late bound. The `⟨relation name⟩` character grammar — `⟨name-start⟩` through `⟨digit⟩` — also forms the `theory:` value and the namespace keys, the `⟨theory name⟩` and `⟨namespace name⟩` productions in [[identifiers]].
 
 A run of one operator parses to a single n-ary node. Parentheses survive as structure, so the parser never flattens across them. The printer parenthesizes by grammar position, so a [[rewrite]] tree round-trips to a structurally equal tree.
 
