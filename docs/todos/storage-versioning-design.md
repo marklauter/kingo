@@ -1,7 +1,8 @@
 ---
 title: Storage versioning design
+type: todo
 summary: "Before storage work lands, design the versioning system: snapshot semantics for zookies, optimistic concurrency for writes, the changelog, and the theory-version changelog. The shapes are settled (2026-07-20: interval-stamped fact rows, supersession-closed theory changelog, one timeline); the encodings and conditional-write patterns are this design's to fill."
-tags: [note, todo, storage, versioning, zookies]
+tags: [storage, versioning, zookies]
 created: 2026-07-14
 status: open
 priority: high

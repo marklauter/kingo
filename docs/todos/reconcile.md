@@ -1,10 +1,10 @@
 ---
 title: Reconcile the rewrite-interpreters branch
 type: todo
-summary: "Verdict on the 26 doc files the rewrite-interpreters branch carries: three specs port forward and nothing else does. Sections 1 and 2 are closed; section 2's four salvages were all one mistake, treating late-bound names as URNs."
+summary: "Verdict on the 26 doc files the rewrite-interpreters branch carried: three specs ported forward and nothing else did. Closed 2026-08-01; section 2's four salvages were all one mistake, treating late-bound names as URNs."
 created: 2026-07-25
 priority: high
-status: open
+status: closed
 ---
 
 # Reconcile the rewrite-interpreters branch
@@ -41,6 +41,8 @@ The `DELETE` endpoint question is a host question with no host to ask it of, the
 
 ## 3. Discard outright
 
+RECONCILED 2026-08-01. All five discarded with the branch; nothing was read forward from any of them.
+
 3.1. `docs/todos/dissolve-schema-into-administration.md` — execution plan for a reversed decision.
 
 3.2. Every glossary diff on the branch.
@@ -53,16 +55,22 @@ The `DELETE` endpoint question is a host question with no host to ask it of, the
 
 ## 4. Untangling mechanically
 
-4.1. Don't merge. Cherry-picking anything drags stale vocabulary in.
+RECONCILED 2026-08-01.
 
-4.2. Copy the four keepers out of the sibling clone into `reconcile` by hand, then translate.
+4.1. Don't merge. Held — nothing was cherry-picked or merged.
+
+4.2. Copy the keepers out of the sibling clone by hand. Done, and the translation turned out not to be the work; verifying each claim against the code and the corpus was.
 
 4.3. ~~Open two todos.~~ Neither is opened. The parse size bound is discarded (1.4) and the static-reference fork dissolved (2.2).
 
-4.4. Fold the three salvaged paragraphs into [[specs/catalog]] and `fact-documents.md`.
+4.4. ~~Fold the three salvaged paragraphs in.~~ Moot. 2.1's paragraph died with its premise, 2.2's was a category error, and 2.3's is inlined in [[specs/graph-operations]].
 
-4.5. The branch then has nothing left worth keeping and can be deleted.
+4.5. `origin/rewrite-interpreters` deleted 2026-08-01 at `25938b7`. The local branch and the sibling clone at `kingo-rewrite-interpreters` both still hold that tip.
 
 ## 5. Flagged, not fixed
 
-5.1. [[realign-serialization-projects-around-their-real-consumers]] still calls the config aggregate `Spec` throughout.
+5.1. [[realign-serialization-projects-around-their-real-consumers]] still calls the config aggregate `Spec` throughout. Out of scope for the reconcile: a rename sweep, not a verdict on the branch.
+
+## What the reconcile carries into the next branch
+
+Three specs — [[specs/fact-reader-port]], [[specs/closures]], [[specs/graph-operations]] — and seven open questions inside them. Ten `scrutinize` blocks mark claims elsewhere in the corpus whose footing moved; each names what superseded it and why. Nothing in this note decides them. The reversal absorbed here is what makes them answerable, and the new interpreter-design branch is where they get answered.

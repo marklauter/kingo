@@ -1,7 +1,8 @@
 ---
 title: IParse-keyed converters for the JSON and YAML adapters
+type: todo
 summary: "Build the generic IParse-keyed converter family in Kingo.Serialization.Json / .Yaml when the first consumer arrives — the REST hosts or any wire format touching value types. Deferred: both adapter projects are empty shells today, and no domain type carries a serialization attribute."
-tags: [note, todo, hexagonal, serialization]
+tags: [hexagonal, serialization]
 created: 2026-05-13
 status: deferred
 priority: medium

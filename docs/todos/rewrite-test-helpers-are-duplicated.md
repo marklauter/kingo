@@ -1,7 +1,8 @@
 ---
 title: Rewrite test helpers are duplicated
+type: todo
 summary: "The six rewrite-construction helpers (Rel, Computed, FactTo, Union, Intersection, Exclusion) live verbatim in both Kingo.Theories.Tests and Kingo.Documents.Tests TestHelpers; the namespace-parse-invariants branch paid the sync cost twice in one day. Kingo.Testing is the wrong home: every test project references it, so it would drag Kingo.Theories into Kingo.Tests, which covers the layer below."
-tags: [note, todo, tests]
+tags: [tests]
 created: 2026-07-21
 status: open
 priority: low

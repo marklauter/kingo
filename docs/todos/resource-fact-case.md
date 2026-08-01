@@ -1,7 +1,8 @@
 ---
 title: ResourceFact — a third Fact case replaces the ... sentinel
+type: todo
 summary: "Ruled 2026-07-21: `...` is not a relation. The exactly-specified factset member `io/folder:y#...` is the resource itself, carried by a third Fact case — Fact.ResourceFact, resource-only — and RelationName loses the Nothing sentinel. The three factset member shapes become the three Fact cases."
-tags: [note, todo, graphs, domain]
+tags: [graphs, domain]
 created: 2026-07-21
 status: closed
 priority: high

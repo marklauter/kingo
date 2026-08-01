@@ -1,7 +1,8 @@
 ---
 title: Realign serialization projects around their real consumers
+type: todo
 summary: "Mark's post-review correction: .Json/.Yaml exist purely as value-type converter packs for future ASP.NET REST hosts — no document ever crosses the wire — so the IDocumentSerializer port and Kingo.Serialization dissolved; final SDL surface is SdlParser.Parse(text) → Result<Spec> plus the spec.Print() extension."
-tags: [note, todo, hexagonal, serialization, sdl]
+tags: [hexagonal, serialization, sdl]
 created: 2026-07-14
 status: closed
 priority: medium

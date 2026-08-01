@@ -1,7 +1,8 @@
 ---
 title: Dissolve Kingo.Pdl under hexagonal layout
+type: todo
 summary: "Closed 2026-07-14: the domain half landed by fresh construction in Kingo core; the adapter half landed as Kingo.Serialization.Pdl (first port interface, adapter-layer ArchUnit rules, Result-first parser/serializer); the Kingo.Pdl quarry is deleted."
-tags: [note, todo, hexagonal, pdl]
+tags: [hexagonal, pdl]
 created: 2026-05-13
 status: closed
 priority: high

@@ -1,7 +1,8 @@
 ---
 title: Namespace.Create validation — cycles and dangling references
+type: todo
 summary: "Namespace.Create rejects rewrite defects at construction: cycles in the SubjectSetRewrite.ComputedSubjectSet reference graph, and dangling intra-namespace references (computed subjectset targets, factset first elements). Makes \"the evaluator never meets a theory cycle\" an invariant."
-tags: [note, todo, theory, validation]
+tags: [theory, validation]
 created: 2026-07-18
 status: closed
 priority: high
