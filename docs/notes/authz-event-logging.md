@@ -1,7 +1,8 @@
 ---
 title: Authorization event logging — CloudTrail-style audit
+type: note
 summary: "Every authorization decision and every control-plane change emits a durable audit event, CloudTrail-style: writes are management events (the changelog already is that record), Check decisions are data events shipped asynchronously as serialized Decisions."
-tags: [note, audit, design]
+tags: [audit, design]
 created: 2026-07-15
 status: evolving
 ---

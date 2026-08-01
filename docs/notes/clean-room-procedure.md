@@ -1,7 +1,8 @@
 ---
 title: Clean-room procedure
+type: note
 summary: "How a work item reaches a clean-room design session: a self-sufficient handoff note, an input closure by settled kind, a dry-run critique, and a findings ledger driven empty before the session runs."
-tags: [note, process, design]
+tags: [process, design]
 created: 2026-07-20
 status: evolving
 ---
@@ -20,7 +21,7 @@ One note carries the work item: requirements and settled rulings, never design. 
 
 ## The input closure
 
-Inputs are the handoff note and the current domain code, plus — one hop from the note — the wikilinked docs of settled kind: glossary terms, decision records, spec-tagged notes. Kind, not status flag: most of the glossary sits at `evolving`, and a locked-only rule would drop the vocabulary the note is written in. Open todos are out of bounds; a wikilink to one is a jurisdiction marker — the question is assigned there — never a reading assignment. External sources are inspiration, not inputs: inline what the design needs where it is used, cite sections as provenance. No transitive expansion. Where an input disagrees with the note, the note wins; the designer reports the conflict as a finding.
+Inputs are the handoff note and the current domain code, plus — one hop from the note — the wikilinked docs of settled kind: glossary terms, decision records, specs. Kind, not status flag: most of the glossary sits at `evolving`, and a locked-only rule would drop the vocabulary the note is written in. Open todos are out of bounds; a wikilink to one is a jurisdiction marker — the question is assigned there — never a reading assignment. External sources are inspiration, not inputs: inline what the design needs where it is used, cite sections as provenance. No transitive expansion. Where an input disagrees with the note, the note wins; the designer reports the conflict as a finding.
 
 ## The dry-run
 

@@ -34,7 +34,6 @@ public sealed class NamespacePathTests
     [InlineData("\t")]
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
         var f = Assert.IsType<Result<NamespacePath>.Failure>(NamespacePath.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
@@ -52,9 +51,7 @@ public sealed class NamespacePathTests
     [InlineData("io/@")]
     [InlineData("0io/a")]
     [InlineData("io-x/a")]
-    // one segment is not a namespace: there is no namespace called 'file' ([[identifiers]])
     [InlineData("file")]
-    // three segments is not a namespace either, and neither is an empty one
     [InlineData("io/file/extra")]
     [InlineData("io/")]
     [InlineData("/file")]

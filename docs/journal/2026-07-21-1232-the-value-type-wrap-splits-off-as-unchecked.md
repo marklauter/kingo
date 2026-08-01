@@ -1,7 +1,8 @@
 ---
 title: The value-type wrap splits off as unchecked
+type: journal
 summary: "Minutes after locking parse/create/print as the three construction verbs, the create glossary work exposed an overload: the value-type primitive wrap and composite construction differ on whether misuse can mint an invalid value. IValue.Create is renamed IValue.Unchecked; there are four verbs."
-tags: [journal, schemas, vocabulary]
+tags: [schemas, vocabulary]
 created: 2026-07-21
 ---
 

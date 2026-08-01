@@ -1,7 +1,8 @@
 ---
 title: First clean-room dry-run — twenty findings, ledger driven empty
+type: journal
 summary: "The [[rewrite-interpreters]] handoff was dry-run against its declared inputs before the design session; the critique produced twenty findings over three days (2026-07-18 to 2026-07-20), every one driven to a terminal state, and the method survived as [[clean-room-procedure]]."
-tags: [journal, interpreters, process]
+tags: [interpreters, process]
 created: 2026-07-20
 ---
 

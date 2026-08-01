@@ -1,19 +1,8 @@
 ---
 title: closure
-summary: "The set of facts derivable from the stored facts under the catalog's rewrite rules — the set closed under derivation."
-tags: [glossary, acl]
-created: 2026-07-18
+type: definition
+summary: "The set of subjects derivable for a subjectset from the stored facts and the catalog's rewrites."
 status: locked
 ---
 
-The set of facts derivable from the stored facts under the catalog's rewrite rules — the set closed under derivation.
-
-## Examples
-
-- Contains asks whether the closure holds `doc:x#viewer@user:anne` — stored directly, or derived through userset expansion, computed subject sets, or factset traversal.
-- Both interpreters, Contains and Expand, answer questions about the closure. "Authorized" is the Check host's reading of the verdict.
-
-## Contrasts
-
-- `reachability` — rejected as the name for this set: `!` and `&` make the derived set non-monotone, so a verdict is a function over several reachability questions, not a reachability property itself.
-- `transitive closure` — graph theory's nearest term and the reason the word fits; Kingo's closure is closed under the rewrite rules' derivation, not only under edge composition.
+The set of subjects derivable for a subjectset from the stored facts and the catalog's rewrites.

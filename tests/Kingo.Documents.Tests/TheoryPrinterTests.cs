@@ -6,27 +6,27 @@ namespace Kingo.Documents.Tests;
 public sealed class TheoryPrinterTests
 {
     [Fact]
-    public void Print_SimpleDocument_EmitsCanonicalSdl()
+    public void Print_SimpleDocument_EmitsCanonical_Theory_Document()
     {
-        var domain = MakeTheory(
+        var theory = MakeTheory(
         [
             MakeNs(
                 Ns("file"),
                 [
                     Bare("owner"),
-                    new Relationship(
+                    new Relation(
                         Rel("editor"),
                         Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 ]),
         ]);
 
-        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", domain.Print());
+        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  - editor: this | owner\n", theory.Print());
     }
 
     [Fact]
     public void Print_AllRewriteTypes_EmitsExpectedExpressions()
     {
-        var domain = MakeTheory(
+        var theory = MakeTheory(
         [
             MakeNs(
                 Ns("test"),
@@ -36,15 +36,15 @@ public sealed class TheoryPrinterTests
                     Bare("viewer"),
                     Bare("banned"),
                     Bare("direct"),
-                    new Relationship(Rel("computed"), Computed("owner")),
-                    new Relationship(Rel("factset"), FactTo("parent", "viewer")),
-                    new Relationship(Rel("union"), Union([SubjectSetRewrite.This.Default, Computed("owner")])),
-                    new Relationship(Rel("intersection"), Intersection([SubjectSetRewrite.This.Default, Computed("viewer")])),
-                    new Relationship(Rel("exclusion"), Exclusion(SubjectSetRewrite.This.Default, Computed("banned"))),
+                    new Relation(Rel("computed"), Computed("owner")),
+                    new Relation(Rel("factset"), FactTo("parent", "viewer")),
+                    new Relation(Rel("union"), Union([SubjectSetRewrite.This.Default, Computed("owner")])),
+                    new Relation(Rel("intersection"), Intersection([SubjectSetRewrite.This.Default, Computed("viewer")])),
+                    new Relation(Rel("exclusion"), Exclusion(SubjectSetRewrite.This.Default, Computed("banned"))),
                 ]),
         ]);
 
-        var document = domain.Print();
+        var document = theory.Print();
 
         Assert.Contains("- direct", document, StringComparison.Ordinal);
         Assert.Contains("computed: owner", document, StringComparison.Ordinal);
@@ -57,80 +57,75 @@ public sealed class TheoryPrinterTests
     [Fact]
     public void Print_TheoryName_LeadsTheDocument()
     {
-        var domain = MakeTheory(TheoryId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
+        var theory = MakeTheory(TheoryId("acme"), [MakeNs(Ns("file"), [Bare("owner")])]);
 
-        Assert.StartsWith("theory: acme\nnamespaces:\n", domain.Print(), StringComparison.Ordinal);
+        Assert.StartsWith("theory: acme\nnamespaces:\n", theory.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
     public void Print_MultipleNamespaces_EmitsAllInOrder()
     {
-        var domain = MakeTheory(
+        var theory = MakeTheory(
         [
             MakeNs(Ns("file"), [Bare("owner")]),
             MakeNs(Ns("folder"), [Bare("viewer")]),
         ]);
 
-        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", domain.Print());
+        Assert.Equal("theory: test\nnamespaces:\n  file:\n  - owner\n  folder:\n  - viewer\n", theory.Print());
     }
 
     [Fact]
     public void Print_NewlineIsPinned_NoCarriageReturnOnAnyPlatform()
     {
-        var domain = MakeTheory(
+        var theory = MakeTheory(
         [
             MakeNs(
                 Ns("file"),
-                [Bare("owner"), new Relationship(Rel("editor"), SubjectSetRewrite.This.Default)]),
+                [Bare("owner"), new Relation(Rel("editor"), SubjectSetRewrite.This.Default)]),
         ]);
 
-        Assert.DoesNotContain("\r", domain.Print(), StringComparison.Ordinal);
+        Assert.DoesNotContain("\r", theory.Print(), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Print_NamespaceWithoutRelationships_EmitsEmptySequence()
+    public void Print_NamespaceWithoutRelations_EmitsEmptySequence()
     {
-        var domain = MakeTheory([MakeNs(Ns("file"), [])]);
+        var theory = MakeTheory([MakeNs(Ns("file"), [])]);
 
-        Assert.Equal("theory: test\nnamespaces:\n  file: []\n", domain.Print());
+        Assert.Equal("theory: test\nnamespaces:\n  file: []\n", theory.Print());
     }
 
     [Theory]
     [InlineData("this")]
-    [InlineData("THIS")] // Unchecked performs no normalization, but the reserved-word check is case-insensitive like the tokenizer
-    public void Print_ReservedRelationshipName_IsCallerDefect(string name)
+    [InlineData("THIS")]
+    public void Print_ReservedRelationName_IsCallerDefect(string name)
     {
-        // a domain document cannot express a relationship named by the rewrite-grammar reserved word: 'this' could
-        // never be referenced (a reference lexes as the keyword).
-        var domain = MakeTheory([MakeNs(Ns("file"), [Bare(name)])]);
+        var theory = MakeTheory([MakeNs(Ns("file"), [Bare(name)])]);
 
-        _ = Assert.Throws<ArgumentException>(domain.Print);
+        _ = Assert.Throws<ArgumentException>(theory.Print);
     }
 
     [Fact]
     public void Print_ReservedReferenceInRewrite_IsCallerDefect()
     {
-        // a computed reference to 'this' would silently reparse as SubjectSetRewrite.This — direct membership
-        // instead of a relationship reference — so emitting it is corruption, not serialization
-        var domain = MakeTheory(
+        var theory = MakeTheory(
         [
-            MakeNs(Ns("file"), [Bare("this"), new Relationship(Rel("viewer"), Computed("this"))]),
+            MakeNs(Ns("file"), [Bare("this"), new Relation(Rel("viewer"), Computed("this"))]),
         ]);
 
-        _ = Assert.Throws<ArgumentException>(domain.Print);
+        _ = Assert.Throws<ArgumentException>(theory.Print);
     }
 
     [Fact]
     public void Print_ReservedReferenceInFactset_IsCallerDefect()
     {
-        // pins that the factset arm routes both components through the reserved-word gate
-        var domain = MakeTheory(
+        var theory = MakeTheory(
         [
             MakeNs(
                 Ns("file"),
-                [Bare("this"), new Relationship(Rel("viewer"), FactTo("this", "member"))]),
+                [Bare("this"), new Relation(Rel("viewer"), FactTo("this", "member"))]),
         ]);
 
-        _ = Assert.Throws<ArgumentException>(domain.Print);
+        _ = Assert.Throws<ArgumentException>(theory.Print);
     }
 }

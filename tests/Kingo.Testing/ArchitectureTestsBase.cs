@@ -7,14 +7,6 @@ using ArchitectureModel = ArchUnitNET.Domain.Architecture;
 
 namespace Kingo.Testing;
 
-/// <summary>
-/// Base class for per-project architecture tests. Derive once per test project, pass the system-under-test assembly and the regex that types in that project
-/// must match. The universal rules (namespace shape, sealed concrete classes, no public instance fields, IValueType implementors are readonly record structs)
-/// inherit automatically.
-/// </summary>
-/// <remarks>
-/// Use <see cref="Assembly.Load(string)"/> in the derived constructor — that lets empty assemblies (no domain types yet) still load without a marker type.
-/// </remarks>
 public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expectedNamespacePattern)
 {
     private readonly ArchitectureModel architecture = new ArchLoader().LoadAssemblies(targetAssembly).Build();
@@ -24,7 +16,7 @@ public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expe
     public void AllTypesResideInExpectedNamespace() =>
         Verify(Types()
             .That()
-            .DoNotHaveNameContaining("<") // exclude compiler-generated closures / async state machines
+            .DoNotHaveNameContaining("<")
             .Should()
             .ResideInNamespaceMatching(namespacePattern)
             .Because($"types belong inside the project's namespace ({namespacePattern}).")
@@ -34,7 +26,7 @@ public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expe
     public void ConcreteClassesAreSealed() =>
         Verify(Classes()
             .That()
-            .AreNotAbstract() // C# 'static' compiles to 'abstract sealed' — this also excludes static factories
+            .AreNotAbstract()
             .And()
             .DoNotHaveNameContaining("<")
             .Should()
@@ -46,11 +38,11 @@ public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expe
     public void InstanceFieldsAreNotPublic() =>
         Verify(FieldMembers()
             .That()
-            .AreNotStatic() // const / static readonly may be public; instance state must not be
+            .AreNotStatic()
             .And()
-            .DoNotHaveNameContaining("<") // exclude compiler-generated backing fields
+            .DoNotHaveNameContaining("<")
             .And()
-            .DoNotHaveName("value__") // every CLR enum carries a synthesized public 'value__' instance field
+            .DoNotHaveName("value__")
             .Should()
             .NotBePublic()
             .Because("writing-csharp: immutable by default — no public mutable instance state.")
@@ -59,8 +51,6 @@ public abstract class ArchitectureTestsBase(Assembly targetAssembly, string expe
     [Fact]
     public void ValueWrappersAreReadonlyRecordStructs()
     {
-        // ArchUnitNET does not model readonly-ness or record synthesis, so this rule uses reflection:
-        // readonly structs carry [IsReadOnly]; record structs synthesize a non-public PrintMembers(StringBuilder).
         var violations = targetAssembly.GetTypes()
             .Where(ImplementsIValueType)
             .Where(type => !IsReadonlyRecordStruct(type))

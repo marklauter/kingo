@@ -6,11 +6,11 @@ namespace Kingo.Theories.Tests;
 
 public sealed class TheoryTests
 {
-    private static Namespace Ns(string name, params string[] relationships) =>
+    private static Namespace Ns(string name, params string[] relations) =>
         Assert.IsType<Result<Namespace>.Success>(
             Namespace.Create(
                 NamespaceName.Unchecked(name),
-                [.. relationships.Select(r => new Relationship(RelationshipName.Unchecked(r)))])).Value;
+                [.. relations.Select(r => new Relation(RelationName.Unchecked(r)))])).Value;
 
     private static TheoryName Id(string name) => TheoryName.Unchecked(name);
 
@@ -22,8 +22,6 @@ public sealed class TheoryTests
     [Fact]
     public void Equals_ElementWiseEqualNamespaces_AreEqualWithMatchingHashCodes()
     {
-        // Separately-constructed ImmutableArray instances with element-wise-equal contents.
-        // Default record equality over ImmutableArray compares references and would fail this.
         ImmutableArray<Namespace> left = [Ns("doc", "viewer"), Ns("folder", "parent")];
         ImmutableArray<Namespace> right = [Ns("doc", "viewer"), Ns("folder", "parent")];
 
@@ -73,7 +71,6 @@ public sealed class TheoryTests
     [Fact]
     public void Equals_DifferentNames_NotEqual()
     {
-        // the name is the domain's key, so it is part of the value's identity
         var a = Make(Id("acme"), [Ns("doc", "viewer")]);
         var b = Make(Id("globex"), [Ns("doc", "viewer")]);
 
@@ -169,9 +166,6 @@ public sealed class TheoryTests
     [Fact]
     public void Create_NamesDifferingOnlyByCase_AreDistinct()
     {
-        // Uniqueness is ordinal over canonical values. Parsed namespace names are always
-        // lowercase; mixed case here is only reachable through the trusted Unchecked path,
-        // and Create compares what it is given.
         var result = Theory.Create(Id("test"), [Ns("doc"), Ns("Doc")]);
 
         _ = Assert.IsType<Result<Theory>.Success>(result);

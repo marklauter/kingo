@@ -16,8 +16,6 @@ public sealed class TheoryRoundTripTests
     [InlineData("file:\n  - owner\n  - parent\n  - banned\n  - viewer: this | (parent, child) & owner ! banned")]
     [InlineData("file:\n  - owner\nfolder:\n  - parent\n  - banned\n  - viewer: (this | (parent, viewer)) ! banned")]
     [InlineData("file:")]
-    // 'null' is a legal relationship name; the renderer emits it as unquoted plain text and the parser reads
-    // raw scalar text, so the pair stays inverse even where YAML's own typing would read a null
     [InlineData("file:\n  - null\n  - viewer: null")]
     public void RoundTrip_FromText_PreservesTheoryValues(string namespaceMap)
     {
@@ -27,18 +25,15 @@ public sealed class TheoryRoundTripTests
         Assert.Equal(original, roundTripped);
     }
 
-    // keyed by name so the theory rows stay xunit-serializable and enumerate individually
     private static readonly IReadOnlyDictionary<string, SubjectSetRewrite> RewriteCases = new Dictionary<string, SubjectSetRewrite>
     {
         ["this"] = SubjectSetRewrite.This.Default,
         ["computed"] = Computed("owner"),
-        ["computed null"] = Computed("null"), // rendered unquoted; survives because the parser treats scalar text as expression source
+        ["computed null"] = Computed("null"),
         ["fact-to-subjectset"] = FactTo("parent", "viewer"),
         ["flat union"] = Union([SubjectSetRewrite.This.Default, Computed("owner")]),
         ["flat intersection"] = Intersection([Computed("a"), Computed("b"), Computed("c")]),
         ["exclusion"] = Exclusion(SubjectSetRewrite.This.Default, Computed("banned")),
-        // nested compounds exercise the renderer's parenthesization: each shape below is
-        // structurally distinct from its flattened or re-associated reading
         ["intersection in union"] = Union([Intersection([Computed("a"), Computed("b")]), Computed("c")]),
         ["union in intersection"] = Intersection([Union([Computed("a"), Computed("b")]), Computed("c")]),
         ["right-nested union"] = Union([Computed("a"), Union([Computed("b"), Computed("c")])]),
@@ -65,7 +60,6 @@ public sealed class TheoryRoundTripTests
     [MemberData(nameof(RewriteCaseKeys))]
     public void RoundTrip_FromTheory_PreservesTreeStructure(string key)
     {
-        // every relationship the rewrite cases reference, defined bare so the namespace gate passes
         var original = MakeTheory(
         [
             MakeNs(
@@ -79,7 +73,7 @@ public sealed class TheoryRoundTripTests
                     Bare("a"),
                     Bare("b"),
                     Bare("c"),
-                    new Relationship(Rel("viewer"), RewriteCases[key]),
+                    new Relation(Rel("viewer"), RewriteCases[key]),
                 ]),
         ]);
 
@@ -117,7 +111,6 @@ public sealed class TheoryRoundTripTests
     [Fact]
     public void RoundTrip_TheoryName_SurvivesTheDocument()
     {
-        // the name is in the document, so parse ∘ print = id covers the domain's key too
         var original = ParseSuccess(Document("file:\n  - owner", name: "acme"));
 
         var roundTripped = ParseSuccess(original.Print());

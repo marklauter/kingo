@@ -1,7 +1,8 @@
 ---
 title: Namespace.Create validation — cycles and dangling references
+type: todo
 summary: "Namespace.Create rejects rewrite defects at construction: cycles in the SubjectSetRewrite.ComputedSubjectSet reference graph, and dangling intra-namespace references (computed subjectset targets, factset first elements). Makes \"the evaluator never meets a theory cycle\" an invariant."
-tags: [note, todo, theory, validation]
+tags: [theory, validation]
 created: 2026-07-18
 status: closed
 priority: high
@@ -14,11 +15,11 @@ Ruled (Mark, 2026-07-18): an unhealthy theory is detected at construction, so `C
 
 ## What to validate, per namespace, at construction
 
-1. **Cycle detection over the zero-fact recursion graph.** Nodes are the namespace's relationships; edges are `SubjectSetRewrite.ComputedSubjectSet` references, collected through union/intersection/exclusion nesting. Self-reference is the trivial cycle. Factset arms are excluded: a `SubjectSetRewrite.FactToSubjectSet` cannot recurse without consuming a stored fact, so it belongs to the depth bound, not this check. The graph is intra-namespace by construction — `SubjectSetRewrite.ComputedSubjectSet` carries only a `RelationshipPath` and roots at the same resource.
-2. **Dangling references.** Every `SubjectSetRewrite.ComputedSubjectSet.Relationship` and every `SubjectSetRewrite.FactToSubjectSet.FactsetRelationship` names a relationship defined in this namespace.
+1. **Cycle detection over the zero-fact recursion graph.** Nodes are the namespace's relations; edges are `SubjectSetRewrite.ComputedSubjectSet` references, collected through union/intersection/exclusion nesting. Self-reference is the trivial cycle. Factset arms are excluded: a `SubjectSetRewrite.FactToSubjectSet` cannot recurse without consuming a stored fact, so it belongs to the depth bound, not this check. The graph is intra-namespace by construction — `SubjectSetRewrite.ComputedSubjectSet` carries only a `RelationName` and roots at the same resource.
+2. **Dangling references.** Every `SubjectSetRewrite.ComputedSubjectSet.Relation` and every `SubjectSetRewrite.FactToSubjectSet.FactsetRelation` names a relation defined in this namespace.
 3. **Empty operator nodes** (ruled Mark, 2026-07-19). `SubjectSetRewrite.Union`/`SubjectSetRewrite.Intersection` with empty operand lists are refused. The theory-document grammar cannot produce the shape; the Write API path can, and the conventional reading of an empty intersection is the universal set — everyone a member — so the shape is refused rather than given semantics.
 
-Not validatable here: `SubjectSetRewrite.FactToSubjectSet.ComputedSubjectSetRelationship`. Its target namespace is unknown until facts resolve the factset's resources, so an undefined relationship there stays condition 4 (undefined namespace or relationship mid-walk — broadened and demoted to a never-in-practice backstop by the drift ruling, 2026-07-20; dry-run finding F8) in the interpreter's taxonomy.
+Not validatable here: `SubjectSetRewrite.FactToSubjectSet.ComputedSubjectSetRelation`. Its target namespace is unknown until facts resolve the factset's resources, so an undefined relation there stays condition 4 (undefined namespace or relation mid-walk — broadened and demoted to a never-in-practice backstop by the drift ruling, 2026-07-20; dry-run finding F8) in the interpreter's taxonomy.
 
 ## Why construction, not document parse
 
@@ -36,7 +37,7 @@ The Write API builds `Theory` values without touching `Kingo.Documents`; a parse
 
 Implemented 2026-07-21, branch `namespace-parse-invariants`.
 
-- `src/Kingo.Theories/Namespace.cs` — `Namespace.Create` stages duplicates (`namespace.duplicate_relationship`), dangling intra-namespace references (`namespace.dangling_reference` — computed subjectset targets and factset first elements; the factset's second element stays the interpreter's condition 4), then cycles over the `SubjectSetRewrite.ComputedSubjectSet` graph (`namespace.rewrite_cycle`, full cycle path in the message). Traversal and cycle search use explicit stacks so untrusted input cannot pick the stack depth.
+- `src/Kingo.Theories/Namespace.cs` — `Namespace.Create` stages duplicates (`namespace.duplicate_relation`), dangling intra-namespace references (`namespace.dangling_reference` — computed subjectset targets and factset first elements; the factset's second element stays the interpreter's condition 4), then cycles over the `SubjectSetRewrite.ComputedSubjectSet` graph (`namespace.rewrite_cycle`, full cycle path in the message). Traversal and cycle search use explicit stacks so untrusted input cannot pick the stack depth.
 - `src/Kingo.Theories/SubjectSetRewrite.cs` — every rewrite is private-constructor-plus-static-`Create`, get-only properties, no `init`/`with` path; the operator factories return `Result`, refusing empty operand lists (`rewrite.union.empty` / `rewrite.intersection.empty`) and trees past `SubjectSetRewrite.MaxDepth` (`rewrite.depth`; the bound landed with [[rewrite-equality-recurses-unbounded]]); the leaves return the bare type.
 - `src/Kingo.Documents/RewriteExpressionParser.cs` — constructs through the `Create` factories, `.Map` → `.Bind` at the fallible operators; the theory-document example in [[theories]] gained the `parent` definitions the gate now requires.
 - Pinned by `tests/Kingo.Theories.Tests/NamespaceTests.cs`, `SubjectSetRewriteTests.cs`, and the theory-document suites (`TheoryParseTests` carries parse-path `namespace.dangling_reference` / `namespace.rewrite_cycle` rows).

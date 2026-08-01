@@ -1,17 +1,18 @@
 ---
 title: The first consumer forges the domain
-summary: "Building the SDL codec pressure-tested the core: every weak name and misplaced boundary surfaced under a real consumer's load — get one real consumer onto a young domain early, before speculative design hardens the wrong vocabulary."
-tags: [note, ddd, design, vocabulary]
+type: note
+summary: "Building the theory-document codec pressure-tested the core: every weak name and misplaced boundary surfaced under a real consumer's load — get one real consumer onto a young domain early, before speculative design hardens the wrong vocabulary."
+tags: [ddd, design, vocabulary]
 created: 2026-07-15
 status: evolving
 ---
 
 # The first consumer forges the domain
 
-Building `Kingo.Sdl` (2026-07-14/15) was scoped as an adapter work item. What it actually did was interrogate the domain until the weak names confessed. None of the following was on the work item; all of it fell out of making one real consumer parse text into the core and render it back:
+Building `Kingo.Documents` (2026-07-14/15) was scoped as an adapter work item. What it actually did was interrogate the domain until the weak names confessed. None of the following was on the work item; all of it fell out of making one real consumer parse text into the core and render it back:
 
-- `Policy` → `Schema` and `Statement` → `Fact` — the reach-test naming pass ([[ubiquitous-language]]). (`Schema` later became `Spec`.)
-- The aggregate collapse: four grammar-driven roots → two state-driven ones (`Spec`, `Fact`), with `Resource`/`Subject`/`SubjectSet` demoted to value objects and the `Schemas`/`Graphs` layout.
+- `Policy` → `Schema` and `Statement` → `Fact` — the reach-test naming pass ([[ubiquitous-language]]). (`Schema` later became `Theory`.)
+- The aggregate collapse: four grammar-driven roots → two state-driven ones (`Theory`, `Fact`), with `Resource`/`Subject`/`SubjectSet` demoted to value objects and the `Theories`/`Facts` layout.
 - `Create` as the house Cons: private constructors, one validating construction path, no trusted-assignment bypass for composites.
 - The RDF set-first reading of the tuple order — Zanzibar's `object#relation@user` isn't backwards; it's set ∋ member.
 - The port that wasn't: `IDocumentSerializer<T>` / `Kingo.Serialization` dissolved once the consumer showed there would only ever be one implementation ([[realign-serialization-projects-around-their-real-consumers]]).

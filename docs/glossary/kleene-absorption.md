@@ -1,9 +1,12 @@
 ---
 title: kleene-absorption
-summary: "Three-valued (true/false/error) operator semantics where the verdict is a function of operand values, never evaluation order."
-tags: [glossary, evaluation]
-created: 2026-07-18
-status: locked
+type: definition
+summary: "Three-valued operator semantics whose verdict is a function of operand values alone."
+status: evolving
 ---
 
-Three-valued (true/false/error) operator semantics where the verdict is a function of operand values, never evaluation order — an absorbing value dominates error, keeping short-circuiting sound.
+Three-valued operator semantics whose verdict is a function of operand values alone.
+
+## Disposition
+
+Fold into the rewrite evaluation spec when it lands, and retire this entry in the same change. The full ruling belongs beside the operator semantics it governs: error as the third value, which values absorb under each operator, why short-circuiting stays sound, and why strict error-poisoning was rejected. It sits here only because no evaluation spec exists yet.

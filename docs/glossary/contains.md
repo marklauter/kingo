@@ -1,9 +1,8 @@
 ---
 title: contains
-summary: "The membership predicate behind Check — a short-circuiting boolean walk of a relationship's rewrite over the facts, returning a decision."
-tags: [glossary, evaluation]
-created: 2026-07-18
+type: definition
+summary: "To judge whether a subject is a member of a subjectset's closure."
 status: locked
 ---
 
-The membership predicate behind Check — a short-circuiting boolean walk of a relationship's rewrite over the facts, returning a decision. The hot path.
+To judge whether a subject is a member of a subjectset's closure.

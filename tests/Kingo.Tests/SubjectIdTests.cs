@@ -17,7 +17,6 @@ public sealed class SubjectIdTests
     [InlineData(".a")]
     [InlineData("-a")]
     [InlineData("café")]
-    // the caller's shapes: a GUID, an integer, a URN, a URI, an email, and a UPN — a subject id is opaque to Kingo
     [InlineData("550e8400-e29b-41d4-a716-446655440000")]
     [InlineData("42")]
     [InlineData("urn:isbn:0451450523")]
@@ -52,7 +51,6 @@ public sealed class SubjectIdTests
     [InlineData("\t")]
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        // null reaches Parse only through reflection callers (see IParse); it lands in the empty guard
         var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
@@ -107,7 +105,6 @@ public sealed class SubjectIdTests
         var upper = SubjectId.Unchecked("A");
         var lower = SubjectId.Unchecked("a");
 
-        // ordinal ordering: 'A' (0x41) < 'a' (0x61)
         Assert.True(upper.CompareTo(lower) < 0);
         Assert.True(upper < lower);
         Assert.True(upper <= lower);

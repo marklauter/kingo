@@ -1,14 +1,15 @@
 ---
 title: identifiers
-summary: "Every theory, namespace, and relationship is named by a fully-qualified immutable path. The path is the identity — there is no display label and no surrogate key."
-tags: [spec, theory]
+type: specification
+summary: "Every theory, namespace, and relation is named by a fully-qualified immutable path. The path is the identity — there is no display label and no surrogate key."
+tags: [theory]
 created: 2026-07-23
 status: evolving
 cites:
   - "[[theory]]"
-  - "[[catalog]]"
+  - "[[glossary/catalog]]"
   - "[[namespace]]"
-  - "[[relationship]]"
+  - "[[relation]]"
 ---
 
 # identifiers
@@ -19,9 +20,9 @@ Three kinds of thing carry one, and each contains the one above it:
 
 - A [[theory]] is one segment: `io`.
 - A [[namespace]] is `<theory>/<namespace>`: `io/file`.
-- A [[relationship]] is `<theory>/<namespace>#<relation>`: `io/file#viewer`.
+- A [[relation]] is `<theory>/<namespace>#<relation>`: `io/file#viewer`.
 
-Each segment is unique within the segment that precedes it. Theory names are unique across the [[catalog]], namespace names within their theory, relation names within their namespace. Composing unique segments makes the whole path unique. `io/file` is the namespace's name, and there is no namespace called `file`.
+Each segment is unique within the segment that precedes it. Theory names are unique across the catalog, namespace names within their theory, relation names within their namespace. Composing unique segments makes the whole path unique. `io/file` is the namespace's name, and there is no namespace called `file`.
 
 ## The path is one value
 
@@ -36,28 +37,28 @@ Each separator marks one boundary and only that boundary:
 - `/` separates a theory from a namespace.
 - `#` introduces a relation.
 
-What a string names is recoverable from which separators it carries, not from counting its segments. `/` all the way down would make a relationship and a resource both three segments with nothing to tell them apart.
+What a string names is recoverable from which separators it carries, not from counting its segments. `/` all the way down would make a relation and a resource both three segments with nothing to tell them apart.
 
 Grammars in this corpus are EBNF: `::=` defines, `|` alternates, `( )` groups, `{ }` repeats zero or more times, `[ ]` marks optional, quoted text is literal, `'x'…'y'` is an inclusive character range, and `⟨…⟩` names a production.
 
 ```ebnf
-⟨relationship path⟩ ::= ⟨namespace path⟩ '#' ⟨relationship name⟩
-⟨namespace path⟩    ::= ⟨theory name⟩ '/' ⟨namespace name⟩
+⟨relation path⟩  ::= ⟨namespace path⟩ '#' ⟨relation name⟩
+⟨namespace path⟩ ::= ⟨theory name⟩ '/' ⟨namespace name⟩
 
-⟨theory name⟩       ::= ⟨name⟩
-⟨namespace name⟩    ::= ⟨name⟩
-⟨relationship name⟩ ::= ⟨name⟩
-⟨name⟩              ::= ⟨name-start⟩ { ⟨name-char⟩ }
-⟨name-start⟩        ::= ⟨letter⟩ | '_'
-⟨name-char⟩         ::= ⟨letter⟩ | ⟨digit⟩ | '_'
-⟨letter⟩            ::= 'a'…'z' | 'A'…'Z'
-⟨digit⟩             ::= '0'…'9'
+⟨theory name⟩    ::= ⟨name⟩
+⟨namespace name⟩ ::= ⟨name⟩
+⟨relation name⟩  ::= ⟨name⟩
+⟨name⟩           ::= ⟨name-start⟩ { ⟨name-char⟩ }
+⟨name-start⟩     ::= ⟨letter⟩ | '_'
+⟨name-char⟩      ::= ⟨letter⟩ | ⟨digit⟩ | '_'
+⟨letter⟩         ::= 'a'…'z' | 'A'…'Z'
+⟨digit⟩          ::= '0'…'9'
 ```
 
-`⟨theory name⟩`, `⟨namespace name⟩`, and `⟨relationship name⟩` are Kingo's own names. The three share one character grammar but stay distinct productions: each names one kind of thing, qualified by its position in the path. The [[facts]] grammar builds resources, subject-sets, and facts on top of these.
+`⟨theory name⟩`, `⟨namespace name⟩`, and `⟨relation name⟩` are Kingo's own names. The three share one character grammar but stay distinct productions: each names one kind of thing, qualified by its position in the path. The [[facts]] grammar builds resources, subjectsets, and facts on top of these.
 
 ```
 io                                              theory
 io/file                                         namespace
-io/file#viewer                                  relationship
+io/file#viewer                                  relation
 ```

@@ -1,15 +1,9 @@
 ---
 title: namespace
-summary: "A named grouping of relationship definitions — an entity within a theory, identified by name."
-tags: [glossary, theory]
-created: 2026-07-18
+type: definition
+summary: "A set of relations sharing one name scope."
 status: locked
-contrast:
-  - "[[theory]]"
+has-a: "[[relation]]"
 ---
 
-A named grouping of relationship definitions — an entity within a theory, identified by name.
-
-## Contrasts
-
-- `theory` — the scoped set that groups and names namespaces; a namespace is one member.
+A set of relations sharing one name scope.

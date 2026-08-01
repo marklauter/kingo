@@ -1,7 +1,8 @@
 ---
 title: The graph document is bulk DML, not a state dump
+type: todo
 summary: "Proposal: the fact-side document is a list of create/touch/delete operations in YAML section blocks parsing to a GraphOperation DU, which lives between the edges, not in the domain, since every rule it carries is storage semantics; the Graph/GraphParser/GraphPrinter stubs were deleted and it waits on the first ports project."
-tags: [note, todo, sdl, fml, agl, graphs, dml, hexagonal]
+tags: [documents, graphs, dml, hexagonal]
 created: 2026-07-15
 status: open
 priority: medium
@@ -15,9 +16,11 @@ blocked-by: "[[storage-versioning-design]]"
 
 `GraphParser` / `GraphPrinter` were stubbed 2026-07-15 as the fact-side mirror of the theory pair ([[theories]]): `Parse(text) → Result<Graph>` plus a `graph.Print()` extension, with the document format left open. Mark's aspiration for that format (2026-07-15) is **bulk DML** — a loader/mutator, not a serialized state. You can add, delete, and (in SQL's frame) patch; patch is empty for a fact, because a fact's domain key is the whole triple and there is no non-key field left to change — a "patched" fact is a different fact. That leaves **create, touch, delete**, which is exactly Zanzibar's `RelationTupleUpdate` set (§2.4) and the set SpiceDB's `RelationshipUpdate` kept unchanged. Two independent designs landing on the same three is evidence the space is that shape:
 
+<!--scrutinize: superseded by spec: graph-operations.md section: The two fact operations — the set is apply/drop (Mark, 2026-07-31). A strict create contradicts the idempotence ruling, since re-running a document carrying one fails by design; asserting against known state becomes the precondition question in Open questions below. reconcile.md 3.4, which ruled create/touch/delete on provenance rather than merit, is reversed with it.-->
 - `create` — assert, conflict if the fact already exists.
 - `touch` — assert, succeed either way (upsert). Exists because re-running a generated document should be a no-op, not a pile of conflicts.
 - `delete` — retract. In storage a delete is a tombstone stamp closing the fact's interval, not a row removal (dry-run finding F8); the operation vocabulary is unchanged by that.
+<!--/scrutinize-->
 
 The SQL frame names the split cleanly: the theory document is the schema half ([[theories]]) — the rules — while this document is the data half, mutating the facts the rules range over. The analogy is not exact — SQL's DML is a language of statements against a live store, while a fact document is a batch handed to Write — but "bulk DML" is the right neighborhood, and it is decisively *not* `pg_dump`'s data section.
 
@@ -37,12 +40,15 @@ touch:
   - group:eng#member@user:dave
 ```
 
-Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relationship>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — composites no longer parse text and Fact.Parse is gone from src, so the flat entries above have no parser and the delimiters collide with user-owned ids. The document format decomposes to a property per tuple part instead.-->
+Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relation>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
+<!--/scrutinize-->
 
 Sections are the natural fit for a bulk loader — the common document is "here are 400 facts to create" and a per-entry operation tag would be noise on every line. The cost is that operation order becomes *implicit in section order*, which is a real constraint (see open questions).
 
 ## `GraphOperation` — and why it is not a domain type
 
+<!--scrutinize: superseded by spec: graph-operations.md section: Graph operations — the two names swapped (Mark, 2026-07-31). A fact operation is one row; a graph operation is the atomic set of them, and the set is the unit that spans the graph. So this DU is FactOperation, with ApplyOperation and DropOperation as its cases, and GraphOperation names the batch above it. The 2026-07-15 objection below survives the swap one level down: a drop-by-filter row would be a fact operation naming no single fact. The batch type this implies is also where "Is a document a transaction?" in Open questions lands, which graph-operations.md now answers as yes under its own scrutinize block.-->
 The document parses to a closed DU over the three cases. Sketch:
 
 ```csharp
@@ -53,7 +59,8 @@ public sealed record TouchOperation(Fact Fact) : GraphOperation(Fact);
 public sealed record DeleteOperation(Fact Fact) : GraphOperation(Fact);
 ```
 
-`Graph` beats `Fact` as the qualifier (Mark, 2026-07-15). `FactOperation(Fact Fact)` promises every operation names exactly one fact — true today, false the moment delete-by-filter lands, since "drop every viewer of `doc:readme`" acts on the graph and names no single fact. `GraphOperation` makes no such promise, so the DU can grow a filter case without the base lying. (Closing the DU is an implementation detail left open: `SubjectSetRewrite` uses a bare `private protected` ctor, which works because it declares no primary constructor. A base that takes one cannot cleanly also expose a parameterless ctor, so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention.)
+`Graph` beats `Fact` as the qualifier (Mark, 2026-07-15). `FactOperation(Fact Fact)` promises every operation names exactly one fact — true today, false the moment delete-by-filter lands, since "drop every viewer of `doc:readme`" acts on the graph and names no single fact. `GraphOperation` makes no such promise, so the DU can grow a filter case without the base lying.
+<!--/scrutinize--> (Closing the DU is an implementation detail left open: `SubjectSetRewrite` uses a bare `private protected` ctor, which works because it declares no primary constructor. A base that takes one cannot cleanly also expose a parameterless ctor, so either the base drops the primary constructor and each case declares its own `Fact`, or the DU is closed by convention.)
 
 **It does not live in the domain layer** (Mark, 2026-07-15 — correcting this note's first draft, which put it in `Kingo.Facts`). An operation sits **between two edges**: born at user IO (a document, a REST call), dead at storage IO (a conditional write). The tell is that every rule it carries is storage semantics, not a domain invariant:
 
@@ -74,7 +81,9 @@ The fact document is a separate format from the theory document — the two shar
 It would be by far the thinner adapter, and the asymmetry is the design, not an accident:
 
 - **Parser only, no printer.** `parse ∘ print = id` pins the theory pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the claim that core owns the entry grammar no longer holds; with the text form gone the adapter owns the whole shape, not only the envelope.-->
 - **YamlDotNet, no Superpower.** The theory document needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. The fact document has no embedded language at all — every entry is a fact in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
+<!--/scrutinize-->
 - **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so the fact-document parser references ports *and* `Kingo.Facts`, and travels with the storage work rather than landing next.
 
 ## Consequences — the stubs are gone
@@ -82,7 +91,9 @@ It would be by far the thinner adapter, and the asymmetry is the design, not an 
 All three fact-side stubs from 2026-07-15 were removed the same day rather than left to rot:
 
 - **`GraphPrinter` — deleted.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset; the round-trip tests that pin the theory pair have no analogue here. Printing a graph back out is a *dump* — a different artifact that merely shares a vocabulary. If a dump format is ever wanted it returns under its own name.
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the closing clause is wrong now; the fact grammar did not stay in core.-->
 - **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the fact grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
+<!--/scrutinize-->
 - **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[ubiquitous-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
 
 `Kingo.Facts` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Documents` is back to the theory pair alone.
@@ -96,7 +107,7 @@ These are storage questions, which is why they travel with the ports project rat
 - **Section order.** With section blocks, a document cannot interleave: it cannot say "delete X, then create X". Either the sections have a fixed defined order (delete-then-create is the usual choice — it makes a document idempotent-ish and lets a section pair express replacement), or a document that both deletes and creates the same fact is rejected as ambiguous. Worth deciding before the format hardens, because it is unfixable afterward without a breaking change.
 - **Same fact in two sections** — a defect at parse time, or resolved by section order? Follows directly from the question above.
 - **Preconditions.** SpiceDB's `WriteRelationships` carries optional preconditions (must-match / must-not-match filters) so a batch can assert state before applying. Out of scope for a first document format, but worth knowing it is the next thing bulk callers ask for.
-- **Delete by filter.** Zanzibar and SpiceDB both offer delete-by-filter (wildcards over resource/relationship/subject) separately from delete-by-tuple. A document listing every fact to delete cannot express "drop every viewer of `doc:readme`". Likely a Write API concern rather than a document one, but it is the other half of what "bulk mutator" usually means.
+- **Delete by filter.** Zanzibar and SpiceDB both offer delete-by-filter (wildcards over resource/relation/subject) separately from delete-by-tuple. A document listing every fact to delete cannot express "drop every viewer of `doc:readme`". Likely a Write API concern rather than a document one, but it is the other half of what "bulk mutator" usually means.
 
 ## Next
 

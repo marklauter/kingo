@@ -1,7 +1,8 @@
 ---
 title: Rewrite equality recurses unbounded
+type: todo
 summary: "Equality and hashing over the rewrite algebra recurse per nesting level, so a tree tens of thousands of levels deep would overflow the stack on Equals or GetHashCode. Closed: depth is tracked at construction and the operator factories refuse trees past SubjectSetRewrite.MaxDepth, so a tree deep enough to matter is unrepresentable."
-tags: [note, todo, theory]
+tags: [theory]
 created: 2026-07-21
 status: closed
 priority: low

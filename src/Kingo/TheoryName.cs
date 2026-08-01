@@ -5,22 +5,13 @@ using ValueTypes;
 
 namespace Kingo;
 
-/// <summary>
-/// The name of a <see cref="Domains.Domain"/>, the config-side aggregate root's domain key, one segment of the identifier grammar ([[identifiers]]): <c>io</c>.
-/// Name-as-identity (settled 2026-07-15, provisionally: no rename, only a new domain. The surrogate-key alternative stays available if admin rename-freedom is
-/// worth more than the identity being legible. See [[domain-language]]). The domain is the root of the config tree, so this name is never itself qualified. It
-/// is instead what qualifies a <see cref="NamespacePath"/>. Case-insensitive: <see cref="Checked"/> normalizes to lowercase, the canonical form.
-/// </summary>
 public readonly record struct TheoryName
     : IValueType<TheoryName, string>
 {
-    /// <inheritdoc/>
     public string Value { get; }
 
-    /// <inheritdoc/>
     public static TheoryName Unchecked(string value) => new(value);
 
-    /// <inheritdoc/>
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "lowercase is the canonical form of the identifier; the value is compared and stored, never round-tripped through case conversion")]
     public static Result<TheoryName> Checked(string value) =>
         string.IsNullOrWhiteSpace(value)
@@ -29,33 +20,24 @@ public readonly record struct TheoryName
                 ? Result.Failure<TheoryName>(Error.Validation(Diagnostics.ErrorCodes.TheoryName.Invalid, ErrorMessage.Unchecked($"theory name '{value}' is malformed; expected '{IdentifierGrammar.NamePattern}'")))
                 : Result.Success(new TheoryName(value.ToLowerInvariant()));
 
-    /// <inheritdoc/>
     public static Result<TheoryName> Parse(string s) => Checked(s);
 
     private TheoryName(string value) => Value = value;
 
-    /// <summary>Returns the canonical text form of the value.</summary>
-    /// <returns>The underlying string, unquoted and undecorated.</returns>
     public override string ToString() => Value;
 
-    /// <inheritdoc/>
     public int CompareTo(TheoryName other) => string.CompareOrdinal(Value, other.Value);
 
-    /// <inheritdoc/>
     public static bool operator <(TheoryName left, TheoryName right) => left.CompareTo(right) < 0;
 
-    /// <inheritdoc/>
     public static bool operator <=(TheoryName left, TheoryName right) => left.CompareTo(right) <= 0;
 
-    /// <inheritdoc/>
     public static bool operator >(TheoryName left, TheoryName right) => left.CompareTo(right) > 0;
 
-    /// <inheritdoc/>
     public static bool operator >=(TheoryName left, TheoryName right) => left.CompareTo(right) >= 0;
 
 }
 
-/// <summary>Character rules for <see cref="TheoryName"/>: one name, composed from <see cref="IdentifierGrammar"/> ([[identifiers]]).</summary>
 internal static partial class TheoryNamePatterns
 {
     private const RegexOptions PatternOptions =

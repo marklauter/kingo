@@ -1,7 +1,8 @@
 ---
 title: CsCheck property-based tests for parsers and value types
-summary: "Refactor to CsCheck properties where the contract is a law over an input space (identifier grammars, Parse/ToString and theory-document round-trips, Result algebra), keeping the example-based tests as readable contract documentation."
-tags: [note, todo, testing]
+type: todo
+summary: "Refactor to CsCheck properties where the contract is a law over an input space (identifier grammars, Parse/ToString and theory-document round-trips), keeping the example-based tests as readable contract documentation."
+tags: [testing]
 created: 2026-07-21
 status: open
 priority: low
@@ -14,10 +15,11 @@ One line tests the whole class: a property quantifies over the input space where
 
 ## Targets
 
+<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — there are no reserved delimiters left to refuse (IdentifierGrammar.IdPattern admits any non-whitespace run), and Resource, SubjectSet, and Fact have no Parse or ToString to round-trip. The first target survives only for the Kingo-owned names; the second has no subject.-->
 - **Identifier grammars** (`tests/Kingo.Tests`, five identifier types): generate strings over and around the grammar alphabets; assert `Parse` accepts iff the pattern matches, rejects anything carrying a reserved delimiter (`:`, `#`, `@`) in a reserved position, and that `Unchecked`/`Parse` agree on accepted input.
 - **Graphs round-trips** (`tests/Kingo.Facts.Tests`): `Parse(x.ToString()) == x` for `Resource`, `SubjectSet`, `Fact` over generated valid values.
+<!--/scrutinize-->
 - **Theory-document round-trips** (`tests/Kingo.Documents.Tests`): generate theories, assert print→parse identity — the existing `TheoryRoundTripTests` enumerate cases by hand; a generator walks the space between them.
-- **Result algebra** (`tests/Results.Tests`): `ResultLawTests` pin functor/applicative/monad laws at fixed points; quantify them over generated values and functions.
 
 ## Constraints
 

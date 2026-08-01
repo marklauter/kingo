@@ -24,7 +24,7 @@ public sealed class TheoryParseTests
                 Ns("file"),
                 [
                     Bare("owner"),
-                    new Relationship(
+                    new Relation(
                         Rel("editor"),
                         Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 ]),
@@ -36,7 +36,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_ComplexDocument_ReturnsDefinedNamespaces()
     {
-        // the example document from [[specs]]: comments, a folded block scalar, two namespaces
         const string document = """
             # rewrite set operators:
             #   ! = exclusion operator
@@ -47,13 +46,13 @@ public sealed class TheoryParseTests
 
             namespaces:
               file:                           # namespace
-                - owner                       # empty relationship - implicit this
-                - parent                      # the factset relationship the viewer rewrite walks
-                - editor: this | owner        # relationship with union rewrite
-                - viewer: >                   # relationship with union, factset, and exclusion rewrites
+                - owner                       # empty relation - implicit this
+                - parent                      # the factset relation the viewer rewrite walks
+                - editor: this | owner        # relation with union rewrite
+                - viewer: >                   # relation with union, factset, and exclusion rewrites
                     (this | editor | (parent, viewer)) ! banned
-                - auditor: this & viewer      # relationship with intersection rewrite
-                - banned                      # empty relationship - implicit this
+                - auditor: this & viewer      # relation with intersection rewrite
+                - banned                      # empty relation - implicit this
 
               # second namespace defined within same document
               folder:
@@ -68,10 +67,10 @@ public sealed class TheoryParseTests
             [
                 Bare("owner"),
                 Bare("parent"),
-                new Relationship(
+                new Relation(
                     Rel("editor"),
                     Union([SubjectSetRewrite.This.Default, Computed("owner")])),
-                new Relationship(
+                new Relation(
                     Rel("viewer"),
                     Exclusion(
                         Union(
@@ -81,7 +80,7 @@ public sealed class TheoryParseTests
                             FactTo("parent", "viewer"),
                         ]),
                         Computed("banned"))),
-                new Relationship(
+                new Relation(
                     Rel("auditor"),
                     Intersection([SubjectSetRewrite.This.Default, Computed("viewer")])),
                 Bare("banned"),
@@ -92,7 +91,7 @@ public sealed class TheoryParseTests
             [
                 Bare("owner"),
                 Bare("parent"),
-                new Relationship(
+                new Relation(
                     Rel("viewer"),
                     Exclusion(
                         Union(
@@ -117,40 +116,40 @@ public sealed class TheoryParseTests
     [InlineData("file:\n  - viewer: this # comment")]
     [InlineData("file:\n  - parent\n  - viewer: (parent, child)")]
     [InlineData("file:\n  - owner\n  - parent\n  - banned\n  - viewer: this | (parent, child) & owner ! banned")]
-    [InlineData("base: &shared\n  - owner\nfile: *shared")] // anchor reuse is plain YAML; both namespaces get the shared relationship list
+    [InlineData("base: &shared\n  - owner\nfile: *shared")]
     public void Parse_ValidNamespaceMaps_Succeeds(string namespaceMap) =>
         _ = ParseSuccess(Document(namespaceMap));
 
     [Theory]
     [InlineData("invalid: yaml: content", "theory.syntax")]
     [InlineData("file:\n  - viewer: | this", "theory.syntax")]
-    [InlineData("file:\n  - a\nfile:\n  - b", "theory.syntax")] // exact-duplicate keys are rejected by YAML itself, before namespace identity is compared
-    [InlineData("file:\n  - a: this\n    a: owner", "theory.syntax")] // duplicate keys inside a relationship mapping, likewise
-    [InlineData("file: *missing", "theory.syntax")] // unresolved alias
+    [InlineData("file:\n  - a\nfile:\n  - b", "theory.syntax")]
+    [InlineData("file:\n  - a: this\n    a: owner", "theory.syntax")]
+    [InlineData("file: *missing", "theory.syntax")]
     [InlineData("file: 5", "theory.namespace")]
     [InlineData("file:\n  a: b", "theory.namespace")]
-    [InlineData("file: ''", "theory.namespace")] // only *plain* null forms mean an empty namespace; a quoted empty string is not one
+    [InlineData("file: ''", "theory.namespace")]
     [InlineData("file: 'null'", "theory.namespace")]
-    [InlineData("file: NuLL", "theory.namespace")] // the core-schema null forms are exact-case: null, Null, NULL
+    [InlineData("file: NuLL", "theory.namespace")]
     [InlineData("'':\n  - owner", "namespace_name.empty")]
     [InlineData("file name:\n  - owner", "namespace_name.invalid")]
     [InlineData("file-name:\n  - owner", "namespace_name.invalid")]
     [InlineData("123file:\n  - owner", "namespace_name.invalid")]
     [InlineData("file.ext:\n  - owner", "namespace_name.invalid")]
-    [InlineData("file:\n  - owner-name", "relationship_name.invalid")]
-    [InlineData("file:\n  - 123owner", "relationship_name.invalid")]
-    [InlineData("file:\n  - owner.ext", "relationship_name.invalid")]
-    [InlineData("file:\n  - ", "relationship_name.empty")]
-    [InlineData("file:\n  - : this", "theory.syntax")] // YamlDotNet cannot load this shape and throws ArgumentException, not YamlException; both translate
-    [InlineData("file:\n  - [nested]", "theory.relationship")]
-    [InlineData("file: &a [*a]", "theory.relationship")] // a self-referential alias resolves to a nested sequence, not a hang or a crash
-    [InlineData("file:\n  - a: this\n    b: this", "theory.relationship")]
-    [InlineData("file:\n  - viewer:", "theory.relationship")] // a pair missing its rewrite expression; the bare-name form is how a domain document spells "no rewrite"
-    [InlineData("file:\n  - viewer: ''", "theory.rewrite")] // a quoted empty string is not a missing value: it is an (empty, invalid) expression
-    [InlineData("file:\n  - viewer: ~", "theory.rewrite")] // plain scalar text is expression source, and '~' cannot lex
+    [InlineData("file:\n  - owner-name", "relation_name.invalid")]
+    [InlineData("file:\n  - 123owner", "relation_name.invalid")]
+    [InlineData("file:\n  - owner.ext", "relation_name.invalid")]
+    [InlineData("file:\n  - ", "relation_name.empty")]
+    [InlineData("file:\n  - : this", "theory.syntax")]
+    [InlineData("file:\n  - [nested]", "theory.relation")]
+    [InlineData("file: &a [*a]", "theory.relation")]
+    [InlineData("file:\n  - a: this\n    b: this", "theory.relation")]
+    [InlineData("file:\n  - viewer:", "theory.relation")]
+    [InlineData("file:\n  - viewer: ''", "theory.rewrite")]
+    [InlineData("file:\n  - viewer: ~", "theory.rewrite")]
     [InlineData("? [complex, key]\n: - owner", "theory.namespace")]
-    [InlineData("file:\n  - ? [complex, key]\n    : this", "theory.relationship")]
-    [InlineData("file:\n  - viewer:\n      - nested", "theory.relationship")]
+    [InlineData("file:\n  - ? [complex, key]\n    : this", "theory.relation")]
+    [InlineData("file:\n  - viewer:\n      - nested", "theory.relation")]
     [InlineData("file:\n  - owner: invalid expression syntax", "theory.rewrite")]
     [InlineData("file:\n  - viewer: this |", "theory.rewrite")]
     [InlineData("file:\n  - viewer: this & & owner", "theory.rewrite")]
@@ -158,13 +157,13 @@ public sealed class TheoryParseTests
     [InlineData("file:\n  - viewer: (incomplete factset", "theory.rewrite")]
     [InlineData("file:\n  - viewer: (parent, child, extra)", "theory.rewrite")]
     [InlineData("file:\n  - viewer: 123invalid", "theory.rewrite")]
-    [InlineData("file:\n  - this", "theory.relationship.reserved")]
-    [InlineData("file:\n  - THIS", "theory.relationship.reserved")]
-    [InlineData("file:\n  - this: owner", "theory.relationship.reserved")]
-    [InlineData("file:\n  - '...'", "relationship_name.invalid")]
-    [InlineData("file:\n  - '...': owner", "relationship_name.invalid")]
-    [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")] // the namespace gate runs on the parse path too
-    [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")] // a factset's first element resolves here; its second does not
+    [InlineData("file:\n  - this", "theory.relation.reserved")]
+    [InlineData("file:\n  - THIS", "theory.relation.reserved")]
+    [InlineData("file:\n  - this: owner", "theory.relation.reserved")]
+    [InlineData("file:\n  - '...'", "relation_name.invalid")]
+    [InlineData("file:\n  - '...': owner", "relation_name.invalid")]
+    [InlineData("file:\n  - viewer: editor", "namespace.dangling_reference")]
+    [InlineData("file:\n  - viewer: (parent, member)", "namespace.dangling_reference")]
     [InlineData("file:\n  - viewer: viewer", "namespace.rewrite_cycle")]
     [InlineData("file:\n  - editor: viewer\n  - viewer: editor", "namespace.rewrite_cycle")]
     public void Parse_InvalidNamespaceMaps_FailsWithExpectedCode(string namespaceMap, string expectedCode)
@@ -181,15 +180,15 @@ public sealed class TheoryParseTests
     [InlineData("null", "theory.document")]
     [InlineData("scalar", "theory.document")]
     [InlineData("[]", "theory.document")]
-    [InlineData("{}", "theory.document")] // neither key present
-    [InlineData("theory: acme\n---\ntheory: other", "theory.document")] // a domain document is a single YAML document
-    [InlineData("namespaces:\n  file:\n    - owner", "theory.document")] // no 'theory:' key
-    [InlineData("theory: acme", "theory.document")] // no 'namespaces:' key
-    [InlineData("theory: acme\nnamespaces: 5", "theory.document")] // 'namespaces:' is not a mapping
+    [InlineData("{}", "theory.document")]
+    [InlineData("theory: acme\n---\ntheory: other", "theory.document")]
+    [InlineData("namespaces:\n  file:\n    - owner", "theory.document")]
+    [InlineData("theory: acme", "theory.document")]
+    [InlineData("theory: acme\nnamespaces: 5", "theory.document")]
     [InlineData("theory: acme\nnamespaces: []", "theory.document")]
-    [InlineData("theory: [acme]\nnamespaces:\n  file:\n    - owner", "theory.document")] // 'theory:' is not a scalar
-    [InlineData("theory:\nnamespaces:\n  file:\n    - owner", "theory_name.empty")] // a valueless 'theory:' loads as an empty scalar, which the identifier grammar rejects
-    [InlineData("file:\n  - owner", "theory.document")] // the bare namespace map is no longer a document
+    [InlineData("theory: [acme]\nnamespaces:\n  file:\n    - owner", "theory.document")]
+    [InlineData("theory:\nnamespaces:\n  file:\n    - owner", "theory_name.empty")]
+    [InlineData("file:\n  - owner", "theory.document")]
     [InlineData("theory: ''\nnamespaces:\n  file:\n    - owner", "theory_name.empty")]
     [InlineData("theory: acme corp\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
     [InlineData("theory: 123acme\nnamespaces:\n  file:\n    - owner", "theory_name.invalid")]
@@ -221,7 +220,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_DefectsInNameAndNamespaces_AccumulateAcrossBoth()
     {
-        // Result.Apply accumulates the envelope's two halves: a bad domain name does not mask namespace defects
         var errors = ParseFailure("theory: 123acme\nnamespaces:\n  123file:\n    - owner");
 
         Assert.Equal(2, errors.Length);
@@ -230,36 +228,32 @@ public sealed class TheoryParseTests
     }
 
     [Fact]
-    public void Parse_MissingRewriteExpression_NamesTheRelationship()
+    public void Parse_MissingRewriteExpression_NamesTheRelation()
     {
         var errors = ParseFailure(Document("file:\n  - viewer:"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("theory.relationship", error.Code.Value);
+        Assert.Equal("theory.relation", error.Code.Value);
         Assert.Contains("'viewer'", error.Message.Value, StringComparison.Ordinal);
     }
 
     [Fact]
     public void Parse_PlainNullExpressionText_IsTheNullIdentifier()
     {
-        // the domain document owns the scalar's raw text, not YAML's typing: a plain 'null' value is a computed reference
-        // to a relationship named null — which is also what lets that name survive a round trip, since the
-        // renderer emits it unquoted (TheoryPrinter.Print)
         var ns = Assert.Single(ParseSuccess(Document("file:\n  - null\n  - viewer: null")).Namespaces);
 
-        ImmutableArray<Relationship> expected = [Bare("null"), new Relationship(Rel("viewer"), Computed("null"))];
-        Assert.Equal(expected, ns.Relationships);
+        ImmutableArray<Relation> expected = [Bare("null"), new Relation(Rel("viewer"), Computed("null"))];
+        Assert.Equal(expected, ns.Relations);
     }
 
     [Fact]
-    public void Parse_DefectsInOneRelationshipPair_AccumulateAcrossNameAndExpression()
+    public void Parse_DefectsInOneRelationPair_AccumulateAcrossNameAndExpression()
     {
-        // Result.Apply accumulates both sides of a single '<name>: <expression>' pair, and the namespace name on top
         var errors = ParseFailure(Document("123file:\n  - 456bad: this |"));
 
         Assert.Equal(3, errors.Length);
         Assert.Equal("namespace_name.invalid", errors[0].Code.Value);
-        Assert.Equal("relationship_name.invalid", errors[1].Code.Value);
+        Assert.Equal("relation_name.invalid", errors[1].Code.Value);
         Assert.Equal("theory.rewrite", errors[2].Code.Value);
     }
 
@@ -278,14 +272,13 @@ public sealed class TheoryParseTests
 
         Assert.Equal(3, errors.Length);
         Assert.Equal("namespace_name.invalid", errors[0].Code.Value);
-        Assert.Equal("relationship_name.invalid", errors[1].Code.Value);
+        Assert.Equal("relation_name.invalid", errors[1].Code.Value);
         Assert.Equal("theory.rewrite", errors[2].Code.Value);
     }
 
     [Fact]
     public void Parse_CaseVariantNamespaceKeys_FailsAsDuplicate()
     {
-        // distinct YAML keys, one namespace identity after Parse's lowercase normalization
         var errors = ParseFailure(Document("file:\n  - owner\nFILE:\n  - viewer"));
 
         var error = Assert.Single(errors);
@@ -294,12 +287,12 @@ public sealed class TheoryParseTests
     }
 
     [Fact]
-    public void Parse_DuplicateRelationshipNames_FailsThroughDefine()
+    public void Parse_DuplicateRelationNames_FailsThroughDefine()
     {
         var errors = ParseFailure(Document("file:\n  - owner\n  - owner"));
 
         var error = Assert.Single(errors);
-        Assert.Equal("namespace.duplicate_relationship", error.Code.Value);
+        Assert.Equal("namespace.duplicate_relation", error.Code.Value);
     }
 
     [Fact]
@@ -317,7 +310,7 @@ public sealed class TheoryParseTests
                 Ns("file"),
                 [
                     Bare("owner"),
-                    new Relationship(
+                    new Relation(
                         Rel("editor"),
                         Union([SubjectSetRewrite.This.Default, Computed("owner")])),
                 ]),
@@ -329,7 +322,6 @@ public sealed class TheoryParseTests
     [Fact]
     public void Parse_EmptyNamespaceMap_FailsAsEmptyTheory()
     {
-        // a domain is never empty: the absence of namespaces is the absence of a domain
         var errors = ParseFailure(Document("{}"));
 
         Assert.Equal("theory.empty", Assert.Single(errors).Code.Value);
@@ -342,11 +334,11 @@ public sealed class TheoryParseTests
     [InlineData("file: NULL")]
     [InlineData("file: ~")]
     [InlineData("file: []")]
-    public void Parse_NamespaceWithoutRelationships_ReturnsEmptyRelationships(string namespaceMap)
+    public void Parse_NamespaceWithoutRelations_ReturnsEmptyRelations(string namespaceMap)
     {
         var ns = Assert.Single(ParseSuccess(Document(namespaceMap)).Namespaces);
 
         Assert.Equal(Ns("file"), ns.Name);
-        Assert.Empty(ns.Relationships);
+        Assert.Empty(ns.Relations);
     }
 }

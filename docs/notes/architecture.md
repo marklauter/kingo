@@ -1,52 +1,62 @@
 ---
 title: Architecture
-summary: "Kingo organizes as hexagonal with a DDD core: Kingo holds the domain (Theories and Facts), Kingo.Documents is the theory-document codec, .Json/.Yaml are wire-converter packs; no ports project until a genuine port family appears."
-tags: [note, architecture, hexagonal, ddd]
+type: note
+summary: "Hexagonal with a DDD core: Kingo holds the identifiers, Kingo.Facts and Kingo.Theories hold the two halves of the model, Kingo.Closures is where they meet, and adapters own every text format."
+tags: [architecture, hexagonal, ddd]
 created: 2026-05-13
 status: evolving
 ---
 
 # Architecture
 
-## Organization
+Hexagonal, with a DDD core at the center. Projects layer outward from pure domain to concrete I/O, and the dependency graph is acyclic in that direction.
 
-The project follows hexagonal architecture with a DDD core at the center. Projects layer outward from pure domain to concrete I/O.
+## Projects
 
-### Domain core — `Kingo`
+Listed bottom-up, each with what it references.
 
-The center. Pure types describing the ubiquitous domain per [[ubiquitous-language]]: the identifier value types (cross-cutting vocabulary at root `Kingo`), and one plural C# namespace per aggregate root — `Theories` (the config side: the `Theory` root over its `Namespace` entities, plus the `SubjectSetRewrite` algebra — parse-agnostic, deliberately not an AST) and `Facts` (the data side: the `Fact` root with its value objects `Resource` and `SubjectSet`; the party seats as `SubjectId` directly — [[resource-fact-case]] dissolved the `Subject` wrapper, 2026-07-21). No knowledge of how anything is persisted, serialized, transported, rendered, or authenticated.
+- `Kingo` — the shared kernel, holding the identifier types. References the `MSL.Results` and `MSL.ValueTypes` packages, and the rest of the tree inherits them through it.
+- `Kingo.Facts` — the fact side: the `Fact` root, `Resource`, `SubjectSet`. References `Kingo`.
+- `Kingo.Theories` — the theory side: the `Theory` root, `Namespace`, `Relation`, `SubjectSetRewrite`. References `Kingo`.
+- `Kingo.Closures` — the interpreters over both halves, carrying `Decision` and `Expansion`. References `Kingo`, `Kingo.Facts`, `Kingo.Theories`.
+- `Kingo.Documents` — the theory document codec. References `Kingo.Theories`.
+- `Kingo.Serialization.Json` — a converter pack for the `Kingo` value types. References `Kingo`.
 
-The foundational primitives sit *below* the domain core. As of 2026-07-29 they also sit outside the repository: `Result<T>`, `Error`, `ErrorCode`, and `ErrorMessage` come from the `MSL.Results` package, and `IValueType<TSelf, TValue>`, `IParse<TSelf>`, and `ITryParse<TSelf>` from `MSL.ValueTypes`. They were vendored as the `Results` and `Values` projects until then; both projects were deleted, and the package versions are declared in `Directory.Packages.props` like every other dependency. `Kingo` references both packages and the rest of the tree inherits them transitively. An error code and an error message are distinct types rather than two strings, so each project's `Diagnostics.ErrorCodes` catalog is the one place a code literal is lifted. Validation lives in `Checked` (`TValue → Result<TSelf>`) and `Parse` delegates to it, so the text and primitive entry points cannot disagree about what is valid. The legacy `Kingo.Pdl` quarry was dissolved and deleted per [[dissolve-kingo-pdl-under-hexagonal-layout]]; it survives only on the archive branches ([[sources]]).
+The foundational primitives sit below all of it, and since 2026-07-29 they sit outside the repository: `Result<T>`, `Error`, `ErrorCode`, and `ErrorMessage` come from `MSL.Results`, and `IValueType<TSelf, TValue>`, `IParse<TSelf>`, and `ITryParse<TSelf>` from `MSL.ValueTypes`. They were vendored as the `Results` and `Values` projects until then; both projects were deleted, and the package versions are declared in `Directory.Packages.props` like every other dependency. Two of their shapes reach into the core. An error code and an error message are distinct types rather than two strings, so each project's `Diagnostics.ErrorCodes` catalog is the one place a code literal is lifted. Validation lives in `Checked` (`TValue → Result<TSelf>`) and `Parse` delegates to it, so the text and primitive entry points cannot disagree about what is valid.
 
-### Ports — future `Kingo.Storage`, etc.
+## Domain core
 
-Interfaces that describe what the core needs from the outside world, without specifying how. A port says "give me something that can store a fact"; it does not say "give me a DynamoDB client." Ports live close enough to the core that they share its language; the implementations live elsewhere.
+`Kingo` is the shared kernel and holds only identifiers, because aggregates reference each other by identity and identifiers are the currency they share.
 
-No ports project exists today. The first attempt — `Kingo.Serialization` holding `IDocumentSerializer<T>` — was dissolved 2026-07-14 ([[realign-serialization-projects-around-their-real-consumers]]): the theory-document codec was its only possible consumer, so it was ceremony, not a port. When a genuine port family appears (storage, transport), it gets its own project. What survives from that slice: `Deserialize`/`Parse` at a trust boundary returns `Result<T>` with accumulated errors, never exceptions, and `AdapterArchitectureTestsBase` still enforces that an adapter defines no exception types.
+The model splits in two. `Kingo.Theories` carries the intensional half: relations define subjects from other subjects, and `SubjectSetRewrite` is the algebra they are written in. It is parse-agnostic and deliberately not an AST. `Kingo.Facts` carries the extensional half: memberships recorded outright, with `Resource` and `SubjectSet` as value objects of that side and the party seated as a `SubjectId`.
 
-That trigger has now fired, though the project has not been built yet. The bulk-DML graph document ([[graph-document-is-bulk-dml]], 2026-07-15) needs a `GraphOperation` vocabulary that belongs to neither side of the current split: it cannot live in core (every rule it carries — create-vs-touch, delete-of-absent, atomicity — is storage semantics, not a domain invariant), it cannot live in `Kingo.Documents` (the Write host would depend on a YAML adapter to speak its own commands), and it cannot live in a host (adapters would depend upward). Unlike `IDocumentSerializer`, the write port it belongs to has real alternative adapters — DynamoDbLite, DynamoDB, an in-memory fake — so it is a port rather than ceremony. It lands with the storage work ([[storage-versioning-design]], [[dynamodblite-substrate]]), and the "public adapter types implement a port" ArchUnit rule returns with it.
+Neither half references the other. They meet in `Kingo.Closures`, where the interpreters read facts through a theory.
 
-### Adapters — `Kingo.Serialization.Json`, `Kingo.Serialization.Yaml`, `Kingo.Documents`, future storage adapters, transport adapters, etc.
+The core knows nothing about how anything is persisted, serialized, transported, rendered, or authenticated. Where `Parse` may live is settled in [[parse-belongs-to-single-primitives-with-a-grammar]].
 
-Concrete implementations of the ports, using whichever third-party library or platform is appropriate. Adapters know about YamlDotNet, System.Text.Json, DynamoDbLite, ASP.NET Core. Domain code never directly references them; it talks to the port.
+## Ports
 
-The serialization projects have distinct jobs ([[realign-serialization-projects-around-their-real-consumers]]): `Kingo.Documents` is the whole-document codec (YamlDotNet + Superpower; public surface: `TheoryParser.Parse(text) → Result<Theory>` and the `theory.Print()` extension — format knowledge in the adapter, domain untouched; the fact-side document has no adapter yet: its stubs were deleted 2026-07-15 because that document is a bulk-DML changeset, not a state, and its `GraphOperation` vocabulary belongs between the edges rather than in core — see [[graph-document-is-bulk-dml]], which waits on the first ports project); `.Json` and `.Yaml` are strictly converter packs for the `Kingo` value types so future ASP.NET REST hosts can function — no document ever crosses the wire ([[move-jsonconverter-off-identifier-types-into-the-json-adapter]]).
+A port says what the core needs from the outside without saying how — something that can store a fact, not a DynamoDB client. No ports project exists yet. The first one arrives with the storage work, which needs a `GraphOperation` vocabulary that fits in neither the core nor an adapter ([[graph-document-is-bulk-dml]], [[storage-versioning-design]]).
+
+## Adapters
+
+Adapters implement the ports against a specific library or platform, and the domain never references them. `Kingo.Documents` is the theory document codec, built on YamlDotNet and Superpower, exposing `TheoryParser.Parse(text) → Result<Theory>` and the `theory.Print()` extension. `Kingo.Serialization.Json` is a converter pack for the `Kingo` value types so a REST host can bind them; no document crosses the wire.
+
+The fact side has no adapter. That document is a bulk-DML changeset rather than a state, so it waits on the first ports project ([[graph-document-is-bulk-dml]]).
+
+## Enforced
+
+These rules run as tests, so the structure is checked rather than described. Each suite runs ArchUnit rules over its own assembly:
+
+- `Kingo.Facts` and `Kingo.Theories` each refuse an assembly reference to the other.
+- Every type sits in the namespace its project declares, so `Kingo` stays flat and nothing gets parked in the kernel.
+- `IValueType` implementers are `readonly record struct`s.
+- Concrete classes are sealed, and instance fields are never public.
+- An adapter defines no exception types: parse failures surface as `Result` values, and substrate faults propagate as the substrate's own exceptions.
 
 ## Principles
 
-- **The domain doesn't know how it's stored.** No serialization attributes, ORM annotations, or framework references on domain types. The mapping happens at the adapter boundary.
-- **Ports speak the domain's language.** A port interface uses domain types as parameters and returns; it does not leak adapter-specific concepts (no `JsonElement`, no `YamlNode`) into the core.
-- **Adapters are swappable in principle.** The system should function with any conforming implementation of a port. In practice this is most visible at test time, where in-memory or fake adapters substitute for the production ones.
-- **First slice sets the layer.** When a new layer appears (the first storage adapter, the first transport adapter), the structural rules for that layer are encoded immediately — naming, project shape, ArchUnit rules. The first example teaches by existing.
-
-## Influences
-
-- Evans, *Domain-Driven Design* — the ubiquitous language, the model as the heart of the application.
-- Cockburn, "Hexagonal Architecture" — ports and adapters as the substrate-independence pattern.
-- Writing-csharp principles — particularly "The domain doesn't know how it's stored" and "Make invalid states unrepresentable."
-
-## Open threads
-
-- [[dissolve-kingo-pdl-under-hexagonal-layout]]
-- [[move-jsonconverter-off-identifier-types-into-the-json-adapter]]
-- [[realign-serialization-projects-around-their-real-consumers]] — `Kingo.Serialization` dissolved 2026-07-14; theory-document public-surface rework landed 2026-07-15: `TheoryParser.Parse` + `theory.Print()`; the interim wrapper-document idea was dropped — no wrapper type needed.
+- **The domain doesn't know how it's stored.** No serialization attributes, ORM annotations, or framework references on domain types. Mapping happens at the adapter boundary.
+- **Ports speak the domain's language.** A port takes and returns domain types, and never leaks `JsonElement` or `YamlNode` inward.
+- **Adapters are swappable in principle.** The system runs against any conforming implementation, which shows up most at test time where fakes substitute for the real ones.
+- **First slice sets the layer.** When a new layer appears, its structural rules land with it — naming, project shape, ArchUnit rules.

@@ -1,9 +1,8 @@
 ---
 title: expansion
-summary: "The result of an Expand — the rewrite tree for a subject set, carrying the same pin, theory version, and timestamp as a decision but a tree instead of a verdict."
-tags: [glossary, evaluation]
-created: 2026-07-18
+type: definition
+summary: "A materialized rewrite tree, recorded with everything its replay needs."
 status: locked
 ---
 
-The result of an Expand — the rewrite tree for a subject set, carrying the same pin, theory version, and timestamp as a decision but a tree instead of a verdict.
+A materialized rewrite tree, recorded with everything its replay needs.

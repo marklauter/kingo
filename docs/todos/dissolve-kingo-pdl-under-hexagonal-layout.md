@@ -1,7 +1,8 @@
 ---
 title: Dissolve Kingo.Pdl under hexagonal layout
+type: todo
 summary: "Closed 2026-07-14: the domain half landed by fresh construction in Kingo core; the adapter half landed as Kingo.Serialization.Pdl (first port interface, adapter-layer ArchUnit rules, Result-first parser/serializer); the Kingo.Pdl quarry is deleted."
-tags: [note, todo, hexagonal, pdl]
+tags: [hexagonal, pdl]
 created: 2026-05-13
 status: closed
 priority: high
@@ -15,7 +16,7 @@ effort: medium
 Kingo.Pdl currently contains:
 
 - AST records: `PdlDocument`, `Namespace`, `Relation`, `SubjectSetRewrite` (abstract) and its sealed inhabitants (`ThisRewrite`, `ComputedSubjectSetRewrite`, `TupleToSubjectSetRewrite`, `UnionRewrite`, `IntersectionRewrite`, `ExclusionRewrite`).
-- Value-type wrappers: `NamespaceIdentifier`, `RelationIdentifier` (now implementing `IValue<TSelf, string>` additively).
+- Value-type wrappers: `NamespaceIdentifier`, `RelationIdentifier` (now implementing `IValueType<TSelf, string>` additively).
 - Helpers: `PolicyHash`, `RegExPatterns`.
 - Parser/serializer: `PdlParser` (YAML via YamlDotNet), `PdlSerializer`, `RewriteExpressionParser` (Superpower), `Converters/RelationTypeConverter`, `Converters/YamlStringConvertible`, `PdlParseException`.
 
@@ -29,7 +30,7 @@ PDL is a distinct format — YAML outer structure plus a Superpower-parsed embed
 
 ## Next
 
-**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [[ubiquitous-language]]: identifier IValues (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
+**Update 2026-07-14: the domain half of this dissolve happened by fresh construction, not by moving files.** `Kingo` core was written new per [[ubiquitous-language]]: identifier value types (with case normalization and per-terminal patterns classes), the grammar compositions, `Statement`, and the policy model (`Namespace`, `Relationship`, the `SubjectSetRewrite` algebra — deliberately *not* called an AST; it's parse-agnostic). `Kingo.Pdl` was never migrated and no longer builds; it is now purely quarry.
 
 Remaining work:
 
@@ -54,4 +55,4 @@ Likely coordinated with [[move-jsonconverter-off-identifier-types-into-the-json-
 - `PdlSerializer : IDocumentSerializer<ImmutableArray<Namespace>>` is the only public type in `Kingo.Serialization.Pdl`. The Superpower grammar produces an internal string-leaf AST (`RewriteNode`) that transforms into the core algebra at its exit through `RelationshipIdentifier.Parse` / `Namespace.Define`, accumulating every error; the YAML walk uses the representation model, catching only `YamlException` at the load boundary and translating it to a `pdl.syntax` validation error. Serializer newline pinned via `WithNewLine("\n")`.
 - Two quarry bugs fixed in the rewrite: the operator-chain fold flattens only *consecutive same-operator runs*, so a parenthesized operand stays opaque and nested trees round-trip structurally; and the renderer parenthesizes by grammar position (compound exclude-side terms included), so arbitrary domain trees — not just parser-produced ones — reparse to structurally equal trees.
 - `AdapterArchitectureTestsBase` (Kingo.Testing) encodes the adapter-layer rules — public types implement a port; no exception types defined — and the `.Json`/`.Yaml` arch tests already derive from it.
-- `Kingo.Pdl` and `Kingo.Pdl.Tests` deleted; the quarry survives only on the archive branches ([[sources]]). Gate green, adapter at 100% line/branch/method.
+- `Kingo.Pdl` and `Kingo.Pdl.Tests` deleted; the quarry survives only on the archive branches ([[quary-sources]]). Gate green, adapter at 100% line/branch/method.
