@@ -1,8 +1,10 @@
 ---
 title: expand
 type: definition
-summary: "To materialize one relation's rewrite tree, leaving referenced subjectsets as leaves."
+summary: "To materialize a subjectset's rewrite tree, leaving referenced subjectsets as leaves."
 status: locked
+materializes: "[[subjectset]]"
+issues: "[[expansion]]"
 ---
 
-To materialize one relation's rewrite tree, leaving referenced subjectsets as leaves.
+To materialize a subjectset's rewrite tree, leaving referenced subjectsets as leaves.

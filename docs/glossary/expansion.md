@@ -1,10 +1,9 @@
 ---
 title: expansion
 type: definition
-summary: "A materialization of one rewrite tree at one kookie."
+summary: "A materialization of one subjectset's rewrite tree at one kookie."
 status: locked
-expanded-by: "[[expand]]"
 has-a: "[[kookie]]"
 ---
 
-A materialization of one rewrite tree at one kookie.
+A materialization of one subjectset's rewrite tree at one kookie.
