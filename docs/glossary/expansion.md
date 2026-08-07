@@ -1,8 +1,10 @@
 ---
 title: expansion
 type: definition
-summary: "A materialized rewrite tree, recorded with everything its replay needs."
+summary: "A materialization of one rewrite tree at one kookie."
 status: locked
+expanded-by: "[[expand]]"
+has-a: "[[kookie]]"
 ---
 
-A materialized rewrite tree, recorded with everything its replay needs.
+A materialization of one rewrite tree at one kookie.
