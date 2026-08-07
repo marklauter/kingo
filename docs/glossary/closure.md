@@ -1,8 +1,10 @@
 ---
 title: closure
 type: definition
-summary: "The set of subjects derivable for a subjectset from the stored facts and the catalog's rewrites."
+summary: "A set of subjects derivable for a subjectset from the graph under the catalog."
 status: locked
+has-a: "[[subject]]"
+derived-for: "[[subjectset]]"
 ---
 
-The set of subjects derivable for a subjectset from the stored facts and the catalog's rewrites.
+A set of subjects derivable for a subjectset from the graph under the catalog.
