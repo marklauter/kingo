@@ -9,7 +9,7 @@ status: evolving
 
 # The walk gathers constraints; set theory decides
 
-[[contains]] reads as a graph walk, but the traversal never answers the membership question — it assembles it. Subjectsets are traversable because stored subjectset members and [[factset]] hops re-enter the evaluation (the private recursive variant behind the public `Contains`); each re-entry discovers another instantiated set expression, a computed subjectset rooted at a resolved resource. When the constraints are in hand, the verdict is [[kleene-absorption]] applied to the assembled expression, not a property of any path.
+[[contains]] reads as a graph walk, but the traversal never answers the membership question — it assembles it. Subjectsets are traversable because stored subjectset members and factset hops ([[theories]]) re-enter the evaluation (the private recursive variant behind the public `Contains`); each re-entry discovers another instantiated set expression, a computed subjectset rooted at a resolved resource. When the constraints are in hand, the verdict is [[kleene-absorption]] applied to the assembled expression, not a property of any path.
 
 The recursion therefore has two sources, and each has its own guard:
 
