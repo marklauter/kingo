@@ -1,9 +1,9 @@
 ---
 title: resource
 type: definition
-summary: "An object a fact is about, identified by a namespace and an id."
+summary: "A name that references an external asset."
 status: locked
 scoped-by: "[[namespace]]"
 ---
 
-An object a fact is about, identified by a namespace and an id.
+A name that references an external asset.

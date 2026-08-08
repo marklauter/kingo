@@ -1,8 +1,8 @@
 ---
 title: rewrite
 type: definition
-summary: "A rule defining a set in terms of other sets."
+summary: "A rule that defines a set."
 status: locked
 ---
 
-A rule defining a set in terms of other sets.
+A rule that defines a set.
