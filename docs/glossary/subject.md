@@ -1,8 +1,13 @@
 ---
 title: subject
 type: definition
-summary: "A member joined to a subjectset by a fact."
+summary: "An identity, a subjectset, or a resource bound to a subjectset."
 status: locked
+may-be:
+  - "[[identity]]"
+  - "[[subjectset]]"
+  - "[[resource]]"
+bound-to: "[[subjectset]]"
 ---
 
-A member joined to a subjectset by a fact.
+An identity, a subjectset, or a resource bound to a subjectset.

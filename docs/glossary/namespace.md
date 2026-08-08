@@ -1,9 +1,9 @@
 ---
 title: namespace
 type: definition
-summary: "A set of relations sharing one name scope."
+summary: "A named set of relations."
 status: locked
 has-a: "[[relation]]"
 ---
 
-A set of relations sharing one name scope.
+A named set of relations.

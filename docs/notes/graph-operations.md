@@ -1,6 +1,6 @@
 ---
 title: graph-operations
-type: specification
+type: note
 summary: "A graph operation is an atomic set of fact operations — apply and drop — applied to the graph as one Write transaction. Projected to and from YAML as its wire form, with a property per part of a fact."
 tags: [graphs, documents]
 created: 2026-07-31
@@ -79,7 +79,7 @@ This shape is a first sketch. It is verbose against a batch that size, and reduc
 
 The design record and the storage-side questions live in the bulk-DML todo: drop of an absent fact, preconditions, drop by filter, and where the operation type lands. Open to this document:
 
-- **How a subject's shape is discriminated.** A subject is a subject id, a subjectset, or a resource member. The flat notation told them apart by punctuation, which the structured form gives up, so the projection needs a discriminator or a distinct property per shape.
+- **How a subject's shape is discriminated.** A subject is an identity, a subjectset, or a resource member. The flat notation told them apart by punctuation, which the structured form gives up, so the projection needs a discriminator or a distinct property per shape.
 - **How the verbosity is paid down** at bulk scale without reintroducing a text form.
 - **Whether the sections need a root key.** The branch carried `facts:` above them; nothing discriminates document kinds now, so it may have no job left.
 - **Whether a fact appearing in two sections is a parse defect** or is resolved by the end-state rule above.

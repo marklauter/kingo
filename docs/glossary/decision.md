@@ -1,8 +1,11 @@
 ---
 title: decision
 type: definition
-summary: "A judgment of one membership question, recorded with everything its replay needs."
+summary: "A judgment of one putative fact at one kookie."
 status: locked
+has-a:
+  - "[[putative-fact]]"
+  - "[[kookie]]"
 ---
 
-A judgment of one membership question, recorded with everything its replay needs.
+A judgment of one putative fact at one kookie.

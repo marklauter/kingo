@@ -1,11 +1,11 @@
 ---
 title: subjectset
 type: definition
-summary: "The subjects that hold a relation on a resource."
+summary: "A name formed from a resource and a relation."
 status: locked
 has-a:
   - "[[resource]]"
   - "[[relation]]"
 ---
 
-The subjects that hold a relation on a resource.
+A name formed from a resource and a relation.

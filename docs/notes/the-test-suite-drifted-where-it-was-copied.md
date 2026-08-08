@@ -28,7 +28,7 @@ NamespaceName.Parse("file\n")   → Success("file\n")
 NamespacePath.Parse("io/f\n")   → Success("io/f\n")
 ```
 
-All six identifier types share these patterns, so all six are affected. `ResourceId` and `SubjectId` are stored verbatim, so the newline rides into a persisted identifier. Two ids differing only by that newline then render identically in logs and error messages. The fix is `\z` in place of `$` in `NamePattern`, `NamespacePathPattern`, and `IdPattern`. Per the skill's bug-fix rule, the rejecting case goes in first and proves red.
+All six identifier types share these patterns, so all six are affected. `ResourceId` and `Identity` are stored verbatim, so the newline rides into a persisted identifier. Two ids differing only by that newline then render identically in logs and error messages. The fix is `\z` in place of `$` in `NamePattern`, `NamespacePathPattern`, and `IdPattern`. Per the skill's bug-fix rule, the rejecting case goes in first and proves red.
 
 All six test files test only the *interior* newline (`"a\nb"`), which is why the suite is green over it.
 
@@ -36,7 +36,7 @@ All six test files test only the *interior* newline (`"a\nb"`), which is why the
 
 A case list written once, copied into a family of sibling files, then diverged — each copy losing a different case. It is the top finding in all four substantive projects:
 
-- `tests/Kingo.Tests` — six identifier files. `SubjectIdTests` omits the NUL case its `ResourceIdTests` twin has, though both compile the identical `IdPattern`. Its `Unchecked_BypassesValidation_AcceptsRejectedInput` feeds `"a#b@c"`, which `Parse` *accepts*. The test would survive `Unchecked` starting to validate.
+- `tests/Kingo.Tests` — six identifier files. `IdentityTests` omits the NUL case its `ResourceIdTests` twin has, though both compile the identical `IdPattern`. Its `Unchecked_BypassesValidation_AcceptsRejectedInput` feeds `"a#b@c"`, which `Parse` *accepts*. The test would survive `Unchecked` starting to validate.
 - `tests/Kingo.Documents.Tests` — `Union` appears in every operand position of every printer helper, `Intersection` in only some. The gap lands on `PrintTerm`'s `Intersection` arm: `Exclusion(a, Intersection([b,c]))` must print `a ! (b & c)`, and dropping `Intersection` from that `or` list emits `a ! b & c`, which re-parses to a structurally different tree with the suite green.
 - `tests/Kingo.Theories.Tests` — the depth bound is tested past-bound for all three operators, at-bound for `Exclusion` only, and that one assertion is stranded in `NamespaceTests.cs:374`.
 

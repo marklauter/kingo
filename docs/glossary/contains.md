@@ -1,8 +1,13 @@
 ---
 title: contains
 type: definition
-summary: "To judge whether a subject is a member of a subjectset's closure."
+summary: "To judge whether an identity is a member of a closure."
 status: locked
+evaluates: "[[closure]]"
+queries:
+  - "[[subjectset]]"
+  - "[[identity]]"
+issues: "[[decision]]"
 ---
 
-To judge whether a subject is a member of a subjectset's closure.
+To judge whether an identity is a member of a closure.

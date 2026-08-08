@@ -9,7 +9,7 @@ public abstract record Fact
 
     public sealed record SubjectFact(
         SubjectSet SubjectSet,
-        SubjectId Subject)
+        Identity Subject)
         : Fact;
 
     public sealed record SubjectSetFact(

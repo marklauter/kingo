@@ -7,6 +7,7 @@ created: 2026-07-27
 status: evolving
 cites:
   - "[[closure]]"
+  - "[[graph]]"
   - "[[subjectset]]"
   - "[[rewrite]]"
   - "[[contains]]"
@@ -23,7 +24,7 @@ cites:
 
 # Closures
 
-A [[closure]] is the set of subjects derivable for a [[subjectset]] from the stored facts and the catalog's rewrites. `Closure` (`Kingo.Closures`) names one such set as a value, fixed by one pin, carrying [[contains]] and [[expand]] as the two questions asked of it. Contains judges one membership; Expand materializes one relation's [[rewrite]] tree, leaving referenced subjectsets as leaves.
+A [[closure]] is the set of subjects derivable for a [[subjectset]] from the [[graph]] under the catalog. `Closure` (`Kingo.Closures`) names one such set as a value, fixed by one pin, carrying [[contains]] and [[expand]] as the two questions asked of it. Contains judges one membership; Expand materializes one subjectset's [[rewrite]] tree, leaving referenced subjectsets as leaves.
 
 ## The assembly
 
@@ -34,7 +35,7 @@ A [[closure]] is the set of subjects derivable for a [[subjectset]] from the sto
 - **The clock** — an injected `TimeProvider`, supplying the wall timestamp on [[decision]] and [[expansion]].
 - **The depth bound** — `Contains`-only configuration. `Expand` never recurses and ignores it.
 
-There is one pin. A [[kookie]] names a point on the store's one timeline, and the covering `TheoryVersion` is derivable from it — the theory at K ([[storage-versioning-design]]). What differs is churn: the theory changelog advances on admin action, fact intervals on every write. So one prepared projection serves many closures while the reader is pinned per request, and requests at the same coherent pair may share one instance, everything inside being immutable.
+There is one pin. A [[kookie]] names one snapshot on the store's one timeline, and the covering `TheoryVersion` is derivable from it — the theory at K ([[storage-versioning-design]]). What differs is churn: the theory changelog advances on admin action, fact intervals on every write. So one prepared projection serves many closures while the reader is pinned per request, and requests at the same coherent pair may share one instance, everything inside being immutable.
 
 ## Open question: what the prepared projection spans
 

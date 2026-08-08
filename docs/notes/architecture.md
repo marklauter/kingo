@@ -28,7 +28,7 @@ The foundational primitives sit below all of it, and since 2026-07-29 they sit o
 
 `Kingo` is the shared kernel and holds only identifiers, because aggregates reference each other by identity and identifiers are the currency they share.
 
-The model splits in two. `Kingo.Theories` carries the intensional half: relations define subjects from other subjects, and `SubjectSetRewrite` is the algebra they are written in. It is parse-agnostic and deliberately not an AST. `Kingo.Facts` carries the extensional half: memberships recorded outright, with `Resource` and `SubjectSet` as value objects of that side and the party seated as a `SubjectId`.
+The model splits in two. `Kingo.Theories` carries the intensional half: relations define subjects from other subjects, and `SubjectSetRewrite` is the algebra they are written in. It is parse-agnostic and deliberately not an AST. `Kingo.Facts` carries the extensional half: memberships recorded outright, with `Resource` and `SubjectSet` as value objects of that side and the party seated as an `Identity`.
 
 Neither half references the other. They meet in `Kingo.Closures`, where the interpreters read facts through a theory.
 

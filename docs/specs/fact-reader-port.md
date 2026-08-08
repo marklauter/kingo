@@ -9,6 +9,7 @@ cites:
   - "[[fact]]"
   - "[[subjectset]]"
   - "[[subject]]"
+  - "[[identity]]"
   - "[[kookie]]"
   - "[[contains]]"
   - "[[expand]]"
@@ -27,12 +28,12 @@ One verb, narrowed by overload, plus the pin. Both overloads answer the set-shap
 
 ```csharp
 ValueTask<Result<ImmutableArray<Fact>>> Read(SubjectSet subjectSet, CancellationToken cancellationToken);
-ValueTask<Result<ImmutableArray<Fact>>> Read(SubjectSet subjectSet, SubjectId member, CancellationToken cancellationToken);
+ValueTask<Result<ImmutableArray<Fact>>> Read(SubjectSet subjectSet, Identity identity, CancellationToken cancellationToken);
 Kookie Kookie { get; }
 ```
 
 - The wide overload returns every stored fact whose left-hand side is `subjectSet`, all member shapes included — the interpreters' error conditions require *meeting* wrong-shaped members, so the port never filters.
-- The narrowed overload returns the zero-or-one `Fact.SubjectFact` whose member is the given [[subject]] id — the direct-match point question, and the home of the `(subjectset, member, snapshot)` cache key. A miss does not settle direct membership: `this` also admits the members of subjectset-valued facts stored under the same subjectset, so a miss still obliges the wide read.
+- The narrowed overload returns the zero-or-one `Fact.SubjectFact` whose subject is the given [[identity]] — the direct-match point question, and the home of the `(subjectset, identity, snapshot)` cache key. A miss does not settle direct membership: `this` also admits the members of subjectset-valued facts stored under the same subjectset, so a miss still obliges the wide read.
 
 The two overloads cover two storage access patterns, point lookup and range read. [[fact-store-access-patterns]] records both, along with the patterns the port doesn't expose: shape-filtered range and integer-encoded keys.
 

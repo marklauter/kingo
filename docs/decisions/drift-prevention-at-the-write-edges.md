@@ -5,6 +5,8 @@ summary: "Fact/theory drift is prevented at the Write service, not tolerated at 
 tags: [write, theory, storage]
 created: 2026-07-20
 status: locked
+cites:
+  - "[[theories]]"
 ---
 
 # Drift prevention at the write edges

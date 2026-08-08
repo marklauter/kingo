@@ -1,9 +1,10 @@
 ---
 title: putative-fact
 type: definition
-summary: "A fact held as a hypothesis."
+summary: "A fact whose subject is an identity, offered for judgment."
 status: locked
 is-a: "[[fact]]"
+has-a: "[[identity]]"
 ---
 
-A fact held as a hypothesis.
+A fact whose subject is an identity, offered for judgment.

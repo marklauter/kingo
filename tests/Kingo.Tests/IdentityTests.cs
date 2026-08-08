@@ -2,7 +2,7 @@ using Results;
 
 namespace Kingo.Tests;
 
-public sealed class SubjectIdTests
+public sealed class IdentityTests
 {
     [Theory]
     [InlineData("anne")]
@@ -30,7 +30,7 @@ public sealed class SubjectIdTests
     [InlineData("a/b")]
     public void Parse_ValidInput_ReturnsSuccess(string input)
     {
-        var s = Assert.IsType<Result<SubjectId>.Success>(SubjectId.Parse(input));
+        var s = Assert.IsType<Result<Identity>.Success>(Identity.Parse(input));
         Assert.Equal(input, s.Value.Value);
     }
 
@@ -39,7 +39,7 @@ public sealed class SubjectIdTests
     [InlineData("MixedCase")]
     public void Parse_PreservesCase(string input)
     {
-        var s = Assert.IsType<Result<SubjectId>.Success>(SubjectId.Parse(input));
+        var s = Assert.IsType<Result<Identity>.Success>(Identity.Parse(input));
         Assert.Equal(input, s.Value.Value);
         Assert.Equal(input, s.Value.ToString());
     }
@@ -51,10 +51,10 @@ public sealed class SubjectIdTests
     [InlineData("\t")]
     public void Parse_NullEmptyOrWhitespace_ReturnsEmptyValidationFailure(string? input)
     {
-        var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input!));
+        var f = Assert.IsType<Result<Identity>.Failure>(Identity.Parse(input!));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("subject_id.empty", error.Code.Value);
+        Assert.Equal("identity.empty", error.Code.Value);
     }
 
     [Theory]
@@ -63,24 +63,24 @@ public sealed class SubjectIdTests
     [InlineData("a\nb")]
     public void Parse_WhitespaceOrControlCharacters_ReturnsInvalidValidationFailure(string input)
     {
-        var f = Assert.IsType<Result<SubjectId>.Failure>(SubjectId.Parse(input));
+        var f = Assert.IsType<Result<Identity>.Failure>(Identity.Parse(input));
         var error = Assert.Single(f.Errors);
         Assert.Equal(ErrorType.Validation, error.Type);
-        Assert.Equal("subject_id.invalid", error.Code.Value);
+        Assert.Equal("identity.invalid", error.Code.Value);
     }
 
     [Fact]
     public void Unchecked_BypassesValidation_AcceptsRejectedInput()
     {
-        var id = SubjectId.Unchecked("a#b@c");
+        var id = Identity.Unchecked("a#b@c");
         Assert.Equal("a#b@c", id.Value);
     }
 
     [Fact]
     public void Equality_EqualValues_AreEqual()
     {
-        var a = SubjectId.Unchecked("anne");
-        var b = SubjectId.Unchecked("anne");
+        var a = Identity.Unchecked("anne");
+        var b = Identity.Unchecked("anne");
 
         Assert.True(a.Equals(b));
         Assert.True(a == b);
@@ -91,8 +91,8 @@ public sealed class SubjectIdTests
     [Fact]
     public void Equality_UnequalValues_AreNotEqual()
     {
-        var a = SubjectId.Unchecked("anne");
-        var b = SubjectId.Unchecked("bob");
+        var a = Identity.Unchecked("anne");
+        var b = Identity.Unchecked("bob");
 
         Assert.False(a.Equals(b));
         Assert.False(a == b);
@@ -102,8 +102,8 @@ public sealed class SubjectIdTests
     [Fact]
     public void CompareTo_IsOrdinal_CaseSensitive_UppercaseBeforeLowercase()
     {
-        var upper = SubjectId.Unchecked("A");
-        var lower = SubjectId.Unchecked("a");
+        var upper = Identity.Unchecked("A");
+        var lower = Identity.Unchecked("a");
 
         Assert.True(upper.CompareTo(lower) < 0);
         Assert.True(upper < lower);
@@ -115,7 +115,7 @@ public sealed class SubjectIdTests
     [Fact]
     public void ToString_ReturnsRawValue()
     {
-        var id = SubjectId.Unchecked("anne");
+        var id = Identity.Unchecked("anne");
         Assert.Equal("anne", id.ToString());
     }
 }

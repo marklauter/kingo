@@ -8,6 +8,8 @@ status: closed
 priority: high
 effort: medium
 supports: "[[rewrite-interpreters]]"
+cites:
+  - "[[theories]]"
 ---
 
 # ResourceFact — a third Fact case replaces the ... sentinel
@@ -19,24 +21,24 @@ Consequences settled with the ruling:
 - The candidate fourth check of [[namespace-create-validation]] (refuse defining a relation named `...`) is moot before it was written: a relation named `...` is unrepresentable once the identifier grammar drops the sentinel, and a dangling rewrite reference to `...` likewise.
 - Dry-run finding F18 inverts: `Contains(io/folder:y#...@user:anne)` is unrepresentable — `...` fails `RelationName.Parse`, so the question dies at the parse edge and never reaches condition 2's theory lookup. The named test pins the parse refusal instead.
 - SDL: `RewriteExpressionPrinter.IsReserved` keeps only `this`; the `...` arm dies with the sentinel (`src/Kingo.Sdl/RewriteExpressionPrinter.cs:20`). Confirmed 2026-07-21: `...` is fact-language only — the SDL rewrite grammar cannot lex it, and the shared terminal's accidental acceptance of `...` as a relation name closes with the regex change.
-- A `ResourceFact` member under a rewrite consuming `this` is a modeled data defect — condition 9 in [[rewrite-interpreters]]'s family 2 (ruled Mark, 2026-07-21): the mirror of under-specified, refused upstream by the Write member-shape guard, never skipped, never identity-matched. The paper assigns `#...` no meaning outside factset consumption, and Kingo's Subject/Resource split makes identity-matching a category error; a resource meant as a direct member is spelled as a subject-id (`io/doc:x#viewer@io/folder:y`, a legal `SubjectFact`).
+- A `ResourceFact` member under a rewrite consuming `this` is a modeled data defect — condition 9 in [[rewrite-interpreters]]'s family 2 (ruled Mark, 2026-07-21): the mirror of under-specified, refused upstream by the Write member-shape guard, never skipped, never identity-matched. The paper assigns `#...` no meaning outside factset consumption, and Kingo's Subject/Resource split makes identity-matching a category error; a resource meant as a direct member is spelled as an identity (`io/doc:x#viewer@io/folder:y`, a legal `SubjectFact`).
 
 ## Open
 
-Nothing. The seat is **`Subject`** in every case (ruled Mark, 2026-07-21, resolving the day's earlier candidates): "subject" names the *seat* — the paper's ⟨user⟩, a term deriving a set of subjects — and the party is `SubjectId`. The `Subject` wrapper record was the actual confusion: `DirectSubject` residue from the DU dissolved 2026-07-19, wrapping the identifier and asserting a type the domain denies — subjects exist only as identifiers inside facts. Delete `Subject.cs` and its tests and the seat name stops lying. The earlier objections dissolve with the class: no "three kinds of subjects" (no type claims the seat's name), no `SubjectSetFact` collision (seat `Subject`, left seat `SubjectSet`). The grammar was right as written — `<subject> ::= <subject-id> | <subjectset> | <resource> '#...'` — zero domain-language change. The cases:
+Nothing. The seat is **`Subject`** in every case (ruled Mark, 2026-07-21, resolving the day's earlier candidates): "subject" names the *seat* — the paper's ⟨user⟩, a term deriving a set of subjects — and the party is `Identity`. The `Subject` wrapper record was the actual confusion: `DirectSubject` residue from the DU dissolved 2026-07-19, wrapping the identifier and asserting a type the domain denies — subjects exist only as identifiers inside facts. Delete `Subject.cs` and its tests and the seat name stops lying. The earlier objections dissolve with the class: no "three kinds of subjects" (no type claims the seat's name), no `SubjectSetFact` collision (seat `Subject`, left seat `SubjectSet`). The grammar was right as written — `<subject> ::= <subject-id> | <subjectset> | <resource> '#...'` — zero domain-language change. The cases:
 
-- `Fact.SubjectFact(SubjectSet SubjectSet, SubjectId Subject)`
+- `Fact.SubjectFact(SubjectSet SubjectSet, Identity Subject)`
 - `Fact.SubjectSetFact(SubjectSet SubjectSet, SubjectSet Subject)`
 - `Fact.ResourceFact(SubjectSet SubjectSet, Resource Subject)`
 
-`Contains` amends with it: `Contains(SubjectSet, SubjectId)` — the narrowing ruling's substance is unchanged.
+`Contains` amends with it: `Contains(SubjectSet, Identity)` — the narrowing ruling's substance is unchanged.
 
 ## Tasks
 
 Code (`Kingo`, `Kingo.Graphs`, `Kingo.Sdl`):
 
 - [x] `Fact.ResourceFact(SubjectSet SubjectSet, Resource Subject)` — third case; `Fact.Parse` dispatches a member ending in `#...` to it; `ToString` emits the `#...` form.
-- [x] Delete `Subject.cs` and its tests; `SubjectFact`'s seat becomes `SubjectId Subject`, and every consumer follows — `Contains(SubjectSet, SubjectId)` included.
+- [x] Delete `Subject.cs` and its tests; `SubjectFact`'s seat becomes `Identity Subject`, and every consumer follows — `Contains(SubjectSet, Identity)` included.
 - [x] `RelationName`: delete `Nothing`; the regex drops the `...` alternative; parsing `...` fails as `relation_name.invalid`.
 - [x] `RewriteExpressionPrinter.IsReserved` reduces to `this`.
 - [x] Sweep `Kingo.Sdl` for any other `...` handling (tokenizer, parser).

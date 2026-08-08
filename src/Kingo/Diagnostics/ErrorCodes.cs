@@ -4,6 +4,12 @@ namespace Kingo.Diagnostics;
 
 public static class ErrorCodes
 {
+    public static class Identity
+    {
+        public static readonly ErrorCode Empty = ErrorCode.Unchecked("identity.empty");
+        public static readonly ErrorCode Invalid = ErrorCode.Unchecked("identity.invalid");
+    }
+
     public static class NamespaceName
     {
         public static readonly ErrorCode Empty = ErrorCode.Unchecked("namespace_name.empty");
@@ -26,12 +32,6 @@ public static class ErrorCodes
     {
         public static readonly ErrorCode Empty = ErrorCode.Unchecked("resource_id.empty");
         public static readonly ErrorCode Invalid = ErrorCode.Unchecked("resource_id.invalid");
-    }
-
-    public static class SubjectId
-    {
-        public static readonly ErrorCode Empty = ErrorCode.Unchecked("subject_id.empty");
-        public static readonly ErrorCode Invalid = ErrorCode.Unchecked("subject_id.invalid");
     }
 
     public static class TheoryName

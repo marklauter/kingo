@@ -1,8 +1,9 @@
 ---
 title: kookie
 type: definition
-summary: "A token naming a point in the store's timeline."
+summary: "A token naming one snapshot."
 status: locked
+names: "[[snapshot]]"
 ---
 
-A token naming a point in the store's timeline.
+A token naming one snapshot.

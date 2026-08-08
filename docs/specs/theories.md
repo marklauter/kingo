@@ -1,7 +1,7 @@
 ---
 title: theories
 type: specification
-summary: "A theory is a named grouping of namespaces of relations, each relation a named rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
+summary: "A theory is a named set of namespaces of relations, each relation a named rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
 tags: [theory]
 created: 2026-07-23
 status: evolving
@@ -13,16 +13,17 @@ cites:
   - "[[relation]]"
   - "[[rewrite]]"
   - "[[subjectset]]"
-  - "[[factset]]"
+  - "[[resource]]"
+  - "[[subject]]"
 ---
 
 # Theories
 
-A [[theory]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relation]]s, each relation a named [[rewrite]].
+A [[theory]] is a named set of [[namespace]]s — each namespace a named set of [[relation]]s, each relation a named [[rewrite]].
 
-A theory is intensional: its rewrites define [[subjectset]]s from other subjectsets, deriving memberships rather than recording them. Recorded memberships are [[fact]]s, the extensional half. A membership question is answered by reading the facts through the theory.
+A theory is intensional: its rewrites define the set a [[subjectset]] names in terms of other subjectsets, deriving memberships rather than recording them. Recorded memberships are [[fact]]s, the extensional half. A membership question is answered by reading the facts through the theory.
 
-A theory is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the theory, not the theory itself. This document defines the theory: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed theory obeys.
+A theory is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the theory, not the theory itself.
 
 ## Projection
 
@@ -88,7 +89,7 @@ EBNF conventions are given in [[identifiers]].
 ⟨digit⟩               ::= '0'…'9'
 ```
 
-`⟨factset⟩` names the relation whose facts the walk reads. `⟨computed-subjectset⟩` is evaluated on each resource that the walk reaches.
+When a rewrite is evaluated, each term names a set of subjects. `'this'` is the subjects bound by the facts stored under the subjectset in hand. `⟨computed-subjectset⟩` names a relation evaluated on the resource in hand. `⟨fact-to-subjectset⟩` pairs two relations: the facts under `⟨factset⟩` are read, and `⟨computed-subjectset⟩` is evaluated on each resource those facts name.
 
 Relation identifiers declared with rewrites don't require a namespace. They are late bound. The `⟨relation name⟩` character grammar — `⟨name-start⟩` through `⟨digit⟩` — also forms the `theory:` value and the namespace keys, the `⟨theory name⟩` and `⟨namespace name⟩` productions in [[identifiers]].
 
@@ -99,8 +100,6 @@ Two constraints the grammar can't carry:
 - A rewrite nests at most 100 levels deep; a run of `|` or `&` is one level however wide, so operand count is free. Grouping-parenthesis depth is bounded on its own, refused as `theory.rewrite`, and the parsed tree's height as `rewrite.depth`.
 - A union or an intersection takes at least one operand. An empty one has no members to take, so it is refused rather than given semantics.
 
-A computed-subjectset names another relation in the same namespace. A fact-to-subjectset walks a [[factset]], then evaluates a second relation on the resource it reaches.
-
 ## Rules
 
 Several of these rules exist to make a theory determinate — so that the theory and the facts settle every membership question one way. Definitions must resolve (every computed-subjectset and the factset half of every fact-to-subjectset names a relation that exists) and must not circle back on themselves, so no derived set is left without a settled membership. Depth is bounded and empty operators are refused, so every rewrite's meaning stays finite and definite. That determinacy is what earns the word theory: exactly one answer per membership question.
@@ -109,7 +108,7 @@ Several of these rules exist to make a theory determinate — so that the theory
 - A namespace may hold no relations: `file:` or `file: []`.
 - A namespace cannot name the same relation twice. Names normalize to lowercase first, so `Owner` and `owner` collide.
 - Every computed-subjectset and the factset half of every fact-to-subjectset must name a relation in the same namespace, defined before or after. The computed half is unchecked: the namespace it resolves in isn't known until facts are read.
-- Computed-subjectset references cannot form a cycle. Only computed edges count, so a walk may still reach its own relation, as `folder`'s `viewer` does through `(parent, viewer)`.
+- Computed-subjectset references cannot form a cycle. Only computed edges count, so evaluation may still reach its own relation, as `folder`'s `viewer` does through `(parent, viewer)`.
 - A theory defines at least one namespace; an empty `namespaces:` map is rejected.
 - No relation may be named `this`, any casing. It lexes as the direct-membership keyword, so the name could never be referenced. The core accepts it; this format reserves it.
 
