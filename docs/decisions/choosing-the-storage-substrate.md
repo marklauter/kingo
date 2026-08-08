@@ -1,5 +1,5 @@
 ---
-title: DynamoDbLite as the storage substrate
+title: Choosing the storage substrate
 type: decision
 summary: "Code Kingo against AWSSDK.DynamoDBv2 and use DynamoDbLite (SQLite-backed) locally — the local-vs-prod switch is a client-construction choice with no port. Settled 2026-07-14: DynamoDbLite is production-ready and storage access uses the key/value store style (low-level PK/SK items, not the DynamoDBContext ORM)."
 tags: [storage]
@@ -7,7 +7,7 @@ created: 2026-05-12
 status: locked
 ---
 
-# DynamoDbLite as the storage substrate
+# Choosing the storage substrate
 
 [DynamoDbLite](https://github.com/marklauter/DynamoDbLite) is a SQLite-backed implementation of the AWS DynamoDB v2 SDK. The decision: rather than hand-roll a key-value store on SQLite (the `dictionary-encoding` quarry approach), code Kingo against `AWSSDK.DynamoDBv2` and use DynamoDbLite locally. The local-vs-prod switch becomes a client-construction choice with no port.
 

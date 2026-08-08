@@ -14,13 +14,13 @@ cites:
   - "[[contains]]"
   - "[[expand]]"
   - "[[kleene-absorption]]"
-  - "[[four-service-split-by-load-profile]]"
+  - "[[grouping-the-apis-into-services]]"
   - "[[rewrite-interpreters]]"
 ---
 
 # The fact-reader port
 
-`IFactReader` (`Kingo.Closures`) is the domain's own declaration of fact lookup, and the only I/O either interpreter performs. It arrives at the [[contains]] and [[expand]] evaluators already snapshot-pinned. The pin is exposed as a `Kookie` property, the [[kookie]] copied into every result value without interpretation. Two adapters by design: Check's cached, hedged one and Read+Expand's plain one ([[four-service-split-by-load-profile]]).
+`IFactReader` (`Kingo.Closures`) is the domain's own declaration of fact lookup, and the only I/O either interpreter performs. It arrives at the [[contains]] and [[expand]] evaluators already snapshot-pinned. The pin is exposed as a `Kookie` property, the [[kookie]] copied into every result value without interpretation. Two adapters by design: Check's cached, hedged one and Read+Expand's plain one ([[grouping-the-apis-into-services]]).
 
 ## Operations
 

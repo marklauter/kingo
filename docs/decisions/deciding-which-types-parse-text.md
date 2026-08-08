@@ -1,5 +1,5 @@
 ---
-title: Parse belongs to single primitives with a grammar
+title: Deciding which types parse text
 type: decision
 summary: "A type parses its own text only when it is a single primitive whose grammar Kingo owns. Composites are constructed, never parsed, and text formats live in adapters."
 tags: [core]
@@ -7,7 +7,7 @@ created: 2026-07-25
 status: locked
 ---
 
-# Parse belongs to single primitives with a grammar
+# Deciding which types parse text
 
 A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. The contract is `IParse<TSelf>`, which declares the `static abstract Result<TSelf> Parse(string s)`; `IValueType<TSelf, TValue>` inherits it and constrains `TSelf` to a struct, so implementing `IValueType` is how a terminal picks the contract up. In code that set is exactly six types: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `Identity`. The grammar is the whole contract of such a type.
 

@@ -32,7 +32,7 @@ The model splits in two. `Kingo.Theories` carries the intensional half: relation
 
 Neither half references the other. They meet in `Kingo.Closures`, where the interpreters read facts through a theory.
 
-The core knows nothing about how anything is persisted, serialized, transported, rendered, or authenticated. Where `Parse` may live is settled in [[parse-belongs-to-single-primitives-with-a-grammar]].
+The core knows nothing about how anything is persisted, serialized, transported, rendered, or authenticated. Where `Parse` may live is settled in [[deciding-which-types-parse-text]].
 
 ## Ports
 

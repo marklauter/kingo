@@ -1,5 +1,5 @@
 ---
-title: ImmutableArray for domain collections
+title: Representing domain collections
 type: decision
 summary: "Domain values carry their collections as ImmutableArray<T>: they are build-once/read-many snapshots and mutation never touches these types — with custom structural equality and the default-instance trap riding along as mandatory caveats."
 tags: [ddd, performance]
@@ -7,7 +7,7 @@ created: 2026-07-14
 status: locked
 ---
 
-# ImmutableArray for domain collections
+# Representing domain collections
 
 ## Observation
 
@@ -38,4 +38,4 @@ If incremental domain editing ever becomes a real workflow, builder/`ImmutableLi
 ## Related
 
 - [[ubiquitous-language]] — the types these collections live in.
-- [[four-service-split-by-load-profile]] — why read-side compiled forms (FrozenDictionary) live in the hosts, not the model.
+- [[grouping-the-apis-into-services]] — why read-side compiled forms (FrozenDictionary) live in the hosts, not the model.

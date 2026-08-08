@@ -1,5 +1,5 @@
 ---
-title: Subjects exist only as identifiers inside facts
+title: Representing subjects
 type: decision
 summary: "Kingo keeps no record of the party an identity names. The identifier arrives already resolved from the caller's principals, so nothing syncs with an identity provider."
 tags: [core]
@@ -7,7 +7,7 @@ created: 2026-07-25
 status: locked
 ---
 
-# Subjects exist only as identifiers inside facts
+# Representing subjects
 
 Kingo keeps no record of the party an `Identity` names. The identifier arrives inside a [[fact]] or a membership question, and it is compared, never interpreted. There is no party record, no claim, no attribute, and no link to the directory the identifier came from.
 

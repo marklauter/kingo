@@ -1,5 +1,5 @@
 ---
-title: Drift prevention at the write edges
+title: Preventing drift between facts and theories
 type: decision
 summary: "Fact/theory drift is prevented at the Write service, not tolerated at the evaluator: fact writes validate against the current theory, theory writes that would abandon live facts are refused, and evaluation always reads a coherent snapshot pair. Removal becomes a two-step migration."
 tags: [write, theory, storage]
@@ -9,9 +9,9 @@ cites:
   - "[[theories]]"
 ---
 
-# Drift prevention at the write edges
+# Preventing drift between facts and theories
 
-Facts and theories are separately writable artifacts that reference each other. Drift — a stored fact naming a namespace or relation the theory no longer defines — has exactly two producers, and the Write service, as sole writer of both artifacts ([[four-service-split-by-load-profile]]), closes both:
+Facts and theories are separately writable artifacts that reference each other. Drift — a stored fact naming a namespace or relation the theory no longer defines — has exactly two producers, and the Write service, as sole writer of both artifacts ([[grouping-the-apis-into-services]]), closes both:
 
 1. **Facts can't lead the theory.** Every fact write is validated against the current theory: the namespace is defined, the relation is defined, and factset-consumed members have the exactly-specified shape.
 2. **Theories can't abandon facts.** A theory write that removes a namespace or relation is refused while live facts reference it. The check is a reverse existence query — do any live facts reference this name — at theory-write time, cold path. Removal becomes a two-step migration: migrate the facts, then land the removal. Whole-namespace and whole-theory deletion are the limiting case of the same ceremony.
@@ -29,6 +29,6 @@ Consequences: the evaluator's undefined-namespace-or-relation error ([[rewrite-i
 
 ## Why
 
-The cost is operational and permanent: no one-shot destructive theory change, ever. Every removal is the ceremony — add the new name, migrate the facts, delete the old — and secops administrators live with it, as SpiceDB operators do. The write path also gains a reverse existence query, a new access pattern the storage design must serve ([[dynamodblite-substrate]]).
+The cost is operational and permanent: no one-shot destructive theory change, ever. Every removal is the ceremony — add the new name, migrate the facts, delete the old — and secops administrators live with it, as SpiceDB operators do. The write path also gains a reverse existence query, a new access pattern the storage design must serve ([[choosing-the-storage-substrate]]).
 
 It buys referential integrity as an invariant rather than a hope: no evaluation meets a dangling reference through normal operation, the evaluator's drift error demotes to a backstop, replay needs only the recorded pair, and the fact store's rows never need to say which theory blessed them.

@@ -15,7 +15,7 @@ cites:
   - "[[facts]]"
   - "[[theories]]"
   - "[[identifiers]]"
-  - "[[parse-belongs-to-single-primitives-with-a-grammar]]"
+  - "[[deciding-which-types-parse-text]]"
   - "[[graph-document-is-bulk-dml]]"
   - "[[the-sub-graph-document-is-a-calculated-export]]"
 ---

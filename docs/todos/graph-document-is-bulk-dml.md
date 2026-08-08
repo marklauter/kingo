@@ -40,7 +40,7 @@ touch:
   - group:eng#member@user:dave
 ```
 
-<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — composites no longer parse text and Fact.Parse is gone from src, so the flat entries above have no parser and the delimiters collide with user-owned ids. The document format decomposes to a property per tuple part instead.-->
+<!--scrutinize: stale against decision: deciding-which-types-parse-text.md — composites no longer parse text and Fact.Parse is gone from src, so the flat entries above have no parser and the delimiters collide with user-owned ids. The document format decomposes to a property per tuple part instead.-->
 Each entry is a fact in the canonical text form the core already owns — `Fact.Parse` ([[ubiquitous-language]]: `<resource>#<relation>@<subject>`). The adapter owns only the envelope, exactly as with the theory document: the grammar stays in core, the *document* is adapter territory. That keeps the Parse boundary rule intact and means this format needs no new terminal rules.
 <!--/scrutinize-->
 
@@ -72,7 +72,7 @@ One guard sits upstream of all three and changes none of them: every fact write 
 
 A type whose entire rule set is storage semantics is not a domain type; it is the vocabulary of the thing that talks to storage. That it *mentions* `Fact` proves nothing — a SQL `INSERT` mentions a row without being part of the business model. The pure core never ranges over a verb: Check evaluates theory plus facts, Expand the same, and neither has any use for one. Zanzibar agrees, and its placement is the evidence: `RelationTupleUpdate` lives in the **Write API proto**, not in the tuple model — request vocabulary, exactly like SpiceDB's `RelationshipUpdate`.
 
-**This is the port-family trigger.** [[architecture]] has been holding the interface rule for it: *"the interface rule returns when the first genuine port family (storage) arrives."* `IDocumentSerializer` was ceremony because it had one possible adapter forever; a write port has real ones — DynamoDbLite, DynamoDB, an in-memory fake — and `GraphOperation` is its language. So the type wants the ports/application project that does not exist yet: it cannot live in `Kingo.Documents` (the Write host would depend on a YAML adapter to speak its own commands) and it cannot live in a host (adapters would then depend upward). Placement lands with the storage work — see [[storage-versioning-design]], [[dynamodblite-substrate]].
+**This is the port-family trigger.** [[architecture]] has been holding the interface rule for it: *"the interface rule returns when the first genuine port family (storage) arrives."* `IDocumentSerializer` was ceremony because it had one possible adapter forever; a write port has real ones — DynamoDbLite, DynamoDB, an in-memory fake — and `GraphOperation` is its language. So the type wants the ports/application project that does not exist yet: it cannot live in `Kingo.Documents` (the Write host would depend on a YAML adapter to speak its own commands) and it cannot live in a host (adapters would then depend upward). Placement lands with the storage work — see [[storage-versioning-design]], [[choosing-the-storage-substrate]].
 
 ## The adapter
 
@@ -81,7 +81,7 @@ The fact document is a separate format from the theory document — the two shar
 It would be by far the thinner adapter, and the asymmetry is the design, not an accident:
 
 - **Parser only, no printer.** `parse ∘ print = id` pins the theory pair; there is no such law between a state and a changeset, which is why `GraphPrinter` is gone (below).
-<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the claim that core owns the entry grammar no longer holds; with the text form gone the adapter owns the whole shape, not only the envelope.-->
+<!--scrutinize: stale against decision: deciding-which-types-parse-text.md — the claim that core owns the entry grammar no longer holds; with the text form gone the adapter owns the whole shape, not only the envelope.-->
 - **YamlDotNet, no Superpower.** The theory document needs a parser combinator because rewrite expressions are a recursive language with precedence and parens. The fact document has no embedded language at all — every entry is a fact in the canonical text form core already owns (`Fact.Parse`), so the adapter owns nothing but the envelope and the section blocks.
 <!--/scrutinize-->
 - **It cannot be stood up yet.** Its parse target is `GraphOperation`, which has no home until the ports project exists — so the fact-document parser references ports *and* `Kingo.Facts`, and travels with the storage work rather than landing next.
@@ -91,10 +91,10 @@ It would be by far the thinner adapter, and the asymmetry is the design, not an 
 All three fact-side stubs from 2026-07-15 were removed the same day rather than left to rot:
 
 - **`GraphPrinter` — deleted.** It existed to be `GraphParser`'s inverse, and there is no `parse ∘ print = id` law between a state and a changeset; the round-trip tests that pin the theory pair have no analogue here. Printing a graph back out is a *dump* — a different artifact that merely shares a vocabulary. If a dump format is ever wanted it returns under its own name.
-<!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the closing clause is wrong now; the fact grammar did not stay in core.-->
+<!--scrutinize: stale against decision: deciding-which-types-parse-text.md — the closing clause is wrong now; the fact grammar did not stay in core.-->
 - **`GraphParser` — deleted.** `Parse(text) → Result<Graph>` denoted a state where a changeset is a sequence of operations, and there is no correct return type to restub it with until `GraphOperation` has a home. It comes back with the ports project, parsing text to operations. The adapter half of the division is unchanged when it does: the fact grammar stays core (`Fact.Parse`), and the adapter owns only the YAML envelope.
 <!--/scrutinize-->
-- **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[ubiquitous-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[immutablearray-for-domain-collections]].
+- **`Graph` and `GraphTests` — deleted.** Nothing produces a `Graph` on the changeset reading, and the type never had an invariant to be `Create`-only about — the duplicate-fact check was invented to fill the constructor, not asked for by the domain. **The guardrail in [[ubiquitous-language]] was right** ("`Graph` names a concept, not a core type — no invariant spans the fact collection"), so that note needs no revision. The word stays available to Check for a read-side compiled form, exactly as the guardrail's own carve-out says — a read-model in the host, never a domain value, the same shape as the `FrozenDictionary` projection in [[representing-domain-collections]].
 
 `Kingo.Facts` is back to `Fact`, `Resource`, `SubjectSet` (the `Subject` wrapper dissolved 2026-07-21; [[resource-fact-case]]); `Kingo.Documents` is back to the theory pair alone.
 
@@ -112,7 +112,7 @@ These are storage questions, which is why they travel with the ports project rat
 ## Next
 
 - ~~Delete the fact-side stubs~~ — done 2026-07-15: `GraphPrinter`, `GraphParser`, `Graph`, and `GraphTests` all removed. None could survive the changeset reading, and `GraphOperation` has no home until the ports project exists, so there was nothing to restub them *to*. This note is the design record until then.
-- **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[dynamodblite-substrate]].
+- **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[choosing-the-storage-substrate]].
 - Settle the delete semantics and the transaction question — they decide whether a batch type exists and what `GraphParser` returns.
 - Rebuild `GraphParser` against `GraphOperation` once it has a home (above) — placement, and whether it becomes its own adapter, deferred with the storage work.
 - Write the format up properly once settled — likely its own note beside [[theories]], since the fact document is a different artifact from the theory document.
@@ -121,4 +121,4 @@ These are storage questions, which is why they travel with the ports project rat
 
 - [[theories]] — the DDL half: the theory document, its `theory:`/`namespaces:` envelope, and the parser/printer pair this one deliberately does *not* mirror.
 - [[ubiquitous-language]] — `Fact` and the fact grammar these documents carry; the `Graph`-is-not-a-type guardrail this proposal vindicates.
-- [[four-service-split-by-load-profile]] — Write is the host that would consume these documents.
+- [[grouping-the-apis-into-services]] — Write is the host that would consume these documents.

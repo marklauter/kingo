@@ -39,4 +39,4 @@ Decisions 1 and 2 are two `Contains` questions in one request; decision 3 is edg
 
 - [[rewrite-interpreters]] — the envelope-not-Decision ruling this question grows out of
 - [[authz-event-logging]] — the audit event the envelope feeds
-- [[four-service-split-by-load-profile]] — the hosts where all of this lives
+- [[grouping-the-apis-into-services]] — the hosts where all of this lives
