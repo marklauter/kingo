@@ -71,7 +71,7 @@ One guard sits upstream of all three and changes none of them: every fact write 
 
 A type whose entire rule set is storage semantics is not a domain type; it is the vocabulary of the thing that talks to storage. That it *mentions* `Fact` proves nothing — a SQL `INSERT` mentions a row without being part of the business model. The pure core never ranges over a verb: Check evaluates theory plus facts, Expand the same, and neither has any use for one. Zanzibar agrees, and its placement is the evidence: `RelationTupleUpdate` lives in the **Write API proto**, not in the tuple model — request vocabulary, exactly like SpiceDB's `RelationshipUpdate`.
 
-**This is the port-family trigger.** [[architecture]] has been holding the interface rule for it: *"the interface rule returns when the first genuine port family (storage) arrives."* `IDocumentSerializer` was ceremony because it had one possible adapter forever; a write port has real ones — DynamoDbLite, DynamoDB, an in-memory fake — and `GraphOperation` is its language. So the type wants the ports/application project that does not exist yet: it cannot live in `Kingo.Documents` (the Write host would depend on a YAML adapter to speak its own commands) and it cannot live in a host (adapters would then depend upward). Placement lands with the storage work — see [[storage-versioning-design]], [[choosing-the-storage-substrate]].
+**This is the port-family trigger.** [[architecture]] has been holding the interface rule for it: *"the interface rule returns when the first genuine port family (storage) arrives."* `IDocumentSerializer` was ceremony because it had one possible adapter forever; a write port has real ones — DynamoDbLite, DynamoDB, an in-memory fake — and `GraphOperation` is its language. So the type wants the ports/application project that does not exist yet: it cannot live in `Kingo.Documents` (the Write host would depend on a YAML adapter to speak its own commands) and it cannot live in a host (adapters would then depend upward). Placement lands with the storage work — see [[storage-versioning-design]].
 
 ## The adapter
 
@@ -111,7 +111,7 @@ These are storage questions, which is why they travel with the ports project rat
 ## Next
 
 - ~~Delete the fact-side stubs~~ — done 2026-07-15: `GraphPrinter`, `GraphParser`, `Graph`, and `GraphTests` all removed. None could survive the changeset reading, and `GraphOperation` has no home until the ports project exists, so there was nothing to restub them *to*. This note is the design record until then.
-- **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]], [[choosing-the-storage-substrate]].
+- **Blocked on the ports/application project** — `GraphOperation` lands there, with the write port. Travels with the storage work: [[storage-versioning-design]].
 - Settle the delete semantics and the transaction question — they decide whether a batch type exists and what `GraphParser` returns.
 - Rebuild `GraphParser` against `GraphOperation` once it has a home (above) — placement, and whether it becomes its own adapter, deferred with the storage work.
 - Write the format up properly once settled — likely its own note beside [[theories]], since the fact document is a different artifact from the theory document.

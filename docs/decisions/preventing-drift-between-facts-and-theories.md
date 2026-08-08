@@ -28,6 +28,6 @@ Consequences: the evaluator's undefined-namespace-or-relation error ([[rewrite-i
 
 ## Why
 
-The cost is operational and permanent: no one-shot destructive theory change, ever. Every removal is the ceremony: add the new name, migrate the facts, delete the old. Secops administrators live with it, as SpiceDB operators do. The write path also gains a reverse existence query, a new access pattern the storage design must serve ([[choosing-the-storage-substrate]]).
+The cost is operational and permanent: no one-shot destructive theory change, ever. Every removal is the ceremony: add the new name, migrate the facts, delete the old. Secops administrators live with it, as SpiceDB operators do. The write path also gains a reverse existence query, a new access pattern the storage design must serve ([[storage-versioning-design]]).
 
 It buys referential integrity as an invariant: no evaluation meets a dangling reference through normal operation, the evaluator's drift error demotes to a backstop, replay needs only the recorded pair, and the fact store's rows never need to say which theory validated them.
