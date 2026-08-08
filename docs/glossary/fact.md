@@ -1,7 +1,7 @@
 ---
 title: fact
 type: definition
-summary: "An assertion binding a subject to a subjectset."
+summary: "An assertion binding a subjectset to a subject."
 status: locked
 has-a:
   - "[[subjectset]]"
