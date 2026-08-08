@@ -1,40 +1,39 @@
 ---
 title: Representing domain collections
 type: decision
-summary: "Domain values carry their collections as ImmutableArray<T>: they are build-once/read-many snapshots and mutation never touches these types — custom structural equality and the default-instance trap are mandatory caveats."
+summary: "The domain core is immutable, so collection types are chosen on use case and performance within that constraint. Build-once/read-many traversal makes ImmutableArray<T> the best match."
 tags: [ddd, performance]
-status: evolving
+status: locked
+cites:
+  - "[[theories]]"
+  - "[[grouping-the-apis-into-services]]"
 ---
 
-# Representing domain collections
+# Domain collections are immutable, and the representation is chosen for the read path
 
-## Observation
+The domain core is immutable. C# offers a wide selection of immutable collection types that vary in performance profile and use case.
 
-`ImmutableArray<T>` is a thin struct wrapper around a plain `T[]` — contiguous memory, O(1) index, allocation-free enumeration, zero per-element overhead. The trade-off is on mutation: every "update" copies the whole array. `ImmutableList<T>` is the opposite profile: an AVL tree with structural sharing, O(log n) access and update, pointer-chasing everywhere.
+Kingo's typical use case is build-once, read-many: a domain value is constructed whole and never edited in place, so traversal dominates. `ImmutableArray<T>` is the best match for this use case vs performance tradeoff. It's a struct wrapper over a plain `T[]`, contiguous, O(1) index, allocation-free enumeration, no per-element overhead.
 
-Current uses: `SubjectSetRewrite.Union.Children`, `SubjectSetRewrite.Intersection.Children`, `Namespace.Relations` (and `Result<T>.Failure.Errors` in the Results project, same pattern).
+## Rejected alternatives
 
-## Interpretation
+- Mutable collections — `List<T>` or a bare array. Highest performance on every axis, and excluded by the premise: mutability increases entropy.
+- `ImmutableList<T>`. An AVL tree with structural sharing. It buys O(log n) update, which Kingo never performs, and pays pointer-chasing on every read.
+- `ImmutableHashSet<T>` and `ImmutableSortedSet<T>`. Set semantics by construction, at the cost of authored order, which theory-document round-trip fidelity needs. A sorted set would also make union and intersection order-insensitive, but only given a total order over rewrites invented for equality alone.
+- `ImmutableQueue<T>` and `ImmutableStack<T>`. Access disciplines rather than collections: FIFO and LIFO, no indexing. Every domain collection is traversed whole.
+- `IEnumerable<T>`. A sequence protocol rather than a collection. Deferred execution means two enumerations need not agree, so a value holding one is not a snapshot.
+- A read-only wrapper over mutable storage — `IReadOnlyList<T>`, `ReadOnlyCollection<T>`. Immutability by promise: the underlying array stays mutable and the original holder writes through it.
+- Keyed collections — `ImmutableDictionary<TKey, TValue>`, `FrozenDictionary`, `FrozenSet`. Lookup at the wrong layer. Keyed access to a rewrite is the interpreters' read-side projection, not the write-side model.
 
-Domain values in Kingo are read-optimized by construction. "Mutation" in this design means the Write service constructs a whole new `Namespace` value and persists it as the next version — nothing ever edits a domain definition in place. Downstream (Check, Expand, Read) only ever traverses. That is `ImmutableArray`'s profile; `ImmutableList`'s structural sharing would pay its overhead for update operations that never happen.
+## Why
 
-Two caveats come with the choice:
+Four costs, all accepted:
 
-- **Custom structural equality is mandatory.** The struct's default equality compares the inner array *reference*, so records carrying an `ImmutableArray` override `Equals`/`GetHashCode` with span-based `SequenceEqual` (see `SubjectSetRewrite.Union`, `Namespace`, `Result<T>.Failure`). A new record carrying an `ImmutableArray` without the override is a defect.
-- **`default(ImmutableArray<T>)` wraps a null array** and throws on use — the same trash-value class as `default(Error)`, without the fail-loud treatment. Construction through primary constructors avoids it. It surfaces at deserialization boundaries.
+- Update is O(n). Every change copies the whole array, and nothing updates a domain collection. If incremental editing arrives, the builder lives outside the domain value.
+- Custom structural equality is mandatory. Default equality compares the inner array *reference*, so a record holding one overrides `Equals` and `GetHashCode` with span-based `SequenceEqual`. A record without the override is a defect.
+- `default(ImmutableArray<T>)` wraps a null array and throws on use, a trash value with no fail-loud treatment. Construction through the primary constructors avoids it; it surfaces at deserialization boundaries.
+- Equality is order-sensitive. A namespace's relations need authored order, and nothing compares two rewrites built in different operand orders. A consumer that ever needs order-insensitive comparison does it at the comparison site, the same layering that keeps keyed lookup out of the model.
 
-On `Namespace.Relations` specifically, the array is a deliberate *document-shaped* choice: it preserves authored order (theory-document round-trip fidelity) and gives cheap order-sensitive structural equality. It leaves two gaps, both deferred on purpose:
+An array has no set semantics, so a field needing them enforces them at construction: a namespace rejects duplicate relation names, which makes a duplicate unrepresentable without a keyed collection.
 
-- Duplicate relation names are unrepresentable: `Namespace.Create` is the only construction path (ctor private, 2026-07-14) and rejects them with one `Validation` error per duplicated name.
-- Keyed lookup (`RelationName → SubjectSetRewrite`) is the interpreters' concern, not the model's: the Check host compiles a `Namespace` into its own read-side form (e.g. `FrozenDictionary` — built for the build-once/read-forever profile). This is write-side-vs-read-side projection, one level down.
-
-If incremental domain editing ever becomes a real workflow, builder/`ImmutableList` machinery belongs inside the Write context, converting to the flat array when it builds the final value. The domain type stays read-shaped.
-
-## Next
-
-- Enforce the pattern when tests land: an ArchUnit-style check (or reviewer grep) that records carrying `ImmutableArray` override `Equals`/`GetHashCode`.
-
-## Related
-
-- [[theories]] — the types these collections live in.
-- [[grouping-the-apis-into-services]] — why read-side compiled forms (FrozenDictionary) live in the hosts, not the model.
+What it buys is immutability by construction: no defensive copying, allocation-free traversal, and a value that cannot change under a concurrent reader.
