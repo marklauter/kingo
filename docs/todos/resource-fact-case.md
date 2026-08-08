@@ -8,6 +8,8 @@ status: closed
 priority: high
 effort: medium
 supports: "[[rewrite-interpreters]]"
+cites:
+  - "[[theories]]"
 ---
 
 # ResourceFact — a third Fact case replaces the ... sentinel
