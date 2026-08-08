@@ -3,7 +3,6 @@ title: catalog
 type: specification
 summary: "A snapshot of every theory: the containment that holds the model and the space every name resolves in."
 tags: [theory]
-created: 2026-07-24
 status: evolving
 cites:
   - "[[glossary/catalog]]"

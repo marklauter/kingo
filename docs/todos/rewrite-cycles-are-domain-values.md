@@ -3,7 +3,6 @@ title: Rewrite cycles are domain values
 type: todo
 summary: "DetectCycles renders its result into the Error message, so the cycle path has no representation but prose and the tests pin the wording. Give it a RewriteCycle type holding a canonical ImmutableArray<RelationName>, and make the message its projection."
 tags: [theory, testing]
-created: 2026-07-29
 status: open
 priority: medium
 effort: medium

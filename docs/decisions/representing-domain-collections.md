@@ -3,7 +3,6 @@ title: Representing domain collections
 type: decision
 summary: "Domain values carry their collections as ImmutableArray<T>: they are build-once/read-many snapshots and mutation never touches these types — custom structural equality and the default-instance trap are mandatory caveats."
 tags: [ddd, performance]
-created: 2026-07-14
 status: evolving
 ---
 

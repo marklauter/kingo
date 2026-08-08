@@ -3,7 +3,6 @@ title: CsCheck property-based tests for parsers and value types
 type: todo
 summary: "Refactor to CsCheck properties where the contract is a law over an input space (identifier grammars, Parse/ToString and theory-document round-trips), keeping the example-based tests as readable contract documentation."
 tags: [testing]
-created: 2026-07-21
 status: open
 priority: low
 effort: medium

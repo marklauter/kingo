@@ -3,7 +3,6 @@ title: closures
 type: specification
 summary: "A Closure is one derived closure, fixed by one pin. Its prepared rewrites, pinned fact reader, clock, and depth bound are constructor state, never per-call arguments."
 tags: [evaluation]
-created: 2026-07-27
 status: evolving
 cites:
   - "[[closure]]"

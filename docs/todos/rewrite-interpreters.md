@@ -3,7 +3,6 @@ title: Rewrite interpreters — Contains and Expand
 type: todo
 summary: "One algebra, two interpreters: Contains (Check's short-circuiting membership predicate) and Expand (single-level tree materialization) over SubjectSetRewrite — in Kingo.Closures, fact lookup as the first genuine port, Decision and Expansion as the results. Requirements only; design clean-room."
 tags: [acl, interpreters]
-created: 2026-07-15
 status: open
 priority: high
 effort: high

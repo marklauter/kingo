@@ -2,7 +2,6 @@
 title: Reconcile the rewrite-interpreters branch
 type: todo
 summary: "Verdict on the 26 doc files the rewrite-interpreters branch carried: three specs ported forward and nothing else did. Closed 2026-08-01; section 2's four salvages were all one mistake, treating late-bound names as URNs."
-created: 2026-07-25
 priority: high
 status: closed
 ---

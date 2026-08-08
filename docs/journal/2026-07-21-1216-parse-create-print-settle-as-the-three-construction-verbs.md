@@ -3,7 +3,6 @@ title: Parse, create, print settle as the three construction verbs
 type: journal
 summary: "While reviewing the namespace-create-validation implementation, the test helpers' terse names (Ns, Rel) raised the question of hoisting them into production — and the answer settled the construction vocabulary instead: parse is the fallible lift from text, create the trusted construction, print the retraction, one verb per arrow."
 tags: [schemas, vocabulary]
-created: 2026-07-21
 ---
 
 Context: [[namespace-create-validation]] landed today — staged duplicate/dangling/cycle checks in the namespace factory, private-constructor-plus-static-`Create` across the rewrite algebra. Reviewing the diff, Mark liked the SDL test helpers' terse names (`Ns`, `Rel`, `Bare`, `FactTo`) against the deliberately descriptive domain names, and asked whether hoisting them into the production SDL project would buy readability.

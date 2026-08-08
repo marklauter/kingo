@@ -3,7 +3,6 @@ title: fact-reader-port
 type: specification
 summary: "IFactReader — the interpreters' one port: snapshot-pinned reads of the facts stored under a subjectset, absence as the empty set, failure only when the snapshot could not be consulted."
 tags: [ports]
-created: 2026-07-26
 status: evolving
 cites:
   - "[[fact]]"
