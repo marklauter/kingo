@@ -5,7 +5,7 @@ summary: "A judgment of one membership question at one kookie."
 status: locked
 has-a:
   - "[[subjectset]]"
-  - "[[subject]]"
+  - "[[identity]]"
   - "[[kookie]]"
 ---
 

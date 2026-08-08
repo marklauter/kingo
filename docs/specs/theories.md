@@ -13,15 +13,17 @@ cites:
   - "[[relation]]"
   - "[[rewrite]]"
   - "[[subjectset]]"
+  - "[[resource]]"
+  - "[[subject]]"
 ---
 
 # Theories
 
 A [[theory]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relation]]s, each relation a named [[rewrite]].
 
-A theory is intensional: its rewrites define [[subjectset]]s from other subjectsets, deriving memberships rather than recording them. Recorded memberships are [[fact]]s, the extensional half. A membership question is answered by reading the facts through the theory.
+A theory is intensional: its rewrites define the set a [[subjectset]] names in terms of other subjectsets, deriving memberships rather than recording them. Recorded memberships are [[fact]]s, the extensional half. A membership question is answered by reading the facts through the theory.
 
-A theory is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the theory, not the theory itself. This document defines the theory: the shape its projection takes, the grammar of its rewrites, and the rules a well-formed theory obeys.
+A theory is an entity of the model. It enters the system as a YAML document and is later stored the same way, but the YAML is a projection of the theory, not the theory itself.
 
 ## Projection
 
