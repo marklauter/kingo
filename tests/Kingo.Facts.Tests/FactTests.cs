@@ -10,13 +10,13 @@ public sealed class FactTests
             RelationName.Unchecked(relation));
 
     [Fact]
-    public void SubjectFact_HoldsSubjectSetAndSubjectId()
+    public void SubjectFact_HoldsSubjectSetAndIdentity()
     {
         var set = Set("io/doc", "readme", "viewer");
-        var fact = new SubjectFact(set, SubjectId.Unchecked("anne"));
+        var fact = new SubjectFact(set, Identity.Unchecked("anne"));
 
         Assert.Equal(set, fact.SubjectSet);
-        Assert.Equal(SubjectId.Unchecked("anne"), fact.Subject);
+        Assert.Equal(Identity.Unchecked("anne"), fact.Subject);
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public sealed class FactTests
     [Fact]
     public void Equality_EqualParts_ProduceEqualValues()
     {
-        var left = new SubjectFact(Set("io/doc", "readme", "viewer"), SubjectId.Unchecked("anne"));
-        var right = new SubjectFact(Set("io/doc", "readme", "viewer"), SubjectId.Unchecked("anne"));
+        var left = new SubjectFact(Set("io/doc", "readme", "viewer"), Identity.Unchecked("anne"));
+        var right = new SubjectFact(Set("io/doc", "readme", "viewer"), Identity.Unchecked("anne"));
 
         Assert.Equal(left, right);
     }
@@ -53,7 +53,7 @@ public sealed class FactTests
     [Fact]
     public void Equality_AcrossFactKinds_ProducesUnequalValues()
     {
-        Fact subject = new SubjectFact(Set("io/doc", "readme", "viewer"), SubjectId.Unchecked("anne"));
+        Fact subject = new SubjectFact(Set("io/doc", "readme", "viewer"), Identity.Unchecked("anne"));
         Fact subjectSet = new SubjectSetFact(Set("io/doc", "readme", "viewer"), Set("io/team", "sales", "member"));
 
         Assert.NotEqual(subject, subjectSet);
