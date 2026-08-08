@@ -1,9 +1,9 @@
 ---
 title: putative-fact
 type: definition
-summary: "A fact held as a hypothesis."
+summary: "A fact offered for judgment."
 status: locked
 is-a: "[[fact]]"
 ---
 
-A fact held as a hypothesis.
+A fact offered for judgment.

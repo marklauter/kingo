@@ -1,12 +1,11 @@
 ---
 title: decision
 type: definition
-summary: "A judgment of one membership question at one kookie."
+summary: "A judgment of one putative fact at one kookie."
 status: locked
 has-a:
-  - "[[subjectset]]"
-  - "[[identity]]"
+  - "[[putative-fact]]"
   - "[[kookie]]"
 ---
 
-A judgment of one membership question at one kookie.
+A judgment of one putative fact at one kookie.

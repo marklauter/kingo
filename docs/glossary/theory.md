@@ -1,9 +1,9 @@
 ---
 title: theory
 type: definition
-summary: "A set of one or more namespaces sharing one name scope."
+summary: "A named set of namespaces."
 status: locked
 has-a: "[[namespace]]"
 ---
 
-A set of one or more namespaces sharing one name scope.
+A named set of namespaces.
