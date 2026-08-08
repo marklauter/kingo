@@ -1,8 +1,8 @@
 ---
 title: identity
 type: definition
-summary: "A key that references an entity in another domain."
+summary: "A key that references an external principal."
 status: locked
 ---
 
-A key that references an entity in another domain.
+A key that references an external principal.

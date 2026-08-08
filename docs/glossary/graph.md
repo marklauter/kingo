@@ -1,9 +1,10 @@
 ---
 title: graph
 type: definition
-summary: "A set containing every fact."
+summary: "A snapshot of every fact."
 status: locked
+is-a: "[[snapshot]]"
 has-a: "[[fact]]"
 ---
 
-A set containing every fact.
+A snapshot of every fact.

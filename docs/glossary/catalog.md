@@ -1,9 +1,10 @@
 ---
 title: catalog
 type: definition
-summary: "A set containing every theory."
+summary: "A snapshot of every theory."
 status: locked
+is-a: "[[snapshot]]"
 has-a: "[[theory]]"
 ---
 
-A set containing every theory.
+A snapshot of every theory.
