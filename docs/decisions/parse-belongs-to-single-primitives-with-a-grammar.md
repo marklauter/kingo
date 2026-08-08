@@ -9,7 +9,7 @@ status: locked
 
 # Parse belongs to single primitives with a grammar
 
-A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. The contract is `IParse<TSelf>`, which declares the `static abstract Result<TSelf> Parse(string s)`; `IValueType<TSelf, TValue>` inherits it and constrains `TSelf` to a struct, so implementing `IValueType` is how a terminal picks the contract up. In code that set is exactly six types: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `SubjectId`. The grammar is the whole contract of such a type.
+A type carries a core `Parse` when it wraps one primitive whose character rules Kingo owns. The contract is `IParse<TSelf>`, which declares the `static abstract Result<TSelf> Parse(string s)`; `IValueType<TSelf, TValue>` inherits it and constrains `TSelf` to a struct, so implementing `IValueType` is how a terminal picks the contract up. In code that set is exactly six types: `TheoryName`, `NamespaceName`, `NamespacePath`, `RelationName`, `ResourceId`, and `Identity`. The grammar is the whole contract of such a type.
 
 Every other type is constructed, not parsed. Where the invariants are relational, construction runs through a validating factory: `Theory.Create` and `Namespace.Create`. Where the typed components are the whole contract, the primary constructor is enough, which is the case for `Resource`, `SubjectSet`, `Relation`, and the three `Fact` cases. Neither route goes through text. Composition decides the side a type lands on.
 
@@ -25,7 +25,7 @@ The line is mechanical enough to enforce. Inside `Kingo`, `Kingo.Facts`, and `Ki
 
 ## Alternatives
 
-**Composite `Parse` factories in core.** The earlier rule said a type parses itself when the fact grammar defines its text form, which put `Parse` on `Resource`, `SubjectSet`, and `Fact` for the `theory/namespace:id#relation@subject` notation. It lost because the notation cannot be enforced. A [[resource]] id and a subject id are the caller's to shape, so they admit nearly any visible character — including `/`, `:`, `#`, and `@`, the delimiters the notation depends on. No unambiguous parse exists, and the implementation cost bought nothing any consumer had asked for.
+**Composite `Parse` factories in core.** The earlier rule said a type parses itself when the fact grammar defines its text form, which put `Parse` on `Resource`, `SubjectSet`, and `Fact` for the `theory/namespace:id#relation@subject` notation. It lost because the notation cannot be enforced. A [[resource]] id and an identity are the caller's to shape, so they admit nearly any visible character — including `/`, `:`, `#`, and `@`, the delimiters the notation depends on. No unambiguous parse exists, and the implementation cost bought nothing any consumer had asked for.
 
 **Escape or quote the notation to make it parseable.** Reserving an escape character recovers an unambiguous grammar. It also makes the notation a wire format, which brings encoding variants, versioning, and a compatibility burden on a public contract. Nothing needs it: there is no fact markup language planned, and structured construction serves every present caller.
 

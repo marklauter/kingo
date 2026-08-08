@@ -29,7 +29,7 @@ No code on that branch — 26 doc files and one stray transcript. The good news:
 
 This file is evidence of how 2.1 arose (Mark, 2026-08-01). The same mistaken assumption — that a theory name has to be baked into a reference — is what produced the schema-dissolution panic in the first place. Dropping the SQL analogies is what made the real shape visible: a theory is a super-namespace *and* the atomic unit of relation-collection mutation, and the theory/fact continuum names itself.
 
-2.3. **`docs/todos/sdl-becomes-a-script-language.md`** — RECONCILED 2026-07-31 (`dad8a6c`). The reason is inlined in [[specs/graph-operations]]: there is no script identity, run history, or series ordering, because that apparatus exists to make non-idempotent scripts safe to re-run and a graph operation is already idempotent. Phrased without naming the tool. Drop the file.
+2.3. **`docs/todos/sdl-becomes-a-script-language.md`** — RECONCILED 2026-07-31 (`dad8a6c`). The reason is inlined in [[notes/graph-operations]]: there is no script identity, run history, or series ordering, because that apparatus exists to make non-idempotent scripts safe to re-run and a graph operation is already idempotent. Phrased without naming the tool. Drop the file.
 
 2.4. **`docs/specs/namespace-documents.md`** — RECONCILED 2026-08-01. **Dropped whole; nothing salvaged.** It became [[theories]], which is better: the branch had `&` and `|` sharing precedence, and `&` now binds tighter. Neither salvage survives.
 
@@ -63,7 +63,7 @@ RECONCILED 2026-08-01.
 
 4.3. ~~Open two todos.~~ Neither is opened. The parse size bound is discarded (1.4) and the static-reference fork dissolved (2.2).
 
-4.4. ~~Fold the three salvaged paragraphs in.~~ Moot. 2.1's paragraph died with its premise, 2.2's was a category error, and 2.3's is inlined in [[specs/graph-operations]].
+4.4. ~~Fold the three salvaged paragraphs in.~~ Moot. 2.1's paragraph died with its premise, 2.2's was a category error, and 2.3's is inlined in [[notes/graph-operations]].
 
 4.5. `origin/rewrite-interpreters` deleted 2026-08-01 at `25938b7`. The local branch and the sibling clone at `kingo-rewrite-interpreters` both still hold that tip.
 
@@ -75,4 +75,4 @@ Not swept: [[resource-fact-case]] still names `src/Kingo.Sdl/` and `src/Kingo.Gr
 
 ## What the reconcile carries into the next branch
 
-Three specs — [[specs/fact-reader-port]], [[specs/closures]], [[specs/graph-operations]] — and seven open questions inside them. Ten `scrutinize` blocks mark claims elsewhere in the corpus whose footing moved; each names what superseded it and why. Nothing in this note decides them. The reversal absorbed here is what makes them answerable, and the new interpreter-design branch is where they get answered.
+Three specs — [[specs/fact-reader-port]], [[specs/closures]], [[notes/graph-operations]] — and seven open questions inside them. Ten `scrutinize` blocks mark claims elsewhere in the corpus whose footing moved; each names what superseded it and why. Nothing in this note decides them. The reversal absorbed here is what makes them answerable, and the new interpreter-design branch is where they get answered.

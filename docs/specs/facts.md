@@ -1,7 +1,7 @@
 ---
 title: facts
 type: specification
-summary: "A fact is one edge in the authorization graph: a subjectset joined to a subject. The subject is an identity, a subjectset, or a resource member."
+summary: "A fact is one edge in the authorization graph: a subjectset joined to a subject. The subject is an identity, a subjectset, or a resource."
 tags: [graphs]
 created: 2026-07-24
 status: evolving
@@ -26,7 +26,7 @@ Subject has three shapes:
 
 - An identity — an opaque key the user owns, `10`.
 - A [[subjectset]] — a resource and a relation name, `io/group:eng#member`.
-- A resource member — a bare [[resource]] marked `#...`, `io/folder:A#...`, the resource-to-resource edge.
+- A [[resource]] — bare, marked `#...`, `io/folder:A#...`, the resource-to-resource edge.
 
 A subjectset is a [[resource]] and a relation name. In `io/doc:readme#viewer` the relation name qualifies against the resource's own namespace, so the subjectset names the [[relation]] `io/doc#viewer`. A resource is a [[namespace]] and a user-supplied id: `io/doc:readme`.
 
@@ -59,6 +59,6 @@ EBNF conventions are given in [[identifiers]]. Kingo's names are spelled in full
 ```
 io/doc:readme#viewer@10                         fact, identity
 io/doc:readme#viewer@io/group:eng#member        fact, subjectset
-io/folder:A#viewer@io/folder:B#...              fact, resource member
+io/folder:A#viewer@io/folder:B#...              fact, resource
 sales/doc:readme#viewer@org/group:eng#member    fact spanning two theories
 ```

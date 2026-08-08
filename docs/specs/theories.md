@@ -1,7 +1,7 @@
 ---
 title: theories
 type: specification
-summary: "A theory is a named grouping of namespaces of relations, each relation a named rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
+summary: "A theory is a named set of namespaces of relations, each relation a named rewrite. An entity of the model, projected to and from YAML as its wire and storage form."
 tags: [theory]
 created: 2026-07-23
 status: evolving
@@ -19,7 +19,7 @@ cites:
 
 # Theories
 
-A [[theory]] is a named grouping of [[namespace]]s — each namespace a grouping of [[relation]]s, each relation a named [[rewrite]].
+A [[theory]] is a named set of [[namespace]]s — each namespace a named set of [[relation]]s, each relation a named [[rewrite]].
 
 A theory is intensional: its rewrites define the set a [[subjectset]] names in terms of other subjectsets, deriving memberships rather than recording them. Recorded memberships are [[fact]]s, the extensional half. A membership question is answered by reading the facts through the theory.
 
