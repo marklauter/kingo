@@ -25,9 +25,7 @@ Kingo's typical use case is build-once, read-many: a domain value is constructed
 - A read-only wrapper over mutable storage — `IReadOnlyList<T>`, `ReadOnlyCollection<T>`. Immutability by promise: the underlying array stays mutable and the original holder writes through it.
 - Keyed collections — `ImmutableDictionary<TKey, TValue>`, `FrozenDictionary`, `FrozenSet`. Lookup at the wrong layer. Keyed access to a rewrite is the interpreters' read-side projection, not the write-side model.
 
-## Why
-
-Four costs, all accepted:
+## Accepted tradeoffs
 
 - Update is O(n). Every change copies the whole array, and nothing updates a domain collection. If incremental editing arrives, the builder lives outside the domain value.
 - Custom structural equality is mandatory. Default equality compares the inner array *reference*, so a record holding one overrides `Equals` and `GetHashCode` with span-based `SequenceEqual`. A record without the override is a defect.
