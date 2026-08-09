@@ -24,7 +24,7 @@ A heading of the form `Child → Parent` marks a specialization. It shares the p
 
 #### Goal
 
-Resources are reached only by actors the owner intends.
+Resources are reached by exactly the actors the owner intends.
 
 #### Conditions
 
@@ -146,11 +146,19 @@ The insider's legitimate reach serves the insider's own purpose.
 
 The judgment cannot be reached.
 
+#### Conditions
+
+- The outage reads as a failure of the system.
+
 ### Tamperer
 
 #### Goal
 
 The record does not show what the tamperer did.
+
+#### Conditions
+
+- The record still reads as intact.
 
 ## Supporting actors
 
@@ -246,13 +254,11 @@ The record does not show what the tamperer did.
 
 ## Tensions
 
-Each one either produced an actor above or shapes the design directly.
-
 - Protect against share — the owner's protection values against the requester's goal. Every restriction refuses someone legitimate when it is wrong, and refusing everything is not a safe default.
-- Immediacy against cost — judging each access takes work, and the requester waits through it. Produces the hot path.
-- Provability against volume — a recorded decision is a write for every read. Produces the emission design and the load asymmetry between the two event classes.
-- Independence against custody — the System Owner holds the record and is also audited by it. Produces append-only storage and expiry authority held outside the audited services.
-- Incompetence against expressiveness — a language rich enough to state what the owner means is rich enough to state something they did not. Produces construction-time validation and the write-side drift guard.
+- Immediacy against cost — judging each access takes work, and the requester waits through it.
+- Provability against volume — a recorded decision is a write for every read.
+- Independence against custody — the System Owner holds the record and is also audited by it.
+- Incompetence against expressiveness — a language rich enough to state what the owner means is rich enough to state something they did not.
 
 ## Open
 
@@ -262,7 +268,7 @@ Each one either produced an actor above or shapes the design directly.
 - Every actor in this catalog is external to Kingo. The primary actors reach it only through intermediaries — the third-party application as Enforcement Point, and someone as Administrator — so the actors whose goals justify the system are not the actors who call it. The API is shaped by the intermediaries and the intermediaries by the primary actors' goals; conflating the two layers is how an API ends up modeled on the caller's convenience instead of the owner's intent.
 - Regulated Owner's condition is still off-pattern. Proposed: Provability — not the owner's trade to make. An unregulated owner can trade provability against cost and chooses not to; a regulated one has the trade removed, which is a lost degree of freedom rather than a stronger weighting.
 - Produces sections were cut 2026-08-08. In a use case model what an actor produces is use cases, and the design consequences hang off those. The next step is the use cases.
-- The Regulator is unruled as a primary actor. If it is not primary, the Internal Auditor, External Auditor, and Compliance Officer lose their genealogy root and have to trace to the owner's provably value alone.
+- The Regulator is unruled as a primary actor. If it is not primary, the Internal Auditor, External Auditor, and Compliance Officer lose their genealogy root and have to trace to the owner's provability value alone.
 - The Requester's conditional goal is proposed, not ruled.
 - The Human Requester and Service Requester differ in how they receive a refusal, and nothing in Kingo is yet known to change because of it. Cut or keep.
 - The Agent Requester's condition — no more than the party who delegated to the agent — has two readings and neither is ruled. Either the Enforcement Point substitutes the delegator's identity and Kingo never sees the agent, which is consistent with caller identity living in the envelope; or Kingo models the delegation itself and the answer depends on who is asking, which that ruling forbids.
