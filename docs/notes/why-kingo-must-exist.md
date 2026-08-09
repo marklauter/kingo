@@ -10,16 +10,17 @@ status: evolving
 # Kingo exists because ... <todo: write this at the end> ...
 
 ```
-an owner has resources to share
+owner owns resources
   → adversarial actors misuse resources
-    → the owner wants to protect the resources from misuse
-      → the owner must restrict access to trusted actors
-        → intent must be enforced (low trust)
+    → owner wants to protect resources from misuse
+      → owner must restrict access to trusted actors
+        → trust must be enforced at scale
+          → intent must be mechanized
 ```
 
-Without an adversary an owner's intent needs no enforcement. Saying it would be enough. Adversaries and incompetents are why it has to be enforced, and why nothing is trusted by default.
+Scale is what makes the last two steps necessary rather than convenient. An owner who deals with a handful of actors extends trust by knowing them, and enforces it by being present. Neither survives volume, so trust stops resting on the owner and the intent has to exist in a form a machine applies.
 
-The access list enforces it. Its size is parties × resources and someone maintains it by hand, and a platform hosting many owners multiplies both. The cost of saying who may reach what overtakes the worth of saying it.
+A mechanism applies an intent it was told. The first way to tell it is a list: name every party permitted to reach every resource. The list works, and it is where the design breaks. Its size is parties × resources, someone maintains it by hand, and a platform hosting many owners multiplies both. The cost of saying who may reach what overtakes the worth of saying it.
 
 What remains is deriving access from relationships the organization already keeps for other reasons: membership in a group, a document's folder, a file's author. Those relationships are already there. Access is computed from them.
 
