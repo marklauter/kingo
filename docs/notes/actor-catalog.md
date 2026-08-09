@@ -1,7 +1,7 @@
 ---
 title: Actor catalog
 type: note
-summary: "Three primary actors — resource owner, requester, regulator — five adversaries with goals of their own, and nine supporting actors, each with a drive and a genealogy tracing back to a primary actor's value condition."
+summary: todo
 tags: [architecture, actors]
 created: 2026-08-08
 status: evolving
@@ -16,221 +16,233 @@ Supporting actors have drives.
 
 A primary actor has a conditional goal: a desired state paired with values. A supporting actor has a drive, derived from a tension related to a primary actor's value. An adversary opposes a primary actor's goals or values or a secondary actor's drives. An adversary is an actor the system exists to defeat.
 
+A heading of the form `Child → Parent` marks a specialization. It shares the parent's goal and adds or intensifies conditions.
+
 ## Primary actors
 
 ### Resource Owner
 
-The party whose resources the system exists to protect.
+#### Goal
 
-- Goal — *my resources are reached only by the actors I intend — effective immediately, and provably.*
-- Conditions
-  - Effective immediately — a revocation must not be outrun by a stale read. Eventual consistency is a legitimate design, so immediacy is a choice.
-  - Provably — the owner can show afterward that the intent held. Deciding and forgetting is a legitimate design, so provability is a choice.
-- Naming — "owner" alone collides with the party who owns the system rather than the material in it. "Publisher" and "author" name how the resource arrived, one path among several.
+Resources are reached only by actors the owner intends.
 
-Specializations share the desired end state and differ in who states the intent, or in which condition dominates.
+#### Conditions
 
-#### Delegating Owner
+- Immediacy — a revocation must not be outraced by a stale read.
+- Provability — the owner can show afterward that the intent held.
 
-Hands the day-to-day intent to someone else.
+### Delegating Owner → Resource Owner
 
-- The split that makes the Administrator a separate party rather than the owner wearing a second hat.
+#### Conditions
 
-#### Individual Owner
+- Delegation — the intent holds when another party states it on the owner's behalf.
 
-Holds their own material on someone else's platform.
+### Creator → Delegating Owner
 
-- Will not write a theory. Clicks a share control.
-- Tolerance for administrative work is near zero.
+#### Conditions
 
-#### Regulated Owner
+- Simplicity — tolerance for administrative work is near zero. The intent is stated through mechanisms like a share control.
 
-Holds material a regulator binds.
+### Regulated Owner → Resource Owner
+
+#### Conditions
 
 - Provability dominates far enough that they would rather refuse a legitimate access than lose the record of it.
-- Where fail-closed stops being a default and becomes a requirement.
 
 ### Requester
 
-The party who wants to reach a resource they do not own.
+#### Goal
 
-- Goal — *I have what I came for — immediately, and without refusal the owner did not intend.*
-- Standing — the goal alone produces no system; an unlocked door satisfies it. It is in the model because without it, refusing everything is a correct design.
-- Naming — "subject" is locked in the glossary as a modeled value, so it names data rather than a party. "User" is overloaded in systems design and excludes clients and agents that are not human. "Caller" names the machinery that asks on the requester's behalf, a supporting actor.
+The requester has what they came for.
 
-Specializations differ on who they act for, and on how many resources one goal covers.
+#### Conditions
 
-#### Agent Requester
+- Immediacy.
+- No refusal the owner did not intend.
 
-Acts on a party's behalf under delegated authority.
+### Agent Requester → Requester
 
-- Adds a condition no other requester has: *no more than the party who delegated to me.*
-- Pressures the model hardest, because the requester's identity and the authority's identity are different values in the same question.
+#### Conditions
 
-#### Bulk Requester
+- No more than the party who delegated to the agent.
 
-Covers many resources with one goal, to render a list or a search result.
+### Bulk Requester → Requester
 
-- The desired end state is unchanged and the shape of the question inverts, from "may this party reach this resource" to "which resources may this party reach."
-- Reverse expansion exists for this specialization and no other.
+#### Conditions
 
-#### Human Requester
+- One goal covers many resources, to render a list or a search result.
 
-A person at an interface. Standing unruled.
+### Human Requester → Requester
 
-- Feels immediacy as latency and a wrong refusal as a support ticket.
-- Can be told to ask their administrator.
+Standing unruled.
 
-#### Service Requester
+#### Conditions
 
-A program acting on its own behalf. Standing unruled.
+- Feels immediacy as latency and a wrong refusal as a support ticket. Can be told to ask their administrator.
 
-- No patience, and no way to interpret a refusal. Retries or fails.
+### Service Requester → Requester
+
+Standing unruled.
+
+#### Conditions
+
+- No way to interpret a refusal. Retries or fails.
 
 ### Regulator
 
-The party who requires that access to certain resources be controlled and demonstrable, whether or not the owner would have chosen it. Provisional — not yet ruled as primary.
+Provisional — not yet ruled as primary.
 
-- Goal — *access to regulated resources is controlled and demonstrable, for every holder in the jurisdiction.*
-- Standing — not derived from the owner's goal. It binds owners who would not have chosen to be bound, so it is primary rather than a restatement of the owner's provability value.
-- Naming — "the State" covers too little; a payment-card council and a customer's contract bind an owner the same way a statute does. "Auditor" names a party who verifies, a supporting role derived from this goal.
+#### Goal
 
-Specializations differ on where the obligation comes from. The demand does not vary, and the consequence of failing it does. All three impose identical requirements on Kingo and differ only in who is owed the evidence, so a design satisfying the statutory case satisfies all three.
+Access to regulated resources is controlled and demonstrable, for every holder in the jurisdiction.
 
-#### Statutory Regulator
+#### Conditions
 
-Binds by law within a jurisdiction. The owner had no say.
+- Binding whether or not the holder would have chosen it.
 
-#### Contractual Regulator
+### Statutory Regulator → Regulator
 
-Binds by an agreement the owner signed — a customer's terms, an industry council's standard.
+#### Conditions
 
-#### Internal Policy Regulator
+- Binds by law within a jurisdiction. The owner had no say.
 
-The organization binding itself. Weakest consequence, same shape.
+### Contractual Regulator → Regulator
+
+#### Conditions
+
+- Binds by an agreement the owner signed — a customer's terms, an industry council's standard.
+
+### Internal Policy Regulator → Regulator
+
+#### Conditions
+
+- The organization binding itself. Weakest consequence, same shape.
 
 ## Adversaries
 
-Their goals are their own and oppose the resource owner's and the system owner's. Each one is why some part of the system exists.
-
 ### Intruder
 
-Reaches resources they were never intended to reach.
+#### Goal
 
-- Goal — *I have what I was not meant to have — without being noticed.*
-- The base case, and the reason restriction exists at all.
-- Restriction answers the desired state. The second condition is what produces the record and the Monitor.
+The intruder has what they were not meant to have.
+
+#### Conditions
+
+- Without being noticed.
 
 ### Insider
 
-Is intended to reach some resources and uses that reach for another purpose.
+#### Goal
 
-- Goal — *I use my legitimate reach for my own purpose — without it looking different from my ordinary work.*
-- Restriction cannot refuse them; their access is legitimate at the moment they use it.
-- Only the record catches them, which is why the record exists.
+The insider's legitimate reach serves the insider's own purpose.
+
+#### Conditions
+
+- Without it looking different from the insider's ordinary work.
 
 ### Saboteur
 
-Attacks the availability of the judgment rather than the resource.
+#### Goal
 
-- Goal — *the judgment cannot be reached.*
-- Under fail-closed policy an unreachable judgment becomes a denial, so stopping the system denies everyone.
+The judgment cannot be reached.
 
 ### Tamperer
 
-Alters the record after the fact to hide what they did.
+#### Goal
 
-- Goal — *the record does not show what I did.*
-- The reason the record is append-only, and the reason expiry authority sits outside the audited services.
-
-### Incompetent
-
-Grants too broadly, removes a namespace still in use, or misstates the intent. Not malicious, same effect.
-
-- Fails the adversary test: the goal is the Administrator's, and they fail at it. A failure mode of a supporting actor, not an actor with an opposed goal.
-- The design pressure is real either way. It produces construction-time validation and the write-side drift guard.
-- Kept pending a ruling on where they belong.
+The record does not show what the tamperer did.
 
 ## Supporting actors
 
-Each holds a drive and a genealogy back to a primary actor's value condition.
-
 ### System Owner
 
-Holds the resources without owning them.
+#### Drives
 
-- Drive — fiduciary responsibility.
-- Genealogy — the resource owner's protection values.
-- A Resource Owner specialization and a supporting actor at once. Apply the owner's conditional goal to the system's own material — the theories, the graph, the decision record — and it reads unchanged, which is the test for a specialization.
-- On a self-hosted deployment the two roles collapse into one party.
+- Fiduciary responsibility. Holds the resources without owning them.
+
+#### Genealogy
+
+- The resource owner's protection values.
 
 ### Administrator
 
-States the owner's intent in terms the system can evaluate.
+#### Drives
 
-- Drive — express the owner's intent enforceably.
-- Genealogy — reached only by the actors I intend.
-- An intent the system evaluates has to be written down in a form it can read, and someone writes it.
-- On a small deployment the resource owner and the administrator are the same party, which hides the split without removing it.
+- Express the owner's intent in terms the system can evaluate.
+
+#### Genealogy
+
+- Resources are reached only by actors the owner intends.
 
 ### Enforcement Point
 
-Asks before the access and acts on the answer.
+#### Drives
 
-- Drive — act on the verdict.
-- Genealogy — reached only by the actors I intend, from the other side.
-- Sits outside Kingo. Asks more often than every other actor combined.
+- Ask before the access and act on the verdict.
+
+#### Genealogy
+
+- Resources are reached only by actors the owner intends, from the other side.
 
 ### Monitor
 
-Detects misuse while it is still happening.
+#### Drives
 
-- Drive — detect misuse in progress.
-- Genealogy — effective immediately.
-- A record read next quarter stops nothing, so immediacy applies to the detection as much as to the revocation.
-- Consumes the live stream.
+- Detect misuse in progress.
+
+#### Genealogy
+
+- Immediacy.
 
 ### Incident Responder
 
-Reconstructs what happened once a detection becomes an incident.
+#### Drives
 
-- Drive — explain the incident.
-- Genealogy — provably.
-- The only actor who needs replay: reconstruction means re-running the decision at its recorded Kookie rather than reading its verdict.
+- Explain the incident once a detection becomes one.
+
+#### Genealogy
+
+- Provability.
 
 ### Internal Auditor
 
-Verifies independently that the controls worked.
+#### Drives
 
-- Drive — independent verification.
-- Genealogy — provably, and the regulator's demonstrability.
-- The party holding the record cannot be the party attesting to it, which is the whole of the role.
-- Answers to a body inside the organization but outside the chain they audit.
+- Verify independently that the controls worked.
+
+#### Genealogy
+
+- Provability, and the regulator's demonstrability.
 
 ### External Auditor
 
-Attests to a third party.
+#### Drives
 
-- Drive — attestation.
-- Genealogy — the regulator's demonstrability.
-- Same genealogy as the Internal Auditor, answerable outside the organization.
+- Attest to a third party.
+
+#### Genealogy
+
+- The regulator's demonstrability.
 
 ### Compliance Officer
 
-Decides what must be recorded and for how long.
+#### Drives
 
-- Drive — define the control framework.
-- Genealogy — the regulator's demonstrability.
-- Translates the regulator's goal into a configuration the deployment holds.
-- Constrains configuration and calls no operation.
+- Define the control framework: what must be recorded, and for how long.
+
+#### Genealogy
+
+- The regulator's demonstrability.
 
 ### Platform Engineer
 
-Builds and configures the enforcement and recording plumbing.
+#### Drives
 
-- Drive — build the plumbing.
-- Genealogy — the resource owner's protection values, through the System Owner.
-- Constrains configuration and calls no operation.
+- Build and configure the enforcement and recording plumbing.
+
+#### Genealogy
+
+- The resource owner's protection values, through the System Owner.
 
 ## Tensions
 
@@ -244,10 +256,9 @@ Each one either produced an actor above or shapes the design directly.
 
 ## Open
 
-- The Regulator is unruled as a primary actor. If it is not primary, the Internal Auditor, External Auditor, and Compliance Officer lose their genealogy root and have to trace to the owner's *provably* value alone.
+- The Regulator is unruled as a primary actor. If it is not primary, the Internal Auditor, External Auditor, and Compliance Officer lose their genealogy root and have to trace to the owner's provably value alone.
 - The Requester's conditional goal is proposed, not ruled.
 - The Human Requester and Service Requester differ in how they receive a refusal, and nothing in Kingo is yet known to change because of it. Cut or keep.
-- The Agent Requester's condition — *no more than the party who delegated to me* — has two readings and neither is ruled. Either the Enforcement Point substitutes the delegator's identity and Kingo never sees the agent, which is consistent with caller identity living in the envelope; or Kingo models the delegation itself and the answer depends on who is asking, which that ruling forbids.
-- The Incompetent is not an adversary by the test above, and has no home yet.
+- The Agent Requester's condition — no more than the party who delegated to the agent — has two readings and neither is ruled. Either the Enforcement Point substitutes the delegator's identity and Kingo never sees the agent, which is consistent with caller identity living in the envelope; or Kingo models the delegation itself and the answer depends on who is asking, which that ruling forbids.
 - The System Owner as a Resource Owner specialization makes the theory, the graph, and the record resources in their own right, so administrative access to Kingo becomes an authorization question Kingo could answer about itself. That is a scoping decision, not a free consequence.
 - The actor list in the operation-set note predates this one and should point here instead.
