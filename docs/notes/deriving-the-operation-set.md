@@ -28,7 +28,7 @@ Stated by Mark, 2026-08-08. They build on each other.
 4. Let an administrator read an expansion, so they can reason about the rewrites they authored.
 5. Troubleshoot a decision that changed against expectation.
 6. Audit decisions and writes for legal purposes.
-7. Trace decisions and replay them at their recorded kookie.
+7. Trace decisions and replay them at their recorded Kookie.
 
 ## Actors
 
@@ -37,7 +37,7 @@ The CISO organization, stated by Mark 2026-08-08, plus the two the needs already
 - **Caller** — the policy enforcement point. Asks Check and enforces the verdict. Sits outside Kingo, and is the highest-volume actor by orders of magnitude.
 - **Administrator** — authors theories, asserts facts, reads expansions. Needs 2, 4, and 5.
 - **SecOps** — detection and monitoring. Lives in the log stream, tunes SIEM rules, triages alerts. The closest analogue to an on-call SRE.
-- **DFIR** — owns the investigation once an alert becomes an incident. Inside SecOps at smaller organizations, separate at large ones. The only actor who needs replay: reconstruction means re-running the decision at its recorded kookie, not reading its verdict.
+- **DFIR** — owns the investigation once an alert becomes an incident. Inside SecOps at smaller organizations, separate at large ones. The only actor who needs replay: reconstruction means re-running the decision at its recorded Kookie, not reading its verdict.
 - **GRC** — owns the control framework, retention policy, and evidence collection for compliance audits. Defines what must be logged; SecOps consumes it.
 - **Internal Audit** — outside the CISO organization, reporting to the board's audit committee. Independence is the point: they audit whether security's own controls work. External auditors sit further out still.
 - **Security Engineering** — builds the plumbing: the log archive, its retention locks, the guardrails.
@@ -48,11 +48,11 @@ GRC and Security Engineering constrain configuration rather than call an operati
 
 - **Check** ← need 1.
 - **Write** ← need 2. Theory and facts.
-- **Read** ← need 2. Inspection of facts; an administrator cannot edit a graph they cannot see.
+- **Read** ← need 2. Inspection of the facts an administrator is about to edit.
 - **Expand** ← needs 4 and 5. One service with two directions (Mark, 2026-08-08). Forward materializes a subjectset's rewrite tree. Reverse answers "which resources can this subject reach," the question behind every filtered list view — the same rewrite evaluation entered from the opposite node. Reverse is not Read, which returns stored facts with no rewrite evaluation and so cannot follow a subjectset. Provisional: revisit if a product consumer's measured load diverges from the administrative one.
 - **Observability** ← needs 3, 6, and 7. Four services, derived below.
 
-Replay is not an operation. Replaying a traced request is Check or Expand run at the Kookie the trace recorded. Point-in-time evaluation falls out of the settled storage shapes — interval-stamped fact rows and the supersession-closed theory changelog — so replay costs a retention window rather than an API. Its purpose is so an administrator can build tests for configuration mutations.
+Replay is not an operation. Replaying a traced request is Check or Expand run at the Kookie the trace recorded. Point-in-time evaluation falls out of the settled storage shapes — interval-stamped fact rows and the supersession-closed theory changelog — so replay costs a retention window rather than an API. It exists so an administrator can build tests for configuration mutations.
 
 ## Why the record exists
 
@@ -63,17 +63,17 @@ Six purposes, from enterprise security practice (Mark, 2026-08-08):
 - **Detection.** Feed the stream to a SIEM and alert on patterns — credential use from a new geography, mass access to a sensitive prefix, the trail itself being disabled.
 - **Compliance.** The auditor's question is not "are you secure" but "show me the evidence." The record is the evidence.
 - **Deterrence.** People behave differently when their actions are attributable.
-- **Operational forensics.** "Why did this change" — a deploy pipeline, a migration, a teammate in a console — beyond security.
+- **Operational forensics.** Answering "why did this change" when the cause is a deploy pipeline, a migration, or a teammate in a console rather than an attack.
 
 Four design constraints follow. The record is tamper-evident, and the audited party cannot edit it. It is stored outside the blast radius of the systems it covers. It is retained past the detection gap, since a breach can go months undiscovered. Its timestamps are synchronized, so events from different systems correlate into one timeline.
 
-Kingo already satisfies the last: `Decision` carries a wall timestamp distinct from its kookie, so an investigator finds decisions in an incident window by wall time, then replays each at its own pin.
+Kingo already satisfies the last: `Decision` holds a wall timestamp distinct from its Kookie, so an investigator finds decisions in an incident window by wall time, then replays each at its own pin.
 
-Reproducibility is the argument for Kingo owning the decision record rather than shipping it to an outside sink. An outside sink stores and searches decision records; only Kingo can re-derive one, because replaying a verdict needs the graph and the catalog at that kookie. Compliance asks for evidence, and a record that can be re-derived is stronger evidence than one that can only be read. Forensics has the same shape: "why was this allowed" is answered by re-running the decision, not by reading its verdict.
+Reproducibility is the argument for Kingo owning the decision record rather than shipping it to an outside sink. An outside sink stores and searches decision records; only Kingo can re-derive one, because replaying a verdict needs the graph and the catalog at that Kookie. Compliance asks for evidence, and a record that can be re-derived is stronger evidence than one that can only be read. Forensics has the same shape: "why was this allowed" is answered by re-running the decision, not by reading its verdict.
 
-The two constraints Kingo does not yet satisfy are constraints on how it owns the record rather than arguments against owning it. Tamper-evidence means append-only, with expiry authority held outside the services being audited. Blast radius means a store separate from the fact store.
+The two constraints Kingo does not yet satisfy shape how it owns the record rather than arguing against owning it. Tamper-evidence means append-only, with expiry authority held outside the services being audited. Blast radius means a store separate from the fact store.
 
-Internal Audit adds a requirement no other actor does: verifying the trail was never disabled. That makes Kingo's own audit configuration — retention, sink target, emission on or off — an input event in its own right, and it makes a gap in the record something that must be detectable rather than silent.
+Internal Audit adds a requirement no other actor does: verifying the trail was never disabled. Kingo's own audit configuration — retention, sink target, emission on or off — becomes an input event in its own right. A gap in the record must be detectable rather than silent.
 
 ## Event classes
 
@@ -84,7 +84,7 @@ Two, split by direction (Mark, 2026-08-08): input events are writes, output even
 
 Each class is read two ways — query the retained log, or listen to it live from a cursor — giving four independently deployable services: input-query, input-listen, output-query, output-listen (Mark, 2026-08-08). Input-listen is Watch as it stands today.
 
-The load asymmetry between the classes is what forces the split rather than merely describing it. Output events are produced once per Check and input events once per write, so the two differ by orders of magnitude at every point: emission rate, store size, and query cost. Co-hosting them provisions the low-load pair for the high-load pair's peak.
+The load asymmetry between the classes forces the split. Output events are produced once per Check and input events once per write, so the two differ by orders of magnitude at every point: emission rate, store size, and query cost. Co-hosting them provisions the low-load pair for the high-load pair's peak.
 
 Kingo owns its decision history rather than handing retention and query to an outside system (Mark, 2026-08-08).
 
@@ -92,7 +92,9 @@ The authorization event logging note covers emission into a sink and stops; all 
 
 ## Families
 
-Decision (Check), Administration (Write, Read, Expand), Observability (input-query, input-listen, output-query, output-listen). Check is the decision point; enforcement is the caller's and sits outside Kingo (Mark, 2026-08-08). A family groups services; it is not itself a deployable unit, and load profile rather than family membership is what decides a deployment boundary — so placing an operation in a family carries no deployment consequence. The four observability services are independently deployable (Mark, 2026-08-08).
+Decision (Check), Administration (Write, Read, Expand), Observability (input-query, input-listen, output-query, output-listen). Check is the decision point; enforcement is the caller's and sits outside Kingo (Mark, 2026-08-08).
+
+A family groups services and is not itself a deployable unit. Load profile decides a deployment boundary, so putting an operation in a family has no deployment consequence. The four observability services are independently deployable (Mark, 2026-08-08).
 
 ## Services
 
@@ -105,7 +107,7 @@ Eight, one per operation. Load profile is the deployment boundary, except where 
 - **input-query**, **input-listen** — Observability. Low load.
 - **output-query**, **output-listen** — Observability. High load, scaling with Check.
 
-Read and Expand do not co-host (Mark, 2026-08-08). Their dependency sets differ, so a co-hosted Read would redeploy on every rewrite-engine change, and their resource profiles differ.
+Read and Expand do not co-host (Mark, 2026-08-08). Their dependency sets differ, so a co-hosted Read would redeploy on every rewrite-engine change. Their resource profiles differ too.
 
 ## Open
 
