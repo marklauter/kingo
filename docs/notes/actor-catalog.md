@@ -256,6 +256,12 @@ Each one either produced an actor above or shapes the design directly.
 
 ## Open
 
+- **Organization is a primary actor, agreed 2026-08-08, not yet written.** Proposed goal: the organization is not harmed by how its resources are reached — covering liability, penalty, and reputation, none of which any individual owner's goal reaches. **Enterprise → Organization** is its specialization, and the condition it adds is separation: the scale at which the Administrator, Compliance Officer, and Internal Auditor are three different people. Below that they are one person and those tensions collapse.
+- **Internal Policy Regulator moves under Organization.** A Regulator is external to the organization by definition (ruled 2026-08-08), so an organization binding itself is the Organization acting, not a Regulator.
+- The Compliance Officer is internal to the organization while its genealogy stays the Regulator's demand. That internal/external line is the same one that makes the Internal Auditor's independence meaningful, and it decides who may hold expiry authority over the record.
+- Every actor in this catalog is external to Kingo. The primary actors reach it only through intermediaries — the third-party application as Enforcement Point, and someone as Administrator — so the actors whose goals justify the system are not the actors who call it. The API is shaped by the intermediaries and the intermediaries by the primary actors' goals; conflating the two layers is how an API ends up modeled on the caller's convenience instead of the owner's intent.
+- Regulated Owner's condition is still off-pattern. Proposed: Provability — not the owner's trade to make. An unregulated owner can trade provability against cost and chooses not to; a regulated one has the trade removed, which is a lost degree of freedom rather than a stronger weighting.
+- Produces sections were cut 2026-08-08. In a use case model what an actor produces is use cases, and the design consequences hang off those. The next step is the use cases.
 - The Regulator is unruled as a primary actor. If it is not primary, the Internal Auditor, External Auditor, and Compliance Officer lose their genealogy root and have to trace to the owner's provably value alone.
 - The Requester's conditional goal is proposed, not ruled.
 - The Human Requester and Service Requester differ in how they receive a refusal, and nothing in Kingo is yet known to change because of it. Cut or keep.
