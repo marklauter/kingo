@@ -9,6 +9,8 @@ status: evolving
 
 # Kingo exists because ... <todo: write this at the end> ...
 
+<todo: this derivation is wrong - it's for a bank, github, or youtube - not for the security system>
+
 ```
 owner owns resources
   → adversarial actors misuse resources
