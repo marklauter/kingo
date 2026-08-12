@@ -20,7 +20,9 @@ Four peer types, sorted by what the system does with what the party holds.
 - A nefarious actor's constraint can force a use case owned by another actor — detection belongs to the security operator. The genealogy holds without the nefarious actor owning the use case.
 - Only humans are actors, because only humans hold goals. A system is a system, however sophisticated: an AI agent is a non-deterministic system, not an actor. Software at the boundary carries the goal of the party that operates it.
 - Actor against stakeholder is a boundary test: an actor interacts with Kingo, a stakeholder holds an interest served through it.
-- Derivation runs stakeholder interest → what must hold for it to be served → who must act for it to hold → that actor's drive → use cases → the system that fits. Deriving actors from the feature set is the wrong direction.
+- Derivation runs primary actor → conditional goal, a desired state plus the value conditions the actor holds about being in it → those conditions meet reality → tensions → each tension spawns a supporting actor with a drive → use cases → the system that fits. Deriving actors from the feature set is the wrong direction.
+- A primary actor exists whether or not the system does. A supporting actor is created by the design, to make sure the system delivers a primary's conditional goal. An elevator inspector has no reason to exist in a world without elevators.
+- A goal states a desired end state, never the path to it. The gift test: if a genie granted the end state outright and the actor is satisfied, it is a goal; if the shortcut skips something the actor wanted, it is a task. Naming an actor after the system fails the same way — passenger presupposes the elevator, traveler does not.
 - A nefarious actor is catalogued here only if it acts on Kingo. An intruder at the relying party's front door, or an insider misusing access Kingo correctly granted, is offstage: Kingo answers right and the harm happens anyway, so neither yields a constraint Kingo can carry.
 
 </design notes>
