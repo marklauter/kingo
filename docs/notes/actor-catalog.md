@@ -9,6 +9,22 @@ cites:
   - "[[why-kingo-must-exist]]"
 ---
 
+<design notes>
+
+Four peer types, sorted by what the system does with what the party holds.
+
+- primary actor : at the boundary, holds a conditional goal the system serves. Yields use cases and constraints.
+- supporting actor : at the boundary, holds a drive — a standing pressure to act. Yields use cases.
+- stakeholder : holds an interest the system serves, never acts on the system. Yields constraints.
+- nefarious actor : at the boundary, holds a conditional goal the system negates. Yields constraints.
+
+- Primary and nefarious share the conditional-goal shape and differ on served against negated. That difference is the type, not a specialization.
+- Adversarial is a mode any actor can occupy, which is why no actor is trusted beyond what its use cases need. The nefarious actor is an entry in the catalog, not a class over the other three.
+- A nefarious actor's constraint can force a use case owned by another actor — detection belongs to the Monitor. The genealogy holds without the nefarious actor owning the use case.
+- Actor against stakeholder is a boundary test: an actor interacts with Kingo, a stakeholder holds an interest served through it. Resource Owner and its specializations, Requester, Regulator, and Organization fall on the stakeholder side.
+- Derivation runs stakeholder interest → what must hold for it to be served → who must act for it to hold → that actor's drive → use cases → the system that fits. Deriving actors from the feature set is the wrong direction.
+- Unruled: whether a nefarious actor must act on Kingo to be catalogued here. It decides whether Intruder and Insider stay, and how many nefarious actors there are.
+
 # Actors: primary, supporting, adversarial
 
 Primary actors have goals.
@@ -20,16 +36,22 @@ A heading of the form `Child → Parent` marks a specialization. It shares the p
 
 ## Primary actors
 
+system owner
+resource owner
+
+
 ### Resource Owner
 
 #### Goal
 
-Resources are reached by exactly the actors the owner intends.
+<todo: all goals require "to ..." statement - a desired outcome>
+
+To prevent access of owned resources by untrusted actors.
 
 #### Conditions
 
-- Immediacy — a revocation must not be outraced by a stale read.
-- Provability — the owner can show afterward that the intent held.
+- Immediacy — a revocation of trust must not be outraced by a stale read.
+- Provability — the owner can show afterward that the trust-intent held.
 
 ### Delegating Owner → Resource Owner
 
@@ -47,48 +69,22 @@ Resources are reached by exactly the actors the owner intends.
 
 #### Conditions
 
-- Provability dominates far enough that they would rather refuse a legitimate access than lose the record of it.
+- Provability — dominates far enough that they would rather refuse a legitimate access than lose the record of it.
 
-### Requester
+### Resource requester (this isn't a primary actor - it's supporting and has a drive, not a goal)
 
 #### Goal
 
-The requester has what they came for.
+Owned resource are reached by exactly the actors the owner trusts.
+
+Gains access to the resouce.
 
 #### Conditions
 
 - Immediacy.
 - No refusal the owner did not intend.
 
-### Agent Requester → Requester
-
-#### Conditions
-
-- No more than the party who delegated to the agent.
-
-### Bulk Requester → Requester
-
-#### Conditions
-
-- One goal covers many resources, to render a list or a search result.
-
-### Human Requester → Requester
-
-Standing unruled.
-
-#### Conditions
-
-- Feels immediacy as latency and a wrong refusal as a support ticket. Can be told to ask their administrator.
-
-### Service Requester → Requester
-
-Standing unruled.
-
-#### Conditions
-
-- No way to interpret a refusal. Retries or fails.
-
-### Regulator
+### Regulator (this isn't a primary actor - it's supporting and has a drive, not a goal)
 
 Provisional — not yet ruled as primary.
 
@@ -100,19 +96,19 @@ Access to regulated resources is controlled and demonstrable, for every holder i
 
 - Binding whether or not the holder would have chosen it.
 
-### Statutory Regulator → Regulator
+### Statutory Regulator → Regulator (this isn't a primary actor - it's supporting and has a drive, not a goal)
 
 #### Conditions
 
 - Binds by law within a jurisdiction. The owner had no say.
 
-### Contractual Regulator → Regulator
+### Contractual Regulator → Regulator (this isn't a primary actor - it's supporting and has a drive, not a goal)
 
 #### Conditions
 
 - Binds by an agreement the owner signed — a customer's terms, an industry council's standard.
 
-### Internal Policy Regulator → Regulator
+### Internal Policy Regulator → Regulator (this isn't a primary actor - it's supporting and has a drive, not a goal)
 
 #### Conditions
 
@@ -124,41 +120,21 @@ Access to regulated resources is controlled and demonstrable, for every holder i
 
 #### Goal
 
-The intruder has what they were not meant to have.
+To gain illicit access to resources to service is own purposes.
 
 #### Conditions
 
-- Without being noticed.
+- Without being detected.
 
 ### Insider
 
 #### Goal
 
-The insider's legitimate reach serves the insider's own purpose.
+To misuse legitimate access to serve his own purpose.
 
 #### Conditions
 
 - Without it looking different from the insider's ordinary work.
-
-### Saboteur
-
-#### Goal
-
-The judgment cannot be reached.
-
-#### Conditions
-
-- The outage reads as a failure of the system.
-
-### Tamperer
-
-#### Goal
-
-The record does not show what the tamperer did.
-
-#### Conditions
-
-- The record still reads as intact.
 
 ## Supporting actors
 
