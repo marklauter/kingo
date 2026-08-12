@@ -53,10 +53,11 @@ Four peer types, sorted by what the system does with what the party holds.
 - auditor
   - goal: to know whether decisions matched expressed intent, and prove it.
   - condition: the record is complete, tamper-evident, and cannot be silently disabled.
-- secops
+- security operator (SecOps)
   - goal: to detect exposure early enough that it can still be limited.
-  - condition: TBD
-- operator (SRE)
+  - condition (latency): decisions and writes reach the stream fast enough to act on.
+  - condition (correlation): each event carries enough context to correlate against other systems.
+- system operator (SRE)
   - goal: to keep every Kingo service available.
   - condition: service level indicators are measurable against defined objectives — latency, traffic, errors, saturation.
 - investigator (DFIR)
@@ -78,5 +79,6 @@ Four peer types, sorted by what the system does with what the party holds.
 
 ## Open
 
+- Tag the remaining conditions with an area, as SecOps' are? Proposed: verifiability (author), integrity (auditor), observability (system operator), reproducibility (investigator).
 - The System Owner as primary actor is proposed, not ruled: the party that operates a system holding resources it does not own, whose conditional goal is that every access to those resources is decided by the resource owner's intent. Sub-question: one primary actor with the enterprise that owns its resources outright as a specialization, or two.
 - The actor list in the operation-set note predates this one and should point here instead.
