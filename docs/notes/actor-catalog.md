@@ -1,7 +1,7 @@
 ---
 title: Actor catalog
 type: note
-summary: The four party types, and the actors, stakeholders, and adversaries derived under them
+summary: The four party types, and the actors, stakeholders, and nefarious actors derived under them
 tags: [architecture, actors]
 status: evolving
 ---
@@ -18,11 +18,12 @@ Four peer types, sorted by what the system does with what the party holds.
 - Primary and nefarious share the conditional-goal shape and differ on served against negated. That difference is the type, not a specialization.
 - Adversarial is a mode any actor can occupy, which is why no actor is trusted beyond what its use cases need. The nefarious actor is an entry in the catalog, not a class over the other three.
 - A nefarious actor's constraint can force a use case owned by another actor — detection belongs to the security operator. The genealogy holds without the nefarious actor owning the use case.
-- Only humans are actors, because only humans hold goals. A system is a system, however sophisticated: an AI agent is a non-deterministic system, not an actor. Software at the boundary carries the goal of the party that operates it.
+- Only humans are actors, because only humans hold goals. No system is an actor, however sophisticated, so an AI agent is a non-deterministic system rather than an actor. Software at the boundary carries the goal of the party that operates it.
 - Actor against stakeholder is a boundary test: an actor interacts with Kingo, a stakeholder holds an interest served through it.
-- Derivation runs primary actor → conditional goal, a desired state plus the value conditions the actor holds about being in it → those conditions meet reality → tensions → each tension spawns a supporting actor with a drive → use cases → the system that fits. Deriving actors from the feature set is the wrong direction.
+- Derivation runs primary actor → conditional goal → tensions → supporting actors, each with a drive → use cases → the system that fits. A conditional goal is a desired state plus the value conditions the actor holds about being in it, and a tension is one of those conditions meeting reality. Deriving actors from the feature set is the wrong direction.
 - A primary actor exists whether or not the system does. A supporting actor is created by the design, to make sure the system delivers a primary's conditional goal. An elevator inspector has no reason to exist in a world without elevators.
-- A goal states a desired end state, never the path to it. The gift test: if a genie granted the end state outright and the actor is satisfied, it is a goal; if the shortcut skips something the actor wanted, it is a task. Naming an actor after the system fails the same way — passenger presupposes the elevator, traveler does not.
+- A goal states a desired end state, never the path to it. The gift test: if a genie granted the end state outright and the actor is satisfied, it is a goal; if the shortcut skips something the actor wanted, it is a task.
+- Name an actor from the world the system does not exist in. Passenger presupposes the elevator; traveler does not.
 - A nefarious actor is catalogued here only if it acts on Kingo. An intruder at the relying party's front door, or an insider misusing access Kingo correctly granted, is offstage: Kingo answers right and the harm happens anyway, so neither yields a constraint Kingo can carry.
 
 </design notes>
@@ -83,8 +84,6 @@ Four peer types, sorted by what the system does with what the party holds.
 
 ## Nefarious actors
 
-Each holds a goal the system negates, so each yields constraints and no use cases.
-
 - forger
   - goal: to hold a fact that grants them access they were never given.
 - quiet widener
@@ -102,7 +101,7 @@ Each holds a goal the system negates, so each yields constraints and no use case
 - credential thief
   - goal: to ask questions as an enforcer they are not.
 
-Offstage — act on the relying party, not on Kingo: the intruder at its front door, and the insider misusing access Kingo correctly granted.
+Offstage, acting on the relying party rather than on Kingo: the intruder at its front door, and the insider misusing access Kingo correctly granted.
 
 ## Tensions
 
