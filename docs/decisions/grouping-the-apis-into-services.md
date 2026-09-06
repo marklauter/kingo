@@ -1,7 +1,7 @@
 ---
 title: Grouping the APIs into services
 type: decision
-summary: "Kingo exposes the five Zanzibar APIs (Read, Write, Watch, Check, Expand) across four separate ASP.NET Core hosts, grouped by load profile rather than one host per API: Write, Read+Expand, Watch, and ACL Check as the hot path."
+summary: "Kingo exposes six operations across eight ASP.NET Core hosts, grouped by load profile rather than one host per operation: Check as the hot path, Write, Read, Expand, and Watch and Audit split by event class."
 tags: [architecture, services]
 status: evolving
 ---
@@ -16,12 +16,16 @@ CQRS systems split the same way. Bounded contexts share domain vocabulary and ra
 
 ## Interpretation
 
-Four hosts:
+Eight hosts, carrying the six operations of [[the-operation-set]]:
 
 1. **Write** — mutations are rare; can run on a very slow system. Sole writer of the fact store; appends the changelog, which is the [[kookie]] source. Carries the drift invariants (2026-07-20, dry-run finding F8): fact writes validate against the current theory, and a theory write that would abandon live facts is refused — a reverse existence query at theory-write time, making removal a two-step migration.
-2. **Read + Expand** — co-hosted serving tier; query-shaped, tolerant of latency.
-3. **Watch** — changelog streaming; long-lived connections, cursors via heartbeat kookies.
+2. **Read** — theories and facts as stored, no interpreter. Query-shaped, tolerant of latency, I/O-bound.
+3. **Expand** — the stores plus the rewrite engine. CPU-bound on tree materialization.
 4. **ACL Check** — the hot path. Multi-region, multi-node, parallel, auto-scaling; caching, hedging, and hot-spot handling land here and only here.
+5. **Input-Watch**, **Output-Watch** — event streaming; long-lived connections, cursors via heartbeat kookies. Input-watch is changelog streaming.
+6. **Input-Audit**, **Output-Audit** — queries over the retained record. Provisional on whether Kingo stores it ([[the-record-lives-outside-kingos-blast-radius]]).
+
+Read and Expand do not co-host. Their dependency sets differ, so a co-hosted Read would redeploy on every rewrite-engine change, and their resource profiles differ too.
 
 Supporting decisions:
 
