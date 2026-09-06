@@ -24,6 +24,9 @@ Four peer types, sorted by what the system does with what the party holds.
 - A primary actor exists whether or not the system does. A supporting actor is created by the design, to make sure the system delivers a primary's conditional goal. An elevator inspector has no reason to exist in a world without elevators.
 - A goal states a desired end state, never the path to it. The gift test: if a genie granted the end state outright and the actor is satisfied, it is a goal; if the shortcut skips something the actor wanted, it is a task.
 - Name an actor from the world the system does not exist in. Passenger presupposes the elevator; traveler does not.
+- The nefarious catalog derives from the harms named in the resource owner's goal — theft, damage, disclosure — one actor per harm. Anything finer than that is a path, not an actor: it states how the goal is reached rather than what end state is wanted, and fails the gift test.
+- Paths carry the constraints, goals carry the names. A path can be walked with no goal behind it — a runaway retry loop occupies the vandal's path and holds nothing — so the constraint stands whether the occupant is nefarious or unwitting.
+- Deniability is a nefarious condition, never an entry. It presupposes an act already committed, and it mirrors the resource owner's attribution condition.
 - A nefarious actor is catalogued here only if it acts on Kingo. An intruder at the relying party's front door, or an insider misusing access Kingo correctly granted, is offstage: Kingo answers right and the harm happens anyway, so neither yields a constraint Kingo can carry.
 
 </design notes>
@@ -84,22 +87,28 @@ Four peer types, sorted by what the system does with what the party holds.
 
 ## Nefarious actors
 
-- forger
-  - goal: to hold a fact that grants them access they were never given.
-- quiet widener
-  - goal: to broaden what an existing relation means, so facts already written grant more than they did.
-- log tamperer
-  - goal: to leave no usable record of what they did.
-- race runner
-  - goal: to act inside the window between a revocation and its effect.
-- tenant escaper
-  - goal: to reach resources belonging to a tenant that is not theirs.
-- cartographer
-  - goal: to learn who relates to whom, without needing access to anything.
-- exhauster
-  - goal: to make the decision path unavailable, so the enforcer fails open.
-- credential thief
-  - goal: to ask questions as an enforcer they are not.
+Three harms are named in the resource owner's goal, and each names an actor. A path is how the actor reaches the goal through Kingo.
+
+- thief
+  - goal: to have what is not theirs.
+  - condition (deniability): nothing ties the taking to them.
+  - condition (persistence): what they took stays taken after the owner objects.
+  - path: a fabricated fact.
+  - path: a widened relation, so facts already written grant more than they did.
+  - path: the window between a revocation and its effect.
+  - path: the boundary between one account and another.
+  - path: a decision the enforcer fails open on.
+- spy
+  - goal: to know what they were not told.
+  - condition (deniability): the owner never learns they looked.
+  - condition (inference): what they learn need not be read, only deduced from what the system answers.
+  - path: reading the graph directly.
+  - path: probing decisions for the shape of the graph behind them.
+  - path: asking as an enforcer they are not.
+- vandal
+  - goal: to deprive the owner of their own resources.
+  - condition (leverage): causing the outage costs far less than serving the traffic would.
+  - path: exhausting the decision path.
 
 Offstage, acting on the relying party rather than on Kingo: the intruder at its front door, and the insider misusing access Kingo correctly granted.
 
@@ -110,7 +119,6 @@ Offstage, acting on the relying party rather than on Kingo: the intruder at its 
 
 ## Open
 
-- Is tenant isolation structural or decided? Tenant is a PAP concept and must also be a PDP one, or a caller scoped to one tenant could ask about another's resources. Recommendation: structural — the account scopes the request before the engine runs, so no theory a tenant writes can reach past it. Deciding isolation with the same engine it compartmentalizes makes a theory bug a cross-tenant breach, which contradicts the tenant's own goal.
-- `nefarious` names intent, but the same behaviors occur unwittingly — an exhauster can be a runaway retry loop, and a quiet widener is usually someone who misread their own rewrite. The constraints are identical either way. Either the type name is wrong, or the entries need to be stated as behaviors rather than as people.
+- Is tenant isolation structural or decided? Tenant is a PAP concept and must also be a PDP one, or a caller scoped to one tenant could ask about another's resources. Recommendation: structural — the account scopes the request before the engine runs, so no theory a tenant writes can reach past it. Deciding isolation with the same engine it compartmentalizes makes a theory bug a cross-tenant breach, which contradicts the tenant's own goal. The answer also decides whether crossing the boundary is a thief's path through Kingo or a defect outside the engine entirely.
 - A content creator is a resource owner who never touches Kingo, yet resource owner is catalogued as a primary actor. Either resource owner is an abstract root whose subtypes split across actor and stakeholder, or the primary entry needs narrowing to the owners who reach the boundary.
 - The actor list in the operation-set note predates this one and should point here instead.
