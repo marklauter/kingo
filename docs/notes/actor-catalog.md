@@ -1,9 +1,9 @@
 ---
 title: Actor catalog
 type: note
-summary: The four peer party types, and the parties catalogued under each
+summary: The actor catalog and how to read it.
 tags: [architecture, actors]
-status: evolving
+status: locked
 ---
 
 <design notes>
@@ -116,9 +116,3 @@ Offstage, acting on the relying party rather than on Kingo: the intruder at its 
 
 - Wrong denies are reported, wrong allows are not. The only party positioned to notice a decision is the accessor, and they have no incentive to report an allow they shouldn't have had. Over-permissiveness is therefore invisible in production and must be caught by the record or by examples, never by users.
 - The record can prove the expression was followed, never that the expression was right. Intent never enters Kingo, so conformance to expression is mechanically checkable and conformance to intent is not.
-
-## Open
-
-- Is tenant isolation structural or decided? Tenant is a PAP concept and must also be a PDP one, or a caller scoped to one tenant could ask about another's resources. Recommendation: structural — the account scopes the request before the engine runs, so no theory a tenant writes can reach past it. Deciding isolation with the same engine it compartmentalizes makes a theory bug a cross-tenant breach. That contradicts the tenant's own goal. The answer decides whether crossing the boundary is a thief's path through Kingo or a defect outside it.
-- A content creator is a resource owner who never touches Kingo, yet resource owner is catalogued as a primary actor. Either resource owner is an abstract root whose subtypes split across actor and stakeholder, or the primary entry needs narrowing to the owners who reach the boundary.
-- The actor list in the operation-set note predates this one and should point here instead.

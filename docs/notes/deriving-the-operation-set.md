@@ -1,12 +1,12 @@
 ---
 title: Deriving the operation set
 type: note
-summary: "Kingo's operations derive from seven core ReBAC system use cases: decision production, decision event notification, theory and fact administration, administration event notification, "
+summary: "TBD"
 tags: [architecture, services]
 created: 2026-08-08
 status: evolving
 cites:
-  - "[[why-kingo-must-exist]]"
+  - "[[actor-catalog]]"
   - "[[grouping-the-apis-into-services]]"
   - "[[authz-event-logging]]"
   - "[[rewrite-interpreters]]"
@@ -14,7 +14,7 @@ cites:
   - "[[precomputed-closure-index-for-the-hot-path]]"
 ---
 
-# The operation set derives from an informal use case analysis of a typical ReBAC system
+# The operation set derives from a brief use case analysis of a typical ReBAC system
 
 Kingo's operations derive from ReBAC system use cases: decision production, decision event notification, theory and fact administration, administration event notification, 
 
@@ -29,20 +29,6 @@ Stated by Mark, 2026-08-08. They build on each other.
 5. Troubleshoot a decision that changed against expectation.
 6. Audit decisions and writes for legal purposes.
 7. Trace decisions and replay them at their recorded Kookie.
-
-## Actors
-
-The CISO organization, stated by Mark 2026-08-08, plus the two the needs already imply.
-
-- **Caller** — the policy enforcement point. Asks Check and enforces the verdict. Sits outside Kingo, and is the highest-volume actor by orders of magnitude.
-- **Administrator** — authors theories, asserts facts, reads expansions. Needs 2, 4, and 5.
-- **SecOps** — detection and monitoring. Lives in the log stream, tunes SIEM rules, triages alerts. The closest analogue to an on-call SRE.
-- **DFIR** — owns the investigation once an alert becomes an incident. Inside SecOps at smaller organizations, separate at large ones. The only actor who needs replay: reconstruction means re-running the decision at its recorded Kookie, not reading its verdict.
-- **GRC** — owns the control framework, retention policy, and evidence collection for compliance audits. Defines what must be logged; SecOps consumes it.
-- **Internal Audit** — outside the CISO organization, reporting to the board's audit committee. Independence is the point: they audit whether security's own controls work. External auditors sit further out still.
-- **Security Engineering** — builds the plumbing: the log archive, its retention locks, the guardrails.
-
-GRC and Security Engineering constrain configuration rather than call an operation, which is why neither adds one.
 
 ## Operations
 
