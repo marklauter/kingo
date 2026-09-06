@@ -1,7 +1,7 @@
 ---
 title: Actor catalog
 type: note
-summary: The four party types, and the actors, stakeholders, and nefarious actors derived under them
+summary: The four peer party types, and the parties catalogued under each
 tags: [architecture, actors]
 status: evolving
 ---
@@ -18,15 +18,15 @@ Four peer types, sorted by what the system does with what the party holds.
 - Primary and nefarious share the conditional-goal shape and differ on served against negated. That difference is the type, not a specialization.
 - Adversarial is a mode any actor can occupy, which is why no actor is trusted beyond what its use cases need. The nefarious actor is an entry in the catalog, not a class over the other three.
 - A nefarious actor's constraint can force a use case owned by another actor — detection belongs to the security operator. The genealogy holds without the nefarious actor owning the use case.
-- Only humans are actors, because only humans hold goals. No system is an actor, however sophisticated, so an AI agent is a non-deterministic system rather than an actor. Software at the boundary carries the goal of the party that operates it.
+- Only humans are actors, because only humans hold goals. No system is an actor, so an AI agent is a non-deterministic system, not an actor. Software at the boundary carries the goal of the party that operates it.
 - Actor against stakeholder is a boundary test: an actor interacts with Kingo, a stakeholder holds an interest served through it.
 - Derivation runs primary actor → conditional goal → tensions → supporting actors, each with a drive → use cases → the system that fits. A conditional goal is a desired state plus the value conditions the actor holds about being in it, and a tension is one of those conditions meeting reality. Deriving actors from the feature set is the wrong direction.
 - A primary actor exists whether or not the system does. A supporting actor is created by the design, to make sure the system delivers a primary's conditional goal. An elevator inspector has no reason to exist in a world without elevators.
 - A goal states a desired end state, never the path to it. The gift test: if a genie granted the end state outright and the actor is satisfied, it is a goal; if the shortcut skips something the actor wanted, it is a task.
 - Name an actor from the world the system does not exist in. Passenger presupposes the elevator; traveler does not.
-- The nefarious catalog derives from the harms named in the resource owner's goal — theft, damage, disclosure — one actor per harm. Anything finer than that is a path, not an actor: it states how the goal is reached rather than what end state is wanted, and fails the gift test.
-- Paths carry the constraints, goals carry the names. A path can be walked with no goal behind it — a runaway retry loop occupies the vandal's path and holds nothing — so the constraint stands whether the occupant is nefarious or unwitting.
-- Deniability is a nefarious condition, never an entry. It presupposes an act already committed, and it mirrors the resource owner's attribution condition.
+- The nefarious catalog derives from the harms named in the resource owner's goal — theft, damage, disclosure — one actor per harm. Anything finer is a path. A path states how the goal is reached rather than what end state is wanted, so it fails the gift test.
+- Constraints derive from the paths rather than from the goals. A path can be walked with no goal behind it: a runaway retry loop occupies the vandal's path and holds nothing. The constraint stands whether the occupant is nefarious or unwitting.
+- Deniability is a nefarious condition, not an entry: it presupposes an act already committed. It mirrors the resource owner's attribution condition.
 - A nefarious actor is catalogued here only if it acts on Kingo. An intruder at the relying party's front door, or an insider misusing access Kingo correctly granted, is offstage: Kingo answers right and the harm happens anyway, so neither yields a constraint Kingo can carry.
 
 </design notes>
@@ -54,7 +54,7 @@ Four peer types, sorted by what the system does with what the party holds.
 - theory author → author
   - drive (generalization): to express the resource owner's intent without enumerating instances.
   - condition (expressiveness): the language can state the intent without falling back to enumeration.
-  - condition (predictability): the effect of a definition can be seen before it takes effect — its blast radius is unbounded.
+  - condition (predictability): the effect of a definition can be seen before it takes effect, because its blast radius is unbounded.
 - fact author → author
   - drive (currency): to express the resource owner's intent by enumerating instances, and keep them current.
   - condition (rate): writes keep pace with how fast relationships change in the world.
@@ -87,17 +87,17 @@ Four peer types, sorted by what the system does with what the party holds.
 
 ## Nefarious actors
 
-Three harms are named in the resource owner's goal, and each names an actor. A path is how the actor reaches the goal through Kingo.
+One actor per harm named in the resource owner's goal. A path is how an actor reaches its goal through Kingo.
 
 - thief
   - goal: to have what is not theirs.
   - condition (deniability): nothing ties the taking to them.
-  - condition (persistence): what they took stays taken after the owner objects.
+  - condition (persistence): what they took stays theirs even after the owner tries to take it back.
   - path: a fabricated fact.
   - path: a widened relation, so facts already written grant more than they did.
   - path: the window between a revocation and its effect.
   - path: the boundary between one account and another.
-  - path: a decision the enforcer fails open on.
+  - path: an enforcer that fails open when Kingo cannot answer.
 - spy
   - goal: to know what they were not told.
   - condition (deniability): the owner never learns they looked.
@@ -106,7 +106,7 @@ Three harms are named in the resource owner's goal, and each names an actor. A p
   - path: probing decisions for the shape of the graph behind them.
   - path: asking as an enforcer they are not.
 - vandal
-  - goal: to deprive the owner of their own resources.
+  - goal: to deprive the owner of their resources.
   - condition (leverage): causing the outage costs far less than serving the traffic would.
   - path: exhausting the decision path.
 
@@ -114,11 +114,11 @@ Offstage, acting on the relying party rather than on Kingo: the intruder at its 
 
 ## Tensions
 
-- Wrong denies are reported, wrong allows are not. The only actor positioned to notice a decision is the accessor, and they have no incentive to report an allow they shouldn't have had. Over-permissiveness is therefore invisible in production and must be caught by the record or by examples, never by users.
+- Wrong denies are reported, wrong allows are not. The only party positioned to notice a decision is the accessor, and they have no incentive to report an allow they shouldn't have had. Over-permissiveness is therefore invisible in production and must be caught by the record or by examples, never by users.
 - The record can prove the expression was followed, never that the expression was right. Intent never enters Kingo, so conformance to expression is mechanically checkable and conformance to intent is not.
 
 ## Open
 
-- Is tenant isolation structural or decided? Tenant is a PAP concept and must also be a PDP one, or a caller scoped to one tenant could ask about another's resources. Recommendation: structural — the account scopes the request before the engine runs, so no theory a tenant writes can reach past it. Deciding isolation with the same engine it compartmentalizes makes a theory bug a cross-tenant breach, which contradicts the tenant's own goal. The answer also decides whether crossing the boundary is a thief's path through Kingo or a defect outside the engine entirely.
+- Is tenant isolation structural or decided? Tenant is a PAP concept and must also be a PDP one, or a caller scoped to one tenant could ask about another's resources. Recommendation: structural — the account scopes the request before the engine runs, so no theory a tenant writes can reach past it. Deciding isolation with the same engine it compartmentalizes makes a theory bug a cross-tenant breach. That contradicts the tenant's own goal. The answer decides whether crossing the boundary is a thief's path through Kingo or a defect outside it.
 - A content creator is a resource owner who never touches Kingo, yet resource owner is catalogued as a primary actor. Either resource owner is an abstract root whose subtypes split across actor and stakeholder, or the primary entry needs narrowing to the owners who reach the boundary.
 - The actor list in the operation-set note predates this one and should point here instead.
