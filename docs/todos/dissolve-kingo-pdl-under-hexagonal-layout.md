@@ -3,7 +3,6 @@ title: Dissolve Kingo.Pdl under hexagonal layout
 type: todo
 summary: "Closed 2026-07-14: the domain half landed by fresh construction in Kingo core; the adapter half landed as Kingo.Serialization.Pdl (first port interface, adapter-layer ArchUnit rules, Result-first parser/serializer); the Kingo.Pdl quarry is deleted."
 tags: [hexagonal, pdl]
-created: 2026-05-13
 status: closed
 priority: high
 effort: medium
@@ -45,7 +44,7 @@ Likely coordinated with [[move-jsonconverter-off-identifier-types-into-the-json-
 
 - **The transform exits through `Namespace.Define`, not the raw constructor.** `Define(name, relationships)` is the core's `Result`-returning structured factory (landed with the test pass): duplicate relationship names fail as accumulated `namespace.duplicate_relationship` validation errors. The adapter decodes the document, then calls `Define` at the untrusted boundary — its first real caller. The raw constructor is pure assignment for trusted sources only, mirroring the `Create`/`Parse` split ([[ubiquitous-language]]).
 - **First slice sets the layer.** This work creates the first port interface in `Kingo.Serialization` and the adapter-layer ArchUnit rules; `.Json`/`.Yaml` inherit the shape. The three serialization projects are scaffolded but empty today.
-- **Queue behind it:** [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] (unblocks REST hosts), then in any order the rewrite interpreters ([[four-service-split-by-load-profile]]), storage on DynamoDbLite ([[dynamodblite-substrate]]), and the zookie/snapshot design session — the Write host waits on all three.
+- **Queue behind it:** [[move-jsonconverter-off-identifier-types-into-the-json-adapter]] (unblocks REST hosts), then in any order the rewrite interpreters ([[grouping-the-apis-into-services]]), storage ([[storage-versioning-design]]), and the zookie/snapshot design session — the Write host waits on all three.
 
 ## Resolution
 

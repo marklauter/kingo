@@ -3,7 +3,6 @@ title: Quary sources — prior work preserved on other branches
 type: note
 summary: "The reboot branch is an orphan; main-archive and dictionary-encoding remain on the remote as reference material. Cherry-pick files as needed; do not merge."
 tags: [reference, quarry]
-created: 2026-05-12
 status: locked
 ---
 

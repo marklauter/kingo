@@ -3,7 +3,6 @@ title: Realign serialization projects around their real consumers
 type: todo
 summary: "Mark's post-review correction: .Json/.Yaml exist purely as value-type converter packs for future ASP.NET REST hosts — no document ever crosses the wire — so the IDocumentSerializer port and Kingo.Serialization dissolved; final theory-document surface is TheoryParser.Parse(text) → Result<Theory> plus the theory.Print() extension."
 tags: [hexagonal, serialization, documents]
-created: 2026-07-14
 status: closed
 priority: medium
 effort: low

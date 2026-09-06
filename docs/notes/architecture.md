@@ -3,7 +3,6 @@ title: Architecture
 type: note
 summary: "Hexagonal with a DDD core: Kingo holds the identifiers, Kingo.Facts and Kingo.Theories hold the two halves of the model, Kingo.Closures is where they meet, and adapters own every text format."
 tags: [architecture, hexagonal, ddd]
-created: 2026-05-13
 status: evolving
 ---
 
@@ -32,7 +31,7 @@ The model splits in two. `Kingo.Theories` carries the intensional half: relation
 
 Neither half references the other. They meet in `Kingo.Closures`, where the interpreters read facts through a theory.
 
-The core knows nothing about how anything is persisted, serialized, transported, rendered, or authenticated. Where `Parse` may live is settled in [[parse-belongs-to-single-primitives-with-a-grammar]].
+The core knows nothing about how anything is persisted, serialized, transported, rendered, or authenticated. Where `Parse` may live is settled in [[deciding-which-types-parse-text]].
 
 ## Ports
 

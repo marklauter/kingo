@@ -3,7 +3,6 @@ title: Move inline wikilinks into frontmatter edges
 type: todo
 summary: "Body prose reads as raw markdown, so inline `[[wikilinks]]` are noise. Sweep them out of docs/, promoting each to a typed frontmatter predicate; journal entries are immutable and keep theirs."
 tags: [docs]
-created: 2026-07-31
 priority: low
 status: open
 ---

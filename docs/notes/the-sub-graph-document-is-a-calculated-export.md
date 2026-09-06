@@ -3,7 +3,6 @@ title: The sub-graph document is a calculated export
 type: note
 summary: "A third fact-side artifact: a document holding a selected portion of the graph as state, calculated by asking a subjectset who it contains. It denotes a subgraph, which is what GraphPrinter never did."
 tags: [graphs, documents]
-created: 2026-07-31
 status: evolving
 cites:
   - "[[graph]]"

@@ -3,7 +3,6 @@ title: identifiers
 type: specification
 summary: "Every theory, namespace, and relation is named by a fully-qualified immutable path. The path is the identity — there is no display label and no surrogate key."
 tags: [theory]
-created: 2026-07-23
 status: evolving
 cites:
   - "[[theory]]"

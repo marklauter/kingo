@@ -3,7 +3,6 @@ title: facts
 type: specification
 summary: "A fact is one edge in the authorization graph: a subjectset joined to a subject. The subject is an identity, a subjectset, or a resource."
 tags: [graphs]
-created: 2026-07-24
 status: evolving
 cites:
   - "[[fact]]"

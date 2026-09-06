@@ -3,7 +3,6 @@ title: closures
 type: specification
 summary: "A Closure is one derived closure, fixed by one pin. Its prepared rewrites, pinned fact reader, clock, and depth bound are constructor state, never per-call arguments."
 tags: [evaluation]
-created: 2026-07-27
 status: evolving
 cites:
   - "[[closure]]"
@@ -45,4 +44,4 @@ Version pulls the other way. Each theory carries its own and is the unit of atom
 
 ## Open question: the factory's shape
 
-A `ClosureFactory` holds the long-lived context (the reader for prepared rewrites, the `TimeProvider`, the depth bound) and assembles a `Closure` per request. Unsettled: whether `Create` receives an already-pinned `IFactReader` from the host edge, or takes the pin and pins the reader itself through a third port. The second moves mechanical pinning off the host edge. The host edge keeps the semantic work either way — resolving the request's kookie floor to a coherent (`Kookie`, `TheoryVersion`) pair ([[drift-prevention-at-the-write-edges]], [[storage-versioning-design]]).
+A `ClosureFactory` holds the long-lived context (the reader for prepared rewrites, the `TimeProvider`, the depth bound) and assembles a `Closure` per request. Unsettled: whether `Create` receives an already-pinned `IFactReader` from the host edge, or takes the pin and pins the reader itself through a third port. The second moves mechanical pinning off the host edge. The host edge keeps the semantic work either way — resolving the request's kookie floor to a coherent (`Kookie`, `TheoryVersion`) pair ([[preventing-drift-between-facts-and-theories]], [[storage-versioning-design]]).

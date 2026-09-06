@@ -3,7 +3,6 @@ title: ResourceFact — a third Fact case replaces the ... sentinel
 type: todo
 summary: "Ruled 2026-07-21: `...` is not a relation. The exactly-specified factset member `io/folder:y#...` is the resource itself, carried by a third Fact case — Fact.ResourceFact, resource-only — and RelationName loses the Nothing sentinel. The three factset member shapes become the three Fact cases."
 tags: [graphs, domain]
-created: 2026-07-21
 status: closed
 priority: high
 effort: medium
@@ -14,7 +13,7 @@ cites:
 
 # ResourceFact — a third Fact case replaces the ... sentinel
 
-Ruled (Mark, 2026-07-21): `...` is not a relation. The exactly-specified factset member `io/folder:y#...` is not a `SubjectSet` wearing a sentinel — it is the resource itself, and `Fact` gains a third case to carry it: **`Fact.ResourceFact`**, member typed `Resource`, resource-only. `RelationName` loses `Nothing` and its grammar collapses to name-only. The three factset member shapes become the three `Fact` cases — exactly-specified = `ResourceFact`, over-specified = `SubjectSetFact`, under-specified = `SubjectFact` — so the traversal's shape analysis is case-matching on the union, not sentinel-peeking inside a `SubjectSet`. <!--scrutinize: stale against decision: parse-belongs-to-single-primitives-with-a-grammar.md — the marker's whole job was disambiguating a canonical text form that no longer exists, and the case is already distinguished by the union. The ruling above stands; only this rationale is footless. The checklist and landing record below describe work done against the superseded text form.--> The `#...` text stays as the production's punctuation: bare `io/folder:y` is a legal `<subject-id>` (`:` is in its grammar), so the marker is what keeps `ResourceFact` and `SubjectFact` distinguishable in canonical text.<!--/scrutinize-->
+Ruled (Mark, 2026-07-21): `...` is not a relation. The exactly-specified factset member `io/folder:y#...` is not a `SubjectSet` wearing a sentinel — it is the resource itself, and `Fact` gains a third case to carry it: **`Fact.ResourceFact`**, member typed `Resource`, resource-only. `RelationName` loses `Nothing` and its grammar collapses to name-only. The three factset member shapes become the three `Fact` cases — exactly-specified = `ResourceFact`, over-specified = `SubjectSetFact`, under-specified = `SubjectFact` — so the traversal's shape analysis is case-matching on the union, not sentinel-peeking inside a `SubjectSet`. <!--scrutinize: stale against decision: deciding-which-types-parse-text.md — the marker's whole job was disambiguating a canonical text form that no longer exists, and the case is already distinguished by the union. The ruling above stands; only this rationale is footless. The checklist and landing record below describe work done against the superseded text form.--> The `#...` text stays as the production's punctuation: bare `io/folder:y` is a legal `<subject-id>` (`:` is in its grammar), so the marker is what keeps `ResourceFact` and `SubjectFact` distinguishable in canonical text.<!--/scrutinize-->
 
 Consequences settled with the ruling:
 

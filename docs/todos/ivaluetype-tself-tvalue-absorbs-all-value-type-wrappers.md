@@ -3,7 +3,6 @@ title: IValueType<TSelf, TValue> absorbs all value-type wrappers
 type: todo
 summary: "Closed by fresh construction: every identifier in Kingo core implements IValueType<TSelf, string>; IStringConvertible survives only in the Kingo.Pdl quarry and dies with it."
 tags: [hexagonal]
-created: 2026-05-13
 status: closed
 ---
 

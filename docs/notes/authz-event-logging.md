@@ -3,7 +3,6 @@ title: Authorization event logging — CloudTrail-style audit
 type: note
 summary: "Every authorization decision and every control-plane change emits a durable audit event, CloudTrail-style: writes are management events (the changelog already is that record), Check decisions are data events shipped asynchronously as serialized Decisions."
 tags: [audit, design]
-created: 2026-07-15
 status: evolving
 ---
 
@@ -22,6 +21,6 @@ The audit event is the host's request envelope plus the `Decision` (`Kingo.Closu
 
 ## Emission is asynchronous, never in the hot path
 
-Check returns; the event goes to a bounded in-process buffer and a background shipper delivers batches (CloudTrail itself is eventually-delivered). Architecturally a port (a decision sink) implemented at the host edge — the pure interpreter never sees it ([[four-service-split-by-load-profile]]).
+Check returns; the event goes to a bounded in-process buffer and a background shipper delivers batches (CloudTrail itself is eventually-delivered). Architecturally a port (a decision sink) implemented at the host edge — the pure interpreter never sees it ([[grouping-the-apis-into-services]]).
 
 **Open policy question:** what happens when the buffer is full — drop events (availability wins) or backpressure Check (auditability wins)? A deployment policy knob, not a code detail; decide when the host work begins.

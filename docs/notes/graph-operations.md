@@ -3,7 +3,6 @@ title: graph-operations
 type: note
 summary: "A graph operation is an atomic set of fact operations — apply and drop — applied to the graph as one Write transaction. Projected to and from YAML as its wire form, with a property per part of a fact."
 tags: [graphs, documents]
-created: 2026-07-31
 status: evolving
 cites:
   - "[[graph]]"
@@ -15,7 +14,7 @@ cites:
   - "[[facts]]"
   - "[[theories]]"
   - "[[identifiers]]"
-  - "[[parse-belongs-to-single-primitives-with-a-grammar]]"
+  - "[[deciding-which-types-parse-text]]"
   - "[[graph-document-is-bulk-dml]]"
   - "[[the-sub-graph-document-is-a-calculated-export]]"
 ---

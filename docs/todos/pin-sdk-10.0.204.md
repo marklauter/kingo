@@ -3,7 +3,6 @@ title: Pin global.json to SDK 10.0.204 with rollForward disable
 type: todo
 summary: "Closed: global.json pins 10.0.204 with rollForward disable — the full target. CI is hermetic and fail-loud: it installs exactly 10.0.204 or reds the build."
 tags: [global-json, sdk, house-canon]
-created: 2026-07-16
 priority: medium
 effort: low
 status: closed

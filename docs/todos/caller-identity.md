@@ -3,7 +3,6 @@ title: Caller identity
 type: todo
 summary: "Open question: what 'caller identity' means at the Check host edge — network context, principal claims, and on-behalf-of chains — and the three distinct authorization decisions an OBO call implies, including whether the caller may call Kingo at all."
 tags: [hosts, identity, audit]
-created: 2026-07-17
 status: open
 priority: medium
 effort: medium
@@ -39,4 +38,4 @@ Decisions 1 and 2 are two `Contains` questions in one request; decision 3 is edg
 
 - [[rewrite-interpreters]] — the envelope-not-Decision ruling this question grows out of
 - [[authz-event-logging]] — the audit event the envelope feeds
-- [[four-service-split-by-load-profile]] — the hosts where all of this lives
+- [[grouping-the-apis-into-services]] — the hosts where all of this lives
