@@ -18,7 +18,7 @@ cites:
   - "[[theory]]"
   - "[[kookie]]"
   - "[[fact-reader-port]]"
-  - "[[rewrite-interpreters]]"
+  - "[[implement-contains-and-expand]]"
 ---
 
 # Closures
@@ -40,7 +40,7 @@ There is one pin. A [[kookie]] names one snapshot on the store's one timeline, a
 
 A closure is defined over the catalog's rewrites, and [[specs/catalog]] holds that a reference resolves against the catalog rather than the [[theory]] that wrote it. A walk leaves its theory by following facts. A fully-qualified member in another theory still needs its rewrite to continue, so a projection covering one theory cannot serve the lookup.
 
-Version pulls the other way. Each theory carries its own and is the unit of atomic change, so a catalog-spanning projection has no single version to key on. The port serving it cannot be keyed on `TheoryVersion` alone. The same tension reaches [[rewrite-interpreters]], where a [[decision]] carries one opaque `TheoryVersion`: a walk that crosses theories leaves that slot under-specified.
+Version pulls the other way. Each theory carries its own and is the unit of atomic change, so a catalog-spanning projection has no single version to key on. The port serving it cannot be keyed on `TheoryVersion` alone. The same tension reaches [[implement-contains-and-expand]], where a [[decision]] carries one opaque `TheoryVersion`: a walk that crosses theories leaves that slot under-specified.
 
 ## Open question: the factory's shape
 

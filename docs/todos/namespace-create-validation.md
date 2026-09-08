@@ -5,12 +5,12 @@ summary: "Namespace.Create rejects rewrite defects at construction: cycles in th
 tags: [theory, validation]
 status: closed
 priority: high
-supports: "[[rewrite-interpreters]]"
+supports: "[[implement-contains-and-expand]]"
 ---
 
 # Namespace.Create validation — cycles and dangling references
 
-Ruled (Mark, 2026-07-18): an unhealthy theory is detected at construction, so `Contains` carries no theory-cycle guard and its depth bound counts only fact-driven re-entries ([[rewrite-interpreters]], condition 3). Today neither `Theory.Create` nor `Namespace.Create` validates rewrite references at all — a `Namespace` with cycles or dangling references constructs successfully. This work closes that.
+Ruled (Mark, 2026-07-18): an unhealthy theory is detected at construction, so `Contains` carries no theory-cycle guard and its depth bound counts only fact-driven re-entries ([[implement-contains-and-expand]], condition 3). Today neither `Theory.Create` nor `Namespace.Create` validates rewrite references at all — a `Namespace` with cycles or dangling references constructs successfully. This work closes that.
 
 ## What to validate, per namespace, at construction
 

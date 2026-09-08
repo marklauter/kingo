@@ -17,7 +17,7 @@ Facts and theories are separately writable artifacts that reference each other. 
 
 A third rule makes the invariants hold at read time as well as write time: evaluation and replay always read a coherent ([[kookie]], theory version) pair, both artifacts versioned on the one store timeline ([[storage-versioning-design]]).
 
-Consequences: the evaluator's undefined-namespace-or-relation error ([[rewrite-interpreters]] condition 4) is a never-in-practice backstop, reachable only through a mismatched pair or a coupling bug; and facts carry no theory version, because valid-at-write-time now implies valid-under-every-theory-since.
+Consequences: the evaluator's undefined-namespace-or-relation error ([[implement-contains-and-expand]] condition 4) is a never-in-practice backstop, reachable only through a mismatched pair or a coupling bug; and facts carry no theory version, because valid-at-write-time now implies valid-under-every-theory-since.
 
 ## Alternatives
 

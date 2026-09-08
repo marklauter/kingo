@@ -14,7 +14,7 @@ cites:
   - "[[expand]]"
   - "[[kleene-absorption]]"
   - "[[grouping-the-apis-into-services]]"
-  - "[[rewrite-interpreters]]"
+  - "[[implement-contains-and-expand]]"
 ---
 
 # The fact-reader port
@@ -42,7 +42,7 @@ Both overloads answer absence with the empty set. A miss is the ordinary input t
 
 ## Failure means the snapshot could not be consulted
 
-The `Result` fails only for the interpreter error taxonomy's family 3 ([[rewrite-interpreters]]):
+The `Result` fails only for the interpreter error taxonomy's family 3 ([[implement-contains-and-expand]]):
 
 - **Fact lookup failed** — the adapter's I/O broke and stayed broken after its own retries.
 - **Snapshot unavailable** — the pin points past the store's retention horizon.
@@ -60,4 +60,4 @@ Snapshot unavailable lands on `ErrorType.Gone`: the pin existed and the retentio
 The larger question is whether a failed lookup stays a value at all. The rule elsewhere is that domain failure returns and substrate failure throws. A broken adapter is a substrate failure. It is a value here because [[kleene-absorption]] needs an unavailable operand to be dominated by an absorbing one. Under `(this | (parent, viewer)) ! banned`, a throwing `banned` read cannot be absorbed by an operand that already decides the answer, so the verdict would depend on which operand ran first.
 
 - Keep it a value. `ErrorType` gains a category for unavailability, and the substrate-throws rule carries a named exception at this port.
-- Let it throw. Absorption of an unavailable operand goes with it, and two rulings are rewritten: this document's translation of substrate exceptions at the port, and [[rewrite-interpreters]]'s "7–8 are the port's own error values."
+- Let it throw. Absorption of an unavailable operand goes with it, and two rulings are rewritten: this document's translation of substrate exceptions at the port, and [[implement-contains-and-expand]]'s "7–8 are the port's own error values."

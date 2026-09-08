@@ -9,7 +9,7 @@ cites:
   - "[[actor-catalog]]"
   - "[[grouping-the-apis-into-services]]"
   - "[[authz-event-logging]]"
-  - "[[rewrite-interpreters]]"
+  - "[[implement-contains-and-expand]]"
   - "[[storage-versioning-design]]"
   - "[[precomputed-closure-index-for-the-hot-path]]"
 ---
@@ -21,7 +21,7 @@ cites:
 - **Check** — produces a decision.
 - **Write** — asserts theories and facts.
 - **Read** — returns stored theories and facts, with no rewrite evaluation. Reading theories serves the theory author's predictability condition ([[actor-catalog]]), which Expand assumes and cannot supply.
-- **Expand** — materializes one relation's rewrite tree, single-level with respect to indirection ([[rewrite-interpreters]]). Carried as one operation with two directions (Mark, 2026-08-08); the reverse direction is unsettled ([[reverse-expansion-has-no-derivation-path]]).
+- **Expand** — materializes one relation's rewrite tree, single-level with respect to indirection ([[implement-contains-and-expand]]). Carried as one operation with two directions (Mark, 2026-08-08); the reverse direction is unsettled ([[reverse-expansion-has-no-derivation-path]]).
 - **Watch** — streams events from a cursor.
 - **Audit** — returns retained events.
 

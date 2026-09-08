@@ -8,7 +8,7 @@ priority: medium
 status: deferred
 blocked-by:
   - "[[storage-versioning-design]]"
-  - "[[rewrite-interpreters]]"
+  - "[[implement-contains-and-expand]]"
 ---
 
 # Precomputed closure index for the hot path

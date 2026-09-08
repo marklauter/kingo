@@ -1,5 +1,5 @@
 ---
-title: Rewrite interpreters — Contains and Expand
+title: Implement Contains and Expand over SubjectSetRewrite in Kingo.Closures
 type: todo
 summary: "One algebra, two interpreters: Contains (Check's short-circuiting membership predicate) and Expand (single-level tree materialization) over SubjectSetRewrite — in Kingo.Closures, fact lookup as the first genuine port, Decision and Expansion as the results. Requirements only; design clean-room."
 tags: [closures, interpreters]
@@ -8,7 +8,7 @@ priority: high
 effort: high
 ---
 
-# Rewrite interpreters — Contains and Expand
+# Implement Contains and Expand over SubjectSetRewrite in Kingo.Closures
 
 ## Clean-room constraint
 
