@@ -34,13 +34,11 @@ A [[closure]] is the set of subjects derivable for a [[subjectset]] from the [[g
 - **The clock** — an injected `TimeProvider`, supplying the wall timestamp on [[decision]] and [[expansion]].
 - **The depth bound** — `Contains`-only configuration. `Expand` never recurses and ignores it.
 
-There is one pin. A [[kookie]] names one snapshot on the store's one timeline, and the covering `TheoryVersion` is derivable from it — the theory at K ([[storage-versioning-design]]). What differs is churn: the theory changelog advances on admin action, fact intervals on every write. So one prepared projection serves many closures while the reader is pinned per request, and requests at the same coherent pair may share one instance, everything inside being immutable.
+There is one pin. A [[kookie]] names one snapshot on the store's one timeline. The changelog versions each theory on its own, and the kookie selects one version of each; that selection is the catalog snapshot ([[specs/catalog]], [[storage-versioning-design]]). What differs is churn: the theory changelog advances on admin action, fact intervals on every write. So one prepared projection serves many closures while the reader is pinned per request, and requests at the same kookie may share one instance, everything inside being immutable.
 
-## Open question: what the prepared projection spans
+## The prepared projection spans the catalog
 
-A closure is defined over the catalog's rewrites, and [[specs/catalog]] holds that a reference resolves against the catalog rather than the [[theory]] that wrote it. A walk leaves its theory by following facts. A fully-qualified member in another theory still needs its rewrite to continue, so a projection covering one theory cannot serve the lookup.
-
-Version pulls the other way. Each theory carries its own and is the unit of atomic change, so a catalog-spanning projection has no single version to key on. The port serving it cannot be keyed on `TheoryVersion` alone. The same tension reaches [[implement-contains-and-expand]], where a [[decision]] carries one opaque `TheoryVersion`: a walk that crosses theories leaves that slot under-specified.
+A closure is defined over the catalog's rewrites, and [[specs/catalog]] holds that a reference resolves against the catalog rather than the [[theory]] that wrote it. A walk leaves its theory by following facts, and a fully-qualified member in another theory still needs its rewrite to continue, so the projection covers the catalog at the pin. It is keyed on the kookie, not on any theory's version, and a [[decision]] carries the kookie alone (ruled 2026-09-08, [[implement-contains-and-expand]]).
 
 ## Open question: the factory's shape
 
