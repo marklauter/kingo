@@ -8,7 +8,7 @@ priority: medium
 effort: medium
 blocked-by: "[[precomputed-closure-index-for-the-hot-path]]"
 cites:
-  - "[[rewrite-interpreters]]"
+  - "[[implement-contains-and-expand]]"
   - "[[actor-catalog]]"
 ---
 
@@ -16,7 +16,7 @@ cites:
 
 [[the-operation-set]] lists Expand as one operation with two directions and marks the pairing provisional. Forward materializes a subjectset's rewrite tree. Reverse answers "which resources can this subject reach," the question behind every filtered list view.
 
-The rewrite interpreters do not supply reverse and are not meant to: Contains is a membership predicate, and Expand materializes one relation's rewrite tree downward. Requirement 6 of [[rewrite-interpreters]] — the evaluator needs no reverse lookup — is unaffected. Finding every subjectset whose closure contains an identity is [[precomputed-closure-index-for-the-hot-path]]'s problem, which is why this cannot be settled before that index exists.
+The rewrite interpreters do not supply reverse and are not meant to: Contains is a membership predicate, and Expand materializes one relation's rewrite tree downward. Requirement 6 of [[implement-contains-and-expand]] — the evaluator needs no reverse lookup — is unaffected. Finding every subjectset whose closure contains an identity is [[precomputed-closure-index-for-the-hot-path]]'s problem, which is why this cannot be settled before that index exists.
 
 Two questions, in order.
 

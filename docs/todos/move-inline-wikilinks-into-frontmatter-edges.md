@@ -22,7 +22,7 @@ No `[[...]]` in body prose under `docs/`, every edge it carried present in front
 - Not a bracket-strip. A body link is often the only edge to its target, so each one is promoted to a frontmatter key first and deleted second. Dropping one loses the edge.
 - The predicate comes from the sentence. Where the prose says refines, supersedes, contradicts, or supports, that word becomes the key. `cites` covers the rest.
 - Journal entries under `docs/journal/` are immutable and are left alone, inline links included.
-- `docs/todos/rewrite-interpreters.md` is the largest single job at 23 links, then `docs/specs/closures.md` at 20 and `docs/specs/fact-reader-port.md` at 17. Those counts include frontmatter that is already correct.
+- `docs/todos/implement-contains-and-expand.md` is the largest single job at 23 links, then `docs/specs/closures.md` at 20 and `docs/specs/fact-reader-port.md` at 17. Those counts include frontmatter that is already correct.
 
 One case is already converted and stands as the pattern: `docs/specs/identifiers.md` and `docs/specs/closures.md` each lost a body link to `catalog` whose target was already in `cites`, leaving the word plain in the sentence.
 

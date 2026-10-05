@@ -17,6 +17,6 @@ The recursion therefore has two sources, and each has its own guard:
 
 The graph is the resource-to-resource notation: `Fact.ResourceFact` — `io/folder:x#parent@io/folder:y#...` — is the edge the walk traverses. The walkable pointer is the only member encoding that is graph rather than set ([[resource-fact-case]]). The other two encodings denote sets: an identity its singleton, a subjectset its derived set. A [[fact]] asserts inclusion between sets ([[ubiquitous-language]]), so the walk is confined to the pointer encoding and the rest is set algebra.
 
-The framing also explains why "reachability" was rejected when [[closure]] was named. An `!` operand contributes a constraint no walk can witness: non-membership's proof is the exhausted search. So a verdict is a function over several reachability questions, and the no-proof-path ruling in [[rewrite-interpreters]] is the same fact seen from the Decision's side.
+The framing also explains why "reachability" was rejected when [[closure]] was named. An `!` operand contributes a constraint no walk can witness: non-membership's proof is the exhausted search. So a verdict is a function over several reachability questions, and the no-proof-path ruling in [[implement-contains-and-expand]] is the same fact seen from the Decision's side.
 
 Walking is a sound intuition only for the union-only fragment of the algebra; "derivable" is the word that survives exclusion ([[closure]]).

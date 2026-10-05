@@ -12,7 +12,7 @@ effort: medium
 
 ## Observation
 
-The interpreter ruling in [[rewrite-interpreters]] (2026-07-17) put caller identity in the host's request envelope, not on the `Decision`. That ruling settles *where* identity lives; it leaves open *what* identity is. "Identity of caller" covers at least:
+The interpreter ruling in [[implement-contains-and-expand]] (2026-07-17) put caller identity in the host's request envelope, not on the `Decision`. That ruling settles *where* identity lives; it leaves open *what* identity is. "Identity of caller" covers at least:
 
 - **Network context** — IP, user agent, and the rest of the transport-level envelope; audit material ([[authz-event-logging]]).
 - **The principal** — literally the authenticated subject: claims, token, the authn-side identity that maps to an `Identity`.
@@ -30,12 +30,12 @@ Decisions 1 and 2 are two `Contains` questions in one request; decision 3 is edg
 
 ## Next
 
-- Decide the envelope shape: which identity facets (network context, principal, OBO chain) the Check host records per request, feeding the audit event (envelope + serialized `Decision`, per [[rewrite-interpreters]]).
+- Decide the envelope shape: which identity facets (network context, principal, OBO chain) the Check host records per request, feeding the audit event (envelope + serialized `Decision`, per [[implement-contains-and-expand]]).
 - Decide whether the OBO pattern is one API call carrying both questions or two calls, and whether Kingo models the OBO grant as ordinary facts (Mark's read, 2026-07-17: yes, decision 1 is just another check).
 - Decide how decision 3 is enforced — Kingo checking against its own namespace vs. host-level authn policy — and whether that self-check bootstraps cleanly.
 
 ## Related
 
-- [[rewrite-interpreters]] — the envelope-not-Decision ruling this question grows out of
+- [[implement-contains-and-expand]] — the envelope-not-Decision ruling this question grows out of
 - [[authz-event-logging]] — the audit event the envelope feeds
 - [[grouping-the-apis-into-services]] — the hosts where all of this lives
